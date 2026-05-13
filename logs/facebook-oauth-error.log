@@ -1,0 +1,45 @@
+[13-May-2026 03:41:58 Europe/Berlin] [Facebook OAuth] Token Exchange - HTTP: 200 | Response: {"access_token":"EAAXKnwXqvBkBRauUKPxebPUuGD7ZCSHTRvfGUl4olqxSZCrqFswsVqWMrchwFfBjtd89BUXgo8Bn1VYALQXS0lslsHWxWg9WjDZAPGbAM34v6nKM450dmRNSTzP4bPLfK3aTa7hHHqFSh37ZAMC68ub5BEtrP79ZCpP8o5dNMIpHLRdc3UCtLcckvMlZAYjwaZBQGBNOSQZCnJyoOHlZCIz1SbZAbKZAZC7QnQnwBeK3e44NxCpYrtyuNKfdcvNZAi4i9NpTB3IcFqzx4WOo3HDMHW5jfOHvXjXdrKpy4JjVO4YrygvQq0Wf6qCwr","token_type":"bearer","expires_in":5181854} | cURL Error: 
+[13-May-2026 03:41:58 Europe/Berlin] [Facebook OAuth] Redirect URI used: http://localhost/admin_booking/build/facebook-callback
+[13-May-2026 03:41:59 Europe/Berlin] [downloadProfileImage] Resolved uploadDir: C:/xampp/htdocs\uploads\profile_photos\
+[13-May-2026 03:41:59 Europe/Berlin] [downloadProfileImage] Attempting to save profile image to: C:/xampp/htdocs\uploads\profile_photos\8fcd4889-56ae-41bb-b6d4-73aa851ab752_1778636519.jpg
+[13-May-2026 03:41:59 Europe/Berlin] [downloadProfileImage] Downloaded image size: 6425 bytes
+[13-May-2026 03:41:59 Europe/Berlin] [downloadProfileImage] Successfully saved: C:/xampp/htdocs\uploads\profile_photos\8fcd4889-56ae-41bb-b6d4-73aa851ab752_1778636519.jpg
+[13-May-2026 03:41:59 Europe/Berlin] PHP Notice:  session_start(): Ignoring session_start() because a session is already active in C:\xampp\htdocs\admin_booking\build\facebook-callback.php on line 404
+[13-May-2026 03:56:59 Europe/Berlin] [Facebook OAuth] Token Exchange - HTTP: 200 | Response: {"access_token":"EAAXKnwXqvBkBRWNZAC6PqkCExZBcyp0nHuFbPjlIkekHEWKPLr7y1CGiYNotXLZBC0MNZCLiOUMN4qYog23wlY9WWLqM63ZAxvVYow2jQU7e7xWWdB5hAeZBRIaL2PlnRBmxJaZAxgcuq8G7AsUUpFsLzWJ01a9LVrQkCZBgAplnMKg3JBopWH369bb3ceI2YRpZAqawBtzSj0DAqxBWvwnLvQafidzl0141brintDO5hQy8yGHD7UWN9ROOHNAxsEskDvpVw7kkvL8gCXX3dfw5MUn1kQzX6HmUVGZC2sPSU8bbI9mZCUbCHEu","token_type":"bearer","expires_in":5180952} | cURL Error: 
+[13-May-2026 03:56:59 Europe/Berlin] [Facebook OAuth] Redirect URI used: http://localhost/admin_booking/build/facebook-callback
+[13-May-2026 03:57:00 Europe/Berlin] PHP Notice:  session_start(): Ignoring session_start() because a session is already active in C:\xampp\htdocs\admin_booking\build\facebook-callback.php on line 223
+[13-May-2026 04:12:07 Europe/Berlin] [Facebook OAuth] Token Exchange - HTTP: 200 | Response: {"access_token":"EAAXKnwXqvBkBRWpIoUYU0m2wNAIMh6QkYKHSgX9YqKKUUpAtwQAivgJOFikvBPx7ZAs85Aovs4wR9zrv4HZCFBdvjJGzgmMOZCNCTteMZAZB3OiJEgs5RTmdWl0ubW5bGCJWJDZBwQwiG4hGoK3IvZCRCtB7KN6OHXenql7MXUoWaTrwfJ4zzLZB0JGzwhfZCUIThG7Fk7WiDqkYsWCzNdCIZBhY0ljws4GZAZBR7xj0VjN26E1sMZAICM7qisLlZBmWnx5z7uOkjX7S2Ea2ZAa4lVmcIBBh6KVK5VJhZAdVG4WtZC1ugfSqaigHkWVKZA","token_type":"bearer","expires_in":5180045} | cURL Error: 
+[13-May-2026 04:12:07 Europe/Berlin] [Facebook OAuth] Redirect URI used: http://localhost/admin_booking/build/facebook-callback
+[13-May-2026 04:14:24 Europe/Berlin] [Facebook OAuth] Token Exchange - HTTP: 200 | Response: {"access_token":"EAAXKnwXqvBkBRSpeTGydMQoSG8ceqzkIXzkaZCpgvGNx6BfeIGRKQSaeEVxJ0tCzbdSoTzdyqY4hO1ZC0aEIF1HWS10XFxnDAAnZBwEQeT9vAZAbZAAz8OE6bZAjZBfrKiZBnhIcmdAZA3iZAHCVKSQCEzTNQweoo7c7PuDkevbvo4HilJenedWvDLdspmcoeyAuDASp6qXZBBfoclSYDCirCst3RZAJx3ynUUUrmlZBYqHlxz1FVkhqM36SEVI72BswNDfZChTJQYF9YzlMRKiOU2g4PbhX6ARpuTbm4yNlprfcZCfoOLgofqK7Lc4","token_type":"bearer","expires_in":5179908} | cURL Error: 
+[13-May-2026 04:14:24 Europe/Berlin] [Facebook OAuth] Redirect URI used: http://localhost/admin_booking/build/facebook-callback
+[13-May-2026 04:14:25 Europe/Berlin] [Facebook OAuth] User Info Fetch - HTTP: 200 | Response: {"id":"2177017133085887","name":"Henry Apas","email":"apashenry147\u0040gmail.com","picture":{"data":{"height":200,"is_silhouette":false,"url":"https:\/\/platform-lookaside.fbsbx.com\/platform\/profilepic\/?asid=2177017133085887&height=200&width=200&ext=1781230407&hash=AftKv1GJnTS9rNfVwrlfyipN","width":200}}} | cURL Error: 
+[13-May-2026 04:15:18 Europe/Berlin] [Facebook OAuth] Token Exchange - HTTP: 200 | Response: {"access_token":"EAAXKnwXqvBkBRXUJZB2iETJBzebICgvLf7kInnIqngXyXBlj1RYa8uu8rP5Qyc4hZAiyUSbCWZCPoOS0NggiVYd7kTZBCJTSa9IS3645LM4X1ZC1sdbS5RXworPB4q1KGQPzhSZA7nCxZBaQnBlhGnFcmYT0Uiyt5Oo1QZBsFOrHgXtNFRfs5hZCZCGoOivLgUb4phWntoyB91c2lr6ZBZCKWMZCjvJW8Ct7QSVzC1OT8l9oR1fYkvQvuW5Qi7v7z2ZA5s3bnPmeqhvPqZCXKDwFpYZBEt2DyRmWUMYfETlCAtTQ7OScqWl0TMpMx3Us","token_type":"bearer","expires_in":5179853} | cURL Error: 
+[13-May-2026 04:15:18 Europe/Berlin] [Facebook OAuth] Redirect URI used: http://localhost/admin_booking/build/facebook-callback
+[13-May-2026 04:15:19 Europe/Berlin] [Facebook OAuth] User Info Fetch - HTTP: 200 | Response: {"id":"2177017133085887","name":"Henry Apas","email":"apashenry147\u0040gmail.com","picture":{"data":{"height":200,"is_silhouette":false,"url":"https:\/\/platform-lookaside.fbsbx.com\/platform\/profilepic\/?asid=2177017133085887&height=200&width=200&ext=1781230461&hash=AfvstBkBPqTNzny1h377irq-","width":200}}} | cURL Error: 
+[13-May-2026 04:15:19 Europe/Berlin] [Facebook OAuth] User data - ID: 2177017133085887 | Email: apashenry147@gmail.com | Name: Henry Apas
+[13-May-2026 04:15:19 Europe/Berlin] [Facebook OAuth] CASE 1: Checking if user exists with Facebook ID
+[13-May-2026 04:15:19 Europe/Berlin] [Facebook OAuth] CASE 1 result: User found
+[13-May-2026 04:16:01 Europe/Berlin] [Facebook OAuth] Token Exchange - HTTP: 200 | Response: {"access_token":"EAAXKnwXqvBkBRez3XJDkKe5JcKLYNTatNoZBdYMF2JNxtVGsI6zNhPVZCspFWZCcDpUE14SwK8TT40VT63ZAQMi9GMLuXZBmGaRqHgLMMmLHMVL39oseZBhZBsyDyG9dPtfxMr0QT0oTOJPwoJl5fYpmvtFcDcLFFLULCFYTUH9izh8Vo5DcZBIt2gi2hSsKRZC9rkzM3EJkElZBxGdBgndm5cQmz70r6xPNxbu0Sw3CF6apNZC44zZBH23SHKNlX0bgAuQrAP9HjHqUu04qKIBZA9gm5Blfqck2G8ZC1mjgBWjXi8bqkJIs88Ig7q","token_type":"bearer","expires_in":5179811} | cURL Error: 
+[13-May-2026 04:16:01 Europe/Berlin] [Facebook OAuth] Redirect URI used: http://localhost/admin_booking/build/facebook-callback
+[13-May-2026 04:16:01 Europe/Berlin] [Facebook OAuth] User Info Fetch - HTTP: 200 | Response: {"id":"2177017133085887","name":"Henry Apas","email":"apashenry147\u0040gmail.com","picture":{"data":{"height":200,"is_silhouette":false,"url":"https:\/\/platform-lookaside.fbsbx.com\/platform\/profilepic\/?asid=2177017133085887&height=200&width=200&ext=1781230503&hash=AftfatCBzj24qivW_zCEdLB1","width":200}}} | cURL Error: 
+[13-May-2026 04:16:01 Europe/Berlin] [Facebook OAuth] User data - ID: 2177017133085887 | Email: apashenry147@gmail.com | Name: Henry Apas
+[13-May-2026 04:16:01 Europe/Berlin] [Facebook OAuth] CASE 1: Checking if user exists with Facebook ID
+[13-May-2026 04:16:01 Europe/Berlin] [Facebook OAuth] CASE 1 result: User found
+[13-May-2026 04:16:01 Europe/Berlin] [Facebook OAuth] CASE 1: User found, account status: active
+[13-May-2026 04:16:01 Europe/Berlin] [Facebook OAuth] CASE 1: Account active, fetching role
+[13-May-2026 04:16:01 Europe/Berlin] [Facebook OAuth] CASE 1: Role fetched - code: customer
+[13-May-2026 04:16:01 Europe/Berlin] [Facebook OAuth] CASE 1: Updated last login, setting session
+[13-May-2026 04:16:01 Europe/Berlin] [Facebook OAuth] CASE 1: Session set, creating session record
+[13-May-2026 04:16:01 Europe/Berlin] [Facebook OAuth] CASE 1: Redirecting to dashboard
+[13-May-2026 04:17:39 Europe/Berlin] [Facebook OAuth] Token Exchange - HTTP: 200 | Response: {"access_token":"EAAXKnwXqvBkBRR6xuQNKkmYzzSmmkafDC9DyMpC1GqyPgg41mwTu3mMbTJjptid1AqEmfw9ZBlRXZBvgKxsXnK9Nnz6Dc3kZCFZCJOBvDNrQgMXRZCHKIjkNRqiNeF7mqj2Kage5PwSbrMFzwAJWShp84HhbYjQUrdyJyrQzNZBuBuZBWriOBAZCqirlD44rZCtitgkNkpDTUvmZBLAi2RzYjfv1HdQnnRTZBJ2tZCxZAOI0HW8hQ1DZB5JjtNA2rYk9Eh41okkuOrP2zyxXllX1JftC18ZCaw6FGOqvLsYQNer6OmaJwte4OHSiN2N","token_type":"bearer","expires_in":5179713} | cURL Error: 
+[13-May-2026 04:17:39 Europe/Berlin] [Facebook OAuth] Redirect URI used: http://localhost/admin_booking/build/facebook-callback
+[13-May-2026 04:17:39 Europe/Berlin] [Facebook OAuth] User Info Fetch - HTTP: 200 | Response: {"id":"2177017133085887","name":"Henry Apas","email":"apashenry147\u0040gmail.com","picture":{"data":{"height":200,"is_silhouette":false,"url":"https:\/\/platform-lookaside.fbsbx.com\/platform\/profilepic\/?asid=2177017133085887&height=200&width=200&ext=1781230602&hash=AfuXAanQI-MHW9BfY0bvAGHK","width":200}}} | cURL Error: 
+[13-May-2026 04:17:39 Europe/Berlin] [Facebook OAuth] User data - ID: 2177017133085887 | Email: apashenry147@gmail.com | Name: Henry Apas
+[13-May-2026 04:17:39 Europe/Berlin] [Facebook OAuth] CASE 1: Checking if user exists with Facebook ID
+[13-May-2026 04:17:39 Europe/Berlin] [Facebook OAuth] CASE 1 result: User found
+[13-May-2026 04:17:39 Europe/Berlin] [Facebook OAuth] CASE 1: User found, account status: active
+[13-May-2026 04:17:39 Europe/Berlin] [Facebook OAuth] CASE 1: Account active, fetching role
+[13-May-2026 04:17:39 Europe/Berlin] [Facebook OAuth] CASE 1: Role fetched - code: customer
+[13-May-2026 04:17:39 Europe/Berlin] [Facebook OAuth] CASE 1: Updated last login, setting session
+[13-May-2026 04:17:39 Europe/Berlin] [Facebook OAuth] CASE 1: Session set, creating session record
+[13-May-2026 04:17:39 Europe/Berlin] [Facebook OAuth] CASE 1: Redirecting to dashboard

@@ -1,0 +1,14 @@
+{
+  "name": "admin-booking/resort-system",
+  "description": "Resort/Hotel Reservation System",
+  "type": "project",
+  "require": {
+    "php": ">=8.0",
+    "google/apiclient": "^2.13"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }
+  }
+}
