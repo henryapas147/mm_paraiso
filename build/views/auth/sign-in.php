@@ -170,8 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $redirectUrl = './';
             switch ($user['role_code']) {
               case 'customer':
-                // Customers should go to a customer portal (to be implemented)
-                $redirectUrl = './';
+                $redirectUrl = './customer/dashboard';
                 break;
               case 'api_client':
                 // API clients should not access the web dashboard

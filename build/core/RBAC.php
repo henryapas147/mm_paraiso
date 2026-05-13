@@ -324,6 +324,17 @@ class RBAC
             return true;
         }
 
+        // Customer portal routes — always allow customers through; block non-customers
+        $customerOnlyRoutes = ['customer/dashboard', 'customer/reservations', 'customer/payments'];
+        if (in_array($route, $customerOnlyRoutes)) {
+            return self::getCurrentRole() === 'customer';
+        }
+
+        // Profile route — accessible by all logged-in roles
+        if ($route === 'profile') {
+            return self::isLoggedIn();
+        }
+
         // Define route permissions (parent permission OR sub-page permission grants access)
         $routePermissions = [
             '' => ['dashboard.view'],
@@ -393,7 +404,8 @@ class RBAC
             'users' => ['users.view'],
             'users/create' => ['users.create'],
             'users/edit' => ['users.edit'],
-            // Customers
+            // Customers (admin management)
+            'customers' => ['customers.view'],
             'customers/list' => ['customers.view']
         ];
 

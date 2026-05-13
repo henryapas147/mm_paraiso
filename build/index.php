@@ -110,9 +110,14 @@ $router->add('users', ['controller' => 'UsersController', 'action' => 'index']);
 $router->add('users/create', ['controller' => 'UsersController', 'action' => 'create']);
 $router->add('users/edit', ['controller' => 'UsersController', 'action' => 'edit']);
 
-// Customers
+// Customers (admin management)
 $router->add('customers', ['controller' => 'CustomerController', 'action' => 'index']);
 $router->add('customers/list', ['controller' => 'CustomerController', 'action' => 'customersList']);
+
+// Customer Portal (customer-facing)
+$router->add('customer/dashboard', ['controller' => 'CustomerController', 'action' => 'dashboard']);
+$router->add('customer/reservations', ['controller' => 'CustomerController', 'action' => 'reservations']);
+$router->add('customer/payments', ['controller' => 'CustomerController', 'action' => 'payments']);
 
 // Reports & Analytics
 $router->add('reports', ['controller' => 'ReportsController', 'action' => 'index']);

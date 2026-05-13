@@ -9,7 +9,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
-$action = $_GET['action'] ?? '';
+$action = $_GET['action'] ?? $_POST['action'] ?? '';
 
 try {
     switch ($method) {
@@ -17,9 +17,18 @@ try {
             if ($action === 'get_profile') {
                 $userId = $_SESSION['user_id'];
                 $stmt = $pdo->prepare("
-                    SELECT up.profile_photo_url, up.first_name, up.last_name, up.display_name, ua.email, ua.role_id
+                    SELECT up.profile_photo_url, up.cover_photo_url, up.first_name, up.last_name, up.display_name,
+                           up.address_line1, up.address_line2,
+                           up.region_code, up.province_code, up.city_municipality_code, up.barangay_code,
+                           r.region_name, p.province_name, c.city_municipality_name, b.barangay_name,
+                           up.country, up.postal_code,
+                           ua.email, ua.role_id
                     FROM user_profiles up
                     INNER JOIN user_accounts ua ON up.user_id = ua.user_id
+                    LEFT JOIN psgc_regions r ON up.region_code COLLATE utf8mb4_unicode_ci = r.region_code COLLATE utf8mb4_unicode_ci
+                    LEFT JOIN psgc_provinces p ON up.province_code COLLATE utf8mb4_unicode_ci = p.province_code COLLATE utf8mb4_unicode_ci
+                    LEFT JOIN psgc_cities_municipalities c ON up.city_municipality_code COLLATE utf8mb4_unicode_ci = c.city_municipality_code COLLATE utf8mb4_unicode_ci
+                    LEFT JOIN psgc_barangays b ON up.barangay_code COLLATE utf8mb4_unicode_ci = b.barangay_code COLLATE utf8mb4_unicode_ci
                     WHERE up.user_id = ?
                 ");
                 $stmt->execute([$userId]);
@@ -41,7 +50,126 @@ try {
             }
             break;
         case 'POST':
-            if ($action === 'update_photo') {
+            if ($action === 'update_profile') {
+                $userId = $_SESSION['user_id'];
+                $firstName = trim($_POST['first_name'] ?? '');
+                $lastName = trim($_POST['last_name'] ?? '');
+                $addressLine1 = trim($_POST['address_line1'] ?? '');
+                $addressLine2 = trim($_POST['address_line2'] ?? '');
+                $regionCode = trim($_POST['region_code'] ?? '');
+                $provinceCode = trim($_POST['province_code'] ?? '');
+                $cityMunicipalityCode = trim($_POST['city_municipality_code'] ?? '');
+                $barangayCode = trim($_POST['barangay_code'] ?? '');
+                $country = trim($_POST['country'] ?? '');
+                $postalCode = trim($_POST['postal_code'] ?? '');
+
+                try {
+                    $pdo->beginTransaction();
+
+                    // Check if profile exists
+                    $checkStmt = $pdo->prepare("SELECT user_id FROM user_profiles WHERE user_id = ?");
+                    $checkStmt->execute([$userId]);
+                    $profileExists = $checkStmt->fetch();
+
+                    if ($profileExists) {
+                        // Update existing profile
+                        $stmt = $pdo->prepare("
+                            UPDATE user_profiles
+                            SET first_name = ?, last_name = ?, address_line1 = ?, address_line2 = ?,
+                                region_code = ?, province_code = ?, city_municipality_code = ?, barangay_code = ?,
+                                country = ?, postal_code = ?, updated_at = NOW()
+                            WHERE user_id = ?
+                        ");
+                        $stmt->execute([$firstName, $lastName, $addressLine1, $addressLine2,
+                            $regionCode, $provinceCode, $cityMunicipalityCode, $barangayCode,
+                            $country, $postalCode, $userId]);
+                    } else {
+                        // Insert new profile
+                        $stmt = $pdo->prepare("
+                            INSERT INTO user_profiles
+                            (user_id, first_name, last_name, address_line1, address_line2,
+                             region_code, province_code, city_municipality_code, barangay_code,
+                             country, postal_code, updated_at)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                        ");
+                        $stmt->execute([$userId, $firstName, $lastName, $addressLine1, $addressLine2,
+                            $regionCode, $provinceCode, $cityMunicipalityCode, $barangayCode,
+                            $country, $postalCode]);
+                    }
+
+                    $pdo->commit();
+                    echo json_encode(['success' => true, 'message' => 'Profile updated successfully']);
+                } catch (PDOException $e) {
+                    $pdo->rollBack();
+                    error_log("Profile update error: " . $e->getMessage());
+                    echo json_encode(['success' => false, 'message' => 'Error updating profile: ' . $e->getMessage()]);
+                }
+            } else if ($action === 'update_cover_photo') {
+                if (!isset($_FILES['cover_photo']) || $_FILES['cover_photo']['error'] !== UPLOAD_ERR_OK) {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => 'No cover photo uploaded']);
+                    exit;
+                }
+
+                $file = $_FILES['cover_photo'];
+                $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                if (!in_array($file['type'], $allowed)) {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => 'Invalid file type. Allowed: JPEG, PNG, GIF, WebP']);
+                    exit;
+                }
+
+                if ($file['size'] > 5 * 1024 * 1024) {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => 'File too large. Max size: 5MB']);
+                    exit;
+                }
+
+                $userId = $_SESSION['user_id'];
+                $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+
+                // Detect environment and set upload directory accordingly
+                $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+                $isLocalhost = in_array($host, ['localhost', '127.0.0.1']) || preg_match('/^192\.168\./', $host) || preg_match('/^10\./', $host);
+
+                // Generate new filename
+                $filename = $userId . '_cover_' . time() . '.' . $ext;
+
+                if ($isLocalhost) {
+                    $uploadDir = __DIR__ . '/../../uploads/cover_photos/';
+                    $webPath = '/admin_booking/uploads/cover_photos/' . $filename;
+                } else {
+                    $uploadDir = __DIR__ . '/../../uploads/cover_photos/';
+                    $webPath = '/uploads/cover_photos/' . $filename;
+                }
+
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+
+                // Move uploaded file
+                if (!move_uploaded_file($file['tmp_name'], $uploadDir . $filename)) {
+                    http_response_code(500);
+                    echo json_encode(['success' => false, 'message' => 'Failed to upload file']);
+                    exit;
+                }
+
+                // Get existing cover photo URL for cleanup
+                $stmt = $pdo->prepare("SELECT cover_photo_url FROM user_profiles WHERE user_id = ?");
+                $stmt->execute([$userId]);
+                $existingPhoto = $stmt->fetchColumn();
+
+                // Update database
+                $stmt = $pdo->prepare("UPDATE user_profiles SET cover_photo_url = ? WHERE user_id = ?");
+                $stmt->execute([$webPath, $userId]);
+
+                // Delete old cover photo if it exists
+                if ($existingPhoto && file_exists(__DIR__ . '/../../..' . $existingPhoto)) {
+                    unlink(__DIR__ . '/../../..' . $existingPhoto);
+                }
+
+                echo json_encode(['success' => true, 'message' => 'Cover photo updated successfully', 'cover_photo_url' => $webPath]);
+            } else if ($action === 'update_photo') {
                 if (!isset($_FILES['profile_photo']) || $_FILES['profile_photo']['error'] !== UPLOAD_ERR_OK) {
                     http_response_code(400);
                     echo json_encode(['success' => false, 'message' => 'No photo uploaded']);

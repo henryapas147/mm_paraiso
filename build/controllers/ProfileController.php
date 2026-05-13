@@ -33,19 +33,25 @@ class ProfileController extends Controller
             $lastName = trim($_POST['last_name'] ?? '');
             $addressLine1 = trim($_POST['address_line1'] ?? '');
             $addressLine2 = trim($_POST['address_line2'] ?? '');
-            $city = trim($_POST['city'] ?? '');
+            $regionCode = trim($_POST['region_code'] ?? '');
+            $provinceCode = trim($_POST['province_code'] ?? '');
+            $cityMunicipalityCode = trim($_POST['city_municipality_code'] ?? '');
+            $barangayCode = trim($_POST['barangay_code'] ?? '');
             $country = trim($_POST['country'] ?? '');
             $postalCode = trim($_POST['postal_code'] ?? '');
 
             try {
-                // Update user profile
+                // Update user profile with geography codes
                 $stmt = $this->pdo->prepare("
                     UPDATE user_profiles
                     SET first_name = ?, last_name = ?, address_line1 = ?, address_line2 = ?,
-                        city = ?, country = ?, postal_code = ?, updated_at = NOW()
+                        region_code = ?, province_code = ?, city_municipality_code = ?, barangay_code = ?,
+                        country = ?, postal_code = ?, updated_at = NOW()
                     WHERE user_id = ?
                 ");
-                $stmt->execute([$firstName, $lastName, $addressLine1, $addressLine2, $city, $country, $postalCode, $user_id]);
+                $stmt->execute([$firstName, $lastName, $addressLine1, $addressLine2,
+                    $regionCode, $provinceCode, $cityMunicipalityCode, $barangayCode,
+                    $country, $postalCode, $user_id]);
 
                 $_SESSION['profile_message'] = 'Profile updated successfully!';
                 $_SESSION['profile_message_type'] = 'success';
@@ -86,8 +92,10 @@ class ProfileController extends Controller
             if ($user) {
                 $stmt = $this->pdo->prepare("
                     SELECT first_name, last_name, middle_name, display_name,
-                           profile_photo_url, address_line1, address_line2, city,
-                           province, postal_code, country, date_of_birth
+                           profile_photo_url, address_line1, address_line2,
+                           region_code, province_code, city_municipality_code, barangay_code,
+                           region_name, province_name, city_municipality_name, barangay_name,
+                           postal_code, country, date_of_birth
                     FROM user_profiles
                     WHERE user_id = ?
                 ");
@@ -98,8 +106,9 @@ class ProfileController extends Controller
             error_log("Profile fetch error: " . $e->getMessage());
         }
 
-        // Pass data to view
-        $this->view('auth/profile', [
+        // Pass data to view — use customer layout for customer role
+        $viewMethod = (($_SESSION['role_code'] ?? '') === 'customer') ? 'viewCustomer' : 'view';
+        $this->$viewMethod('auth/profile', [
             'message' => $message,
             'messageType' => $messageType,
             'user' => $user,

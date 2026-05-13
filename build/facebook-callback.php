@@ -433,18 +433,22 @@ function generateUUID(): string
  */
 function redirectToDashboard(string $basePath): void
 {
+    $roleCode = $_SESSION['role_code'] ?? '';
+    $destination = ($roleCode === 'customer')
+        ? addslashes($basePath) . '/customer/dashboard'
+        : addslashes($basePath) . '/';
     ?>
     <!DOCTYPE html>
     <html>
     <head>
         <title>Redirecting...</title>
         <script>
-            // Clear hash fragments and redirect to dashboard
-            window.location.replace('<?php echo addslashes($basePath); ?>/');
+            // Clear hash fragments and redirect based on role
+            window.location.replace('<?php echo $destination; ?>');
         </script>
     </head>
     <body>
-        <p>Redirecting to dashboard...</p>
+        <p>Redirecting...</p>
     </body>
     </html>
     <?php

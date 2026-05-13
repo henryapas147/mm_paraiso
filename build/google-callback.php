@@ -193,7 +193,8 @@ try {
 
             $_SESSION['session_id'] = $sessionId;
 
-            header('Location: ./');
+            $googleRedirect = ($_SESSION['role_code'] ?? '') === 'customer' ? './customer/dashboard' : './';
+            header('Location: ' . $googleRedirect);
             exit;
         } else {
             $controller->viewRaw('auth/google-callback-error', [
@@ -269,7 +270,8 @@ try {
 
             $_SESSION['session_id'] = $sessionId;
 
-            header('Location: ./');
+            $googleRedirect = ($_SESSION['role_code'] ?? '') === 'customer' ? './customer/dashboard' : './';
+            header('Location: ' . $googleRedirect);
             exit;
         } else {
             $stmt = $pdo->prepare("UPDATE user_accounts SET account_status = 'active', is_email_verified = 1 WHERE user_id = ?");
@@ -367,7 +369,8 @@ try {
 
     $_SESSION['session_id'] = $sessionId;
 
-    header('Location: ./');
+    $googleRedirect = ($_SESSION['role_code'] ?? '') === 'customer' ? './customer/dashboard' : './';
+    header('Location: ' . $googleRedirect);
     exit;
 
 } catch (Exception $e) {

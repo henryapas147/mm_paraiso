@@ -15,6 +15,9 @@ spl_autoload_register(function ($class) {
         'App\\Controllers\\PaymentsBillingController' => $build_dir . 'controllers/PaymentsBillingController.php',
         'App\\Controllers\\SettingsController' => $build_dir . 'controllers/SettingsController.php',
         'App\\Controllers\\UsersController'   => $build_dir . 'controllers/UsersController.php',
+        'App\\Controllers\\CustomerController' => $build_dir . 'controllers/CustomerController.php',
+        'App\\Controllers\\ProfileController'  => $build_dir . 'controllers/ProfileController.php',
+        'App\\Controllers\\ReportsController'  => $build_dir . 'controllers/ReportsController.php',
     ];
 
     if (isset($class_map[$class]) && file_exists($class_map[$class])) {

@@ -28,7 +28,7 @@ class Router
             }
 
             // RBAC Check - skip for auth routes
-            if (!in_array($url, ['sign-in', 'sign-up', 'logout', 'get-refresh-token', 'build/google-callback', 'verify-email', 'build/verify-email'])) {
+            if (!in_array($url, ['sign-in', 'sign-up', 'logout', 'get-refresh-token', 'build/google-callback', 'verify-email', 'build/verify-email', 'customer/dashboard', 'customer/reservations', 'customer/payments', 'profile'])) {
                 require_once __DIR__ . '/RBAC.php';
                 \App\Core\RBAC::requireLogin();
 
