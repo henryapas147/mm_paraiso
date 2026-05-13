@@ -1,0 +1,16 @@
+# Configuration files with secrets
+config/gmail-credentials.json
+config/facebook-credentials.json
+
+# Uploads directory
+uploads/
+
+# Vendor directory
+vendor/
+
+# Logs
+logs/
+
+# IDE
+.vscode/
+.idea/
