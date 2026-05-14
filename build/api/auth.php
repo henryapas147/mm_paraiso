@@ -1,16 +1,12 @@
 <?php
 header('Content-Type: application/json');
-require_once '../config/db.php';
+require_once '../config/middleware.php';
 require_once '../../vendor/autoload.php';
+applyPublicMiddleware();
 
 use Google\Client;
 use Google\Service\Gmail;
 use Google\Service\Gmail\Message;
-
-// Start session if not already started
-if (session_status() === PHP_SESSION_NONE) {
-  session_start();
-}
 
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';

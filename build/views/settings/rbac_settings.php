@@ -364,7 +364,10 @@
     try {
       const res = await fetch('../api/rbac_settings.php', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': '<?php echo htmlspecialchars($csrf_token ?? ''); ?>'
+        },
         body: JSON.stringify({ role_code: roleCode, permissions })
       });
       const json = await res.json();

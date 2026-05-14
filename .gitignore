@@ -1,4 +1,5 @@
 # Configuration files with secrets
+config/credentials.php
 config/gmail-credentials.json
 config/facebook-credentials.json
 

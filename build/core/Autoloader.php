@@ -17,6 +17,7 @@ spl_autoload_register(function ($class) {
         'App\\Controllers\\UsersController'   => $build_dir . 'controllers/UsersController.php',
         'App\\Controllers\\CustomerController' => $build_dir . 'controllers/CustomerController.php',
         'App\\Controllers\\ProfileController'  => $build_dir . 'controllers/ProfileController.php',
+        'App\\Controllers\\CustomerProfileController'  => $build_dir . 'controllers/CustomerProfileController.php',
         'App\\Controllers\\ReportsController'  => $build_dir . 'controllers/ReportsController.php',
     ];
 

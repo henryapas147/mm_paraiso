@@ -51,6 +51,8 @@ class SettingsController extends Controller
 
     public function rbacSettings()
     {
-        $this->view('settings/rbac_settings');
+        $this->view('settings/rbac_settings', [
+            'csrf_token' => $_SESSION['csrf_token'] ?? ''
+        ]);
     }
 }

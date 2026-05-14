@@ -28,7 +28,7 @@ class Router
             }
 
             // RBAC Check - skip for auth routes
-            if (!in_array($url, ['sign-in', 'sign-up', 'logout', 'get-refresh-token', 'build/google-callback', 'verify-email', 'build/verify-email', 'customer/dashboard', 'customer/reservations', 'customer/payments', 'profile'])) {
+            if (!in_array($url, ['sign-in', 'sign-up', 'logout', 'get-refresh-token', 'build/google-callback', 'verify-email', 'build/verify-email', 'customer/dashboard', 'customer/reservations', 'customer/payments', 'customer/profile'])) {
                 require_once __DIR__ . '/RBAC.php';
                 \App\Core\RBAC::requireLogin();
 
@@ -39,11 +39,11 @@ class Router
             }
 
             $controller = $this->params['controller'];
-            error_log("Router: Original controller name from params: $controller");
             $controller = $this->convertToStudlyCaps($controller);
-            error_log("Router: Controller after convertToStudlyCaps: $controller");
             $controller = $this->getNamespace() . $controller;
-            error_log("Router: Full controller class name: $controller");
+            if (getenv('APP_DEBUG') === 'true') {
+                error_log("Router: Full controller class name: $controller");
+            }
 
             if (class_exists($controller)) {
                 $controller_object = new $controller($this->params);
@@ -66,13 +66,15 @@ class Router
 
     private function match($url)
     {
-        error_log("Router Match - Trying to match URL: '$url'");
-        error_log("Router Match - Number of routes: " . count($this->routes));
-        
+        $debug = getenv('APP_DEBUG') === 'true';
+        if ($debug) {
+            error_log("Router Match - Trying to match URL: '$url'");
+            error_log("Router Match - Number of routes: " . count($this->routes));
+        }
         foreach ($this->routes as $route => $params) {
-            error_log("Router Match - Checking route pattern: '$route' against URL: '$url'");
+            if ($debug) error_log("Router Match - Checking route pattern: '$route' against URL: '$url'");
             if (preg_match($route, $url, $matches)) {
-                error_log("Router Match - Route matched!");
+                if ($debug) error_log("Router Match - Route matched!");
                 foreach ($matches as $key => $value) {
                     if (is_string($key)) {
                         $params[$key] = $value;

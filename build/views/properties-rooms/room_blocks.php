@@ -647,6 +647,7 @@ function generateUUID()
 
     <!-- Delete Confirmation Form -->
     <form id="deleteBlockForm" method="POST" action="room_blocks.php" style="display: none;">
+      <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
       <input type="hidden" name="action" value="delete_block">
       <input type="hidden" name="block_id" id="delete_block_id">
     </form>

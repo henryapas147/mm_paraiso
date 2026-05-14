@@ -1,6 +1,6 @@
 <div fixed-plugin>
     <a fixed-plugin-button class="fixed px-4 py-2 text-xl bg-white shadow-lg cursor-pointer bottom-8 right-8 z-990 rounded-circle text-slate-700">
-        <i class="py-2 pointer-events-none fa fa-cog"> </i>
+        <i class="py-2 pointer-events-none fa fa-cog fa-spin"> </i>
     </a>
     <!-- -right-90 in loc de 0-->
     <div fixed-plugin-card class="z-sticky backdrop-blur-2xl backdrop-saturate-200 dark:bg-slate-850/80 shadow-3xl w-90 ease -right-90 fixed top-0 left-auto flex h-full min-w-0 flex-col break-words rounded-none border-0 bg-white/80 bg-clip-border px-2.5 duration-200">

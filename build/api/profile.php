@@ -1,12 +1,7 @@
-<?php
+﻿<?php
 header('Content-Type: application/json');
-require_once '../config/db.php';
-
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-    exit;
-}
+require_once '../config/middleware.php';
+applyAuthMiddleware();
 
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
@@ -45,6 +40,45 @@ try {
                 } else {
                     echo json_encode(['success' => false, 'message' => 'Profile not found']);
                 }
+            } else if ($action === 'get_statistics') {
+                $userId = $_SESSION['user_id'];
+
+                // Get upcoming bookings (check_in_date >= today)
+                $stmt = $pdo->prepare("
+                    SELECT COUNT(*) as count
+                    FROM reservations
+                    WHERE customer_user_id = ? AND check_in_date >= CURDATE()
+                ");
+                $stmt->execute([$userId]);
+                $upcomingBookings = $stmt->fetchColumn();
+
+                // Get total reservations
+                $stmt = $pdo->prepare("
+                    SELECT COUNT(*) as count
+                    FROM reservations
+                    WHERE customer_user_id = ?
+                ");
+                $stmt->execute([$userId]);
+                $totalReservations = $stmt->fetchColumn();
+
+                // Get total payments (JOIN with reservations to get customer_user_id)
+                $stmt = $pdo->prepare("
+                    SELECT COALESCE(SUM(p.amount), 0) as total
+                    FROM payments p
+                    INNER JOIN reservations r ON p.reservation_id = r.reservation_id
+                    WHERE r.customer_user_id = ?
+                ");
+                $stmt->execute([$userId]);
+                $totalPayments = $stmt->fetchColumn();
+
+                echo json_encode([
+                    'success' => true,
+                    'data' => [
+                        'upcoming_bookings' => $upcomingBookings ?? 0,
+                        'total_reservations' => $totalReservations ?? 0,
+                        'total_payments' => $totalPayments ?? 0
+                    ]
+                ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Unknown action']);
             }

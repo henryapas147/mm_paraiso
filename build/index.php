@@ -36,11 +36,6 @@ if (strpos($url, 'data-deletion.php') !== false || strpos($url, 'data-deletion')
     exit;
 }
 
-// Auth
-$router->add('sign-in', ['controller' => 'AuthController', 'action' => 'signIn']);
-$router->add('sign-up', ['controller' => 'AuthController', 'action' => 'signUp']);
-$router->add('logout', ['controller' => 'AuthController', 'action' => 'logout']);
-
 // Dashboard
 $router->add('', ['controller' => 'DashboardController', 'action' => 'index']);
 
@@ -118,6 +113,7 @@ $router->add('customers/list', ['controller' => 'CustomerController', 'action' =
 $router->add('customer/dashboard', ['controller' => 'CustomerController', 'action' => 'dashboard']);
 $router->add('customer/reservations', ['controller' => 'CustomerController', 'action' => 'reservations']);
 $router->add('customer/payments', ['controller' => 'CustomerController', 'action' => 'payments']);
+$router->add('customer/profile', ['controller' => 'CustomerProfileController', 'action' => 'index']);
 
 // Reports & Analytics
 $router->add('reports', ['controller' => 'ReportsController', 'action' => 'index']);
@@ -145,14 +141,11 @@ $router->add('build/google-callback', ['file' => 'google-callback.php']);
 $router->add('verify-email', ['file' => 'verify-email.php']);
 $router->add('build/verify-email', ['file' => 'verify-email.php']);
 
-// Get the URL
-$url = $_SERVER['REQUEST_URI'] ?? '/';
-
-// Remove query string from URL
+// Remove query string from URL (reuse $url set at line 3)
 $url = strtok($url, '?');
 
-// Remove base path if needed
-$base_path = dirname($_SERVER['PHP_SELF']);
+// Remove base path if needed - use SCRIPT_NAME (not PHP_SELF) to prevent path injection
+$base_path = dirname($_SERVER['SCRIPT_NAME']);
 if ($base_path != '/' && $base_path != '\\') {
     $url = str_replace($base_path, '', $url);
 }
@@ -166,5 +159,7 @@ if (substr($url, 0, 1) == '/') {
 try {
     $router->dispatch($url);
 } catch (Exception $e) {
-    echo 'Error: ' . $e->getMessage();
+    error_log('Router error: ' . $e->getMessage());
+    http_response_code(404);
+    echo 'Page not found.';
 }

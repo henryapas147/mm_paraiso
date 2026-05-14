@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: application/json');
-require_once '../config/db.php';
+require_once '../config/middleware.php';
+applyPublicMiddleware();
 
 $action = $_GET['action'] ?? '';
 
@@ -24,7 +25,7 @@ try {
       echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
       break;
 
-    case 'cities':
+    case 'cities_municipalities':
       // Fetch cities/municipalities by province
       $provinceCode = $_GET['province_code'] ?? '';
       if (empty($provinceCode)) {

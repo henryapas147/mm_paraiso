@@ -20,24 +20,79 @@ if (!isset($base_url) || empty($base_url)) {
     $base_url = $script_dir;
 }
 
-function customerIsActive($route, $current_url) {
+function customerIsActive($route, $current_url)
+{
     return strpos($current_url, $route) !== false;
 }
 
-function customerActiveClass($route, $current_url) {
+function customerActiveClass($route, $current_url)
+{
     return customerIsActive($route, $current_url)
         ? 'bg-blue-500/13 font-semibold text-slate-700 rounded-lg'
         : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg';
 }
 ?>
 
-<aside class="fixed inset-y-0 flex-wrap items-center justify-between block w-full p-0 my-4 overflow-y-auto antialiased transition-transform duration-200 -translate-x-full bg-white border-0 shadow-xl dark:shadow-none dark:bg-slate-850 max-w-64 ease-nav-brand z-990 xl:ml-6 rounded-2xl xl:left-0 xl:translate-x-0" aria-expanded="false">
+<style>
+    /* Customer sidebar collapse styles */
+    @media (min-width: 1280px) {
+        aside.sidebar-collapsed {
+            max-width: 4.5rem !important;
+            width: 4.5rem !important;
+        }
+
+        body.sidebar-is-collapsed main {
+            margin-left: 6rem !important;
+        }
+    }
+
+    aside.sidebar-collapsed span.truncate,
+    aside.sidebar-collapsed .sidebar-label {
+        display: none !important;
+    }
+
+    aside.sidebar-collapsed a.ease-nav-brand {
+        justify-content: center !important;
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    aside.sidebar-collapsed .h-8.w-8 {
+        margin-right: 0 !important;
+    }
+
+    aside.sidebar-collapsed .h-19 a {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+
+    #sidebarOverlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 989;
+        cursor: pointer;
+    }
+
+    #sidebarOverlay.active {
+        display: block;
+    }
+</style>
+
+<aside id="customerSidebar" class="fixed inset-y-0 flex-wrap items-center justify-between block w-full p-0 my-4 overflow-y-auto antialiased transition-all duration-200 -translate-x-full bg-white border-0 shadow-xl dark:shadow-none dark:bg-slate-850 max-w-64 ease-nav-brand z-990 xl:ml-6 rounded-2xl xl:left-0 xl:translate-x-0" aria-expanded="false">
     <div class="h-19">
         <i class="absolute top-0 right-0 p-4 opacity-50 cursor-pointer fas fa-times dark:text-white text-slate-400 xl:hidden" sidenav-close></i>
+        <button id="sidebarCollapseBtn" class="hidden xl:flex absolute top-0 right-0 p-4 cursor-pointer items-center justify-center text-slate-400 hover:text-blue-500 dark:text-white dark:hover:text-blue-400 transition-colors duration-200 z-10" title="Collapse sidebar" aria-label="Toggle Sidebar">
+            <i id="sidebarCollapseIcon" class="fas fa-chevron-left text-xs transition-transform duration-300"></i>
+        </button>
         <a class="block px-8 py-6 m-0 text-sm whitespace-nowrap dark:text-white text-slate-700" href="<?php echo $base_url; ?>customer/dashboard">
             <img src="<?php echo $assets_path ?? './assets'; ?>/img/logo-ct-dark.png" class="inline h-full max-w-full transition-all duration-200 dark:hidden ease-nav-brand max-h-8" alt="main_logo" />
             <img src="<?php echo $assets_path ?? './assets'; ?>/img/logo-ct.png" class="hidden h-full max-w-full transition-all duration-200 dark:inline ease-nav-brand max-h-8" alt="main_logo" />
-            <span class="ml-1 font-semibold transition-all duration-200 ease-nav-brand">My Portal</span>
+            <span class="ml-1 font-semibold transition-all duration-200 ease-nav-brand sidebar-label">My Portal</span>
         </a>
     </div>
 
@@ -77,8 +132,8 @@ function customerActiveClass($route, $current_url) {
             </li>
 
             <li class="mt-0.5 w-full">
-                <?php $prof_class = customerIsActive('profile', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700 rounded-lg' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg'; ?>
-                <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors <?php echo $prof_class; ?>" href="<?php echo $base_url; ?>profile">
+                <?php $prof_class = customerIsActive('customer/profile', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700 rounded-lg' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg'; ?>
+                <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors <?php echo $prof_class; ?>" href="<?php echo $base_url; ?>customer/profile">
                     <span class="flex-shrink-0 flex h-8 w-8 items-center justify-center mr-2">
                         <i class="text-sm leading-normal text-orange-500 ni ni-single-02"></i>
                     </span>
@@ -98,3 +153,89 @@ function customerActiveClass($route, $current_url) {
         </ul>
     </div>
 </aside>
+
+<div id="sidebarOverlay"></div>
+
+<script>
+    // Customer sidebar collapse and mobile overlay
+    (function() {
+        var COLLAPSE_KEY = 'customerSidebarCollapsed';
+        var sidebar = document.getElementById('customerSidebar');
+        var collapseBtn = document.getElementById('sidebarCollapseBtn');
+        var collapseIcon = document.getElementById('sidebarCollapseIcon');
+        var overlay = document.getElementById('sidebarOverlay');
+
+        if (!sidebar) return;
+
+        function setNavTooltips(collapsed) {
+            sidebar.querySelectorAll('a.ease-nav-brand').forEach(function(item) {
+                if (collapsed) {
+                    var label = item.querySelector('span.truncate');
+                    if (label) item.setAttribute('title', label.textContent.trim());
+                } else {
+                    item.removeAttribute('title');
+                }
+            });
+        }
+
+        function applySidebarCollapse(save) {
+            sidebar.classList.add('sidebar-collapsed');
+            document.body.classList.add('sidebar-is-collapsed');
+            if (collapseIcon) {
+                collapseIcon.classList.remove('fa-chevron-left');
+                collapseIcon.classList.add('fa-chevron-right');
+            }
+            if (collapseBtn) collapseBtn.setAttribute('title', 'Expand sidebar');
+            setNavTooltips(true);
+            if (save) localStorage.setItem(COLLAPSE_KEY, 'true');
+        }
+
+        function applySidebarExpand(save) {
+            sidebar.classList.remove('sidebar-collapsed');
+            document.body.classList.remove('sidebar-is-collapsed');
+            if (collapseIcon) {
+                collapseIcon.classList.remove('fa-chevron-right');
+                collapseIcon.classList.add('fa-chevron-left');
+            }
+            if (collapseBtn) collapseBtn.setAttribute('title', 'Collapse sidebar');
+            setNavTooltips(false);
+            if (save) localStorage.setItem(COLLAPSE_KEY, 'false');
+        }
+
+        if (collapseBtn) {
+            collapseBtn.addEventListener('click', function() {
+                if (sidebar.classList.contains('sidebar-collapsed')) {
+                    applySidebarExpand(true);
+                } else {
+                    applySidebarCollapse(true);
+                }
+            });
+        }
+
+        if (localStorage.getItem(COLLAPSE_KEY) === 'true') {
+            applySidebarCollapse(false);
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', function() {
+                sidebar.classList.add('-translate-x-full');
+                sidebar.setAttribute('aria-expanded', 'false');
+                overlay.classList.remove('active');
+            });
+        }
+
+        var sidenavTrigger = document.querySelector('[sidenav-trigger]');
+        if (sidenavTrigger && overlay) {
+            sidenavTrigger.addEventListener('click', function() {
+                overlay.classList.add('active');
+            });
+        }
+
+        var sidenavCloseEl = document.querySelector('[sidenav-close]');
+        if (sidenavCloseEl && overlay) {
+            sidenavCloseEl.addEventListener('click', function() {
+                overlay.classList.remove('active');
+            });
+        }
+    })();
+</script>

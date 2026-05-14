@@ -1,14 +1,7 @@
 <?php
-require_once __DIR__ . '/../config/db.php';
-
 header('Content-Type: application/json');
-
-// Require login for all RBAC operations
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-    exit;
-}
+require_once __DIR__ . '/../config/middleware.php';
+applyAuthMiddleware();
 
 // Require super_admin or admin role for RBAC management
 if (!in_array($_SESSION['role_code'] ?? '', ['super_admin', 'admin'])) {

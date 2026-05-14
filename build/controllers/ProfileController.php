@@ -17,9 +17,18 @@ class ProfileController extends Controller
 
     public function index()
     {
+        // Get base path for redirects
+        $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+
         // Check if user is logged in
         if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-            header('Location: sign-in');
+            header("Location: {$basePath}/sign-in");
+            exit;
+        }
+
+        // Check if user is NOT a customer (admin only)
+        if (($_SESSION['role_code'] ?? '') === 'customer') {
+            header("Location: {$basePath}/customer/profile");
             exit;
         }
 
@@ -55,13 +64,13 @@ class ProfileController extends Controller
 
                 $_SESSION['profile_message'] = 'Profile updated successfully!';
                 $_SESSION['profile_message_type'] = 'success';
-                header('Location: profile');
+                header("Location: {$basePath}/profile");
                 exit;
             } catch (\PDOException $e) {
                 error_log("Profile update error: " . $e->getMessage());
                 $_SESSION['profile_message'] = 'Error updating profile. Please try again.';
                 $_SESSION['profile_message_type'] = 'error';
-                header('Location: profile');
+                header("Location: {$basePath}/profile");
                 exit;
             }
         }
@@ -92,12 +101,16 @@ class ProfileController extends Controller
             if ($user) {
                 $stmt = $this->pdo->prepare("
                     SELECT first_name, last_name, middle_name, display_name,
-                           profile_photo_url, address_line1, address_line2,
+                           profile_photo_url, cover_photo_url, address_line1, address_line2,
                            region_code, province_code, city_municipality_code, barangay_code,
-                           region_name, province_name, city_municipality_name, barangay_name,
+                           r.region_name, p.province_name, c.city_municipality_name, b.barangay_name,
                            postal_code, country, date_of_birth
-                    FROM user_profiles
-                    WHERE user_id = ?
+                    FROM user_profiles up
+                    LEFT JOIN psgc_regions r ON up.region_code COLLATE utf8mb4_unicode_ci = r.region_code COLLATE utf8mb4_unicode_ci
+                    LEFT JOIN psgc_provinces p ON up.province_code COLLATE utf8mb4_unicode_ci = p.province_code COLLATE utf8mb4_unicode_ci
+                    LEFT JOIN psgc_cities_municipalities c ON up.city_municipality_code COLLATE utf8mb4_unicode_ci = c.city_municipality_code COLLATE utf8mb4_unicode_ci
+                    LEFT JOIN psgc_barangays b ON up.barangay_code COLLATE utf8mb4_unicode_ci = b.barangay_code COLLATE utf8mb4_unicode_ci
+                    WHERE up.user_id = ?
                 ");
                 $stmt->execute([$user_id]);
                 $profile = $stmt->fetch();
@@ -106,9 +119,8 @@ class ProfileController extends Controller
             error_log("Profile fetch error: " . $e->getMessage());
         }
 
-        // Pass data to view — use customer layout for customer role
-        $viewMethod = (($_SESSION['role_code'] ?? '') === 'customer') ? 'viewCustomer' : 'view';
-        $this->$viewMethod('auth/profile', [
+        // Use admin layout
+        $this->view('auth/admin_profile', [
             'message' => $message,
             'messageType' => $messageType,
             'user' => $user,

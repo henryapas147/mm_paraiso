@@ -269,7 +269,8 @@ class RBAC
     public static function requireLogin()
     {
         if (!self::isLoggedIn()) {
-            header('Location: /admin_booking/build/sign-in');
+            $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+            header('Location: ' . $base . '/sign-in');
             exit;
         }
     }
@@ -309,7 +310,8 @@ class RBAC
             echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
         } else {
             $_SESSION['error_message'] = 'You do not have permission to access this page.';
-            header('Location: /admin_booking/build/');
+            $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+            header('Location: ' . $base . '/');
         }
         exit;
     }
@@ -330,8 +332,13 @@ class RBAC
             return self::getCurrentRole() === 'customer';
         }
 
-        // Profile route — accessible by all logged-in roles
+        // Profile route — admin only (customers use /customer/profile)
         if ($route === 'profile') {
+            return \App\Core\RBAC::hasPermission('profile.view');
+        }
+        
+        // Customer profile route — customer only
+        if ($route === 'customer/profile') {
             return self::isLoggedIn();
         }
 
