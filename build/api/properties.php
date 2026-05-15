@@ -1,4 +1,5 @@
 ﻿<?php
+
 /**
  * Properties API - Clean CRUD Implementation
  */
@@ -46,13 +47,14 @@ $PROPERTY_FIELDS = [
 ];
 
 // Required fields for validation (CREATE only - UPDATE can have empty fields)
-$REQUIRED_FIELDS_CREATE = ['property_name', 'property_code', 'property_type', 'address_line1'];
+$REQUIRED_FIELDS_CREATE = ['property_name', 'property_code', 'property_type'];
 $REQUIRED_FIELDS_UPDATE = ['property_name', 'property_code', 'property_type'];
 
 /**
  * Extract property data from request with defaults
  */
-function extractPropertyData(array $data, array $fields): array {
+function extractPropertyData(array $data, array $fields): array
+{
   $result = [];
   foreach ($fields as $field => $default) {
     $result[$field] = $data[$field] ?? $default;
@@ -63,7 +65,8 @@ function extractPropertyData(array $data, array $fields): array {
 /**
  * Validate required fields
  */
-function validateRequiredFields(array $data, array $required): array {
+function validateRequiredFields(array $data, array $required): array
+{
   $missing = [];
   foreach ($required as $field) {
     if (empty($data[$field])) {
@@ -76,7 +79,8 @@ function validateRequiredFields(array $data, array $required): array {
 /**
  * Build INSERT SQL from fields
  */
-function buildInsertSql(string $table, array $fields): string {
+function buildInsertSql(string $table, array $fields): string
+{
   $columns = implode(', ', array_keys($fields));
   $placeholders = implode(', ', array_fill(0, count($fields), '?'));
   return "INSERT INTO {$table} ({$columns}, created_at, updated_at) VALUES ({$placeholders}, NOW(), NOW())";
@@ -85,7 +89,8 @@ function buildInsertSql(string $table, array $fields): string {
 /**
  * Build UPDATE SQL from fields
  */
-function buildUpdateSql(string $table, array $fields, string $whereColumn): string {
+function buildUpdateSql(string $table, array $fields, string $whereColumn): string
+{
   $sets = [];
   foreach (array_keys($fields) as $field) {
     $sets[] = "{$field} = ?";
@@ -97,7 +102,8 @@ function buildUpdateSql(string $table, array $fields, string $whereColumn): stri
 /**
  * Send JSON response
  */
-function sendResponse(bool $success, string $message, array $data = []): void {
+function sendResponse(bool $success, string $message, array $data = []): void
+{
   $response = ['success' => $success, 'message' => $message];
   if (!empty($data)) {
     $response['data'] = $data;
@@ -113,7 +119,12 @@ try {
       break;
 
     case 'POST':
-      handlePostRequest($action, $pdo, $PROPERTY_FIELDS, $REQUIRED_FIELDS_CREATE, $REQUIRED_FIELDS_UPDATE);
+      // Check if this is a multipart form data request (file upload)
+      if (isset($_FILES['property_images'])) {
+        handlePropertyImageUpload($pdo);
+      } else {
+        handlePostRequest($action, $pdo, $PROPERTY_FIELDS, $REQUIRED_FIELDS_CREATE, $REQUIRED_FIELDS_UPDATE);
+      }
       break;
 
     default:
@@ -129,7 +140,8 @@ try {
 /**
  * Handle GET requests
  */
-function handleGetRequest(string $action, PDO $pdo): void {
+function handleGetRequest(string $action, PDO $pdo): void
+{
   switch ($action) {
     case 'list':
       $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
@@ -189,11 +201,17 @@ function handleGetRequest(string $action, PDO $pdo): void {
 /**
  * Handle POST requests
  */
-function handlePostRequest(string $action, PDO $pdo, array $fields, array $requiredCreate, array $requiredUpdate): void {
+function handlePostRequest(string $action, PDO $pdo, array $fields, array $requiredCreate, array $requiredUpdate): void
+{
   $data = json_decode(file_get_contents('php://input'), true);
 
   if (json_last_error() !== JSON_ERROR_NONE) {
     sendResponse(false, 'Invalid JSON data');
+  }
+
+  // If action is not in GET parameter, check JSON body
+  if (empty($action) && !empty($data['action'])) {
+    $action = $data['action'];
   }
 
   switch ($action) {
@@ -209,6 +227,14 @@ function handlePostRequest(string $action, PDO $pdo, array $fields, array $requi
       handleDelete($data, $pdo);
       break;
 
+    case 'delete_image':
+      handleDeleteImage($data, $pdo);
+      break;
+
+    case 'update_image_type':
+      handleUpdateImageType($data, $pdo);
+      break;
+
     default:
       sendResponse(false, 'Invalid action');
   }
@@ -217,7 +243,8 @@ function handlePostRequest(string $action, PDO $pdo, array $fields, array $requi
 /**
  * Handle Create Property
  */
-function handleCreate(array $data, PDO $pdo, array $fields, array $required): void {
+function handleCreate(array $data, PDO $pdo, array $fields, array $required): void
+{
   // Validate required fields
   $missing = validateRequiredFields($data, $required);
   if (!empty($missing)) {
@@ -227,11 +254,26 @@ function handleCreate(array $data, PDO $pdo, array $fields, array $required): vo
   // Extract and prepare data
   $propertyData = extractPropertyData($data, $fields);
 
+  // Generate UUID for property_id if not provided
+  if (empty($propertyData['property_id'])) {
+    $propertyData['property_id'] = sprintf(
+      '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+      mt_rand(0, 0xffff),
+      mt_rand(0, 0xffff),
+      mt_rand(0, 0xffff),
+      mt_rand(0, 0x0fff) | 0x4000,
+      mt_rand(0, 0x3fff) | 0x8000,
+      mt_rand(0, 0xffff),
+      mt_rand(0, 0xffff),
+      mt_rand(0, 0xffff)
+    );
+  }
+
   try {
     $sql = buildInsertSql('properties', $propertyData);
     $stmt = $pdo->prepare($sql);
     $stmt->execute(array_values($propertyData));
-    sendResponse(true, 'Property created successfully');
+    sendResponse(true, 'Property created successfully', ['property_id' => $propertyData['property_id']]);
   } catch (PDOException $e) {
     sendResponse(false, 'Database error: ' . $e->getMessage());
   }
@@ -240,7 +282,8 @@ function handleCreate(array $data, PDO $pdo, array $fields, array $required): vo
 /**
  * Handle Update Property
  */
-function handleUpdate(array $data, PDO $pdo, array $fields, array $required): void {
+function handleUpdate(array $data, PDO $pdo, array $fields, array $required): void
+{
   if (empty($data['property_id'])) {
     sendResponse(false, 'Property ID required');
   }
@@ -272,12 +315,40 @@ function handleUpdate(array $data, PDO $pdo, array $fields, array $required): vo
 /**
  * Handle Delete Property
  */
-function handleDelete(array $data, PDO $pdo): void {
+function handleDelete(array $data, PDO $pdo): void
+{
   if (empty($data['property_id'])) {
     sendResponse(false, 'Property ID required');
   }
 
   try {
+    // Check if property has reservations
+    $stmt = $pdo->prepare("SELECT COUNT(*) as reservation_count FROM reservations WHERE property_id = ?");
+    $stmt->execute([$data['property_id']]);
+    $reservationCount = $stmt->fetch(PDO::FETCH_ASSOC)['reservation_count'];
+
+    if ($reservationCount > 0) {
+      sendResponse(false, "Cannot delete property because it has {$reservationCount} reservation(s). Please cancel or reassign the reservations first.");
+    }
+
+    // Check if property has rooms
+    $stmt = $pdo->prepare("SELECT COUNT(*) as room_count FROM rooms WHERE property_id = ?");
+    $stmt->execute([$data['property_id']]);
+    $roomCount = $stmt->fetch(PDO::FETCH_ASSOC)['room_count'];
+
+    if ($roomCount > 0) {
+      sendResponse(false, "Cannot delete property because it has {$roomCount} room(s). Please delete or reassign the rooms first.");
+    }
+
+    // Check if property has inventory locations
+    $stmt = $pdo->prepare("SELECT COUNT(*) as inventory_count FROM inventory_locations WHERE property_id = ?");
+    $stmt->execute([$data['property_id']]);
+    $inventoryCount = $stmt->fetch(PDO::FETCH_ASSOC)['inventory_count'];
+
+    if ($inventoryCount > 0) {
+      sendResponse(false, "Cannot delete property because it has {$inventoryCount} inventory location(s). Please delete or reassign the inventory locations first.");
+    }
+
     $pdo->beginTransaction();
 
     // Delete property images files
@@ -286,7 +357,7 @@ function handleDelete(array $data, PDO $pdo): void {
     $images = $stmt->fetchAll();
 
     foreach ($images as $img) {
-      $image_path = __DIR__ . '/../' . $img['image_url'];
+      $image_path = __DIR__ . '/../../' . $img['image_url'];
       if (file_exists($image_path)) {
         unlink($image_path);
       }
@@ -305,4 +376,161 @@ function handleDelete(array $data, PDO $pdo): void {
     $pdo->rollBack();
     sendResponse(false, 'Error deleting property: ' . $e->getMessage());
   }
+}
+
+/**
+ * Handle Delete Single Property Image
+ */
+function handleDeleteImage(array $data, PDO $pdo): void
+{
+  if (empty($data['image_id'])) {
+    sendResponse(false, 'Image ID required');
+  }
+
+  $stmt = $pdo->prepare("SELECT image_url FROM property_images WHERE image_id = ?");
+  $stmt->execute([$data['image_id']]);
+  $image = $stmt->fetch(PDO::FETCH_ASSOC);
+
+  if (!$image) {
+    sendResponse(false, 'Image not found');
+  }
+
+  $filePath = __DIR__ . '/../../' . $image['image_url'];
+  if (file_exists($filePath)) {
+    unlink($filePath);
+  }
+
+  try {
+    $stmt = $pdo->prepare("DELETE FROM property_images WHERE image_id = ?");
+    $stmt->execute([$data['image_id']]);
+    sendResponse(true, 'Image deleted successfully');
+  } catch (PDOException $e) {
+    sendResponse(false, 'DB error deleting image: ' . $e->getMessage());
+  }
+}
+
+/**
+ * Handle Update Image Type
+ */
+function handleUpdateImageType(array $data, PDO $pdo): void
+{
+  if (empty($data['image_id'])) {
+    sendResponse(false, 'Image ID required');
+  }
+
+  $validImageTypes = ['cover', 'gallery', 'facilities', 'amenities', 'map', 'other'];
+  if (empty($data['image_type']) || !in_array($data['image_type'], $validImageTypes)) {
+    sendResponse(false, 'Invalid image type');
+  }
+
+  try {
+    $stmt = $pdo->prepare("UPDATE property_images SET image_type = ? WHERE image_id = ?");
+    $stmt->execute([$data['image_type'], $data['image_id']]);
+    sendResponse(true, 'Image type updated');
+  } catch (PDOException $e) {
+    sendResponse(false, 'DB error updating image type: ' . $e->getMessage());
+  }
+}
+
+/**
+ * Handle Property Image Upload
+ */
+function handlePropertyImageUpload(PDO $pdo): void
+{
+  $data = $_POST;
+  $uploadedImages = [];
+
+  if (empty($data['property_id'])) {
+    sendResponse(false, 'Property ID is required for image upload');
+  }
+
+  $uploadDir = '../../uploads/properties';
+  if (!is_dir($uploadDir)) {
+    if (!mkdir($uploadDir, 0755, true)) {
+      sendResponse(false, 'Failed to create upload directory');
+    }
+  }
+
+  if (!isset($_FILES['property_images'])) {
+    sendResponse(false, 'No images received');
+  }
+
+  // Normalize to array — handles both single and multiple files
+  $files = $_FILES['property_images'];
+  if (!is_array($files['name'])) {
+    $files['name']     = [$files['name']];
+    $files['tmp_name'] = [$files['tmp_name']];
+    $files['error']    = [$files['error']];
+    $files['size']     = [$files['size']];
+    $files['type']     = [$files['type']];
+  }
+
+  foreach ($files['name'] as $key => $name) {
+    if ($files['error'][$key] !== UPLOAD_ERR_OK) {
+      sendResponse(false, 'File upload error code: ' . $files['error'][$key]);
+    }
+
+    $tmpName   = $files['tmp_name'][$key];
+    $extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+
+    // Validate extension
+    $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    if (!in_array($extension, $allowed)) {
+      sendResponse(false, 'Invalid file type: ' . $extension);
+    }
+
+    $newFileName = uniqid() . '_' . time() . '.' . $extension;
+    $uploadPath  = $uploadDir . '/' . $newFileName;
+
+    if (!move_uploaded_file($tmpName, $uploadPath)) {
+      sendResponse(false, 'Failed to move uploaded file');
+    }
+
+    $validImageTypes = ['cover', 'gallery', 'facilities', 'amenities', 'map', 'other'];
+    $imageType = isset($data['image_type'][$key]) && in_array($data['image_type'][$key], $validImageTypes)
+      ? $data['image_type'][$key]
+      : 'gallery';
+    $caption   = isset($data['image_caption'][$key]) ? $data['image_caption'][$key] : '';
+    $sortOrder = $key;
+
+    $imageId = sprintf(
+      '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+      mt_rand(0, 0xffff),
+      mt_rand(0, 0xffff),
+      mt_rand(0, 0xffff),
+      mt_rand(0, 0x0fff) | 0x4000,
+      mt_rand(0, 0x3fff) | 0x8000,
+      mt_rand(0, 0xffff),
+      mt_rand(0, 0xffff),
+      mt_rand(0, 0xffff)
+    );
+
+    try {
+      $stmt = $pdo->prepare("
+        INSERT INTO property_images
+          (image_id, property_id, image_url, thumbnail_url,
+           caption, image_type, sort_order, is_active, uploaded_by, created_at)
+        VALUES (?, ?, ?, NULL, ?, ?, ?, 1, NULL, NOW())
+      ");
+      $stmt->execute([
+        $imageId,
+        $data['property_id'],
+        'uploads/properties/' . $newFileName,
+        $caption,
+        $imageType,
+        $sortOrder
+      ]);
+
+      $uploadedImages[] = [
+        'image_id'   => $imageId,
+        'image_url'  => 'uploads/properties/' . $newFileName,
+        'image_type' => $imageType,
+        'caption'    => $caption
+      ];
+    } catch (PDOException $e) {
+      sendResponse(false, 'DB error saving image: ' . $e->getMessage());
+    }
+  }
+
+  sendResponse(true, 'Images uploaded successfully', ['images' => $uploadedImages]);
 }

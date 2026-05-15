@@ -17,6 +17,30 @@ function generateUUID()
 ?>
 
 <script>
+  // Inject custom styles for SweetAlert buttons
+  const style = document.createElement('style');
+  style.textContent = `
+    .swal-confirm-button {
+      background-color: #d33 !important;
+      color: white !important;
+      border: none !important;
+      padding: 12px 24px !important;
+      border-radius: 8px !important;
+      font-weight: 600 !important;
+      font-size: 14px !important;
+    }
+    .swal-cancel-button {
+      background-color: #6b7280 !important;
+      color: white !important;
+      border: none !important;
+      padding: 12px 24px !important;
+      border-radius: 8px !important;
+      font-weight: 600 !important;
+      font-size: 14px !important;
+    }
+  `;
+  document.head.appendChild(style);
+
   // Data will be fetched from API on page load
   let propertiesData = [];
   let propertyImagesData = [];
@@ -28,6 +52,204 @@ function generateUUID()
   let currentPage = 1;
   let itemsPerPage = 10;
   let totalItems = 0;
+  let roomsViewMode = 'grid'; // 'grid' or 'list'
+  let roomsDataCache = {};
+  let csrfToken = "<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>";
+
+  // Cropper state
+  let cropper = null;
+  let currentCropFile = null;
+  let currentCropInput = null;
+  let currentCropPreviewContainerId = null;
+  let pendingFiles = []; // Queue of files to crop
+
+  // Helper function to generate UUID in JavaScript
+  function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  // Valid image_type ENUM values — single source of truth for both add and edit
+  const IMAGE_TYPES = [
+    { value: 'gallery',    label: 'Gallery' },
+    { value: 'cover',      label: 'Cover' },
+    { value: 'facilities', label: 'Facilities' },
+    { value: 'amenities',  label: 'Amenities' },
+    { value: 'map',        label: 'Map' },
+    { value: 'other',      label: 'Other' }
+  ];
+
+  function buildImageTypeSelect(name, defaultValue = 'gallery') {
+    const options = IMAGE_TYPES.map(t =>
+      `<option value="${t.value}"${t.value === defaultValue ? ' selected' : ''}>${t.label}</option>`
+    ).join('');
+    return `<select name="${name}" class="mt-1 w-full px-2 py-1 text-xs border border-gray-300 dark:border-white/20 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">${options}</select>`;
+  }
+
+  // Upload property images (used by both create and edit)
+  // Reads image_type from the per-image <select> rendered in the preview
+  async function uploadPropertyImages(propertyId, files, previewContainerId) {
+    const formData = new FormData();
+    formData.append('property_id', propertyId);
+    formData.append('csrf_token', csrfToken);
+
+    const container = document.getElementById(previewContainerId);
+    const typeSelects = container ? container.querySelectorAll('select[name^="image_type"]') : [];
+
+    Array.from(files).forEach((file, index) => {
+      formData.append('property_images', file);
+      const imageType = typeSelects[index] ? typeSelects[index].value : 'gallery';
+      formData.append(`image_type[${index}]`, imageType);
+      formData.append(`sort_order[${index}]`, index);
+    });
+
+    const response = await fetch('../api/properties.php', {
+      method: 'POST',
+      body: formData
+    });
+
+    return response.json();
+  }
+
+  // Delete a single property image immediately
+  async function deletePropertyImage(imageId, cardEl) {
+    const confirmed = await Swal.fire({
+      title: 'Delete image?',
+      text: 'This cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Delete',
+      customClass: { confirmButton: 'swal-confirm-button', cancelButton: 'swal-cancel-button' }
+    });
+    if (!confirmed.isConfirmed) return;
+
+    const response = await fetch('../api/properties.php?action=delete_image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+      body: JSON.stringify({ csrf_token: csrfToken, image_id: imageId })
+    });
+    const result = await response.json();
+    if (result.success) {
+      cardEl.remove();
+    } else {
+      Swal.fire({ icon: 'error', title: 'Error', text: result.message });
+    }
+  }
+
+  // Update image_type for an existing image
+  async function updateImageType(imageId, newType) {
+    const response = await fetch('../api/properties.php?action=update_image_type', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+      body: JSON.stringify({ csrf_token: csrfToken, image_id: imageId, image_type: newType })
+    });
+    const result = await response.json();
+    if (!result.success) {
+      Swal.fire({ icon: 'error', title: 'Error', text: result.message });
+    }
+  }
+
+  // Cropper functions
+  function openCropperModal(file, input, previewContainerId) {
+    currentCropFile = file;
+    currentCropInput = input;
+    currentCropPreviewContainerId = previewContainerId;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const cropperImage = document.getElementById('cropperImage');
+      cropperImage.src = e.target.result;
+
+      // Destroy existing cropper if any
+      if (cropper) {
+        cropper.destroy();
+      }
+
+      // Initialize new cropper
+      cropper = new Cropper(cropperImage, {
+        aspectRatio: NaN, // Free aspect ratio
+        viewMode: 1,
+        autoCropArea: 0.8,
+        responsive: true
+      });
+    };
+    reader.readAsDataURL(file);
+
+    const modal = document.getElementById('cropperModal');
+    modal.classList.remove('hidden');
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeCropperModal() {
+    const modal = document.getElementById('cropperModal');
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+
+    if (cropper) {
+      cropper.destroy();
+      cropper = null;
+    }
+    currentCropFile = null;
+    currentCropInput = null;
+    currentCropPreviewContainerId = null;
+  }
+
+  async function applyCrop() {
+    if (!cropper || !currentCropFile || !currentCropInput) return;
+
+    const canvas = cropper.getCroppedCanvas({
+      maxWidth: 2048,
+      maxHeight: 2048
+    });
+
+    canvas.toBlob(function(blob) {
+      const croppedFile = new File([blob], currentCropFile.name, { type: currentCropFile.type });
+      addCroppedFileToInput(croppedFile, currentCropInput, currentCropPreviewContainerId);
+      closeCropperModal();
+      processNextPendingFile();
+    }, currentCropFile.type, 0.9);
+  }
+
+  function addCroppedFileToInput(file, input, previewContainerId) {
+    const dataTransfer = new DataTransfer();
+    const existingFiles = Array.from(input.files);
+    dataTransfer.items.add(file);
+    existingFiles.forEach(f => dataTransfer.items.add(f));
+    input.files = dataTransfer.files;
+
+    // Add to preview
+    const previewContainer = document.getElementById(previewContainerId);
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const previewDiv = document.createElement('div');
+      previewDiv.className = 'relative';
+      const index = Array.from(previewContainer.children).length;
+      previewDiv.innerHTML = `
+          <img src="${e.target.result}" alt="Preview ${index + 1}" style="width: 100%; height: 6rem; object-fit: cover; border-radius: 0.5rem;">
+          <button type="button" onclick="removeImage(${index}, '${previewContainerId}')" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors">
+            <i class="fas fa-times text-xs"></i>
+          </button>
+          ${buildImageTypeSelect('image_type[]')}
+          <input type="text" name="image_captions[]" placeholder="Caption (optional)" class="mt-1 w-full px-2 py-1 text-xs border border-gray-300 dark:border-white/20 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+        `;
+      previewContainer.appendChild(previewDiv);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function processNextPendingFile() {
+    if (pendingFiles.length > 0) {
+      const next = pendingFiles.shift();
+      openCropperModal(next.file, next.input, next.previewContainerId);
+    }
+  }
 
   // Fetch data from API on page load
   document.addEventListener('DOMContentLoaded', async function() {
@@ -209,20 +431,27 @@ function generateUUID()
         let imageHtml = '';
         if (cover_image) {
           imageHtml = `
-            <img src="../../${cover_image.image_url}" alt="${property.property_name}" class="mr-4 h-9 w-9 object-cover rounded-xl" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-            <div class="hidden inline-flex items-center justify-center mr-4 text-sm text-white transition-all duration-200 ease-in-out h-9 w-9 rounded-xl bg-gradient-to-tl from-blue-500 to-violet-500">
+            <img src="../../${cover_image.image_url}" alt="${property.property_name}" class="mr-4 h-12 w-12 object-cover rounded-xl" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="hidden inline-flex items-center justify-center mr-4 text-sm text-white transition-all duration-200 ease-in-out h-12 w-12 rounded-xl bg-gradient-to-tl from-blue-500 to-violet-500">
               <i class="fas fa-building"></i>
             </div>
           `;
         } else {
           imageHtml = `
-            <div class="inline-flex items-center justify-center mr-4 text-sm text-white transition-all duration-200 ease-in-out h-9 w-9 rounded-xl bg-gradient-to-tl from-blue-500 to-violet-500">
+            <div class="inline-flex items-center justify-center mr-4 text-sm text-white transition-all duration-200 ease-in-out h-12 w-12 rounded-xl bg-gradient-to-tl from-blue-500 to-violet-500">
               <i class="fas fa-building"></i>
             </div>
           `;
         }
 
-        const createdDate = property.created_at ? new Date(property.created_at).toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : '-';
+        const createdDate = property.created_at ? new Date(property.created_at).toLocaleString('en-US', {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        }) : '-';
 
         return `
           <tr class="property-row">
@@ -235,20 +464,21 @@ function generateUUID()
                 </div>
               </div>
             </td>
-            <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+            <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent hidden md:table-cell">
               <p class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">${property.property_type ? property.property_type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : ''}</p>
             </td>
             <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
               <p class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">${getCityName(property.city_municipality_code)}${getProvinceName(property.province_code) !== '-' ? ', ' + getProvinceName(property.province_code) : ''}</p>
             </td>
-            <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+            <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent hidden lg:table-cell">
               <p class="mb-0 text-sm leading-tight dark:text-white dark:opacity-80">${createdDate}</p>
             </td>
             <td class="p-4 text-sm leading-normal text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
               <span class="bg-gradient-to-tl from-emerald-500 to-teal-400 px-4 py-2 text-base rounded-1.8 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">Active</span>
             </td>
             <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-              <div class="flex items-center gap-2">
+              <!-- Desktop: shown above md -->
+              <div class="hidden md:flex items-center gap-2">
                 <button onclick="viewPropertyDetails('${property.property_id}')" class="group relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md" title="View Details">
                   <i class="fas fa-info-circle mr-1.5 text-sm"></i>
                   <span>View</span>
@@ -265,6 +495,28 @@ function generateUUID()
                   <i class="fas fa-trash-alt mr-1.5 text-sm"></i>
                   <span>Delete</span>
                 </button>
+              </div>
+
+              <!-- Mobile: shown below md -->
+              <div class="md:hidden relative" id="actionMenu-${property.property_id}">
+                <button onclick="toggleActionMenu('${property.property_id}')" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 600; border: 1px solid #e2e8f0; border-radius: 0.5rem; background-color: white; color: black;">
+                  <i class="fas fa-ellipsis-v"></i> Actions
+                  <i class="fas fa-chevron-down" style="font-size: 0.75rem;"></i>
+                </button>
+                <div id="actionDropdown-${property.property_id}" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 0.25rem; width: 11rem; background-color: white; border: 1px solid #e2e8f0; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 50; overflow: hidden;">
+                  <button onclick="viewPropertyDetails('${property.property_id}'); closeActionMenu('${property.property_id}')" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.75rem 1rem; font-size: 0.875rem; text-align: left; background: none; border: none; cursor: pointer; color: black;">
+                    <i class="fas fa-info-circle" style="color: #3b82f6;"></i> View details
+                  </button>
+                  <button onclick="toggleRoomsDropdown('${property.property_id}'); closeActionMenu('${property.property_id}')" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.75rem 1rem; font-size: 0.875rem; text-align: left; background: none; border: none; cursor: pointer; color: black;">
+                    <i class="fas fa-door-open" style="color: #10b981;"></i> Rooms
+                  </button>
+                  <button onclick="openEditPropertyModal('${property.property_id}'); closeActionMenu('${property.property_id}')" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.75rem 1rem; font-size: 0.875rem; text-align: left; background: none; border: none; cursor: pointer; color: black;">
+                    <i class="fas fa-edit" style="color: #f59e0b;"></i> Edit
+                  </button>
+                  <button onclick="confirmDeleteProperty('${property.property_id}', '${property.property_name}'); closeActionMenu('${property.property_id}')" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.75rem 1rem; font-size: 0.875rem; text-align: left; background: none; border: none; cursor: pointer; color: #dc2626;">
+                    <i class="fas fa-trash-alt"></i> Delete
+                  </button>
+                </div>
               </div>
             </td>
           </tr>
@@ -470,11 +722,11 @@ function generateUUID()
   <div class="w-full max-w-full px-3">
     <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
       <div class="p-6 pb-0 mb-0 rounded-t-2xl">
-        <div class="flex items-center justify-between">
-          <h6 class="mb-0 text-lg font-bold dark:text-white">Properties List</h6>
-          <div class="flex items-center gap-2">
-            <input type="text" id="searchInput" placeholder="Search properties..." class="px-4 py-2.5 text-base border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white" onkeyup="filterTable()">
-            <select id="typeFilter" class="px-4 py-2.5 text-base border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white" onchange="filterTable()">
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <h6 class="mb-0 text-lg font-bold dark:text-white" style="margin: 0;">Properties List</h6>
+          <div style="display: flex; flex-direction: row; gap: 0.5rem; width: 100%;">
+            <input type="text" id="searchInput" placeholder="Search properties..." style="flex: 1; width: 100%; padding: 0.625rem 1rem; font-size: 1rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; outline: none; background-color: white; color: black;" onkeyup="filterTable()">
+            <select id="typeFilter" style="flex: 1; width: 100%; padding: 0.625rem 1rem; font-size: 1rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; outline: none; background-color: white; color: black;" onchange="filterTable()">
               <option value="">All Types</option>
             </select>
           </div>
@@ -485,9 +737,9 @@ function generateUUID()
           <thead class="align-bottom">
             <tr>
               <th class="px-6 py-5 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-sm border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Property</th>
-              <th class="px-6 py-5 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-sm border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Type</th>
+              <th class="px-6 py-5 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-sm border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70 hidden md:table-cell">Type</th>
               <th class="px-6 py-5 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-sm border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">City</th>
-              <th class="px-6 py-5 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-sm border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Created</th>
+              <th class="px-6 py-5 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-sm border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70 hidden lg:table-cell">Created</th>
               <th class="px-6 py-5 font-bold text-center uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-sm border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
               <th class="px-6 py-5 font-bold text-center uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-sm border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Actions</th>
             </tr>
@@ -598,12 +850,12 @@ function generateUUID()
             <datalist id="barangay_list"></datalist>
           </div>
           <div style="grid-column: span 2 / span 2;">
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Address Line 1 *</label>
-            <input type="text" name="address_line1" required class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="Street address">
+            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Address Line 1</label>
+            <input type="text" name="address_line1" id="address_line1" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="Street address">
           </div>
           <div style="grid-column: span 2 / span 2;">
             <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Address Line 2</label>
-            <input type="text" name="address_line2" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="Apartment, suite, etc.">
+            <input type="text" name="address_line2" id="address_line2" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="Apartment, suite, etc.">
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Postal Code</label>
@@ -615,11 +867,11 @@ function generateUUID()
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Latitude</label>
-            <input type="text" name="latitude" id="latitude" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="e.g. 14.5995">
+            <input type="number" step="any" name="latitude" id="latitude" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="e.g. 14.5995">
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Longitude</label>
-            <input type="text" name="longitude" id="longitude" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="e.g. 120.9842">
+            <input type="number" step="any" name="longitude" id="longitude" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="e.g. 120.9842">
           </div>
           <div style="grid-column: span 2 / span 2;">
             <button type="button" onclick="geocodeAddress()" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
@@ -977,6 +1229,32 @@ function generateUUID()
   </div>
 </div>
 
+<!-- Image Cropper Modal -->
+<div id="cropperModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000;">
+  <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+  <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+    <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
+      <h3 class="text-xl font-bold dark:text-white">Crop Image</h3>
+      <button onclick="closeCropperModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    <div class="p-6">
+      <div class="mb-4" style="max-height: 500px; overflow: hidden;">
+        <img id="cropperImage" style="max-width: 100%;">
+      </div>
+      <div class="flex justify-end gap-3 pt-4">
+        <button type="button" onclick="closeCropperModal()" class="px-6 py-2 border border-gray-300 dark:border-white/20 rounded-lg text-slate-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
+          Cancel
+        </button>
+        <button type="button" onclick="applyCrop()" class="px-6 py-2 bg-gradient-to-tl from-blue-500 to-violet-500 text-white rounded-lg font-semibold hover:shadow-md transition-all">
+          <i class="fas fa-crop mr-2"></i>Apply Crop
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   async function viewPropertyDetails(propertyId) {
     const property = propertiesData.find(p => p.property_id === propertyId);
@@ -1027,7 +1305,7 @@ function generateUUID()
       imagesHtml = `
           <div class="mb-6">
             <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-3">Property Images</h4>
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem;">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
               ${images.map(img => {
                 // The image_url is stored as 'uploads/properties/filename.png'
                 // From build/pages/properties.php, we need to go up 2 levels to reach root
@@ -1036,7 +1314,7 @@ function generateUUID()
                 console.log('Full image path:', imagePath);
                 return `
                 <div class="relative group">
-                  <img src="${imagePath}" alt="${img.caption || 'Property image'}" style="width: 100%; height: 6rem; object-fit: cover; border-radius: 0.5rem; cursor: pointer;" class="hover:opacity-90 transition-opacity bg-gray-200" onerror="console.log('Failed to load:', '${imagePath}'); this.style.display='none'; this.parentElement.innerHTML='<div style=\'width: 100%; height: 6rem; background: #e5e7eb; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 0.75rem;\'>Image not found: ${img.image_url}</div>'" onclick="window.open('${imagePath}', '_blank')">
+                  <img src="${imagePath}" alt="${img.caption || 'Property image'}" style="width: 100%; height: 12rem; object-fit: cover; border-radius: 0.5rem; cursor: pointer;" class="hover:opacity-90 transition-opacity bg-gray-200" onerror="console.log('Failed to load:', '${imagePath}'); this.style.display='none'; this.parentElement.innerHTML='<div style=\'width: 100%; height: 12rem; background: #e5e7eb; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 0.75rem;\'>Image not found: ${img.image_url}</div>'" onclick="window.open('${imagePath}', '_blank')">
                   ${img.caption ? `<p class="text-xs text-slate-600 dark:text-white/80 mt-1 truncate">${img.caption}</p>` : ''}
                   <span class="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                     ${img.image_type}
@@ -1226,7 +1504,7 @@ function generateUUID()
     if (dropdown.classList.contains('hidden')) {
       dropdown.classList.remove('hidden');
       btn.innerHTML = '<i class="fas fa-chevron-up mr-1"></i>Hide Rooms';
-      
+
       // Fetch rooms for this property
       await fetchRoomsForProperty(propertyId);
     } else {
@@ -1235,20 +1513,49 @@ function generateUUID()
     }
   }
 
+  // Toggle Action Menu Function
+  function toggleActionMenu(id) {
+    const dropdown = document.getElementById('actionDropdown-' + id);
+    const currentDisplay = dropdown.style.display;
+    // Close all first
+    document.querySelectorAll('[id^="actionDropdown-"]').forEach(d => d.style.display = 'none');
+    if (currentDisplay === 'none') dropdown.style.display = 'block';
+  }
+
+  // Close Action Menu Function
+  function closeActionMenu(id) {
+    const dropdown = document.getElementById('actionDropdown-' + id);
+    if (dropdown) dropdown.style.display = 'none';
+  }
+
+  // Close action menus on outside click
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('[id^="actionMenu-"]')) {
+      document.querySelectorAll('[id^="actionDropdown-"]').forEach(d => d.style.display = 'none');
+    }
+  });
+
   async function fetchRoomsForProperty(propertyId) {
     const dropdown = document.getElementById('roomsDropdown-' + propertyId);
     const contentDiv = dropdown.querySelector('div');
-    
+
     try {
       const response = await fetch(`../api/rooms.php?action=by_property&property_id=${propertyId}`);
       const result = await response.json();
-      
-      if (result.success && result.data.length > 0) {
+
+      if (result.success && result.data && result.data.length > 0) {
+        roomsDataCache[propertyId] = result.data;
         renderRoomsInDropdown(propertyId, result.data);
       } else {
         contentDiv.innerHTML = `
-          <div class="p-6 text-center">
-            <p class="text-slate-500 dark:text-white/60">No rooms found for this property.</p>
+          <div class="p-8 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-4">
+              <i class="fas fa-door-open text-2xl text-blue-500 dark:text-blue-400"></i>
+            </div>
+            <p class="text-slate-500 dark:text-white/60 mb-4">No rooms found for this property.</p>
+            <button onclick="window.location.href='rooms'" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-gradient-to-tl from-blue-500 to-violet-500 rounded-lg hover:from-blue-600 hover:to-violet-600 transition-all shadow-sm hover:shadow-md">
+              <i class="fas fa-plus mr-2"></i>Add First Room
+            </button>
           </div>
         `;
       }
@@ -1265,50 +1572,104 @@ function generateUUID()
   function renderRoomsInDropdown(propertyId, rooms) {
     const dropdown = document.getElementById('roomsDropdown-' + propertyId);
     const contentDiv = dropdown.querySelector('div');
-    
+
     let roomsHtml = `
       <div class="p-6">
         <div class="mb-4 flex items-center justify-between">
           <h6 class="text-base font-bold dark:text-white">Rooms (${rooms.length})</h6>
+          <div class="flex items-center gap-2">
+            <button onclick="toggleRoomsViewMode('${propertyId}', 'grid')" class="p-2 rounded-lg ${roomsViewMode === 'grid' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-white'} hover:bg-blue-600 dark:hover:bg-blue-600 transition-colors" title="Grid View">
+              <i class="fas fa-th-large"></i>
+            </button>
+            <button onclick="toggleRoomsViewMode('${propertyId}', 'list')" class="p-2 rounded-lg ${roomsViewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-white'} hover:bg-blue-600 dark:hover:bg-blue-600 transition-colors" title="List View">
+              <i class="fas fa-list"></i>
+            </button>
+          </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div id="roomsContainer-${propertyId}" style="${roomsViewMode === 'grid' ? 'display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;' : 'display: flex; flex-direction: column; gap: 0.75rem;'}">
     `;
-    
+
     rooms.forEach(room => {
-      const statusColor = room.status === 'available' ? 'bg-emerald-500' : 
-                          room.status === 'occupied' ? 'bg-red-500' : 
-                          room.status === 'maintenance' ? 'bg-amber-500' : 'bg-slate-500';
-      
-      roomsHtml += `
-        <div class="p-4 bg-white dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-white/10 shadow-sm">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-semibold dark:text-white">${room.room_number}</span>
-            <span class="px-2 py-1 text-xs font-semibold text-white rounded-full ${statusColor}">${room.status}</span>
+      const statusColor = room.room_status === 'available' ? 'bg-emerald-500' :
+        room.room_status === 'occupied' ? 'bg-red-500' :
+        room.room_status === 'maintenance' ? 'bg-amber-500' :
+        room.room_status === 'reserved' ? 'bg-blue-500' : 'bg-slate-500';
+
+      const priceDisplay = room.override_price_per_night ? `₱${parseFloat(room.override_price_per_night).toFixed(2)}/night` :
+        room.override_price_per_hour ? `₱${parseFloat(room.override_price_per_hour).toFixed(2)}/hour` :
+        room.override_price_per_day_use ? `₱${parseFloat(room.override_price_per_day_use).toFixed(2)}/day` : '-';
+
+      if (roomsViewMode === 'grid') {
+        roomsHtml += `
+          <div class="p-4 bg-white dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-white/10 shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm font-semibold dark:text-white">${room.room_number || '-'}</span>
+              <span class="px-2 py-1 text-xs font-semibold text-white rounded-full ${statusColor}">${room.room_status || '-'}</span>
+            </div>
+            <div class="space-y-1 text-sm text-slate-600 dark:text-white/70">
+              <p><span class="text-xs text-slate-500 dark:text-white/50">Name:</span> ${room.room_name || '-'}</p>
+              <p><span class="text-xs text-slate-500 dark:text-white/50">Floor:</span> ${room.floor_number || '-'}</p>
+              <p><span class="text-xs text-slate-500 dark:text-white/50">Building:</span> ${room.building_block || '-'}</p>
+              <p><span class="text-xs text-slate-500 dark:text-white/50">Price:</span> ${priceDisplay}</p>
+              <p><span class="text-xs text-slate-500 dark:text-white/50">Active:</span> ${room.is_active ? 'Yes' : 'No'}</p>
+            </div>
           </div>
-          <div class="space-y-1 text-sm text-slate-600 dark:text-white/70">
-            <p><span class="text-xs text-slate-500 dark:text-white/50">Type:</span> ${room.room_type || '-'}</p>
-            <p><span class="text-xs text-slate-500 dark:text-white/50">Floor:</span> ${room.floor_number || '-'}</p>
-            <p><span class="text-xs text-slate-500 dark:text-white/50">Capacity:</span> ${room.max_occupancy || '-'} guests</p>
-            <p><span class="text-xs text-slate-500 dark:text-white/50">Price:</span> ₱${room.base_price || '0'}</p>
+        `;
+      } else {
+        roomsHtml += `
+          <div class="p-4 bg-white dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-white/10 shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
+                  <span class="text-sm font-semibold dark:text-white">${room.room_number || '-'}</span>
+                  <span class="text-sm text-slate-600 dark:text-white/70">${room.room_name || '-'}</span>
+                </div>
+                <span class="px-2 py-1 text-xs font-semibold text-white rounded-full ${statusColor}">${room.room_status || '-'}</span>
+              </div>
+              <div class="flex items-center gap-4 text-sm text-slate-600 dark:text-white/70">
+                <span><span class="text-xs text-slate-500 dark:text-white/50">Floor:</span> ${room.floor_number || '-'}</span>
+                <span><span class="text-xs text-slate-500 dark:text-white/50">Building:</span> ${room.building_block || '-'}</span>
+                <span><span class="text-xs text-slate-500 dark:text-white/50">Price:</span> ${priceDisplay}</span>
+                <span><span class="text-xs text-slate-500 dark:text-white/50">Active:</span> ${room.is_active ? 'Yes' : 'No'}</span>
+              </div>
+            </div>
           </div>
-        </div>
-      `;
+        `;
+      }
     });
-    
+
     roomsHtml += `
         </div>
       </div>
     `;
-    
+
     contentDiv.innerHTML = roomsHtml;
   }
 
+  function toggleRoomsViewMode(propertyId, mode) {
+    roomsViewMode = mode;
+    const rooms = roomsDataCache[propertyId];
+    if (rooms) {
+      renderRoomsInDropdown(propertyId, rooms);
+    }
+  }
+
   // Add Property Modal Functions
-  function openAddPropertyModal() {
+  async function openAddPropertyModal() {
     const modal = document.getElementById('addPropertyModal');
     modal.classList.remove('hidden');
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden';
+
+    // Wait for modal to be fully rendered
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // Initialize geography dropdowns
+    const regions = await fetchRegions();
+    populateDatalist('region_list', regions, 'region_name', 'region_code');
+
+    // Initialize property types dropdown
+    await fetchPropertyTypes('property_type');
   }
 
   function closeAddPropertyModal() {
@@ -1328,36 +1689,37 @@ function generateUUID()
     }
   }
 
-  // Image Preview Function
+  // Image Preview Function - queues files for cropping
   function handleImagePreview(input) {
     const previewContainer = document.getElementById('imagePreviewContainer');
     previewContainer.innerHTML = '';
 
     if (input.files && input.files.length > 0) {
-      Array.from(input.files).forEach((file, index) => {
-        const reader = new FileReader();
+      // Read files BEFORE clearing input
+      const files = Array.from(input.files);
 
-        reader.onload = function(e) {
-          const previewDiv = document.createElement('div');
-          previewDiv.className = 'relative';
-          previewDiv.innerHTML = `
-              <img src="${e.target.result}" alt="Preview ${index + 1}" style="width: 100%; height: 6rem; object-fit: cover; border-radius: 0.5rem;">
-              <button type="button" onclick="removeImage(${index})" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors">
-                <i class="fas fa-times text-xs"></i>
-              </button>
-              <input type="text" name="image_captions[]" placeholder="Caption (optional)" class="mt-2 w-full px-2 py-1 text-xs border border-gray-300 dark:border-white/20 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
-            `;
-          previewContainer.appendChild(previewDiv);
-        };
+      // Clear input files - we'll add cropped versions back
+      input.value = '';
+      previewContainer.innerHTML = '';
 
-        reader.readAsDataURL(file);
+      // Queue all files for cropping
+      files.forEach((file, index) => {
+        pendingFiles.push({ file, input, previewContainerId: 'imagePreviewContainer' });
       });
+
+      // Start cropping the first file
+      if (pendingFiles.length > 0) {
+        const first = pendingFiles.shift();
+        openCropperModal(first.file, first.input, first.previewContainerId);
+      }
     }
   }
 
-  function removeImage(index) {
-    const input = document.getElementById('propertyImagesInput');
-    const previewContainer = document.getElementById('imagePreviewContainer');
+  function removeImage(index, previewContainerId = 'imagePreviewContainer') {
+    const input = previewContainerId === 'imagePreviewContainer'
+      ? document.getElementById('propertyImagesInput')
+      : document.getElementById('editPropertyImagesInput');
+    const previewContainer = document.getElementById(previewContainerId);
 
     // Remove file from input
     const filesArray = Array.from(input.files);
@@ -1368,8 +1730,11 @@ function generateUUID()
     filesArray.forEach(file => dataTransfer.items.add(file));
     input.files = dataTransfer.files;
 
-    // Refresh preview
-    handleImagePreview(input);
+    // Remove the preview card directly
+    const cards = previewContainer.querySelectorAll('.relative');
+    if (cards[index]) {
+      cards[index].remove();
+    }
   }
 
   // Delete Property Function (API-based)
@@ -1379,26 +1744,25 @@ function generateUUID()
       text: `Are you sure you want to delete "${propertyName}"? This action will also delete all associated images and cannot be undone.`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
       confirmButtonText: 'Yes, delete it!',
       cancelButtonText: 'Cancel',
       customClass: {
         confirmButton: 'swal-confirm-button',
         cancelButton: 'swal-cancel-button'
-      },
-      buttonsStyling: true
+      }
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           const response = await fetch('../api/properties.php', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': csrfToken
             },
             body: JSON.stringify({
               action: 'delete',
-              property_id: propertyId
+              property_id: propertyId,
+              csrf_token: csrfToken
             })
           });
           const result = await response.json();
@@ -1535,17 +1899,20 @@ function generateUUID()
       images.forEach(img => {
         const imgDiv = document.createElement('div');
         imgDiv.className = 'relative group';
+        const typeSelect = buildImageTypeSelect(`existing_image_type_${img.image_id}`, img.image_type);
         imgDiv.innerHTML = `
             <img src="../../${img.image_url}" alt="${img.caption || 'Property image'}" style="width: 100%; height: 6rem; object-fit: cover; border-radius: 0.5rem;">
-            <div class="absolute top-2 right-2 flex gap-1">
-              <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">${img.image_type}</span>
-              <button type="button" onclick="markImageForDeletion('${img.image_id}', this)" class="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors" title="Delete image">
-                <i class="fas fa-trash text-xs"></i>
-              </button>
-            </div>
-            <input type="hidden" name="delete_images[]" value="" data-image-id="${img.image_id}" class="delete-image-input">
+            <button type="button" onclick="deletePropertyImage('${img.image_id}', this.closest('.relative'))" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors" title="Delete image">
+              <i class="fas fa-trash text-xs"></i>
+            </button>
+            ${typeSelect}
             ${img.caption ? `<p class="text-xs text-slate-600 dark:text-white/80 mt-1 truncate">${img.caption}</p>` : ''}
           `;
+        // Wire the type select to call API on change
+        const imgId = img.image_id;
+        imgDiv.querySelector('select').addEventListener('change', function() {
+          updateImageType(imgId, this.value);
+        });
         existingImagesContainer.appendChild(imgDiv);
       });
     } else {
@@ -1572,66 +1939,30 @@ function generateUUID()
     }
   }
 
-  function markImageForDeletion(imageId, button) {
-    const input = document.querySelector(`.delete-image-input[data-image-id="${imageId}"]`);
-    if (input) {
-      if (input.value === imageId) {
-        // Unmark for deletion
-        input.value = '';
-        button.classList.remove('bg-red-600');
-        button.classList.add('bg-red-500');
-        button.parentElement.parentElement.querySelector('img').style.opacity = '1';
-      } else {
-        // Mark for deletion
-        input.value = imageId;
-        button.classList.remove('bg-red-500');
-        button.classList.add('bg-red-600');
-        button.parentElement.parentElement.querySelector('img').style.opacity = '0.5';
-      }
-    }
-  }
 
   function handleEditImagePreview(input) {
     const previewContainer = document.getElementById('editImagePreviewContainer');
     previewContainer.innerHTML = '';
 
     if (input.files && input.files.length > 0) {
-      Array.from(input.files).forEach((file, index) => {
-        const reader = new FileReader();
+      // Read files BEFORE clearing input
+      const files = Array.from(input.files);
 
-        reader.onload = function(e) {
-          const previewDiv = document.createElement('div');
-          previewDiv.className = 'relative';
-          previewDiv.innerHTML = `
-              <img src="${e.target.result}" alt="Preview ${index + 1}" style="width: 100%; height: 6rem; object-fit: cover; border-radius: 0.5rem;">
-              <button type="button" onclick="removeEditImage(${index})" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors">
-                <i class="fas fa-times text-xs"></i>
-              </button>
-              <input type="text" name="image_captions[]" placeholder="Caption (optional)" class="mt-2 w-full px-2 py-1 text-xs border border-gray-300 dark:border-white/20 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
-            `;
-          previewContainer.appendChild(previewDiv);
-        };
+      // Clear input files - we'll add cropped versions back
+      input.value = '';
+      previewContainer.innerHTML = '';
 
-        reader.readAsDataURL(file);
+      // Queue all files for cropping
+      files.forEach((file, index) => {
+        pendingFiles.push({ file, input, previewContainerId: 'editImagePreviewContainer' });
       });
+
+      // Start cropping the first file
+      if (pendingFiles.length > 0) {
+        const first = pendingFiles.shift();
+        openCropperModal(first.file, first.input, first.previewContainerId);
+      }
     }
-  }
-
-  function removeEditImage(index) {
-    const input = document.getElementById('editPropertyImagesInput');
-    const previewContainer = document.getElementById('editImagePreviewContainer');
-
-    // Remove file from input
-    const filesArray = Array.from(input.files);
-    filesArray.splice(index, 1);
-
-    // Create new FileList
-    const dataTransfer = new DataTransfer();
-    filesArray.forEach(file => dataTransfer.items.add(file));
-    input.files = dataTransfer.files;
-
-    // Refresh preview
-    handleEditImagePreview(input);
   }
 
   // Add Property Form Submission (API-based)
@@ -1640,19 +1971,15 @@ function generateUUID()
     const form = event.target;
     const formData = new FormData(form);
 
-    // Generate UUID for property_id
-    const property_id = generateUUID();
-
     // Get selected geography codes
     const regionCode = document.getElementById('region_code').value;
     const provinceCode = document.getElementById('province_code').value;
     const cityCode = document.getElementById('city_municipality_code').value;
     const barangayCode = document.getElementById('barangay_code').value;
 
-    // Prepare data for API
+    // Prepare data for API (without property_id - let DB generate it)
     const data = {
       csrf_token: formData.get('csrf_token'),
-      property_id: property_id,
       property_code: formData.get('property_code'),
       property_name: formData.get('property_name'),
       property_type: formData.get('property_type'),
@@ -1703,6 +2030,15 @@ function generateUUID()
       console.log('Response data:', result);
 
       if (result.success) {
+        // Use the real property_id returned by the server
+        const realPropertyId = result.data.property_id;
+
+        // Upload images if any
+        const imageInput = document.getElementById('propertyImagesInput');
+        if (imageInput.files && imageInput.files.length > 0) {
+          await uploadPropertyImages(realPropertyId, imageInput.files, 'imagePreviewContainer');
+        }
+
         Swal.fire({
           icon: 'success',
           title: 'Success!',
@@ -1796,6 +2132,15 @@ function generateUUID()
       console.log('Response data:', result);
 
       if (result.success) {
+        // Upload new images if any were selected
+        const editImageInput = document.getElementById('editPropertyImagesInput');
+        if (editImageInput && editImageInput.files && editImageInput.files.length > 0) {
+          const imgResult = await uploadPropertyImages(data.property_id, editImageInput.files, 'editImagePreviewContainer');
+          if (!imgResult.success) {
+            console.error('Image upload failed:', imgResult.message);
+          }
+        }
+
         Swal.fire({
           icon: 'success',
           title: 'Success!',
@@ -1851,9 +2196,18 @@ function generateUUID()
 
   // Geocoding function using OpenStreetMap Nominatim API
   async function geocodeAddress() {
-    const addressLine1 = document.getElementById('address_line1').value;
-    const cityDisplay = document.getElementById('city_municipality_code_display').value;
-    const provinceDisplay = document.getElementById('province_code_display').value;
+    const addressLine1El = document.getElementById('address_line1');
+    const cityDisplayEl = document.getElementById('city_municipality_code_display');
+    const provinceDisplayEl = document.getElementById('province_code_display');
+
+    if (!addressLine1El || !cityDisplayEl || !provinceDisplayEl) {
+      console.log('Required elements not found, skipping geocoding');
+      return;
+    }
+
+    const addressLine1 = addressLine1El.value;
+    const cityDisplay = cityDisplayEl.value;
+    const provinceDisplay = provinceDisplayEl.value;
 
     if (!cityDisplay) {
       console.log('City not selected, skipping geocoding');
@@ -1863,6 +2217,10 @@ function generateUUID()
     try {
       const lat = document.getElementById('latitude');
       const lon = document.getElementById('longitude');
+      if (!lat || !lon) {
+        console.log('Latitude/Longitude elements not found, skipping geocoding');
+        return;
+      }
       const result = await nominatimGeocode(addressLine1, cityDisplay, provinceDisplay);
       if (result) {
         lat.value = result.lat;
@@ -1875,9 +2233,18 @@ function generateUUID()
 
   // Edit modal geocoding function
   async function geocodeEditAddress() {
-    const addressLine1 = document.getElementById('edit_address_line1').value;
-    const cityDisplay = document.getElementById('edit_city_municipality_code_display').value;
-    const provinceDisplay = document.getElementById('edit_province_code_display').value;
+    const addressLine1El = document.getElementById('edit_address_line1');
+    const cityDisplayEl = document.getElementById('edit_city_municipality_code_display');
+    const provinceDisplayEl = document.getElementById('edit_province_code_display');
+
+    if (!addressLine1El || !cityDisplayEl || !provinceDisplayEl) {
+      console.log('Required elements not found, skipping geocoding');
+      return;
+    }
+
+    const addressLine1 = addressLine1El.value;
+    const cityDisplay = cityDisplayEl.value;
+    const provinceDisplay = provinceDisplayEl.value;
 
     if (!cityDisplay) {
       console.log('City not selected, skipping geocoding');
@@ -1887,6 +2254,10 @@ function generateUUID()
     try {
       const lat = document.getElementById('edit_latitude');
       const lon = document.getElementById('edit_longitude');
+      if (!lat || !lon) {
+        console.log('Latitude/Longitude elements not found, skipping geocoding');
+        return;
+      }
       const result = await nominatimGeocode(addressLine1, cityDisplay, provinceDisplay);
       if (result) {
         lat.value = result.lat;
@@ -1900,25 +2271,51 @@ function generateUUID()
   // Shared Nominatim geocoding with fallback strategy
   async function nominatimGeocode(street, city, province) {
     const baseUrl = 'https://nominatim.openstreetmap.org/search';
-    const headers = { 'Accept-Language': 'en' };
+    const headers = {
+      'Accept-Language': 'en'
+    };
 
     // Strategy 1: structured query with street + city + province
     if (street) {
-      const params = new URLSearchParams({ format: 'json', limit: 1, countrycodes: 'ph', street, city, county: province });
-      const res = await fetch(`${baseUrl}?${params}`, { headers });
+      const params = new URLSearchParams({
+        format: 'json',
+        limit: 1,
+        countrycodes: 'ph',
+        street,
+        city,
+        county: province
+      });
+      const res = await fetch(`${baseUrl}?${params}`, {
+        headers
+      });
       const data = await res.json();
       if (data.length > 0) return data[0];
     }
 
     // Strategy 2: city + province structured
-    const params2 = new URLSearchParams({ format: 'json', limit: 1, countrycodes: 'ph', city, county: province });
-    const res2 = await fetch(`${baseUrl}?${params2}`, { headers });
+    const params2 = new URLSearchParams({
+      format: 'json',
+      limit: 1,
+      countrycodes: 'ph',
+      city,
+      county: province
+    });
+    const res2 = await fetch(`${baseUrl}?${params2}`, {
+      headers
+    });
     const data2 = await res2.json();
     if (data2.length > 0) return data2[0];
 
     // Strategy 3: city only
-    const params3 = new URLSearchParams({ format: 'json', limit: 1, countrycodes: 'ph', city });
-    const res3 = await fetch(`${baseUrl}?${params3}`, { headers });
+    const params3 = new URLSearchParams({
+      format: 'json',
+      limit: 1,
+      countrycodes: 'ph',
+      city
+    });
+    const res3 = await fetch(`${baseUrl}?${params3}`, {
+      headers
+    });
     const data3 = await res3.json();
     if (data3.length > 0) return data3[0];
 
@@ -2107,15 +2504,6 @@ function generateUUID()
       geocodeEditAddress();
     }
   }
-
-  // Initialize geography dropdowns when modals open
-  const originalOpenAddPropertyModal = openAddPropertyModal;
-  openAddPropertyModal = async function() {
-    const regions = await fetchRegions();
-    populateDatalist('region_list', regions, 'region_name', 'region_code');
-    await fetchPropertyTypes('property_type');
-    originalOpenAddPropertyModal();
-  };
 
   // Fetch and populate property types
   async function fetchPropertyTypes(selectId) {

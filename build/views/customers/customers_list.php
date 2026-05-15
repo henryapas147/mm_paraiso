@@ -124,10 +124,26 @@
   </div>
 </div>
 
+<!-- Cropper Modal -->
+<div id="cropperModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:24px;max-width:90%;max-height:90%;overflow:auto;">
+    <h3 style="margin:0 0 16px 0;font-size:18px;font-weight:600;color:#1e293b;">Crop Image</h3>
+    <div style="margin-bottom:16px;">
+      <img id="cropperImage" style="max-width:100%;max-height:500px;display:block;" alt="Image to crop">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="cancelCrop()" style="padding:8px 16px;font-size:14px;font-weight:600;color:#fff;background:#dc2626;border:none;border-radius:8px;cursor:pointer;">Cancel</button>
+      <button onclick="applyCrop()" style="padding:8px 16px;font-size:14px;font-weight:600;color:#fff;background:#3b82f6;border:none;border-radius:8px;cursor:pointer;">Apply Crop</button>
+    </div>
+  </div>
+</div>
+
 <script>
+  let csrfToken = "<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>";
   let customersData = [];
   let croppedImageData = null;
-  const cropperInstances = {};
+  let currentPreviewId = null;
+  let cropper = null;
 
   // Geocode data cache
   let regionsData = [];
@@ -152,22 +168,6 @@
                     background:#f1f5f9;display:flex;align-items:center;justify-content:center;
                     position:relative;flex-shrink:0;">
           ${imgOrIcon}
-          <div id="${previewId}_cropArea"
-               style="display:none;position:absolute;inset:0;z-index:10;background:rgba(0,0,0,.5);">
-            <img id="${previewId}_cropImg" style="max-width:100%;max-height:100%;" alt="">
-            <div style="position:absolute;bottom:4px;left:0;right:0;display:flex;justify-content:center;gap:4px;">
-              <button type="button" onclick="applyCrop('${previewId}')"
-                      style="padding:3px 8px;font-size:11px;font-weight:600;color:#fff;
-                             background:#475569;border:none;border-radius:6px;cursor:pointer;">
-                Apply
-              </button>
-              <button type="button" onclick="cancelCrop('${previewId}')"
-                      style="padding:3px 8px;font-size:11px;font-weight:600;color:#fff;
-                             background:#dc2626;border:none;border-radius:6px;cursor:pointer;">
-                Cancel
-              </button>
-            </div>
-          </div>
         </div>
         <label style="cursor:pointer;font-size:12px;color:#4f46e5;font-weight:600;">
           <i class="fas fa-camera" style="margin-right:3px;"></i>${showRemove ? 'Change' : 'Upload'}
@@ -596,6 +596,7 @@
   }
 
   function submitCustomerUpdate(formData) {
+    formData.append('csrf_token', csrfToken);
     Swal.fire({
       title: 'Updating…',
       allowOutsideClick: false,
@@ -813,6 +814,7 @@
             }
           });
 
+          fd.append('csrf_token', csrfToken);
           fetch('../api/customers.php?action=create', {
               method: 'POST',
               body: fd
@@ -891,7 +893,8 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            user_id: userId
+            user_id: userId,
+            csrf_token: csrfToken
           }),
         })
         .then(r => r.json())
@@ -938,20 +941,20 @@
   function previewPhoto(input, previewId) {
     if (!input.files || !input.files[0]) return;
 
+    currentPreviewId = previewId;
     const reader = new FileReader();
     reader.onload = e => {
-      const cropImg = document.getElementById(`${previewId}_cropImg`);
-      const cropArea = document.getElementById(`${previewId}_cropArea`);
-
-      if (cropperInstances[previewId]) {
-        cropperInstances[previewId].destroy();
-        delete cropperInstances[previewId];
-      }
-
+      const cropImg = document.getElementById('cropperImage');
       cropImg.src = e.target.result;
-      cropArea.style.display = 'block';
 
-      cropperInstances[previewId] = new Cropper(cropImg, {
+      // Show modal
+      document.getElementById('cropperModal').style.display = 'flex';
+
+      // Initialize cropper
+      if (cropper) {
+        cropper.destroy();
+      }
+      cropper = new Cropper(cropImg, {
         aspectRatio: 1,
         viewMode: 1,
         dragMode: 'move',
@@ -960,15 +963,14 @@
         center: true,
         cropBoxMovable: true,
         cropBoxResizable: true,
-        toggleDragModeOnDblclick: false,
+        toggleDragModeOnDblclick: false
       });
     };
     reader.readAsDataURL(input.files[0]);
   }
 
-  function applyCrop(previewId) {
-    const cropper = cropperInstances[previewId];
-    if (!cropper) return;
+  function applyCrop() {
+    if (!cropper || !currentPreviewId) return;
 
     cropper.getCroppedCanvas({
       width: 200,
@@ -976,7 +978,7 @@
     }).toBlob(blob => {
       croppedImageData = blob;
 
-      const preview = document.getElementById(previewId);
+      const preview = document.getElementById(currentPreviewId);
       const reader = new FileReader();
       reader.onload = e => {
         preview.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;" alt="Cropped photo">`;
@@ -984,25 +986,25 @@
       reader.readAsDataURL(blob);
 
       cropper.destroy();
-      delete cropperInstances[previewId];
-      document.getElementById(`${previewId}_cropArea`).style.display = 'none';
+      cropper = null;
+      document.getElementById('cropperModal').style.display = 'none';
+      currentPreviewId = null;
     }, 'image/jpeg', 0.9);
   }
 
-  function cancelCrop(previewId) {
-    if (cropperInstances[previewId]) {
-      cropperInstances[previewId].destroy();
-      delete cropperInstances[previewId];
+  function cancelCrop() {
+    if (cropper) {
+      cropper.destroy();
+      cropper = null;
     }
-    document.getElementById(`${previewId}_cropArea`).style.display = 'none';
+    document.getElementById('cropperModal').style.display = 'none';
 
-    const fileInput = document.getElementById(previewId.replace('_preview', ''));
+    const fileInput = document.getElementById(currentPreviewId ? currentPreviewId.replace('_preview', '') : '');
     if (fileInput) fileInput.value = '';
+    currentPreviewId = null;
   }
 
   function removePhoto(previewId) {
-    cancelCrop(previewId);
-
     const preview = document.getElementById(previewId);
     preview.innerHTML = `<img src="<?php echo dirname(dirname($_SERVER['PHP_SELF'])) . '/uploads/profile_photos/default_profile.jpg'; ?>" style="width:100%;height:100%;object-fit:cover;" alt="Default profile">`;
 
@@ -1361,7 +1363,10 @@
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify({
+              ...formData,
+              csrf_token: csrfToken
+            })
           })
           .then(r => r.json())
           .then(data => {
@@ -1436,7 +1441,8 @@
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              user_id: userId
+              user_id: userId,
+              csrf_token: csrfToken
             })
           })
           .then(r => r.json())
@@ -1479,89 +1485,6 @@
     });
   }
 
-  function previewPhoto(input, previewId, fallbackInitial) {
-    if (input.files && input.files[0]) {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const cropImg = document.getElementById(`${previewId}_cropImg`);
-        const cropArea = document.getElementById(`${previewId}_cropArea`);
-
-        if (cropperInstances[previewId]) {
-          cropperInstances[previewId].destroy();
-          delete cropperInstances[previewId];
-        }
-
-        cropImg.src = e.target.result;
-        cropArea.style.display = 'block';
-
-        cropperInstances[previewId] = new Cropper(cropImg, {
-          aspectRatio: 1,
-          viewMode: 1,
-          dragMode: 'move',
-          autoCropArea: 0.8,
-          guides: true,
-          center: true,
-          cropBoxMovable: true,
-          cropBoxResizable: true,
-          toggleDragModeOnDblclick: false
-        });
-      };
-      reader.readAsDataURL(input.files[0]);
-    }
-  }
-
-  function applyCrop(previewId) {
-    const cropper = cropperInstances[previewId];
-    if (!cropper) return;
-
-    const canvas = cropper.getCroppedCanvas({
-      width: 200,
-      height: 200
-    });
-    canvas.toBlob(blob => {
-      croppedImageData = blob;
-
-      const preview = document.getElementById(previewId);
-      const reader = new FileReader();
-      reader.onload = e => {
-        preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
-      };
-      reader.readAsDataURL(blob);
-
-      cropper.destroy();
-      delete cropperInstances[previewId];
-      document.getElementById(`${previewId}_cropArea`).style.display = 'none';
-    }, 'image/jpeg', 0.9);
-  }
-
-  function cancelCrop(previewId) {
-    if (cropperInstances[previewId]) {
-      cropperInstances[previewId].destroy();
-      delete cropperInstances[previewId];
-    }
-    document.getElementById(`${previewId}_cropArea`).style.display = 'none';
-
-    const fileInput = document.getElementById(previewId.replace('_preview', ''));
-    if (fileInput) fileInput.value = '';
-  }
-
-  function removePhoto(previewId, fallbackInitial) {
-    if (cropperInstances[previewId]) {
-      cropperInstances[previewId].destroy();
-      delete cropperInstances[previewId];
-    }
-    const cropArea = document.getElementById(`${previewId}_cropArea`);
-    if (cropArea) cropArea.style.display = 'none';
-
-    const preview = document.getElementById(previewId);
-    preview.innerHTML = `<img src="<?php echo dirname(dirname($_SERVER['PHP_SELF'])) . '/uploads/profile_photos/default_profile.jpg'; ?>" class="w-full h-full object-cover">`;
-    const removeInput = document.getElementById('edit_remove_photo');
-    if (removeInput) removeInput.value = '1';
-    const fileInput = document.getElementById('edit_photo');
-    if (fileInput) fileInput.value = '';
-
-    croppedImageData = null;
-  }
 </script>
 
 <script>

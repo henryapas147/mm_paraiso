@@ -161,9 +161,9 @@ $breadcrumb = getBreadcrumbInfo($current_route);
 ?>
 <nav class="relative flex flex-wrap items-center justify-between px-0 py-2 mx-6 transition-all ease-in shadow-none duration-250 rounded-2xl lg:flex-nowrap lg:justify-start" navbar-main navbar-scroll="false">
     <div class="flex items-center justify-between w-full px-4 py-1 mx-auto flex-wrap-inherit">
-        <nav>
+        <nav class="flex-shrink-0 min-w-0">
             <!-- breadcrumb -->
-            <ol class="flex flex-wrap pt-1 mr-12 bg-transparent rounded-lg sm:mr-16">
+            <ol class="flex flex-wrap pt-1 mr-4 md:mr-8 lg:mr-12 xl:mr-16 bg-transparent rounded-lg">
                 <?php if ($breadcrumb[0] !== $breadcrumb[1]): ?>
                 <li class="text-sm leading-normal">
                     <a class="text-white opacity-50" href="javascript:;"><?php echo htmlspecialchars($breadcrumb[0]); ?></a>
@@ -173,7 +173,7 @@ $breadcrumb = getBreadcrumbInfo($current_route);
                 <li class="text-sm capitalize leading-normal text-white" aria-current="page"><?php echo htmlspecialchars($breadcrumb[1]); ?></li>
                 <?php endif; ?>
             </ol>
-            <h6 class="mb-0 font-bold text-white capitalize" style="font-size: 2rem;"><?php echo htmlspecialchars($breadcrumb[1]); ?></h6>
+            <h6 class="mb-0 font-bold text-white capitalize truncate" style="font-size: 2rem;"><?php echo htmlspecialchars($breadcrumb[1]); ?></h6>
         </nav>
 
         <div class="flex items-center mt-2 grow sm:mt-0 sm:mr-6 md:mr-0 lg:flex lg:basis-auto">

@@ -18,7 +18,12 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
       return DEFAULT_PROFILE_PATH;
     }
 
-    const isLocalhost = window.location.hostname === 'localhost' || 
+    // If URL is already absolute (starts with http:// or https://), return as-is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+
+    const isLocalhost = window.location.hostname === 'localhost' ||
                         window.location.hostname === '127.0.0.1' ||
                         window.location.hostname.match(/^192\.168\./) ||
                         window.location.hostname.match(/^10\./);

@@ -3,6 +3,13 @@ header('Content-Type: application/json');
 require_once '../config/middleware.php';
 applyAuthMiddleware();
 
+// Base URL configuration
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+if (!preg_match('/^[a-zA-Z0-9\-\.\:]+$/', $host)) {
+  $host = 'localhost';
+}
+$BASE_URL = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$host}";
+
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
 
@@ -48,7 +55,7 @@ try {
       $input = $isMultipart ? $_POST : (json_decode(file_get_contents('php://input'), true) ?? []);
 
       // Helper: handle photo upload, returns saved URL or null
-      $uploadPhoto = function($fileKey, $userId) {
+      $uploadPhoto = function($fileKey, $userId) use ($BASE_URL) {
         if (!isset($_FILES[$fileKey]) || $_FILES[$fileKey]['error'] !== UPLOAD_ERR_OK) return null;
         $file = $_FILES[$fileKey];
         $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -60,10 +67,10 @@ try {
         $filename = $userId . '_' . time() . '.' . $ext;
         $destPath = $uploadDir . $filename;
         if (move_uploaded_file($file['tmp_name'], $destPath)) {
-          // Dynamic path based on current environment
-          $basePath = dirname($_SERVER['PHP_SELF']); // Gets /admin_booking/build or equivalent
-          $uploadsPath = dirname($basePath) . '/uploads/profile_photos'; // Gets /admin_booking/uploads/profile_photos
-          return $uploadsPath . '/' . $filename;
+          // Dynamic path based on current environment - use absolute URL
+          $basePath = dirname($_SERVER['PHP_SELF']); // Gets /admin_booking/build/api
+          $uploadsPath = dirname(dirname($basePath)) . '/uploads/profile_photos'; // Gets /admin_booking/uploads/profile_photos
+          return $BASE_URL . $uploadsPath . '/' . $filename;
         }
         return null;
       };
