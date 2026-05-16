@@ -34,6 +34,9 @@ try {
                 $stmt = $pdo->query("SELECT role_id, role_code, role_label FROM user_roles WHERE is_active = 1 ORDER BY role_id ASC");
                 echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
 
+            } elseif ($action === 'csrf_token') {
+                echo json_encode(['success' => true, 'csrf_token' => $_SESSION['csrf_token'] ?? '']);
+
             } else {
                 echo json_encode(['success' => false, 'message' => 'Unknown action']);
             }
@@ -174,6 +177,41 @@ try {
 
                 $pdo->commit();
                 echo json_encode(['success' => true, 'message' => 'User updated successfully']);
+
+            } elseif ($action === 'delete') {
+                if (empty($input['user_id'])) {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => 'user_id is required']);
+                    exit;
+                }
+
+                $userId = $input['user_id'];
+
+                // Get existing photo URL for cleanup
+                $stmt = $pdo->prepare("SELECT profile_photo_url FROM user_profiles WHERE user_id = ?");
+                $stmt->execute([$userId]);
+                $photoUrl = $stmt->fetchColumn();
+
+                $pdo->beginTransaction();
+
+                // Soft delete by setting deleted_at timestamp
+                $stmt = $pdo->prepare("
+                    UPDATE user_accounts SET deleted_at = NOW() WHERE user_id = ?
+                ");
+                $stmt->execute([$userId]);
+
+                $pdo->commit();
+
+                // Delete photo file after successful soft delete
+                if ($photoUrl) {
+                    $filename = basename($photoUrl);
+                    $filePath = __DIR__ . '/../../uploads/profile_photos/' . $filename;
+                    if (file_exists($filePath)) {
+                        unlink($filePath);
+                    }
+                }
+
+                echo json_encode(['success' => true, 'message' => 'User deleted successfully']);
 
             } else {
                 echo json_encode(['success' => false, 'message' => 'Unknown action']);

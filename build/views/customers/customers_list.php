@@ -65,21 +65,6 @@
     </div>
   </div>
 
-  <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="flex-auto p-4">
-        <div class="flex flex-row -mx-3">
-          <div class="flex-none w-full max-w-full px-3">
-            <div>
-              <button onclick="createCustomer()" class="w-full inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-tl from-blue-500 to-violet-500 rounded-lg hover:from-blue-600 hover:to-violet-600 transition-all duration-200 shadow-sm hover:shadow-md">
-                <i class="fas fa-plus mr-2"></i>Add New Customer
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- Customers Table -->
@@ -87,20 +72,88 @@
   <div class="w-full max-w-full px-3">
     <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
       <div class="p-4 pb-0 mb-0 rounded-t-2xl">
-        <div class="flex items-center justify-between">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
           <h6 class="mb-0 dark:text-white">Customers List</h6>
-          <div class="flex items-center gap-2">
-            <input type="text" id="searchInput" placeholder="Search customers..." class="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white" onkeyup="filterTable()">
-            <select id="statusFilter" class="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white" onchange="filterTable()">
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="suspended">Suspended</option>
-              <option value="pending_verification">Pending</option>
-            </select>
+          <div class="controls-container" style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="search-wrapper" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Search customers..."
+                onkeyup="filterTable()"
+                style="padding: 8px 14px; font-size: 0.875rem; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; width: 100%;">
+            </div>
+            <div class="filter-button-group" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+              <select
+                id="statusFilter"
+                onchange="filterTable()"
+                style="padding: 8px 14px; font-size: 0.875rem; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; width: 100%;">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="suspended">Suspended</option>
+                <option value="pending_verification">Pending</option>
+              </select>
+              <button
+                onclick="createCustomer()"
+                style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 18px; font-size: 0.75rem; font-weight: 600; color: white; background-color: #334155; border-radius: 8px; border: none; cursor: pointer; white-space: nowrap; width: 100%;">
+                <i class="fas fa-plus" style="font-size: 0.75rem;"></i> Add New Customer
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Responsive Desktop Layout -->
+      <style>
+        @media (min-width: 640px) {
+          .controls-container {
+            flex-direction: row !important;
+            align-items: center !important;
+          }
+
+          .search-wrapper {
+            width: 210px !important;
+          }
+
+          .filter-button-group {
+            flex-direction: row !important;
+            width: auto !important;
+          }
+
+          .filter-button-group button {
+            width: auto !important;
+          }
+
+          .filter-button-group select {
+            width: 140px !important;
+          }
+        }
+
+        @media (min-width: 768px) {
+          .search-wrapper {
+            width: 240px !important;
+          }
+
+          .filter-button-group select {
+            width: 160px !important;
+          }
+        }
+
+        @media (min-width: 1024px) {
+          .controls-container {
+            justify-content: space-between !important;
+          }
+
+          .search-wrapper {
+            width: 280px !important;
+          }
+
+          .filter-button-group select {
+            width: 180px !important;
+          }
+        }
+      </style>
       <div class="p-0 overflow-x-auto">
         <table class="items-center justify-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
           <thead class="align-bottom">
@@ -1484,7 +1537,6 @@
       }
     });
   }
-
 </script>
 
 <script>

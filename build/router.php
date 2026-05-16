@@ -84,6 +84,11 @@ $router->add('users/edit', ['controller' => 'Users', 'action' => 'edit']);
 $router->add('customers', ['controller' => 'Customer', 'action' => 'index']);
 $router->add('customers/list', ['controller' => 'Customer', 'action' => 'customersList']);
 
+// Authentication
+$router->add('sign-in', ['controller' => 'Auth', 'action' => 'signIn']);
+$router->add('sign-up', ['controller' => 'Auth', 'action' => 'signUp']);
+$router->add('sign-out', ['controller' => 'Auth', 'action' => 'logout']);
+
 // Get the URL
 $url = $_SERVER['REQUEST_URI'] ?? '/';
 

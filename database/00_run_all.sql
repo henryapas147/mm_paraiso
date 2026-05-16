@@ -49,6 +49,15 @@ SOURCE 08_seed_data.sql;
 -- Step 9 — RBAC Permissions (seed role permissions)
 SOURCE 09_rbac_permissions.sql;
 
+-- Step 10 — PSGC Geocode Tables (Philippine Standard Geographic Code)
+SOURCE standardgeocode.sql;
+
+-- Step 11 — Company Information
+SOURCE 10_company_information.sql;
+
+-- Step 12 — Add Company Geocode Foreign Key Constraints
+SOURCE 11_add_company_geocode_constraints.sql;
+
 -- ============================================================================
 -- FINAL VERIFICATION
 -- ============================================================================

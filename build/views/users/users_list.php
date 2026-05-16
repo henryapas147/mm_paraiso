@@ -8,6 +8,7 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
 <script>
   let usersData = [];
   let croppedImageData = null;
+  let csrfToken = '';
 
   // Default profile image path from PHP
   const DEFAULT_PROFILE_PATH = '<?php echo $defaultProfilePath; ?>';
@@ -24,9 +25,9 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
     }
 
     const isLocalhost = window.location.hostname === 'localhost' ||
-                        window.location.hostname === '127.0.0.1' ||
-                        window.location.hostname.match(/^192\.168\./) ||
-                        window.location.hostname.match(/^10\./);
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname.match(/^192\.168\./) ||
+      window.location.hostname.match(/^10\./);
 
     const basePath = '<?php echo $basePath; ?>';
 
@@ -73,13 +74,13 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
   const cropperInstances = {};
 
   function getPhotoPreviewHtml(photoUrl, previewId, showRemove = false, fallbackInitial = '?') {
-    const imgOrIcon = photoUrl
-      ? `<img src="${photoUrl}" class="w-full h-full object-cover">`
-      : `<i class="fas fa-user text-2xl text-slate-400"></i>`;
+    const imgOrIcon = photoUrl ?
+      `<img src="${photoUrl}" class="w-full h-full object-cover">` :
+      `<i class="fas fa-user text-2xl text-slate-400"></i>`;
 
-    const removeButton = showRemove && photoUrl
-      ? `<button type="button" onclick="removePhoto('${previewId}', '${fallbackInitial}')" class="text-xs text-red-500 hover:text-red-700"><i class="fas fa-trash mr-1"></i>Remove</button>`
-      : '';
+    const removeButton = showRemove && photoUrl ?
+      `<button type="button" onclick="removePhoto('${previewId}', '${fallbackInitial}')" class="text-xs text-red-500 hover:text-red-700"><i class="fas fa-trash mr-1"></i>Remove</button>` :
+      '';
 
     return `
       <div id="${previewId}" class="w-16 h-16 rounded-full overflow-hidden border-3 border-slate-200 shadow-md flex items-center justify-center bg-slate-100">
@@ -147,6 +148,31 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
     };
   }
 
+  function getRoleBadgeStyle(roleCode) {
+    const gradients = {
+      'super_admin': 'linear-gradient(310deg, #1e1b4b, #4c1d95)', // deep indigo-violet — elite authority
+      'admin': 'linear-gradient(310deg, #1e3a5f, #1d4ed8)', // navy-royal blue — trusted leadership
+      'front_desk': 'linear-gradient(310deg, #0f4c75, #0891b2)', // deep ocean — approachable & sharp
+      'housekeeping': 'linear-gradient(310deg, #064e3b, #047857)', // deep forest green — clean & grounded
+      'canteen_staff': 'linear-gradient(310deg, #7c2d12, #c2410c)', // deep burnt orange — bold & warm
+      'security': 'linear-gradient(310deg, #1c1917, #44403c)', // dark charcoal — serious & strong
+      'customer': 'linear-gradient(310deg, #1e293b, #334155)', // dark slate — neutral & modern
+    };
+    return gradients[roleCode] || gradients['customer'];
+  }
+
+  async function fetchCsrfToken() {
+    try {
+      const res = await fetch('api/users.php?action=csrf_token');
+      const json = await res.json();
+      if (json.success) {
+        csrfToken = json.csrf_token;
+      }
+    } catch (e) {
+      console.error('Error fetching CSRF token:', e);
+    }
+  }
+
   async function fetchUsers() {
     try {
       const res = await fetch('api/users.php?action=list');
@@ -190,7 +216,9 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
           </div>
         </td>
         <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-          <span class="bg-gradient-to-tl from-slate-600 to-slate-400 px-4 text-sm rounded-1.8 py-2 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">${user.role_label || user.role_code || '-'}</span>
+          <span style="background: ${getRoleBadgeStyle(user.role_code)};" class="px-4 text-sm rounded-1.8 py-2 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">
+            ${user.role_label || user.role_code || '-'}
+          </span>
         </td>
         <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
           <p class="mb-0 text-sm font-semibold leading-tight dark:text-white">${user.phone_number || '-'}</p>
@@ -202,7 +230,13 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
           <p class="mb-0 text-sm font-semibold leading-tight dark:text-white">${new Date(user.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</p>
         </td>
         <td class="p-4 text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-          <span class="bg-gradient-to-tl ${user.account_status === 'active' ? 'from-emerald-500 to-teal-400' : user.account_status === 'suspended' ? 'from-red-500 to-orange-500' : 'from-slate-500 to-slate-400'} px-4 text-sm rounded-1.8 py-2 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">${user.account_status || 'unknown'}</span>
+          <span style="background: ${
+            user.account_status === 'active'    ? 'linear-gradient(310deg, #2dce89, #2dcecc)' :
+            user.account_status === 'suspended' ? 'linear-gradient(310deg, #f53939, #fb6340)' :
+                                                  'linear-gradient(310deg, #67748e, #8392ab)'
+          };" class="px-4 text-sm rounded-1.8 py-2 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">
+            ${user.account_status || 'unknown'}
+          </span>
         </td>
         <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
           <div class="flex items-center gap-2">
@@ -211,6 +245,9 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
             </button>
             <button onclick="editUser('${user.user_id}')" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-500/20 hover:text-amber-600 transition-all duration-200 shadow-sm">
               <i class="fas fa-edit mr-2 text-sm"></i>Edit
+            </button>
+            <button onclick="deleteUser('${user.user_id}')" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-600 transition-all duration-200 shadow-sm">
+              <i class="fas fa-trash mr-2 text-sm"></i>Delete
             </button>
           </div>
         </td>
@@ -275,7 +312,10 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
       const res = await fetch('api/users.php?action=roles');
       const json = await res.json();
       if (json.success) {
-        rolesOptions = json.data.map(r => ({ value: r.role_id, label: r.role_label }));
+        rolesOptions = json.data.map(r => ({
+          value: r.role_id,
+          label: r.role_label
+        }));
       }
     } catch (e) {}
 
@@ -328,7 +368,9 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
         fd.append('remove_photo', document.getElementById('edit_remove_photo').value);
 
         if (croppedImageData) {
-          const file = new File([croppedImageData], 'cropped_photo.jpg', { type: 'image/jpeg' });
+          const file = new File([croppedImageData], 'cropped_photo.jpg', {
+            type: 'image/jpeg'
+          });
           fd.append('profile_photo', file);
           croppedImageData = null;
           submitUserUpdate(fd);
@@ -341,25 +383,97 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
     });
 
     function submitUserUpdate(formData) {
-      Swal.fire({ title: 'Saving...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), ...getCommonSwalConfig() });
+      Swal.fire({
+        title: 'Saving...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+        ...getCommonSwalConfig()
+      });
+      formData.append('csrf_token', csrfToken);
       fetch('api/users.php?action=update', {
         method: 'POST',
         body: formData
       }).then(r => r.json()).then(data => {
         if (data.success) {
-          Swal.fire({ icon: 'success', title: 'Updated!', text: data.message, confirmButtonColor: '#3085d6', ...getCommonSwalConfig() }).then(() => fetchUsers());
+          Swal.fire({
+            icon: 'success',
+            title: 'Updated!',
+            text: data.message,
+            confirmButtonColor: '#3085d6',
+            ...getCommonSwalConfig()
+          }).then(() => fetchUsers());
         } else {
-          Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#d33', ...getCommonSwalConfig() });
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: data.message,
+            confirmButtonColor: '#d33',
+            ...getCommonSwalConfig()
+          });
         }
       });
     }
+  }
+
+  async function deleteUser(userId) {
+    const user = usersData.find(u => u.user_id === userId);
+    if (!user) return;
+
+    const commonConfig = getCommonSwalConfig();
+    Swal.fire({
+      title: 'Delete User',
+      text: `Are you sure you want to delete ${user.first_name || ''} ${user.last_name || ''}? This action cannot be undone.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
+      ...commonConfig
+    }).then(result => {
+      if (result.isConfirmed) {
+        const fd = new FormData();
+        fd.append('user_id', userId);
+        fd.append('csrf_token', csrfToken);
+
+        Swal.fire({
+          title: 'Deleting...',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading(),
+          ...getCommonSwalConfig()
+        });
+        fetch('api/users.php?action=delete', {
+          method: 'POST',
+          body: fd
+        }).then(r => r.json()).then(data => {
+          if (data.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Deleted!',
+              text: data.message,
+              confirmButtonColor: '#3085d6',
+              ...getCommonSwalConfig()
+            }).then(() => fetchUsers());
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: data.message,
+              confirmButtonColor: '#d33',
+              ...getCommonSwalConfig()
+            });
+          }
+        });
+      }
+    });
   }
 
   function createUser() {
     fetch('api/users.php?action=roles')
       .then(r => r.json())
       .then(json => {
-        const rolesOptions = json.success ? json.data.map(r => ({ value: r.role_id, label: r.role_label })) : [];
+        const rolesOptions = json.success ? json.data.map(r => ({
+          value: r.role_id,
+          label: r.role_label
+        })) : [];
         const commonConfig = getCommonSwalConfig();
         Swal.fire({
           title: 'Add New User',
@@ -403,7 +517,9 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
             fd.append('password', document.getElementById('create_password').value || '');
 
             if (croppedImageData) {
-              const file = new File([croppedImageData], 'cropped_photo.jpg', { type: 'image/jpeg' });
+              const file = new File([croppedImageData], 'cropped_photo.jpg', {
+                type: 'image/jpeg'
+              });
               fd.append('profile_photo', file);
               croppedImageData = null;
               submitUserCreate(fd);
@@ -416,15 +532,33 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
         });
 
         function submitUserCreate(formData) {
-          Swal.fire({ title: 'Creating...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), ...getCommonSwalConfig() });
+          Swal.fire({
+            title: 'Creating...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading(),
+            ...getCommonSwalConfig()
+          });
+          formData.append('csrf_token', csrfToken);
           fetch('api/users.php?action=create', {
             method: 'POST',
             body: formData
           }).then(r => r.json()).then(data => {
             if (data.success) {
-              Swal.fire({ icon: 'success', title: 'Created!', text: data.message, confirmButtonColor: '#3085d6', ...getCommonSwalConfig() }).then(() => fetchUsers());
+              Swal.fire({
+                icon: 'success',
+                title: 'Created!',
+                text: data.message,
+                confirmButtonColor: '#3085d6',
+                ...getCommonSwalConfig()
+              }).then(() => fetchUsers());
             } else {
-              Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#d33', ...getCommonSwalConfig() });
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message,
+                confirmButtonColor: '#d33',
+                ...getCommonSwalConfig()
+              });
             }
           });
         }
@@ -466,7 +600,10 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
     const cropper = cropperInstances[previewId];
     if (!cropper) return;
 
-    const canvas = cropper.getCroppedCanvas({ width: 200, height: 200 });
+    const canvas = cropper.getCroppedCanvas({
+      width: 200,
+      height: 200
+    });
     canvas.toBlob(blob => {
       croppedImageData = blob;
 
@@ -523,65 +660,46 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
     });
   }
 
-  document.addEventListener('DOMContentLoaded', () => fetchUsers());
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchCsrfToken();
+    fetchUsers();
+  });
 </script>
 
 <!-- PAGE CONTENT -->
 <!-- Stats Cards -->
-<div class="flex flex-wrap -mx-3 mb-6">
-  <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="flex-auto p-4">
-        <div class="flex flex-row -mx-3">
-          <div class="flex-none w-2/3 max-w-full px-3">
-            <p class="mb-0 font-sans text-xs font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Total Users</p>
-            <h5 class="mb-0 font-bold dark:text-white" id="statTotal">...</h5>
-          </div>
-          <div class="px-3 text-right basis-1/3">
-            <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-indigo-500 to-violet-500">
-              <i class="ni leading-none ni-single-02 text-lg relative top-3.5 text-white"></i>
-            </div>
-          </div>
-        </div>
-      </div>
+<div class="flex flex-wrap gap-4 mb-6">
+
+  <div class="flex items-center gap-5 flex-1 min-w-[200px] bg-white dark:bg-slate-850 border border-slate-200 dark:border-white/10 rounded-2xl px-8 py-6 shadow-sm">
+    <div class="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-3xl">
+      <i class="fas fa-users"></i>
+    </div>
+    <div>
+      <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-white/50">Total Users</p>
+      <h5 class="mb-0 font-bold text-slate-800 dark:text-white text-4xl" id="statTotal">...</h5>
     </div>
   </div>
 
-  <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="flex-auto p-4">
-        <div class="flex flex-row -mx-3">
-          <div class="flex-none w-2/3 max-w-full px-3">
-            <p class="mb-0 font-sans text-xs font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Active</p>
-            <h5 class="mb-0 font-bold dark:text-white" id="statActive">...</h5>
-          </div>
-          <div class="px-3 text-right basis-1/3">
-            <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-emerald-500 to-teal-400">
-              <i class="ni leading-none ni-check-bold text-lg relative top-3.5 text-white"></i>
-            </div>
-          </div>
-        </div>
-      </div>
+  <div class="flex items-center gap-5 flex-1 min-w-[200px] bg-white dark:bg-slate-850 border border-slate-200 dark:border-white/10 rounded-2xl px-8 py-6 shadow-sm">
+    <div class="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-3xl">
+      <i class="fas fa-user-check"></i>
+    </div>
+    <div>
+      <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-white/50">Active</p>
+      <h5 class="mb-0 font-bold text-slate-800 dark:text-white text-4xl" id="statActive">...</h5>
     </div>
   </div>
 
-  <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="flex-auto p-4">
-        <div class="flex flex-row -mx-3">
-          <div class="flex-none w-2/3 max-w-full px-3">
-            <p class="mb-0 font-sans text-xs font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Inactive / Suspended</p>
-            <h5 class="mb-0 font-bold dark:text-white" id="statInactive">...</h5>
-          </div>
-          <div class="px-3 text-right basis-1/3">
-            <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-red-500 to-orange-400">
-              <i class="ni leading-none ni-fat-remove text-lg relative top-3.5 text-white"></i>
-            </div>
-          </div>
-        </div>
-      </div>
+  <div class="flex items-center gap-5 flex-1 min-w-[200px] bg-white dark:bg-slate-850 border border-slate-200 dark:border-white/10 rounded-2xl px-8 py-6 shadow-sm">
+    <div class="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-3xl">
+      <i class="fas fa-user-slash"></i>
+    </div>
+    <div>
+      <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-white/50">Inactive / Suspended</p>
+      <h5 class="mb-0 font-bold text-slate-800 dark:text-white text-4xl" id="statInactive">...</h5>
     </div>
   </div>
+
 </div>
 
 <!-- Users Table -->
@@ -591,32 +709,87 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
 
       <!-- Table Header -->
       <div class="p-6 pb-0 mb-0 rounded-t-2xl">
-        <div class="flex items-center justify-between">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
           <h6 class="mb-0 dark:text-white">User Accounts</h6>
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <input
-              type="text"
-              id="searchInput"
-              placeholder="Search users..."
-              onkeyup="filterTable()"
-              style="padding: 8px 14px; font-size: 0.875rem; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; width: 210px;">
-            <select
-              id="statusFilter"
-              onchange="filterTable()"
-              style="padding: 8px 14px; font-size: 0.875rem; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; width: 140px;">
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="suspended">Suspended</option>
-            </select>
-            <button
-              onclick="createUser()"
-              style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; font-size: 0.75rem; font-weight: 600; color: white; background-color: #334155; border-radius: 8px; border: none; cursor: pointer; white-space: nowrap;">
-              <i class="fas fa-plus" style="font-size: 0.75rem;"></i> Add New User
-            </button>
+          <div class="controls-container" style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="search-wrapper" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Search users..."
+                onkeyup="filterTable()"
+                style="padding: 8px 14px; font-size: 0.875rem; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; width: 100%;">
+            </div>
+            <div class="filter-button-group" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+              <select
+                id="statusFilter"
+                onchange="filterTable()"
+                style="padding: 8px 14px; font-size: 0.875rem; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; width: 100%;">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="suspended">Suspended</option>
+              </select>
+              <button
+                onclick="createUser()"
+                style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 18px; font-size: 0.75rem; font-weight: 600; color: white; background-color: #334155; border-radius: 8px; border: none; cursor: pointer; white-space: nowrap; width: 100%;">
+                <i class="fas fa-plus" style="font-size: 0.75rem;"></i> Add New User
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Responsive Desktop Layout -->
+      <style>
+        @media (min-width: 640px) {
+          .controls-container {
+            flex-direction: row !important;
+            align-items: center !important;
+          }
+
+          .search-wrapper {
+            width: 210px !important;
+          }
+
+          .filter-button-group {
+            flex-direction: row !important;
+            width: auto !important;
+          }
+
+          .filter-button-group select {
+            width: 140px !important;
+          }
+
+          .filter-button-group button {
+            width: auto !important;
+          }
+        }
+
+        @media (min-width: 768px) {
+          .search-wrapper {
+            width: 240px !important;
+          }
+
+          .filter-button-group select {
+            width: 160px !important;
+          }
+        }
+
+        @media (min-width: 1024px) {
+          .controls-container {
+            justify-content: space-between !important;
+          }
+
+          .search-wrapper {
+            width: 280px !important;
+          }
+
+          .filter-button-group select {
+            width: 180px !important;
+          }
+        }
+      </style>
 
       <!-- Table Body -->
       <div class="p-0 overflow-x-auto">
