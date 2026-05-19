@@ -75,7 +75,7 @@ $inventory_pages = ['inventory/product', 'inventory/inventory-categories', 'inve
 $food_canteen_pages = ['food-canteen/food-categories', 'food-canteen/menu-items', 'food-canteen/food-orders'];
 $reservations_pages = ['reservations/reservations', 'reservations/reservation-rooms', 'reservations/reservation-guests', 'reservations/reservation-requirement-types', 'reservations/reservation-requirements', 'reservations/check-in-logs', 'reservations/entrance-logs'];
 $payments_billing_pages = ['payments-billing/payment-methods', 'payments-billing/payments', 'payments-billing/invoices', 'payments-billing/invoice-line-items', 'payments-billing/discounts', 'payments-billing/discount-usages', 'payments-billing/extra-charges', 'payments-billing/billing'];
-$settings_pages = ['settings/system-settings', 'settings/pricing-rules', 'settings/seasonal-rates', 'settings/booking-policies', 'settings/promotions', 'settings/promotion-images', 'settings/notifications', 'settings/notification-recipients', 'settings/rbac-settings'];
+$settings_pages = ['settings/system-settings', 'settings/company', 'settings/pricing-rules', 'settings/seasonal-rates', 'settings/booking-policies', 'settings/promotions', 'settings/promotion-images', 'settings/notifications', 'settings/notification-recipients', 'settings/rbac-settings'];
 $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', 'reports/customers', 'reports/food-canteen', 'reports/financial'];
 ?>
 
@@ -142,10 +142,10 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
         <button id="sidebarCollapseBtn" class="hidden xl:flex absolute top-0 right-0 p-4 cursor-pointer items-center justify-center text-slate-600 hover:text-blue-500 bg-white/80 hover:bg-white dark:text-white dark:hover:text-blue-400 dark:bg-slate-800/80 dark:hover:bg-slate-800 rounded-bl-lg transition-colors duration-200 z-50 shadow-sm" title="Collapse sidebar" aria-label="Toggle Sidebar">
             <i id="sidebarCollapseIcon" class="fas fa-chevron-left text-xs transition-transform duration-300"></i>
         </button>
-        <a class="block px-8 py-6 m-0 text-sm whitespace-nowrap dark:text-white text-slate-700" href="https://demos.creative-tim.com/argon-dashboard-tailwind/pages/dashboard.php" target="_blank">
-            <img src="<?php echo $assets_path ?? './assets'; ?>/img/logo-ct-dark.png" class="inline h-full max-w-full transition-all duration-200 dark:hidden ease-nav-brand max-h-8" alt="main_logo" />
-            <img src="<?php echo $assets_path ?? './assets'; ?>/img/logo-ct.png" class="hidden h-full max-w-full transition-all duration-200 dark:inline ease-nav-brand max-h-8" alt="main_logo" />
-            <span class="ml-1 font-semibold transition-all duration-200 ease-nav-brand sidebar-label">Paradise Dashboard </span>
+        <a class="block px-8 py-6 m-0 text-sm whitespace-nowrap dark:text-white text-slate-700" target="_blank">
+            <img src="<?php echo $assets_path ?? './assets'; ?>/img/logo.png" class="inline h-full max-w-full transition-all duration-200 dark:hidden ease-nav-brand max-h-8" alt="main_logo" />
+            <img src="<?php echo $assets_path ?? './assets'; ?>/img/logo.png" class="hidden h-full max-w-full transition-all duration-200 dark:inline ease-nav-brand max-h-8" alt="main_logo" />
+            <span class="ml-1 font-semibold transition-all duration-200 ease-nav-brand sidebar-label">Paraiso Dashboard </span>
         </a>
     </div>
 
@@ -621,6 +621,14 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">RBAC Settings</span>
                                 </a>
                             <?php endif; ?>
+                            <?php if (canShowSubPage('settings.company.view')): ?>
+                                <a href="<?php echo $base_url; ?>settings/company" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('settings/company', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
+                                    <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                    </span>
+                                    <span class="duration-300 opacity-100 pointer-events-none ease truncate">Company Settings</span>
+                                </a>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </li>
@@ -752,6 +760,17 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
             <?php endif; ?>
 
             <li class="mt-0.5 w-full">
+                <?php $contact_active = (strpos($current_url, '/contact-inquiries') === 0); ?>
+                <?php $active_class = $contact_active ? 'bg-blue-500/13 font-semibold text-slate-700 rounded-lg' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg'; ?>
+                <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors <?php echo $active_class; ?>" href="<?php echo $base_url; ?>contact-inquiries">
+                    <span class="flex-shrink-0 flex h-8 w-8 items-center justify-center mr-2">
+                        <i class="text-sm leading-normal text-orange-500 ni ni-email-83"></i>
+                    </span>
+                    <span class="duration-300 opacity-100 pointer-events-none ease truncate">Contact Inquiries</span>
+                </a>
+            </li>
+
+            <li class="mt-0.5 w-full">
                 <?php $profile_active = ($current_url === '/profile' || $current_url === '/pages/profile'); ?>
                 <?php $active_class = $profile_active ? 'bg-blue-500/13 font-semibold text-slate-700 rounded-lg' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg'; ?>
                 <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors <?php echo $active_class; ?>" href="<?php echo $base_url; ?>profile">
@@ -759,6 +778,15 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                         <i class="text-sm leading-normal text-slate-700 ni ni-single-02"></i>
                     </span>
                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Profile</span>
+                </a>
+            </li>
+
+            <li class="mt-0.5 w-full">
+                <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors dark:text-white dark:opacity-80 hover:bg-emerald-50 dark:hover:bg-slate-700 rounded-lg" href="<?php echo rtrim(dirname(rtrim($base_url, '/')), '/'); ?>/pages/">
+                    <span class="flex-shrink-0 flex h-8 w-8 items-center justify-center mr-2">
+                        <i class="text-sm leading-normal text-emerald-500 ni ni-world"></i>
+                    </span>
+                    <span class="duration-300 opacity-100 pointer-events-none ease truncate">Back to Website</span>
                 </a>
             </li>
 

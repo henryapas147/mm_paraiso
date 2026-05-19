@@ -16,6 +16,986 @@ function generateUUID()
 }
 ?>
 
+<style>
+  :root {
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #f8fafc;
+    --color-background-tertiary: #f1f5f9;
+    --color-border-primary: #185fa5;
+    --color-border-secondary: #e2e8f0;
+    --color-border-tertiary: #cbd5e1;
+    --color-text-primary: #1e293b;
+    --color-text-secondary: #64748b;
+    --color-text-tertiary: #94a3b8;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  
+  .page {
+    padding: 24px;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .page-title {
+    font-size: 22px;
+    font-weight: 500;
+  }
+  .page-sub {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-top: 2px;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--color-background-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 16px 18px;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+  .stat-value {
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+  .stat-value.blue {
+    color: #185fa5;
+  }
+  .stat-value.green {
+    color: #3b6d11;
+  }
+  .stat-value.amber {
+    color: #854f0b;
+  }
+  .card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+  }
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .card-title {
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+  .search-wrap {
+    position: relative;
+  }
+  .search-wrap i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-secondary);
+    font-size: 15px;
+    pointer-events: none;
+  }
+  .search-input {
+    padding: 7px 12px 7px 34px;
+    font-size: 13px;
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary);
+    outline: none;
+    width: 180px;
+  }
+  .search-input:focus {
+    border-color: var(--color-border-primary);
+    background: var(--color-background-primary);
+  }
+  .filter-select {
+    padding: 7px 12px;
+    font-size: 13px;
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary);
+    outline: none;
+    cursor: pointer;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-secondary);
+    background: var(--color-background-primary);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover {
+    background: var(--color-background-secondary);
+  }
+  .btn-primary {
+    background: #185fa5;
+    color: #fff;
+    border-color: #185fa5;
+  }
+  .btn-primary:hover {
+    background: #0c447c;
+    border-color: #0c447c;
+  }
+  .btn i {
+    font-size: 14px;
+  }
+  .table-wrap {
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    table-layout: fixed;
+  }
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    white-space: nowrap;
+  }
+  thead th.center {
+    text-align: center;
+  }
+  thead th:nth-child(1) {
+    width: 30%;
+  }
+  thead th:nth-child(2) {
+    width: 14%;
+  }
+  thead th:nth-child(3) {
+    width: 18%;
+  }
+  thead th:nth-child(4) {
+    width: 16%;
+  }
+  thead th:nth-child(5) {
+    width: 10%;
+    text-align: center;
+  }
+  thead th:nth-child(6) {
+    width: 12%;
+    text-align: right;
+  }
+  tbody tr {
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    transition: background 0.1s;
+  }
+  tbody tr:last-child {
+    border-bottom: none;
+  }
+  tbody tr:hover {
+    background: var(--color-background-secondary);
+  }
+  td {
+    padding: 12px 16px;
+    vertical-align: middle;
+  }
+  .prop-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--border-radius-md);
+    background: #e6f1fb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .prop-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .prop-avatar i {
+    font-size: 18px;
+    color: #185fa5;
+  }
+  .prop-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+  }
+  .prop-code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    margin-top: 2px;
+  }
+  .type-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #eeedfe;
+    color: #3c3489;
+    white-space: nowrap;
+    text-transform: capitalize;
+  }
+  .city-text {
+    font-size: 13px;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .date-text {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .status-badge.active {
+    background: #eaf3de;
+    color: #27500a;
+  }
+  .status-badge.inactive {
+    background: #f1efe8;
+    color: #5f5e5a;
+  }
+  .status-badge::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    display: inline-block;
+  }
+  .actions-cell {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: flex-end;
+  }
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-tertiary);
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 14px;
+  }
+  .icon-btn:hover {
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary);
+    border-color: var(--color-border-secondary);
+  }
+  .icon-btn.view:hover {
+    background: #e6f1fb;
+    color: #0c447c;
+    border-color: #85b7eb;
+  }
+  .icon-btn.rooms:hover {
+    background: #eaf3de;
+    color: #27500a;
+    border-color: #97c459;
+  }
+  .icon-btn.edit:hover {
+    background: #faeeda;
+    color: #633806;
+    border-color: #ef9f27;
+  }
+  .icon-btn.del:hover {
+    background: #fcebeb;
+    color: #791f1f;
+    border-color: #f09595;
+  }
+  .empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--color-text-secondary);
+  }
+  .empty-state i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+    color: var(--color-text-tertiary);
+  }
+
+  .rooms-row td {
+    padding: 0;
+    background: var(--color-background-secondary);
+  }
+  .rooms-panel {
+    padding: 20px;
+  }
+  .rooms-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .rooms-panel-title {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+  }
+  .room-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md);
+    padding: 12px;
+  }
+  .room-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .room-num {
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .room-status {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 9999px;
+  }
+  .rs-available {
+    background: #eaf3de;
+    color: #27500a;
+  }
+  .rs-occupied {
+    background: #fcebeb;
+    color: #791f1f;
+  }
+  .rs-maintenance {
+    background: #faeeda;
+    color: #633806;
+  }
+  .rs-reserved {
+    background: #e6f1fb;
+    color: #0c447c;
+  }
+  .room-meta {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+  }
+  .room-price {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    margin-top: 4px;
+  }
+  .view-toggle {
+    display: flex;
+    gap: 4px;
+  }
+  .vt-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-secondary);
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .vt-btn.active {
+    background: #185fa5;
+    color: #fff;
+    border-color: #185fa5;
+  }
+  .rooms-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .room-list-item {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .room-list-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .room-list-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-top: 0.5px solid var(--color-border-tertiary);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .pag-info {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+  .pag-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pag-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 6px;
+    border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-secondary);
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .pag-btn:hover:not(:disabled) {
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary);
+  }
+  .pag-btn.active {
+    background: #185fa5;
+    color: #fff;
+    border-color: #185fa5;
+  }
+  .pag-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .per-page-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 9000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-backdrop.open {
+    display: flex;
+  }
+  .modal {
+    background: var(--color-background-primary);
+    border-radius: 16px;
+    border: 0.5px solid var(--color-border-tertiary);
+    width: 100%;
+    max-width: 860px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--color-background-primary);
+    z-index: 1;
+  }
+  .modal-title {
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    font-size: 20px;
+    line-height: 1;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--border-radius-md);
+  }
+  .modal-close:hover {
+    color: var(--color-text-primary);
+    background: var(--color-background-secondary);
+  }
+  .modal-body {
+    padding: 24px;
+  }
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 0.5px solid var(--color-border-tertiary);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    position: sticky;
+    bottom: 0;
+    background: var(--color-background-primary);
+  }
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+    margin-top: 20px;
+    padding-bottom: 8px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+  }
+  .section-label:first-child {
+    margin-top: 0;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .form-group.full {
+    grid-column: 1/-1;
+  }
+  label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+  }
+  label .req {
+    color: #a32d2d;
+    margin-left: 2px;
+  }
+  input,
+  select,
+  textarea {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--color-text-primary);
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 8px 11px;
+    outline: none;
+    width: 100%;
+    transition: border 0.15s;
+  }
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: var(--color-border-primary);
+    background: var(--color-background-primary);
+  }
+  textarea {
+    resize: vertical;
+    min-height: 72px;
+  }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .detail-col h4 {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+  }
+  .detail-item {
+    margin-bottom: 12px;
+  }
+  .detail-item .dl {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+  }
+  .detail-item .dv {
+    font-size: 13px;
+    color: var(--color-text-primary);
+    margin-top: 1px;
+  }
+  .detail-images {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .detail-img-wrap {
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    aspect-ratio: 4/3;
+    background: var(--color-background-secondary);
+    position: relative;
+  }
+  .detail-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .img-type-pill {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 9999px;
+  }
+  .upload-zone {
+    border: 0.5px dashed var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--color-background-secondary);
+  }
+  .upload-zone i {
+    font-size: 24px;
+    color: var(--color-text-secondary);
+    margin-bottom: 6px;
+  }
+  .upload-zone p {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .preview-item {
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    aspect-ratio: 4/3;
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-tertiary);
+    position: relative;
+  }
+  .preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .preview-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 18px;
+    height: 18px;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 11px 16px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 9999;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.25s;
+  }
+  .toast.show {
+    transform: none;
+    opacity: 1;
+  }
+  .toast.success {
+    border-color: #9fe1cb;
+    color: #085041;
+  }
+  .toast.error {
+    border-color: #f7c1c1;
+    color: #791f1f;
+  }
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+
+  /* ── Large desktop ≥ 1280px ─────────────────────────────── */
+  @media (min-width: 1280px) {
+    .page { padding: 28px 32px; }
+    .search-input { width: 240px; }
+  }
+
+  /* ── Medium-large desktop 1025px – 1279px ───────────────── */
+  @media (max-width: 1279px) {
+    thead th:nth-child(1) { width: 30%; }
+    thead th:nth-child(3) { width: 18%; }
+    thead th:nth-child(4) { width: 16%; }
+    .prop-name { max-width: 170px; }
+  }
+
+  /* ── Small laptop / large tablet 769px – 1024px ────────── */
+  @media (max-width: 1024px) {
+    thead th:nth-child(4),
+    tbody td:nth-child(4) { display: none; }
+
+    thead th:nth-child(1) { width: 34%; }
+    thead th:nth-child(2) { width: 16%; }
+    thead th:nth-child(3) { width: 22%; }
+    thead th:nth-child(5) { width: 13%; }
+    thead th:nth-child(6) { width: 15%; }
+
+    .prop-name { max-width: 150px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .modal { max-width: 760px; }
+    .detail-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ── Tablet 481px – 768px ───────────────────────────────── */
+  @media (max-width: 768px) {
+    .page { padding: 16px; }
+
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+    .card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+    .toolbar { width: 100%; flex-wrap: wrap; }
+    .search-wrap  { flex: 1 1 auto; }
+    .search-input { width: 100%; }
+    .filter-select { flex: 1 1 auto; }
+    .btn { white-space: nowrap; flex-shrink: 0; }
+
+    thead th:nth-child(3),
+    tbody td:nth-child(3) { display: none; }
+
+    thead th:nth-child(1) { width: 40%; }
+    thead th:nth-child(2) { width: 18%; }
+    thead th:nth-child(5) { width: 17%; }
+    thead th:nth-child(6) { width: 25%; }
+
+    .prop-name { max-width: 120px; }
+
+    .modal-backdrop { padding: 0; align-items: flex-end; }
+    .modal {
+      border-radius: 16px 16px 0 0;
+      max-width: 100%;
+      max-height: 95vh;
+      overflow-y: auto;
+      margin: 0;
+    }
+    .modal-header { border-radius: 16px 16px 0 0; }
+    .modal-footer { border-radius: 0; }
+
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.full { grid-column: 1; }
+
+    .detail-grid { grid-template-columns: 1fr; gap: 16px; }
+    .detail-images { grid-template-columns: repeat(2, 1fr); }
+
+    .rooms-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    .preview-grid { grid-template-columns: repeat(3, 1fr); }
+
+    .pagination { flex-direction: column; align-items: flex-start; gap: 8px; }
+  }
+
+  /* ── Mobile ≤ 480px ─────────────────────────────────────── */
+  @media (max-width: 480px) {
+    .page { padding: 12px; }
+
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .stat-card  { padding: 12px 14px; }
+    .stat-value { font-size: 22px; }
+
+    thead th:nth-child(2),
+    tbody td:nth-child(2) { display: none; }
+
+    thead th:nth-child(1) { width: 52%; }
+    thead th:nth-child(5) { width: 20%; }
+    thead th:nth-child(6) { width: 28%; }
+
+    .prop-name { max-width: 100px; font-size: 12px; }
+    .prop-code { display: none; }
+    .prop-avatar { width: 34px; height: 34px; }
+    .prop-avatar i { font-size: 15px; }
+
+    .icon-btn { width: 26px; height: 26px; font-size: 12px; }
+    .actions-cell { gap: 3px; }
+
+    .rooms-grid { grid-template-columns: 1fr; }
+    .room-list-item { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .room-list-meta { flex-wrap: wrap; gap: 8px; }
+
+    .preview-grid { grid-template-columns: repeat(2, 1fr); }
+    .detail-images { grid-template-columns: 1fr; }
+
+    .modal-body   { padding: 16px; }
+    .modal-footer { padding: 12px 16px; }
+    .modal-header { padding: 14px 16px; }
+
+    .pag-controls { gap: 4px; }
+    .pag-btn { min-width: 26px; height: 26px; font-size: 11px; }
+  }
+
+  /* ── Very small mobile ≤ 360px ──────────────────────────── */
+  @media (max-width: 360px) {
+    .page { padding: 10px; }
+
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .stat-card  { padding: 10px 12px; }
+    .stat-value { font-size: 20px; }
+    .stat-label { font-size: 10px; }
+
+    .prop-name  { max-width: 80px; font-size: 11px; }
+    .prop-avatar { width: 30px; height: 30px; }
+    .prop-avatar i { font-size: 13px; }
+
+    .icon-btn   { width: 24px; height: 24px; font-size: 11px; }
+    .actions-cell { gap: 2px; }
+
+    .card-title { font-size: 14px; }
+    .preview-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+
+    .modal-footer { flex-direction: column; }
+    .modal-footer .btn { width: 100%; justify-content: center; }
+
+    .pag-btn { min-width: 24px; height: 24px; padding: 0 4px; font-size: 10px; }
+  }
+
+  /* ── Touch devices ──────────────────────────────────────── */
+  @media (hover: none) and (pointer: coarse) {
+    .icon-btn   { width: 36px; height: 36px; }
+    .pag-btn    { min-width: 36px; height: 36px; }
+    .vt-btn     { width: 34px; height: 34px; }
+    .btn        { padding: 9px 16px; }
+    input,
+    select,
+    textarea    { font-size: 16px; }
+  }
+
+  /* ── Landscape phone ────────────────────────────────────── */
+  @media (max-width: 768px) and (orientation: landscape) {
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table       { table-layout: auto; min-width: 560px; }
+    thead th:nth-child(2),
+    thead th:nth-child(3) { display: table-cell; }
+    tbody td:nth-child(2),
+    tbody td:nth-child(3) { display: table-cell; }
+    .modal-backdrop { align-items: center; padding: 12px; }
+    .modal { border-radius: 16px; max-height: 92vh; }
+    .modal-header { border-radius: 16px 16px 0 0; }
+  }
+
+  /* ── Print ──────────────────────────────────────────────── */
+  @media print {
+    .toolbar,
+    .actions-cell,
+    .pagination,
+    .modal-backdrop { display: none !important; }
+    .card { border: 1px solid #ccc; }
+    .stats-grid { grid-template-columns: repeat(4, 1fr); }
+    table { font-size: 11px; }
+  }
+</style>
+
 <script>
   // Inject custom styles for SweetAlert buttons
   const style = document.createElement('style');
@@ -136,8 +1116,9 @@ function generateUUID()
     const result = await response.json();
     if (result.success) {
       cardEl.remove();
+      showToast('Image deleted successfully');
     } else {
-      Swal.fire({ icon: 'error', title: 'Error', text: result.message });
+      showToast(result.message, 'error');
     }
   }
 
@@ -150,7 +1131,7 @@ function generateUUID()
     });
     const result = await response.json();
     if (!result.success) {
-      Swal.fire({ icon: 'error', title: 'Error', text: result.message });
+      showToast(result.message, 'error');
     }
   }
 
@@ -181,15 +1162,13 @@ function generateUUID()
     reader.readAsDataURL(file);
 
     const modal = document.getElementById('cropperModal');
-    modal.classList.remove('hidden');
-    modal.style.display = 'block';
+    modal.classList.add('open');
     document.body.style.overflow = 'hidden';
   }
 
   function closeCropperModal() {
     const modal = document.getElementById('cropperModal');
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
+    modal.classList.remove('open');
     document.body.style.overflow = 'auto';
 
     if (cropper) {
@@ -354,7 +1333,7 @@ function generateUUID()
       const result = await response.json();
       if (result.success) {
         propertiesData = result.data.data || result.data;
-        totalItems = result.total || propertiesData.length;
+        totalItems = result.data.total ?? result.total ?? propertiesData.length;
 
         // Load geography data for these properties
         await loadPropertyGeographyData(propertiesData);
@@ -363,12 +1342,20 @@ function generateUUID()
         document.getElementById('statTotal').textContent = totalItems;
         document.getElementById('statActive').textContent = propertiesData.filter(p => p.is_active).length;
 
+        // Count unique property types
+        const uniqueTypes = new Set(propertiesData.map(p => p.property_type).filter(t => t));
+        document.getElementById('statTypes').textContent = uniqueTypes.size;
+
         // Fetch total rooms count
         try {
           const roomsRes = await fetch('../api/rooms.php?action=list');
           const roomsResult = await roomsRes.json();
           if (roomsResult.success) {
-            document.getElementById('statRooms').textContent = roomsResult.data.length;
+            const roomsTotal = roomsResult.data?.pagination?.total
+              ?? roomsResult.data?.data?.length
+              ?? roomsResult.data?.length
+              ?? 0;
+            document.getElementById('statRooms').textContent = roomsTotal;
           }
         } catch (e) {
           console.error('Error fetching rooms count:', e);
@@ -387,12 +1374,7 @@ function generateUUID()
       }
     } catch (error) {
       console.error('Error fetching properties:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to load properties data',
-        confirmButtonColor: '#3085d6'
-      });
+      showToast('Failed to load properties data', 'error');
     }
   }
 
@@ -418,7 +1400,8 @@ function generateUUID()
     if (data.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6" class="p-6 text-center text-slate-400 dark:text-white/60 text-base">
+          <td colspan="6" class="empty-state">
+            <i class="fas fa-building"></i>
             No properties found. <a href="javascript:;" onclick="openAddPropertyModal()" class="text-blue-500 font-semibold">Add your first property</a>.
           </td>
         </tr>
@@ -428,20 +1411,14 @@ function generateUUID()
         const property_images = propertyImagesData[property.property_id] || [];
         const cover_image = property_images.find(img => img.image_type === 'cover') || property_images[0];
 
-        let imageHtml = '';
+        let avatarHtml = '';
         if (cover_image) {
-          imageHtml = `
-            <img src="../../${cover_image.image_url}" alt="${property.property_name}" class="mr-4 h-12 w-12 object-cover rounded-xl" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-            <div class="hidden inline-flex items-center justify-center mr-4 text-sm text-white transition-all duration-200 ease-in-out h-12 w-12 rounded-xl bg-gradient-to-tl from-blue-500 to-violet-500">
-              <i class="fas fa-building"></i>
-            </div>
+          avatarHtml = `
+            <img src="../../${cover_image.image_url}" alt="${property.property_name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            
           `;
         } else {
-          imageHtml = `
-            <div class="inline-flex items-center justify-center mr-4 text-sm text-white transition-all duration-200 ease-in-out h-12 w-12 rounded-xl bg-gradient-to-tl from-blue-500 to-violet-500">
-              <i class="fas fa-building"></i>
-            </div>
-          `;
+          avatarHtml = `<i class="fas fa-building"></i>`;
         }
 
         const createdDate = property.created_at ? new Date(property.created_at).toLocaleString('en-US', {
@@ -453,78 +1430,56 @@ function generateUUID()
           hour12: true
         }) : '-';
 
+        const statusClass = property.is_active ? 'active' : 'inactive';
+        const statusText = property.is_active ? 'Active' : 'Inactive';
+
         return `
           <tr class="property-row">
-            <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-              <div class="flex px-2 py-2">
-                <div>${imageHtml}</div>
-                <div class="flex flex-col justify-center">
-                  <h6 class="mb-0 text-base leading-normal dark:text-white font-semibold">${property.property_name}</h6>
-                  <p class="mb-0 text-sm leading-tight dark:text-white dark:opacity-80 text-slate-400">${property.property_code}</p>
+            <td>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="prop-avatar">
+                  ${avatarHtml}
+                </div>
+                <div>
+                  <div class="prop-name">${property.property_name}</div>
+                  <div class="prop-code">${property.property_code}</div>
                 </div>
               </div>
             </td>
-            <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent hidden md:table-cell">
-              <p class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">${property.property_type ? property.property_type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : ''}</p>
+            <td>
+              <span class="type-badge">${property.property_type ? property.property_type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : ''}</span>
             </td>
-            <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-              <p class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">${getCityName(property.city_municipality_code)}${getProvinceName(property.province_code) !== '-' ? ', ' + getProvinceName(property.province_code) : ''}</p>
+            <td>
+              <div class="city-text">${getCityName(property.city_municipality_code)}${getProvinceName(property.province_code) !== '-' ? ', ' + getProvinceName(property.province_code) : ''}</div>
             </td>
-            <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent hidden lg:table-cell">
-              <p class="mb-0 text-sm leading-tight dark:text-white dark:opacity-80">${createdDate}</p>
+            <td>
+              <div class="date-text">${createdDate}</div>
             </td>
-            <td class="p-4 text-sm leading-normal text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-              <span class="bg-gradient-to-tl from-emerald-500 to-teal-400 px-4 py-2 text-base rounded-1.8 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">Active</span>
+            <td class="center">
+              <span class="status-badge ${statusClass}">${statusText}</span>
             </td>
-            <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-              <!-- Desktop: shown above md -->
-              <div class="hidden md:flex items-center gap-2">
-                <button onclick="viewPropertyDetails('${property.property_id}')" class="group relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md" title="View Details">
-                  <i class="fas fa-info-circle mr-1.5 text-sm"></i>
-                  <span>View</span>
+            <td>
+              <div class="actions-cell">
+                <button onclick="viewPropertyDetails('${property.property_id}')" class="icon-btn view" title="View Details">
+                  <i class="fas fa-eye"></i>
                 </button>
-                <button onclick="toggleRoomsDropdown('${property.property_id}')" class="group relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-500/20 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-200 shadow-sm hover:shadow-md" id="roomsBtn-${property.property_id}" title="View Rooms">
-                  <i class="fas fa-door-open mr-1.5 text-sm"></i>
-                  <span>Rooms</span>
+                <button onclick="toggleRoomsDropdown('${property.property_id}')" class="icon-btn rooms" id="roomsBtn-${property.property_id}" title="View Rooms">
+                  <i class="fa-solid fa-door-open"></i>
                 </button>
-                <button onclick="openEditPropertyModal('${property.property_id}')" class="group relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-500/20 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-300 dark:hover:border-amber-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Edit Property">
-                  <i class="fas fa-edit mr-1.5 text-sm"></i>
-                  <span>Edit</span>
+                <button onclick="openEditPropertyModal('${property.property_id}')" class="icon-btn edit" title="Edit Property">
+                  <i class="fas fa-pencil"></i>
                 </button>
-                <button onclick="confirmDeleteProperty('${property.property_id}', '${property.property_name}')" class="group relative inline-flex items-center px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 bg-white dark:bg-slate-700/50 border border-red-200 dark:border-white/10 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-700 dark:hover:text-red-300 hover:border-red-300 dark:hover:border-red-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Delete Property">
-                  <i class="fas fa-trash-alt mr-1.5 text-sm"></i>
-                  <span>Delete</span>
+                <button onclick="confirmDeleteProperty('${property.property_id}', '${property.property_name}')" class="icon-btn del" title="Delete Property">
+                  <i class="fas fa-trash"></i>
                 </button>
-              </div>
-
-              <!-- Mobile: shown below md -->
-              <div class="md:hidden relative" id="actionMenu-${property.property_id}">
-                <button onclick="toggleActionMenu('${property.property_id}')" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 600; border: 1px solid #e2e8f0; border-radius: 0.5rem; background-color: white; color: black;">
-                  <i class="fas fa-ellipsis-v"></i> Actions
-                  <i class="fas fa-chevron-down" style="font-size: 0.75rem;"></i>
-                </button>
-                <div id="actionDropdown-${property.property_id}" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 0.25rem; width: 11rem; background-color: white; border: 1px solid #e2e8f0; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 50; overflow: hidden;">
-                  <button onclick="viewPropertyDetails('${property.property_id}'); closeActionMenu('${property.property_id}')" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.75rem 1rem; font-size: 0.875rem; text-align: left; background: none; border: none; cursor: pointer; color: black;">
-                    <i class="fas fa-info-circle" style="color: #3b82f6;"></i> View details
-                  </button>
-                  <button onclick="toggleRoomsDropdown('${property.property_id}'); closeActionMenu('${property.property_id}')" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.75rem 1rem; font-size: 0.875rem; text-align: left; background: none; border: none; cursor: pointer; color: black;">
-                    <i class="fas fa-door-open" style="color: #10b981;"></i> Rooms
-                  </button>
-                  <button onclick="openEditPropertyModal('${property.property_id}'); closeActionMenu('${property.property_id}')" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.75rem 1rem; font-size: 0.875rem; text-align: left; background: none; border: none; cursor: pointer; color: black;">
-                    <i class="fas fa-edit" style="color: #f59e0b;"></i> Edit
-                  </button>
-                  <button onclick="confirmDeleteProperty('${property.property_id}', '${property.property_name}'); closeActionMenu('${property.property_id}')" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.75rem 1rem; font-size: 0.875rem; text-align: left; background: none; border: none; cursor: pointer; color: #dc2626;">
-                    <i class="fas fa-trash-alt"></i> Delete
-                  </button>
-                </div>
               </div>
             </td>
           </tr>
-          <tr id="roomsDropdown-${property.property_id}" class="hidden">
-            <td colspan="6" class="p-0 align-middle bg-transparent border-b dark:border-white/40 shadow-transparent">
-              <div class="p-6 bg-gray-50 dark:bg-slate-800/50">
+          <tr id="roomsDropdown-${property.property_id}" class="rooms-row hidden">
+            <td colspan="6">
+              <div class="rooms-panel">
                 <div class="mb-3 flex items-center justify-between">
-                  <h6 class="text-base font-bold dark:text-white">Rooms for ${property.property_name}</h6>
+                  <h6 class="rooms-panel-title">Rooms for ${property.property_name}</h6>
                   <span class="text-sm text-slate-500 dark:text-white/60">Loading rooms...</span>
                 </div>
               </div>
@@ -546,38 +1501,41 @@ function generateUUID()
     const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
     let paginationHtml = `
-      <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-white dark:bg-slate-850 border-t dark:border-white/10">
-        <div class="text-sm text-slate-600 dark:text-white/70 mb-4 sm:mb-0">
-          Showing <span class="font-semibold">${startItem}</span> to <span class="font-semibold">${endItem}</span> of <span class="font-semibold">${totalItems}</span> entries
+      <div class="pagination">
+        <div class="pag-info">
+          Showing ${startItem} to ${endItem} of ${totalItems} entries
         </div>
-        <div class="flex items-center gap-2">
-          <div class="flex items-center gap-2 mr-4">
-            <label class="text-sm text-slate-600 dark:text-white/70">Show</label>
-            <select id="itemsPerPageSelect" onchange="changeItemsPerPage(this.value)" class="px-3 py-1 border border-gray-300 dark:border-white/20 rounded-lg text-sm dark:bg-slate-800 dark:text-white">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+          <div class="per-page-wrap">
+            Show
+            <select
+              style="width: 64px; padding: 4px 8px; font-size: 12px"
+              onchange="changeItemsPerPage(this.value)"
+            >
               <option value="5" ${itemsPerPage === 5 ? 'selected' : ''}>5</option>
               <option value="10" ${itemsPerPage === 10 ? 'selected' : ''}>10</option>
               <option value="25" ${itemsPerPage === 25 ? 'selected' : ''}>25</option>
               <option value="50" ${itemsPerPage === 50 ? 'selected' : ''}>50</option>
             </select>
-            <label class="text-sm text-slate-600 dark:text-white/70">entries</label>
+            entries
           </div>
-          <div class="flex items-center gap-1">
-            <button onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''} class="px-3 py-1 border border-gray-300 dark:border-white/20 rounded-lg text-sm dark:bg-slate-800 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed">
-              <i class="fas fa-angle-double-left"></i>
+          <div class="pag-controls">
+            <button onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''} class="pag-btn">
+              <i class="fas fa-chevrons-left"></i>
             </button>
-            <button onclick="goToPage(currentPage - 1)" ${currentPage === 1 ? 'disabled' : ''} class="px-3 py-1 border border-gray-300 dark:border-white/20 rounded-lg text-sm dark:bg-slate-800 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed">
-              <i class="fas fa-angle-left"></i>
+            <button onclick="goToPage(currentPage - 1)" ${currentPage === 1 ? 'disabled' : ''} class="pag-btn">
+              <i class="fas fa-chevron-left"></i>
             </button>
             ${getPageNumbers().map(page => `
-              <button onclick="goToPage(${page})" ${page === currentPage ? 'disabled' : ''} class="px-3 py-1 border ${page === currentPage ? 'bg-blue-500 text-white border-blue-500' : 'border-gray-300 dark:border-white/20 dark:bg-slate-800 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700'} rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+              <button onclick="goToPage(${page})" ${page === currentPage ? 'disabled' : ''} class="pag-btn ${page === currentPage ? 'active' : ''}">
                 ${page}
               </button>
             `).join('')}
-            <button onclick="goToPage(currentPage + 1)" ${currentPage === totalPages ? 'disabled' : ''} class="px-3 py-1 border border-gray-300 dark:border-white/20 rounded-lg text-sm dark:bg-slate-800 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed">
-              <i class="fas fa-angle-right"></i>
+            <button onclick="goToPage(currentPage + 1)" ${currentPage === totalPages ? 'disabled' : ''} class="pag-btn">
+              <i class="fas fa-chevron-right"></i>
             </button>
-            <button onclick="goToPage(totalPages)" ${currentPage === totalPages ? 'disabled' : ''} class="px-3 py-1 border border-gray-300 dark:border-white/20 rounded-lg text-sm dark:bg-slate-800 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed">
-              <i class="fas fa-angle-double-right"></i>
+            <button onclick="goToPage(totalPages)" ${currentPage === totalPages ? 'disabled' : ''} class="pag-btn">
+              <i class="fas fa-chevrons-right"></i>
             </button>
           </div>
         </div>
@@ -638,310 +1596,241 @@ function generateUUID()
 </script>
 
 <!-- PAGE CONTENT -->
-<!-- Stats Cards -->
-<div class="flex flex-wrap -mx-3 mb-6">
-  <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="flex-auto p-4">
-        <div class="flex flex-row -mx-3">
-          <div class="flex-none w-2/3 max-w-full px-3">
-            <div>
-              <p class="mb-0 font-sans text-xs font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Total Properties</p>
-              <h5 class="mb-0 font-bold dark:text-white" id="statTotal">0</h5>
-            </div>
-          </div>
-          <div class="px-3 text-right basis-1/3">
-            <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-blue-500 to-violet-500">
-              <i class="ni leading-none ni-building text-lg relative top-3.5 text-white"></i>
-            </div>
-          </div>
-        </div>
-      </div>
+<div class="page">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total properties</div>
+      <div class="stat-value" id="statTotal">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Active</div>
+      <div class="stat-value green" id="statActive">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total rooms</div>
+      <div class="stat-value blue" id="statRooms">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Property types</div>
+      <div class="stat-value amber" id="statTypes">—</div>
     </div>
   </div>
 
-  <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="flex-auto p-4">
-        <div class="flex flex-row -mx-3">
-          <div class="flex-none w-2/3 max-w-full px-3">
-            <div>
-              <p class="mb-0 font-sans text-xs font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Active Properties</p>
-              <h5 class="mb-0 font-bold dark:text-white" id="statActive">0</h5>
-            </div>
-          </div>
-          <div class="px-3 text-right basis-1/3">
-            <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-emerald-500 to-teal-400">
-              <i class="ni leading-none ni-check-bold text-lg relative top-3.5 text-white"></i>
-            </div>
-          </div>
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">All properties</span>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <i class="fas fa-search" aria-hidden="true"></i>
+          <input
+            type="text"
+            class="search-input"
+            id="searchInput"
+            placeholder="Search…"
+            oninput="filterTable()"
+          />
         </div>
+        <select class="filter-select" id="typeFilter" onchange="filterTable()">
+          <option value="">All types</option>
+        </select>
+        <button class="btn btn-primary" onclick="openAddPropertyModal()">
+          <i class="fas fa-plus" aria-hidden="true"></i> Add property
+        </button>
       </div>
     </div>
-  </div>
-
-  <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="flex-auto p-4">
-        <div class="flex flex-row -mx-3">
-          <div class="flex-none w-2/3 max-w-full px-3">
-            <div>
-              <p class="mb-0 font-sans text-xs font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Total Rooms</p>
-              <h5 class="mb-0 font-bold dark:text-white" id="statRooms">0</h5>
-            </div>
-          </div>
-          <div class="px-3 text-right basis-1/3">
-            <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-orange-500 to-yellow-500">
-              <i class="ni leading-none ni-square-pin text-lg relative top-3.5 text-white"></i>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="table-wrap">
+      <table id="propsTable">
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Type</th>
+            <th>Location</th>
+            <th>Added</th>
+            <th class="center">Status</th>
+            <th style="text-align: right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="propertiesTableBody">
+          <tr>
+            <td colspan="6" class="p-6 text-center text-slate-400 dark:text-white/60 text-base">Loading properties...</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-  </div>
-
-  <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="flex-auto p-4">
-        <div class="flex flex-row -mx-3">
-          <div class="flex-none w-full max-w-full px-3">
-            <div>
-              <button onclick="openAddPropertyModal()" class="w-full inline-flex items-center justify-center px-4 py-2.5 text-xs font-semibold text-white bg-gradient-to-tl from-blue-500 to-violet-500 rounded-lg hover:from-blue-600 hover:to-violet-600 transition-all duration-200 shadow-sm hover:shadow-md">
-                <i class="fas fa-plus mr-2"></i>Add New Property
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Properties Table -->
-<div class="flex flex-wrap -mx-3">
-  <div class="w-full max-w-full px-3">
-    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="p-6 pb-0 mb-0 rounded-t-2xl">
-        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-          <h6 class="mb-0 text-lg font-bold dark:text-white" style="margin: 0;">Properties List</h6>
-          <div style="display: flex; flex-direction: row; gap: 0.5rem; width: 100%;">
-            <input type="text" id="searchInput" placeholder="Search properties..." style="flex: 1; width: 100%; padding: 0.625rem 1rem; font-size: 1rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; outline: none; background-color: white; color: black;" onkeyup="filterTable()">
-            <select id="typeFilter" style="flex: 1; width: 100%; padding: 0.625rem 1rem; font-size: 1rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; outline: none; background-color: white; color: black;" onchange="filterTable()">
-              <option value="">All Types</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <div class="p-0 overflow-x-auto">
-        <table class="items-center justify-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
-          <thead class="align-bottom">
-            <tr>
-              <th class="px-6 py-5 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-sm border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Property</th>
-              <th class="px-6 py-5 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-sm border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70 hidden md:table-cell">Type</th>
-              <th class="px-6 py-5 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-sm border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">City</th>
-              <th class="px-6 py-5 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-sm border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70 hidden lg:table-cell">Created</th>
-              <th class="px-6 py-5 font-bold text-center uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-sm border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
-              <th class="px-6 py-5 font-bold text-center uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-sm border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="propertiesTableBody">
-            <tr>
-              <td colspan="6" class="p-6 text-center text-slate-400 dark:text-white/60 text-base">Loading properties...</td>
-            </tr>
-          </tbody>
-        </table>
-        <div id="paginationContainer"></div>
-      </div>
-    </div>
+    <div id="paginationContainer"></div>
   </div>
 </div>
 
 <!-- Property Details Modal -->
-<div id="propertyDetailsModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closePropertyDetailsModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-  <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 1200px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-    <div class="p-8 border-b border-gray-200 dark:border-white/10 flex justify-between items-center" style="padding: 2rem; border-bottom: 1px solid #e5e7eb;">
-      <h3 class="text-2xl font-bold dark:text-white" id="modalPropertyName" style="font-size: 1.5rem; font-weight: bold; margin: 0;">Property Details</h3>
-      <button onclick="closePropertyDetailsModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.5rem;">
-        <i class="fas fa-times text-2xl"></i>
+<div id="propertyDetailsModal" class="modal-backdrop">
+  <div class="modal" style="max-width: 1200px;">
+    <div class="modal-header">
+      <span class="modal-title" id="modalPropertyName">Property Details</span>
+      <button class="modal-close" onclick="closePropertyDetailsModal()">
+        <i class="fas fa-x"></i>
       </button>
     </div>
-    <div class="p-8" id="modalPropertyContent" style="padding: 2rem;">
+    <div class="modal-body" id="modalPropertyContent">
       <!-- Content will be populated by JavaScript -->
     </div>
   </div>
 </div>
 
 <!-- Add Property Modal -->
-<div id="addPropertyModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddPropertyModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-  <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 900px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-    <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-      <h3 class="text-xl font-bold dark:text-white">Add New Property</h3>
-      <button onclick="closeAddPropertyModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-        <i class="fas fa-times text-xl"></i>
+<div id="addPropertyModal" class="modal-backdrop">
+  <div class="modal" style="max-width: 900px;">
+    <div class="modal-header">
+      <span class="modal-title">Add New Property</span>
+      <button class="modal-close" onclick="closeAddPropertyModal()">
+        <i class="fas fa-x"></i>
       </button>
     </div>
-    <form id="addPropertyForm" class="p-6" onsubmit="handleAddPropertySubmit(event)">
+    <form id="addPropertyForm" onsubmit="handleAddPropertySubmit(event)">
       <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
-
-      <!-- Basic Information -->
-      <div class="mb-6">
-        <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-4">Basic Information</h4>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Property Code *</label>
-            <input type="text" name="property_code" required class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="e.g. RST-001">
+      <div class="modal-body">
+        <div class="section-label">Basic information</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Property code <span class="req">*</span></label>
+            <input type="text" name="property_code" required placeholder="e.g. RST-001" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Property Name *</label>
-            <input type="text" name="property_name" required class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="e.g. Sunset Beach Resort">
+          <div class="form-group">
+            <label>Property name <span class="req">*</span></label>
+            <input type="text" name="property_name" required placeholder="e.g. Sunset Beach Resort" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Property Type *</label>
-            <select name="property_type" id="property_type" required class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Property type <span class="req">*</span></label>
+            <select name="property_type" id="property_type" required>
               <option value="">Loading...</option>
             </select>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Tagline</label>
-            <input type="text" name="tagline" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="e.g. Your Paradise Awaits">
+          <div class="form-group">
+            <label>Tagline</label>
+            <input type="text" name="tagline" placeholder="e.g. Your Paradise Awaits" />
           </div>
-          <div style="grid-column: span 2 / span 2;">
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Description</label>
-            <textarea name="description" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="Property description..."></textarea>
+          <div class="form-group full">
+            <label>Description</label>
+            <textarea name="description" rows="2" placeholder="Property description…"></textarea>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Status</label>
-            <select name="is_active" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
-              <option value="1" selected>Active</option>
+          <div class="form-group">
+            <label>Status</label>
+            <select name="is_active">
+              <option value="1">Active</option>
               <option value="0">Inactive</option>
             </select>
           </div>
         </div>
-      </div>
 
-      <!-- Location -->
-      <div class="mb-6">
-        <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-4">Location</h4>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Region</label>
-            <input type="text" id="region_code_display" list="region_list" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="Select region" onchange="onRegionChange()" />
+        <div class="section-label">Location</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Region</label>
+            <input type="text" id="region_code_display" list="region_list" placeholder="Select region" onchange="onRegionChange()" />
             <input type="hidden" id="region_code" name="region_code" />
             <datalist id="region_list"></datalist>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Province</label>
-            <input type="text" id="province_code_display" list="province_list" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="Select province" onchange="onProvinceChange()" />
+          <div class="form-group">
+            <label>Province</label>
+            <input type="text" id="province_code_display" list="province_list" placeholder="Select province" onchange="onProvinceChange()" />
             <input type="hidden" id="province_code" name="province_code" />
             <datalist id="province_list"></datalist>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">City/Municipality</label>
-            <input type="text" id="city_municipality_code_display" list="city_list" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="Select city/municipality" onchange="onCityChange()" />
+          <div class="form-group">
+            <label>City/Municipality</label>
+            <input type="text" id="city_municipality_code_display" list="city_list" placeholder="Select city/municipality" onchange="onCityChange()" />
             <input type="hidden" id="city_municipality_code" name="city_municipality_code" />
             <datalist id="city_list"></datalist>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Barangay</label>
-            <input type="text" id="barangay_code_display" list="barangay_list" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="Select barangay" onchange="onBarangayChange()" />
+          <div class="form-group">
+            <label>Barangay</label>
+            <input type="text" id="barangay_code_display" list="barangay_list" placeholder="Select barangay" onchange="onBarangayChange()" />
             <input type="hidden" id="barangay_code" name="barangay_code" />
             <datalist id="barangay_list"></datalist>
           </div>
-          <div style="grid-column: span 2 / span 2;">
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Address Line 1</label>
-            <input type="text" name="address_line1" id="address_line1" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="Street address">
+          <div class="form-group full">
+            <label>Address line 1</label>
+            <input type="text" name="address_line1" id="address_line1" placeholder="Street address" />
           </div>
-          <div style="grid-column: span 2 / span 2;">
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Address Line 2</label>
-            <input type="text" name="address_line2" id="address_line2" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="Apartment, suite, etc.">
+          <div class="form-group full">
+            <label>Address line 2</label>
+            <input type="text" name="address_line2" id="address_line2" placeholder="Apartment, suite, etc." />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Postal Code</label>
-            <input type="text" name="postal_code" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="e.g. 1000">
+          <div class="form-group">
+            <label>Postal code</label>
+            <input type="text" name="postal_code" placeholder="e.g. 1000" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Country</label>
-            <input type="text" name="country" value="Philippines" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Country</label>
+            <input type="text" name="country" value="Philippines" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Latitude</label>
-            <input type="number" step="any" name="latitude" id="latitude" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="e.g. 14.5995">
+          <div class="form-group">
+            <label>Latitude</label>
+            <input type="number" step="any" name="latitude" id="latitude" placeholder="e.g. 14.5995" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Longitude</label>
-            <input type="number" step="any" name="longitude" id="longitude" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="e.g. 120.9842">
+          <div class="form-group">
+            <label>Longitude</label>
+            <input type="number" step="any" name="longitude" id="longitude" placeholder="e.g. 120.9842" />
           </div>
-          <div style="grid-column: span 2 / span 2;">
-            <button type="button" onclick="geocodeAddress()" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
-              <i class="fas fa-map-marker-alt mr-2"></i>Get Coordinates from Address
+          <div class="form-group full">
+            <button type="button" onclick="geocodeAddress()" class="btn">
+              <i class="fas fa-map-pin"></i> Get Coordinates from Address
             </button>
           </div>
         </div>
-      </div>
 
-      <!-- Contact Information -->
-      <div class="mb-6">
-        <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-4">Contact Information</h4>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Primary Phone</label>
-            <input type="text" name="phone_primary" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="e.g. +63 912 345 6789">
+        <div class="section-label">Contact information</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Primary phone</label>
+            <input type="text" name="phone_primary" placeholder="+63 912 345 6789" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Secondary Phone</label>
-            <input type="text" name="phone_secondary" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="e.g. +63 912 345 6790">
+          <div class="form-group">
+            <label>Secondary phone</label>
+            <input type="text" name="phone_secondary" placeholder="+63 912 345 6790" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Email</label>
-            <input type="email" name="email" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="e.g. info@resort.com">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="info@resort.com" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Website URL</label>
-            <input type="url" name="website_url" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="e.g. https://www.resort.com">
+          <div class="form-group">
+            <label>Website</label>
+            <input type="url" name="website_url" placeholder="https://www.resort.com" />
           </div>
-          <div style="grid-column: span 2 / span 2;">
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Facebook URL</label>
-            <input type="url" name="facebook_url" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="e.g. https://www.facebook.com/resort">
+          <div class="form-group full">
+            <label>Facebook URL</label>
+            <input type="url" name="facebook_url" placeholder="https://facebook.com/resort" />
           </div>
         </div>
-      </div>
 
-      <!-- Check-in/Check-out Settings -->
-      <div class="mb-6">
-        <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-4">Check-in/Check-out Settings</h4>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Check-in Time</label>
-            <input type="time" name="check_in_time" value="14:00" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+        <div class="section-label">Check-in / check-out</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Check-in time</label>
+            <input type="time" name="check_in_time" value="14:00" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Check-out Time</label>
-            <input type="time" name="check_out_time" value="12:00" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Check-out time</label>
+            <input type="time" name="check_out_time" value="12:00" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Earliest Check-in</label>
-            <input type="time" name="earliest_check_in" value="08:00" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Earliest check-in</label>
+            <input type="time" name="earliest_check_in" value="08:00" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Latest Check-out</label>
-            <input type="time" name="latest_check_out" value="22:00" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Latest check-out</label>
+            <input type="time" name="latest_check_out" value="22:00" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Late Check-out Fee</label>
-            <input type="number" step="0.01" name="late_check_out_fee" value="0.00" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Late check-out fee</label>
+            <input type="number" step="0.01" name="late_check_out_fee" value="0.00" />
           </div>
         </div>
-      </div>
 
-      <!-- Settings -->
-      <div class="mb-6">
-        <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-4">Settings</h4>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Timezone</label>
-            <select name="timezone" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+        <div class="section-label">Settings</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Timezone</label>
+            <select name="timezone">
               <option value="Asia/Manila" selected>Asia/Manila</option>
               <option value="Asia/Tokyo">Asia/Tokyo</option>
               <option value="Asia/Singapore">Asia/Singapore</option>
@@ -949,48 +1838,39 @@ function generateUUID()
               <option value="UTC">UTC</option>
             </select>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Currency Code</label>
-            <select name="currency_code" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
-              <option value="PHP" selected>PHP (Philippine Peso)</option>
-              <option value="USD">USD (US Dollar)</option>
-              <option value="EUR">EUR (Euro)</option>
-              <option value="SGD">SGD (Singapore Dollar)</option>
-              <option value="JPY">JPY (Japanese Yen)</option>
+          <div class="form-group">
+            <label>Currency</label>
+            <select name="currency_code">
+              <option value="PHP" selected>PHP — Philippine Peso</option>
+              <option value="USD">USD — US Dollar</option>
+              <option value="EUR">EUR — Euro</option>
+              <option value="SGD">SGD — Singapore Dollar</option>
+              <option value="JPY">JPY — Japanese Yen</option>
             </select>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Tax Rate (%)</label>
-            <input type="number" step="0.01" name="tax_rate_percent" value="0.00" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Tax rate (%)</label>
+            <input type="number" step="0.01" name="tax_rate_percent" value="0.00" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Sort Order</label>
-            <input type="number" name="sort_order" value="0" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Sort order</label>
+            <input type="number" name="sort_order" value="0" />
           </div>
         </div>
-      </div>
 
-      <!-- Image Upload -->
-      <div class="mb-6">
-        <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-4">Property Images</h4>
-        <div class="border-2 border-dashed border-gray-300 dark:border-white/20 rounded-lg p-6">
-          <div class="text-center mb-4">
-            <i class="fas fa-cloud-upload-alt text-4xl text-slate-400 mb-2"></i>
-            <p class="text-sm text-slate-600 dark:text-white/60">Click to upload or drag and drop</p>
-            <p class="text-xs text-slate-400 dark:text-white/40">JPG, JPEG, PNG, GIF, WEBP (Max 5MB each)</p>
-          </div>
-          <input type="file" name="property_images[]" multiple accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" id="propertyImagesInput" onchange="handleImagePreview(this)">
-          <div id="imagePreviewContainer" style="margin-top: 1rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem;"></div>
+        <div class="section-label">Property images</div>
+        <div class="upload-zone" onclick="document.getElementById('propertyImagesInput').click()">
+          <i class="fas fa-cloud-upload"></i>
+          <p>Click to upload or drag and drop</p>
+          <p style="font-size: 11px; margin-top: 3px">JPG, PNG, WEBP · max 5 MB each</p>
+          <input type="file" name="property_images[]" multiple accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" id="propertyImagesInput" style="display: none" onchange="handleImagePreview(this)" />
         </div>
+        <div class="preview-grid" id="imagePreviewContainer"></div>
       </div>
-
-      <!-- Form Actions -->
-      <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-white/10">
-        <button type="button" onclick="closeAddPropertyModal()" class="px-6 py-2 border border-gray-300 dark:border-white/20 rounded-lg text-slate-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-          Cancel
-        </button>
-        <button type="submit" class="px-6 py-2 bg-gradient-to-tl from-blue-500 to-violet-500 text-white rounded-lg font-semibold hover:shadow-md transition-all">
-          <i class="fas fa-plus mr-2"></i>Add Property
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeAddPropertyModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-device-floppy"></i> Add property
         </button>
       </div>
     </form>
@@ -998,176 +1878,161 @@ function generateUUID()
 </div>
 
 <!-- Edit Property Modal -->
-<div id="editPropertyModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeEditPropertyModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-  <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 900px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-    <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-      <h3 class="text-xl font-bold dark:text-white">Edit Property</h3>
-      <button onclick="closeEditPropertyModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-        <i class="fas fa-times text-xl"></i>
+<div id="editPropertyModal" class="modal-backdrop">
+  <div class="modal" style="max-width: 900px;">
+    <div class="modal-header">
+      <span class="modal-title">Edit Property</span>
+      <button class="modal-close" onclick="closeEditPropertyModal()">
+        <i class="fas fa-x"></i>
       </button>
     </div>
-    <form id="editPropertyForm" class="p-6" onsubmit="handleEditPropertySubmit(event)">
+    <form id="editPropertyForm" onsubmit="handleEditPropertySubmit(event)">
       <input type="hidden" name="property_id" id="edit_property_id">
       <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
-
-      <!-- Basic Information -->
-      <div class="mb-6">
-        <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-4">Basic Information</h4>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Property Code *</label>
-            <input type="text" name="property_code" id="edit_property_code" required class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+      <div class="modal-body">
+        <div class="section-label">Basic information</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Property code <span class="req">*</span></label>
+            <input type="text" name="property_code" id="edit_property_code" required />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Property Name *</label>
-            <input type="text" name="property_name" id="edit_property_name" required class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Property name <span class="req">*</span></label>
+            <input type="text" name="property_name" id="edit_property_name" required />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Property Type *</label>
-            <select name="property_type" id="edit_property_type" required class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Property type <span class="req">*</span></label>
+            <select name="property_type" id="edit_property_type" required>
               <option value="">Loading...</option>
             </select>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Tagline</label>
-            <input type="text" name="tagline" id="edit_tagline" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Tagline</label>
+            <input type="text" name="tagline" id="edit_tagline" />
           </div>
-          <div style="grid-column: span 2 / span 2;">
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Description</label>
-            <textarea name="description" id="edit_description" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white"></textarea>
+          <div class="form-group full">
+            <label>Description</label>
+            <textarea name="description" id="edit_description" rows="2"></textarea>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Property Status</label>
-            <select name="is_active" id="edit_is_active" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Status</label>
+            <select name="is_active" id="edit_is_active">
               <option value="1">Active</option>
               <option value="0">Inactive</option>
             </select>
           </div>
         </div>
-      </div>
 
-      <!-- Location -->
-      <div class="mb-6">
-        <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-4">Location</h4>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Region</label>
-            <input type="text" id="edit_region_code_display" list="edit_region_list" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="Select region" onchange="onEditRegionChange()" />
+        <div class="section-label">Location</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Region</label>
+            <input type="text" id="edit_region_code_display" list="edit_region_list" placeholder="Select region" onchange="onEditRegionChange()" />
             <input type="hidden" id="edit_region_code" name="region_code" />
             <datalist id="edit_region_list"></datalist>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Province</label>
-            <input type="text" id="edit_province_code_display" list="edit_province_list" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="Select province" onchange="onEditProvinceChange()" />
+          <div class="form-group">
+            <label>Province</label>
+            <input type="text" id="edit_province_code_display" list="edit_province_list" placeholder="Select province" onchange="onEditProvinceChange()" />
             <input type="hidden" id="edit_province_code" name="province_code" />
             <datalist id="edit_province_list"></datalist>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">City/Municipality</label>
-            <input type="text" id="edit_city_municipality_code_display" list="edit_city_list" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="Select city/municipality" onchange="onEditCityChange()" />
+          <div class="form-group">
+            <label>City/Municipality</label>
+            <input type="text" id="edit_city_municipality_code_display" list="edit_city_list" placeholder="Select city/municipality" onchange="onEditCityChange()" />
             <input type="hidden" id="edit_city_municipality_code" name="city_municipality_code" />
             <datalist id="edit_city_list"></datalist>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Barangay</label>
-            <input type="text" id="edit_barangay_code_display" list="edit_barangay_list" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" placeholder="Select barangay" onchange="onEditBarangayChange()" />
+          <div class="form-group">
+            <label>Barangay</label>
+            <input type="text" id="edit_barangay_code_display" list="edit_barangay_list" placeholder="Select barangay" onchange="onEditBarangayChange()" />
             <input type="hidden" id="edit_barangay_code" name="barangay_code" />
             <datalist id="edit_barangay_list"></datalist>
           </div>
-          <div style="grid-column: span 2 / span 2;">
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Address Line 1</label>
-            <input type="text" name="address_line1" id="edit_address_line1" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group full">
+            <label>Address line 1</label>
+            <input type="text" name="address_line1" id="edit_address_line1" />
           </div>
-          <div style="grid-column: span 2 / span 2;">
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Address Line 2</label>
-            <input type="text" name="address_line2" id="edit_address_line2" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group full">
+            <label>Address line 2</label>
+            <input type="text" name="address_line2" id="edit_address_line2" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Postal Code</label>
-            <input type="text" name="postal_code" id="edit_postal_code" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Postal code</label>
+            <input type="text" name="postal_code" id="edit_postal_code" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Country</label>
-            <input type="text" name="country" id="edit_country" value="Philippines" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Country</label>
+            <input type="text" name="country" id="edit_country" value="Philippines" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Latitude</label>
-            <input type="number" step="any" name="latitude" id="edit_latitude" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Latitude</label>
+            <input type="number" step="any" name="latitude" id="edit_latitude" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Longitude</label>
-            <input type="number" step="any" name="longitude" id="edit_longitude" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Longitude</label>
+            <input type="number" step="any" name="longitude" id="edit_longitude" />
           </div>
-          <div style="grid-column: span 2 / span 2; display: flex; align-items: flex-end;">
-            <button type="button" onclick="geocodeEditAddress()" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
-              <i class="fas fa-map-marker-alt mr-2"></i>Get Coordinates
+          <div class="form-group full">
+            <button type="button" onclick="geocodeEditAddress()" class="btn">
+              <i class="fas fa-map-pin"></i> Get Coordinates
             </button>
           </div>
         </div>
-      </div>
 
-      <!-- Contact Information -->
-      <div class="mb-6">
-        <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-4">Contact Information</h4>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Primary Phone</label>
-            <input type="tel" name="phone_primary" id="edit_phone_primary" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+        <div class="section-label">Contact information</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Primary phone</label>
+            <input type="tel" name="phone_primary" id="edit_phone_primary" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Secondary Phone</label>
-            <input type="tel" name="phone_secondary" id="edit_phone_secondary" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Secondary phone</label>
+            <input type="tel" name="phone_secondary" id="edit_phone_secondary" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Email</label>
-            <input type="email" name="email" id="edit_email" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" id="edit_email" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Website URL</label>
-            <input type="url" name="website_url" id="edit_website_url" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Website</label>
+            <input type="url" name="website_url" id="edit_website_url" />
           </div>
-          <div style="grid-column: span 2 / span 2;">
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Facebook URL</label>
-            <input type="url" name="facebook_url" id="edit_facebook_url" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group full">
+            <label>Facebook URL</label>
+            <input type="url" name="facebook_url" id="edit_facebook_url" />
           </div>
         </div>
-      </div>
 
-      <!-- Check-in/Check-out Settings -->
-      <div class="mb-6">
-        <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-4">Check-in/Check-out Settings</h4>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Check-in Time</label>
-            <input type="time" name="check_in_time" id="edit_check_in_time" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+        <div class="section-label">Check-in / check-out</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Check-in time</label>
+            <input type="time" name="check_in_time" id="edit_check_in_time" value="14:00" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Check-out Time</label>
-            <input type="time" name="check_out_time" id="edit_check_out_time" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Check-out time</label>
+            <input type="time" name="check_out_time" id="edit_check_out_time" value="12:00" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Earliest Check-in</label>
-            <input type="time" name="earliest_check_in" id="edit_earliest_check_in" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Earliest check-in</label>
+            <input type="time" name="earliest_check_in" id="edit_earliest_check_in" value="08:00" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Latest Check-out</label>
-            <input type="time" name="latest_check_out" id="edit_latest_check_out" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Latest check-out</label>
+            <input type="time" name="latest_check_out" id="edit_latest_check_out" value="22:00" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Late Check-out Fee</label>
-            <input type="number" step="0.01" name="late_check_out_fee" id="edit_late_check_out_fee" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Late check-out fee</label>
+            <input type="number" step="0.01" name="late_check_out_fee" id="edit_late_check_out_fee" value="0.00" />
           </div>
         </div>
-      </div>
 
-      <!-- Settings -->
-      <div class="mb-6">
-        <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-4">Settings</h4>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Timezone</label>
-            <select name="timezone" id="edit_timezone" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+        <div class="section-label">Settings</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Timezone</label>
+            <select name="timezone" id="edit_timezone">
               <option value="Asia/Manila">Asia/Manila</option>
               <option value="Asia/Tokyo">Asia/Tokyo</option>
               <option value="Asia/Singapore">Asia/Singapore</option>
@@ -1175,54 +2040,42 @@ function generateUUID()
               <option value="UTC">UTC</option>
             </select>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Currency Code</label>
-            <select name="currency_code" id="edit_currency_code" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
-              <option value="PHP">PHP (Philippine Peso)</option>
-              <option value="USD">USD (US Dollar)</option>
-              <option value="EUR">EUR (Euro)</option>
-              <option value="SGD">SGD (Singapore Dollar)</option>
-              <option value="JPY">JPY (Japanese Yen)</option>
+          <div class="form-group">
+            <label>Currency</label>
+            <select name="currency_code" id="edit_currency_code">
+              <option value="PHP">PHP — Philippine Peso</option>
+              <option value="USD">USD — US Dollar</option>
+              <option value="EUR">EUR — Euro</option>
+              <option value="SGD">SGD — Singapore Dollar</option>
+              <option value="JPY">JPY — Japanese Yen</option>
             </select>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Tax Rate (%)</label>
-            <input type="number" step="0.01" name="tax_rate_percent" id="edit_tax_rate_percent" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Tax rate (%)</label>
+            <input type="number" step="0.01" name="tax_rate_percent" id="edit_tax_rate_percent" value="0.00" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-white mb-1">Sort Order</label>
-            <input type="number" name="sort_order" id="edit_sort_order" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white">
+          <div class="form-group">
+            <label>Sort order</label>
+            <input type="number" name="sort_order" id="edit_sort_order" value="0" />
           </div>
         </div>
-      </div>
 
-      <!-- Existing Images -->
-      <div class="mb-6">
-        <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-4">Existing Images</h4>
-        <div id="editExistingImagesContainer" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem;"></div>
-      </div>
+        <div class="section-label">Existing images</div>
+        <div class="preview-grid" id="editExistingImagesContainer"></div>
 
-      <!-- Image Upload -->
-      <div class="mb-6">
-        <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-4">Add New Images</h4>
-        <div class="border-2 border-dashed border-gray-300 dark:border-white/20 rounded-lg p-6">
-          <div class="text-center mb-4">
-            <i class="fas fa-cloud-upload-alt text-4xl text-slate-400 mb-2"></i>
-            <p class="text-sm text-slate-600 dark:text-white/60">Click to upload or drag and drop</p>
-            <p class="text-xs text-slate-400 dark:text-white/40">JPG, JPEG, PNG, GIF, WEBP (Max 5MB each)</p>
-          </div>
-          <input type="file" name="property_images[]" multiple accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" class="w-full px-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white" id="editPropertyImagesInput" onchange="handleEditImagePreview(this)">
-          <div id="editImagePreviewContainer" style="margin-top: 1rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem;"></div>
+        <div class="section-label">Add new images</div>
+        <div class="upload-zone" onclick="document.getElementById('editPropertyImagesInput').click()">
+          <i class="fas fa-cloud-upload"></i>
+          <p>Click to upload or drag and drop</p>
+          <p style="font-size: 11px; margin-top: 3px">JPG, PNG, WEBP · max 5 MB each</p>
+          <input type="file" name="property_images[]" multiple accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" id="editPropertyImagesInput" style="display: none" onchange="handleEditImagePreview(this)" />
         </div>
+        <div class="preview-grid" id="editImagePreviewContainer"></div>
       </div>
-
-      <!-- Form Actions -->
-      <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-white/10">
-        <button type="button" onclick="closeEditPropertyModal()" class="px-6 py-2 border border-gray-300 dark:border-white/20 rounded-lg text-slate-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-          Cancel
-        </button>
-        <button type="submit" class="px-6 py-2 bg-gradient-to-tl from-blue-500 to-violet-500 text-white rounded-lg font-semibold hover:shadow-md transition-all">
-          <i class="fas fa-save mr-2"></i>Update Property
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeEditPropertyModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-device-floppy"></i> Update property
         </button>
       </div>
     </form>
@@ -1230,32 +2083,43 @@ function generateUUID()
 </div>
 
 <!-- Image Cropper Modal -->
-<div id="cropperModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000;">
-  <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
-  <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-    <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-      <h3 class="text-xl font-bold dark:text-white">Crop Image</h3>
-      <button onclick="closeCropperModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-        <i class="fas fa-times text-xl"></i>
+<div id="cropperModal" class="modal-backdrop">
+  <div class="modal" style="max-width: 800px;">
+    <div class="modal-header">
+      <span class="modal-title">Crop Image</span>
+      <button class="modal-close" onclick="closeCropperModal()">
+        <i class="fas fa-x"></i>
       </button>
     </div>
-    <div class="p-6">
-      <div class="mb-4" style="max-height: 500px; overflow: hidden;">
-        <img id="cropperImage" style="max-width: 100%;">
+    <div class="modal-body">
+      <div class="mb-4">
+        <img id="cropperImage" src="" alt="Image to crop" style="max-width: 100%; max-height: 400px; display: block; margin: 0 auto;">
       </div>
-      <div class="flex justify-end gap-3 pt-4">
-        <button type="button" onclick="closeCropperModal()" class="px-6 py-2 border border-gray-300 dark:border-white/20 rounded-lg text-slate-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-          Cancel
-        </button>
-        <button type="button" onclick="applyCrop()" class="px-6 py-2 bg-gradient-to-tl from-blue-500 to-violet-500 text-white rounded-lg font-semibold hover:shadow-md transition-all">
-          <i class="fas fa-crop mr-2"></i>Apply Crop
-        </button>
-      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeCropperModal()">Cancel</button>
+      <button type="button" class="btn btn-primary" onclick="applyCrop()">
+        <i class="fas fa-check"></i> Apply Crop
+      </button>
     </div>
   </div>
 </div>
 
+<!-- Toast Notification -->
+<div id="toast" class="toast"></div>
+
 <script>
+  // Toast notification function
+  function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = `toast ${type}`;
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3000);
+  }
+
   async function viewPropertyDetails(propertyId) {
     const property = propertiesData.find(p => p.property_id === propertyId);
     if (!property) return;
@@ -1265,6 +2129,7 @@ function generateUUID()
     const modalContent = document.getElementById('modalPropertyContent');
 
     modalName.textContent = property.property_name;
+    modal.classList.add('open');
 
     // Get property images
     const images = propertyImagesData[propertyId] || [];
@@ -1486,14 +2351,12 @@ function generateUUID()
         </div>
       `;
 
-    modal.classList.remove('hidden');
-    modal.style.display = 'block';
+    modal.classList.add('open');
   }
 
   function closePropertyDetailsModal() {
     const modal = document.getElementById('propertyDetailsModal');
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
+    modal.classList.remove('open');
   }
 
   // Toggle Rooms Dropdown Function
@@ -1503,37 +2366,15 @@ function generateUUID()
 
     if (dropdown.classList.contains('hidden')) {
       dropdown.classList.remove('hidden');
-      btn.innerHTML = '<i class="fas fa-chevron-up mr-1"></i>Hide Rooms';
+      btn.innerHTML = '<i class="fas fa-chevron-up"></i>';
 
       // Fetch rooms for this property
       await fetchRoomsForProperty(propertyId);
     } else {
       dropdown.classList.add('hidden');
-      btn.innerHTML = '<i class="fas fa-door-open mr-1.5 text-sm"></i><span>Rooms</span>';
+      btn.innerHTML = '<i class="fas fa-door-open"></i>';
     }
   }
-
-  // Toggle Action Menu Function
-  function toggleActionMenu(id) {
-    const dropdown = document.getElementById('actionDropdown-' + id);
-    const currentDisplay = dropdown.style.display;
-    // Close all first
-    document.querySelectorAll('[id^="actionDropdown-"]').forEach(d => d.style.display = 'none');
-    if (currentDisplay === 'none') dropdown.style.display = 'block';
-  }
-
-  // Close Action Menu Function
-  function closeActionMenu(id) {
-    const dropdown = document.getElementById('actionDropdown-' + id);
-    if (dropdown) dropdown.style.display = 'none';
-  }
-
-  // Close action menus on outside click
-  document.addEventListener('click', function(e) {
-    if (!e.target.closest('[id^="actionMenu-"]')) {
-      document.querySelectorAll('[id^="actionDropdown-"]').forEach(d => d.style.display = 'none');
-    }
-  });
 
   async function fetchRoomsForProperty(propertyId) {
     const dropdown = document.getElementById('roomsDropdown-' + propertyId);
@@ -1574,26 +2415,26 @@ function generateUUID()
     const contentDiv = dropdown.querySelector('div');
 
     let roomsHtml = `
-      <div class="p-6">
-        <div class="mb-4 flex items-center justify-between">
-          <h6 class="text-base font-bold dark:text-white">Rooms (${rooms.length})</h6>
-          <div class="flex items-center gap-2">
-            <button onclick="toggleRoomsViewMode('${propertyId}', 'grid')" class="p-2 rounded-lg ${roomsViewMode === 'grid' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-white'} hover:bg-blue-600 dark:hover:bg-blue-600 transition-colors" title="Grid View">
-              <i class="fas fa-th-large"></i>
+      <div class="rooms-panel">
+        <div class="rooms-panel-header">
+          <span class="rooms-panel-title">Rooms (${rooms.length})</span>
+          <div class="view-toggle">
+            <button onclick="toggleRoomsViewMode('${propertyId}', 'grid')" class="vt-btn ${roomsViewMode === 'grid' ? 'active' : ''}" title="Grid View">
+              <i class="fa-solid fa-border-all"></i>
             </button>
-            <button onclick="toggleRoomsViewMode('${propertyId}', 'list')" class="p-2 rounded-lg ${roomsViewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-white'} hover:bg-blue-600 dark:hover:bg-blue-600 transition-colors" title="List View">
+            <button onclick="toggleRoomsViewMode('${propertyId}', 'list')" class="vt-btn ${roomsViewMode === 'list' ? 'active' : ''}" title="List View">
               <i class="fas fa-list"></i>
             </button>
           </div>
         </div>
-        <div id="roomsContainer-${propertyId}" style="${roomsViewMode === 'grid' ? 'display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;' : 'display: flex; flex-direction: column; gap: 0.75rem;'}">
+        <div id="roomsContainer-${propertyId}" class="${roomsViewMode === 'grid' ? 'rooms-grid' : 'rooms-list'}">
     `;
 
     rooms.forEach(room => {
-      const statusColor = room.room_status === 'available' ? 'bg-emerald-500' :
-        room.room_status === 'occupied' ? 'bg-red-500' :
-        room.room_status === 'maintenance' ? 'bg-amber-500' :
-        room.room_status === 'reserved' ? 'bg-blue-500' : 'bg-slate-500';
+      const statusClass = room.room_status === 'available' ? 'rs-available' :
+        room.room_status === 'occupied' ? 'rs-occupied' :
+        room.room_status === 'maintenance' ? 'rs-maintenance' :
+        room.room_status === 'reserved' ? 'rs-reserved' : '';
 
       const priceDisplay = room.override_price_per_night ? `₱${parseFloat(room.override_price_per_night).toFixed(2)}/night` :
         room.override_price_per_hour ? `₱${parseFloat(room.override_price_per_hour).toFixed(2)}/hour` :
@@ -1601,37 +2442,33 @@ function generateUUID()
 
       if (roomsViewMode === 'grid') {
         roomsHtml += `
-          <div class="p-4 bg-white dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-white/10 shadow-sm hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-sm font-semibold dark:text-white">${room.room_number || '-'}</span>
-              <span class="px-2 py-1 text-xs font-semibold text-white rounded-full ${statusColor}">${room.room_status || '-'}</span>
+          <div class="room-card">
+            <div class="room-header">
+              <span class="room-num">${room.room_number || '-'}</span>
+              <span class="room-status ${statusClass}">${room.room_status || '-'}</span>
             </div>
-            <div class="space-y-1 text-sm text-slate-600 dark:text-white/70">
-              <p><span class="text-xs text-slate-500 dark:text-white/50">Name:</span> ${room.room_name || '-'}</p>
-              <p><span class="text-xs text-slate-500 dark:text-white/50">Floor:</span> ${room.floor_number || '-'}</p>
-              <p><span class="text-xs text-slate-500 dark:text-white/50">Building:</span> ${room.building_block || '-'}</p>
-              <p><span class="text-xs text-slate-500 dark:text-white/50">Price:</span> ${priceDisplay}</p>
-              <p><span class="text-xs text-slate-500 dark:text-white/50">Active:</span> ${room.is_active ? 'Yes' : 'No'}</p>
+            <div class="room-meta">
+              <div>Name: ${room.room_name || '-'}</div>
+              <div>Floor: ${room.floor_number || '-'}</div>
+              <div>Building: ${room.building_block || '-'}</div>
             </div>
+            <div class="room-price">${priceDisplay}</div>
           </div>
         `;
       } else {
         roomsHtml += `
-          <div class="p-4 bg-white dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-white/10 shadow-sm hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                <div class="flex items-center gap-3">
-                  <span class="text-sm font-semibold dark:text-white">${room.room_number || '-'}</span>
-                  <span class="text-sm text-slate-600 dark:text-white/70">${room.room_name || '-'}</span>
-                </div>
-                <span class="px-2 py-1 text-xs font-semibold text-white rounded-full ${statusColor}">${room.room_status || '-'}</span>
+          <div class="room-list-item">
+            <div class="room-list-left">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 13px; font-weight: 500;">${room.room_number || '-'}</span>
+                <span style="font-size: 12px; color: var(--color-text-secondary);">${room.room_name || '-'}</span>
               </div>
-              <div class="flex items-center gap-4 text-sm text-slate-600 dark:text-white/70">
-                <span><span class="text-xs text-slate-500 dark:text-white/50">Floor:</span> ${room.floor_number || '-'}</span>
-                <span><span class="text-xs text-slate-500 dark:text-white/50">Building:</span> ${room.building_block || '-'}</span>
-                <span><span class="text-xs text-slate-500 dark:text-white/50">Price:</span> ${priceDisplay}</span>
-                <span><span class="text-xs text-slate-500 dark:text-white/50">Active:</span> ${room.is_active ? 'Yes' : 'No'}</span>
-              </div>
+              <span class="room-status ${statusClass}">${room.room_status || '-'}</span>
+            </div>
+            <div class="room-list-meta">
+              <span>Floor: ${room.floor_number || '-'}</span>
+              <span>Building: ${room.building_block || '-'}</span>
+              <span>${priceDisplay}</span>
             </div>
           </div>
         `;
@@ -1657,8 +2494,7 @@ function generateUUID()
   // Add Property Modal Functions
   async function openAddPropertyModal() {
     const modal = document.getElementById('addPropertyModal');
-    modal.classList.remove('hidden');
-    modal.style.display = 'block';
+    modal.classList.add('open');
     document.body.style.overflow = 'hidden';
 
     // Wait for modal to be fully rendered
@@ -1674,19 +2510,10 @@ function generateUUID()
 
   function closeAddPropertyModal() {
     const modal = document.getElementById('addPropertyModal');
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
+    modal.classList.remove('open');
     document.body.style.overflow = 'auto';
-    // Reset form
-    const form = modal.querySelector('form');
-    if (form) {
-      form.reset();
-    }
-    // Clear image preview
-    const previewContainer = document.getElementById('imagePreviewContainer');
-    if (previewContainer) {
-      previewContainer.innerHTML = '';
-    }
+    document.getElementById('addPropertyForm').reset();
+    document.getElementById('imagePreviewContainer').innerHTML = '';
   }
 
   // Image Preview Function - queues files for cropping
@@ -1768,30 +2595,14 @@ function generateUUID()
           const result = await response.json();
 
           if (result.success) {
-            Swal.fire({
-              icon: 'success',
-              title: 'Deleted!',
-              text: 'Property deleted successfully!',
-              timer: 2000,
-              showConfirmButton: false
-            });
+            showToast('Property deleted successfully');
             // Refresh the data
             await fetchPropertiesData();
           } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: result.message || 'Failed to delete property',
-              confirmButtonColor: '#3085d6'
-            });
+            showToast(result.message || 'Failed to delete property', 'error');
           }
         } catch (error) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'An error occurred while deleting the property',
-            confirmButtonColor: '#3085d6'
-          });
+          showToast('An error occurred while deleting the property', 'error');
         }
       }
     });
@@ -1886,8 +2697,7 @@ function generateUUID()
 
     // Open modal (always try to open even if there's an error)
     const modal = document.getElementById('editPropertyModal');
-    modal.classList.remove('hidden');
-    modal.style.display = 'block';
+    modal.classList.add('open');
     document.body.style.overflow = 'hidden';
 
     // Display existing images
@@ -1922,8 +2732,7 @@ function generateUUID()
 
   function closeEditPropertyModal() {
     const modal = document.getElementById('editPropertyModal');
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
+    modal.classList.remove('open');
     document.body.style.overflow = 'auto';
 
     // Reset form
@@ -2039,31 +2848,15 @@ function generateUUID()
           await uploadPropertyImages(realPropertyId, imageInput.files, 'imagePreviewContainer');
         }
 
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: result.message || 'Property added successfully!',
-          timer: 2000,
-          showConfirmButton: false
-        });
+        showToast(result.message || 'Property added successfully');
         closeAddPropertyModal();
         await fetchPropertiesData();
       } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: result.message || 'Failed to add property',
-          confirmButtonColor: '#3085d6'
-        });
+        showToast(result.message || 'Failed to add property', 'error');
       }
     } catch (error) {
       console.error('Fetch error:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'An error occurred while adding the property: ' + error.message,
-        confirmButtonColor: '#3085d6'
-      });
+      showToast('An error occurred while adding the property: ' + error.message, 'error');
     }
   }
 
@@ -2141,31 +2934,14 @@ function generateUUID()
           }
         }
 
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: result.message || 'Property updated successfully!',
-          timer: 2000,
-          showConfirmButton: false
-        });
+        showToast(result.message || 'Property updated successfully');
         closeEditPropertyModal();
         await fetchPropertiesData();
       } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: result.message || 'Failed to update property',
-          confirmButtonColor: '#3085d6'
-        });
+        showToast(result.message || 'Failed to update property', 'error');
       }
     } catch (error) {
-      console.error('Fetch error:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'An error occurred while updating the property: ' + error.message,
-        confirmButtonColor: '#3085d6'
-      });
+      showToast('An error occurred while updating the property: ' + error.message, 'error');
     }
   }
 

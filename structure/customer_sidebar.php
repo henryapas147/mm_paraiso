@@ -142,6 +142,15 @@ function customerActiveClass($route, $current_url)
             </li>
 
             <li class="mt-0.5 w-full">
+                <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors dark:text-white dark:opacity-80 hover:bg-emerald-50 dark:hover:bg-slate-700 rounded-lg" href="<?php echo rtrim(dirname(rtrim($base_url, '/')), '/'); ?>/pages/">
+                    <span class="flex-shrink-0 flex h-8 w-8 items-center justify-center mr-2">
+                        <i class="text-sm leading-normal text-emerald-500 ni ni-world"></i>
+                    </span>
+                    <span class="duration-300 opacity-100 pointer-events-none ease truncate">Back to Website</span>
+                </a>
+            </li>
+
+            <li class="mt-0.5 w-full">
                 <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg" href="<?php echo $base_url; ?>logout">
                     <span class="flex-shrink-0 flex h-8 w-8 items-center justify-center mr-2">
                         <i class="text-sm leading-normal text-red-500 ni ni-button-power"></i>

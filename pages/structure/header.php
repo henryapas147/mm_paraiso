@@ -29,9 +29,21 @@ $companyName = $companyInfo['company_name'] ?? 'M&M Paraiso';
                         <li><a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : ''; ?>">Home</a></li>
                         <li><a href="properties.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'properties.php' ? 'active' : ''; ?>">Properties</a></li>
                         <li><a href="rooms.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'rooms.php' ? 'active' : ''; ?>">Rooms</a></li>
-                        <li><a href="property-details.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'property-details.php' ? 'active' : ''; ?>" hidden>Property Details</a></li>
                         <li><a href="contact.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'contact.php' ? 'active' : ''; ?>">Contact Us</a></li>
                         <li><a href="schedule-visit.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'schedule-visit.php' ? 'active' : ''; ?>"><i class="fa fa-calendar"></i> Schedule a visit</a></li>
+                        <?php if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true): ?>
+                            <li class="mobile-auth-item"><a href="../build/sign-in"><i class="fa fa-sign-in"></i> Sign In</a></li>
+                            <li class="mobile-auth-item"><a href="../build/sign-up"><i class="fa fa-user-plus"></i> Sign Up</a></li>
+                        <?php else: ?>
+                            <?php
+                                $isCustomer = ($_SESSION['role_code'] ?? '') === 'customer';
+                                $dashboardUrl = $isCustomer ? '../build/customer/dashboard' : '../build/';
+                                $profileUrl   = $isCustomer ? '../build/customer/profile'    : '../build/profile';
+                            ?>
+                            <li class="mobile-user-item"><a href="<?php echo $dashboardUrl; ?>"><i class="fa fa-tachometer"></i> Dashboard</a></li>
+                            <li class="mobile-user-item"><a href="<?php echo $profileUrl; ?>"><i class="fa fa-user"></i> Profile</a></li>
+                            <li class="mobile-user-item sign-out"><a href="../build/logout"><i class="fa fa-sign-out"></i> Sign Out</a></li>
+                        <?php endif; ?>
                     </ul>
                     <div class="auth-nav">
                         <?php if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true): ?>
@@ -42,10 +54,15 @@ $companyName = $companyInfo['company_name'] ?? 'M&M Paraiso';
                                     <i class="fa fa-chevron-down chevron-icon"></i>
                                 </button>
                                 <div class="user-dropdown-menu">
-                                    <a href="../build/" class="dropdown-item"><i class="fa fa-tachometer"></i> Dashboard</a>
-                                    <a href="../build/profile" class="dropdown-item"><i class="fa fa-user"></i> Profile</a>
+                                    <?php
+                                        $isCustomer = ($_SESSION['role_code'] ?? '') === 'customer';
+                                        $dashboardUrl = $isCustomer ? '../build/customer/dashboard' : '../build/';
+                                        $profileUrl   = $isCustomer ? '../build/customer/profile'    : '../build/profile';
+                                    ?>
+                                    <a href="<?php echo $dashboardUrl; ?>" class="dropdown-item"><i class="fa fa-tachometer"></i> Dashboard</a>
+                                    <a href="<?php echo $profileUrl; ?>" class="dropdown-item"><i class="fa fa-user"></i> Profile</a>
                                     <div class="dropdown-divider"></div>
-                                    <a href="../build/logout" class="dropdown-item sign-out-item"><i class="fa fa-sign-out"></i> Sign Out</a>
+                                    <a href="../build/sign-out" class="dropdown-item sign-out-item"><i class="fa fa-sign-out"></i> Sign Out</a>
                                 </div>
                             </div>
                         <?php else: ?>

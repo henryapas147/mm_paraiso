@@ -12,6 +12,9 @@ try {
       if ($action === 'list') {
         $propertyId = $_GET['property_id'] ?? null;
         $status = $_GET['status'] ?? null;
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $offset = ($page - 1) * $limit;
         
         $sql = "SELECT n.*, p.property_name 
                 FROM notifications n 
@@ -30,6 +33,15 @@ try {
         
         $sql .= " ORDER BY n.created_at DESC";
         
+        $countSql = "SELECT COUNT(*) FROM ($sql) as count_table";
+        $countStmt = $pdo->prepare($countSql);
+        $countStmt->execute($params);
+        $total = $countStmt->fetchColumn();
+        
+        $sql .= " LIMIT ? OFFSET ?";
+        $params[] = $limit;
+        $params[] = $offset;
+        
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -41,7 +53,18 @@ try {
         }
         unset($notif);
 
-        echo json_encode(['success' => true, 'data' => $notifications]);
+        $totalPages = ceil($total / $limit);
+        
+        echo json_encode([
+          'success' => true,
+          'data' => $notifications,
+          'pagination' => [
+            'page' => $page,
+            'limit' => $limit,
+            'total' => $total,
+            'totalPages' => $totalPages
+          ]
+        ]);
 
       } elseif ($action === 'related') {
         $properties = $pdo->query("SELECT property_id, property_name FROM properties ORDER BY property_name ASC")->fetchAll(PDO::FETCH_ASSOC);

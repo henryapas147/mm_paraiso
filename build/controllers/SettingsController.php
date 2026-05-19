@@ -55,4 +55,9 @@ class SettingsController extends Controller
             'csrf_token' => $_SESSION['csrf_token'] ?? ''
         ]);
     }
+
+    public function company()
+    {
+        $this->view('settings/company');
+    }
 }

@@ -84,6 +84,12 @@ $router->add('users/edit', ['controller' => 'Users', 'action' => 'edit']);
 $router->add('customers', ['controller' => 'Customer', 'action' => 'index']);
 $router->add('customers/list', ['controller' => 'Customer', 'action' => 'customersList']);
 
+// Contact Inquiries
+$router->add('contact-inquiries', ['controller' => 'ContactInquiries', 'action' => 'index']);
+$router->add('contact-inquiries/view', ['controller' => 'ContactInquiries', 'action' => 'detail']);
+$router->add('contact-inquiries/updateStatus', ['controller' => 'ContactInquiries', 'action' => 'updateStatus']);
+$router->add('contact-inquiries/delete', ['controller' => 'ContactInquiries', 'action' => 'delete']);
+
 // Authentication
 $router->add('sign-in', ['controller' => 'Auth', 'action' => 'signIn']);
 $router->add('sign-up', ['controller' => 'Auth', 'action' => 'signUp']);

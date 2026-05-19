@@ -16,6 +16,295 @@ function generateUUID()
 }
 ?>
 
+<style>
+  :root {
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #f8fafc;
+    --color-background-tertiary: #f1f5f9;
+    --color-border-primary: #185fa5;
+    --color-border-secondary: #e2e8f0;
+    --color-border-tertiary: #cbd5e1;
+    --color-text-primary: #1e293b;
+    --color-text-secondary: #64748b;
+    --color-text-tertiary: #94a3b8;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+  }
+  .rm-page { padding: 24px; max-width: 100%; margin: 0 auto; overflow-x: hidden; }
+  .rm-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    margin-bottom: 0;
+  }
+  .rm-card-header {
+    padding: 16px 20px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .rm-card-title { font-size: 16px; font-weight: 500; }
+  .rm-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+  .rm-search-wrap { position: relative; }
+  .rm-search-wrap i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--color-text-secondary); font-size: 13px; pointer-events: none; }
+  .rm-search-input {
+    padding: 7px 12px 7px 32px;
+    font-size: 13px;
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary);
+    outline: none;
+    width: 180px;
+  }
+  .rm-search-input:focus { border-color: var(--color-border-primary); background: var(--color-background-primary); }
+  .rm-filter-select {
+    padding: 7px 12px;
+    font-size: 13px;
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary);
+    outline: none; cursor: pointer;
+  }
+  .rm-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; font-size: 13px; font-weight: 500;
+    border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-secondary);
+    background: var(--color-background-primary);
+    color: var(--color-text-primary);
+    cursor: pointer; transition: background 0.15s; white-space: nowrap;
+  }
+  .rm-btn:hover { background: var(--color-background-secondary); }
+  .rm-btn-primary { background: #185fa5; color: #fff; border-color: #185fa5; }
+  .rm-btn-primary:hover { background: #0c447c; border-color: #0c447c; }
+  .rm-btn i { font-size: 13px; }
+  .rm-table-wrap { overflow-x: auto; }
+  .rm-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+  .rm-table thead th {
+    padding: 10px 16px; text-align: left;
+    font-size: 11px; font-weight: 500; color: var(--color-text-secondary);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    border-bottom: 0.5px solid var(--color-border-tertiary); white-space: nowrap;
+  }
+  .rm-table thead th:nth-child(1) { width: 28%; }
+  .rm-table thead th:nth-child(2) { width: 20%; }
+  .rm-table thead th:nth-child(3) { width: 18%; }
+  .rm-table thead th:nth-child(4) { width: 10%; }
+  .rm-table thead th:nth-child(5) { width: 11%; text-align: center; }
+  .rm-table thead th:nth-child(6) { width: 13%; text-align: right; }
+  .rm-table tbody tr { border-bottom: 0.5px solid var(--color-border-tertiary); transition: background 0.1s; }
+  .rm-table tbody tr:last-child { border-bottom: none; }
+  .rm-table tbody tr:hover { background: var(--color-background-secondary); }
+  .rm-table td { padding: 12px 16px; vertical-align: middle; }
+  .rm-avatar {
+    width: 40px; height: 40px;
+    border-radius: var(--border-radius-md);
+    background: #e6f1fb;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; overflow: hidden;
+  }
+  .rm-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .rm-avatar i { font-size: 16px; color: #185fa5; }
+  .rm-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+  .rm-code { font-size: 11px; color: var(--color-text-secondary); margin-top: 1px; }
+  .rm-text { font-size: 13px; color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rm-text-secondary { font-size: 12px; color: var(--color-text-secondary); }
+  .rm-status-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 9px; border-radius: 9999px; font-size: 11px; font-weight: 500; text-transform: capitalize;
+  }
+  .rm-status-badge::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; display: inline-block; }
+  .rm-status-available  { background: #eaf3de; color: #27500a; }
+  .rm-status-occupied   { background: #fee2e2; color: #991b1b; }
+  .rm-status-reserved   { background: #dbeafe; color: #1e40af; }
+  .rm-status-cleaning   { background: #fef9c3; color: #854d0e; }
+  .rm-status-maintenance{ background: #f1f5f9; color: #475569; }
+  .rm-status-out_of_order{ background: #fecdd3; color: #9f1239; }
+  .rm-status-blocked    { background: #ede9fe; color: #5b21b6; }
+  .rm-actions { display: flex; align-items: center; gap: 5px; justify-content: flex-end; }
+  .rm-icon-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px;
+    border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-tertiary);
+    background: transparent; color: var(--color-text-secondary);
+    cursor: pointer; transition: all 0.15s; font-size: 13px;
+  }
+  .rm-icon-btn:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+  .rm-icon-btn.view:hover  { background: #e6f1fb; color: #0c447c; border-color: #85b7eb; }
+  .rm-icon-btn.edit:hover  { background: #faeeda; color: #633806; border-color: #ef9f27; }
+  .rm-icon-btn.del:hover   { background: #fcebeb; color: #791f1f; border-color: #f09595; }
+  .rm-empty-state { padding: 48px 24px; text-align: center; color: var(--color-text-secondary); font-size: 13px; }
+  /* Pagination */
+  .rm-pagination {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; border-top: 0.5px solid var(--color-border-tertiary);
+    flex-wrap: wrap; gap: 10px;
+  }
+  .rm-pag-info { font-size: 12px; color: var(--color-text-secondary); white-space: nowrap; }
+  .rm-per-page-wrap { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary); }
+  .rm-per-page-select {
+    padding: 4px 8px; font-size: 12px;
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary); outline: none; cursor: pointer;
+  }
+  .rm-pag-controls { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .rm-pag-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 30px; height: 30px; padding: 0 6px;
+    font-size: 12px; border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-secondary);
+    background: var(--color-background-primary); color: var(--color-text-secondary);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .rm-pag-btn:hover:not(:disabled) { background: var(--color-background-secondary); color: var(--color-text-primary); }
+  .rm-pag-btn.active { background: #185fa5; color: #fff; border-color: #185fa5; }
+  .rm-pag-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  /* Modal */
+  .rm-modal-backdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45); z-index: 9000;
+    align-items: flex-start; justify-content: center;
+    padding: 20px; overflow-y: auto;
+  }
+  .rm-modal-backdrop.open { display: flex; }
+  .rm-modal {
+    background: var(--color-background-primary);
+    border-radius: 16px;
+    border: 0.5px solid var(--color-border-tertiary);
+    width: 100%; max-width: 860px; margin: auto;
+  }
+  .rm-modal-header {
+    padding: 18px 24px; border-bottom: 0.5px solid var(--color-border-tertiary);
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; background: var(--color-background-primary);
+    z-index: 1; border-radius: 16px 16px 0 0;
+  }
+  .rm-modal-title { font-size: 15px; font-weight: 600; }
+  .rm-modal-close {
+    width: 30px; height: 30px; border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-tertiary);
+    background: transparent; color: var(--color-text-secondary);
+    cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .rm-modal-close:hover { background: var(--color-background-secondary); }
+  .rm-modal-body { padding: 20px 24px; }
+  .rm-modal-footer {
+    padding: 14px 24px; border-top: 0.5px solid var(--color-border-tertiary);
+    display: flex; justify-content: flex-end; gap: 8px;
+    position: sticky; bottom: 0; background: var(--color-background-primary);
+    border-radius: 0 0 16px 16px;
+  }
+  /* Form inside modal */
+  .rm-section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--color-text-secondary); margin: 0 0 12px; padding-bottom: 6px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .rm-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+  .rm-form-group { display: flex; flex-direction: column; gap: 5px; }
+  .rm-form-group.full { grid-column: 1 / -1; }
+  .rm-form-group label { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); }
+  .rm-form-group input,
+  .rm-form-group select,
+  .rm-form-group textarea {
+    padding: 8px 12px; font-size: 13px;
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary); outline: none;
+    transition: border-color 0.15s;
+  }
+  .rm-form-group input:focus,
+  .rm-form-group select:focus,
+  .rm-form-group textarea:focus { border-color: var(--color-border-primary); background: var(--color-background-primary); }
+  .rm-form-group textarea { resize: vertical; }
+  /* Image entry */
+  .rm-image-entry {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+    padding: 12px; border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md); margin-bottom: 10px; position: relative;
+  }
+  .rm-image-entry-remove {
+    position: absolute; top: 8px; right: 8px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #fee2e2; color: #991b1b; border: none;
+    cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center;
+  }
+  .rm-add-image-btn { font-size: 12px; color: #185fa5; background: none; border: none; cursor: pointer; padding: 4px 0; display: inline-flex; align-items: center; gap: 4px; }
+  .rm-existing-images { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .rm-existing-img { position: relative; }
+  .rm-existing-img img { width: 80px; height: 80px; object-fit: cover; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); display: block; }
+  .rm-existing-img-del {
+    position: absolute; top: 4px; right: 4px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(220,38,38,0.85); color: #fff; border: none;
+    cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center;
+  }
+  .rm-existing-img p { font-size: 10px; color: var(--color-text-secondary); margin-top: 3px; width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+  /* Toast */
+  .rm-toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 11px 16px; font-size: 13px;
+    display: flex; align-items: center; gap: 8px;
+    z-index: 9999; transform: translateY(80px); opacity: 0; transition: all 0.25s;
+  }
+  .rm-toast.show { transform: none; opacity: 1; }
+  .rm-toast.success { border-color: #9fe1cb; color: #085041; }
+  .rm-toast.error   { border-color: #f7c1c1; color: #791f1f; }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .rm-table thead th:nth-child(4), .rm-table tbody td:nth-child(4) { display: none; }
+    .rm-table thead th:nth-child(1) { width: 32%; }
+    .rm-table thead th:nth-child(2) { width: 24%; }
+    .rm-table thead th:nth-child(3) { width: 22%; }
+  }
+  @media (max-width: 768px) {
+    .rm-page { padding: 16px; }
+    .rm-card-header { flex-direction: column; align-items: stretch; gap: 10px; }
+    .rm-toolbar { width: 100%; flex-wrap: wrap; }
+    .rm-search-wrap { flex: 1 1 auto; } .rm-search-input { width: 100%; }
+    .rm-filter-select { flex: 1 1 auto; }
+    .rm-table thead th:nth-child(3), .rm-table tbody td:nth-child(3) { display: none; }
+    .rm-table thead th:nth-child(1) { width: 42%; }
+    .rm-table thead th:nth-child(2) { width: 25%; }
+    .rm-table thead th:nth-child(5) { width: 18%; }
+    .rm-table thead th:nth-child(6) { width: 15%; }
+    .rm-modal-backdrop { padding: 0; align-items: flex-end; }
+    .rm-modal { border-radius: 16px 16px 0 0; max-width: 100%; max-height: 95vh; overflow-y: auto; margin: 0; }
+    .rm-modal-header { border-radius: 16px 16px 0 0; } .rm-modal-footer { border-radius: 0; }
+    .rm-form-grid { grid-template-columns: 1fr; }
+    .rm-form-group.full { grid-column: 1; }
+    .rm-image-entry { grid-template-columns: 1fr; }
+    .rm-pagination { flex-direction: column; align-items: flex-start; gap: 8px; }
+  }
+  @media (max-width: 480px) {
+    .rm-page { padding: 12px; }
+    .rm-table thead th:nth-child(2), .rm-table tbody td:nth-child(2) { display: none; }
+    .rm-table thead th:nth-child(1) { width: 50%; }
+    .rm-table thead th:nth-child(5) { width: 20%; }
+    .rm-table thead th:nth-child(6) { width: 30%; }
+    .rm-name { max-width: 100px; font-size: 12px; }
+    .rm-code { display: none; }
+    .rm-avatar { width: 34px; height: 34px; }
+    .rm-icon-btn { width: 26px; height: 26px; font-size: 12px; }
+    .rm-actions { gap: 3px; }
+  }
+  @media (hover: none) and (pointer: coarse) {
+    .rm-icon-btn { width: 36px; height: 36px; }
+    .rm-pag-btn { min-width: 36px; height: 36px; }
+    .rm-btn { padding: 9px 16px; }
+    .rm-form-group input, .rm-form-group select, .rm-form-group textarea { font-size: 16px; }
+  }
+</style>
+
 <script>
   // Helper function to generate UUID (JavaScript version)
   function generateUUID() {
@@ -47,30 +336,6 @@ function generateUUID()
     };
     return iconMap[imageType] || 'fa-image';
   }
-
-  // Inject custom styles for SweetAlert buttons
-  const style = document.createElement('style');
-  style.textContent = `
-    .swal-confirm-button {
-      background-color: #d33 !important;
-      color: white !important;
-      border: none !important;
-      padding: 12px 24px !important;
-      border-radius: 8px !important;
-      font-weight: 600 !important;
-      font-size: 14px !important;
-    }
-    .swal-cancel-button {
-      background-color: #6b7280 !important;
-      color: white !important;
-      border: none !important;
-      padding: 12px 24px !important;
-      border-radius: 8px !important;
-      font-weight: 600 !important;
-      font-size: 14px !important;
-    }
-  `;
-  document.head.appendChild(style);
 
   // Data will be fetched from API on page load
   let roomsData = [];
@@ -128,12 +393,7 @@ function generateUUID()
       populateDropdowns();
     } catch (error) {
       console.error('Error fetching rooms:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to load rooms data',
-        confirmButtonColor: '#3085d6'
-      });
+      showRmToast('Failed to load rooms data', 'error');
     }
   }
 
@@ -187,18 +447,20 @@ function generateUUID()
     }
   }
 
+  function showRmToast(message, type = 'success') {
+    const toast = document.getElementById('rmToast');
+    toast.textContent = message;
+    toast.className = `rm-toast ${type}`;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
   function renderRoomsTable() {
     const tbody = document.querySelector('#roomsTableBody');
     if (!tbody) return;
 
     if (roomsData.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="6" class="p-4 text-center text-slate-400 dark:text-white/60">
-            No rooms found. <a href="javascript:;" onclick="openAddRoomModal()" class="text-blue-500 font-semibold">Add your first room</a>.
-          </td>
-        </tr>
-      `;
+      tbody.innerHTML = `<tr><td colspan="6"><div class="rm-empty-state">No rooms found. <a href="javascript:;" onclick="openAddRoomModal()" style="color:#185fa5;font-weight:500;">Add your first room</a>.</div></td></tr>`;
       renderPaginationControls();
       return;
     }
@@ -206,60 +468,32 @@ function generateUUID()
     tbody.innerHTML = roomsData.map((room) => {
       const property = propertiesData.find(p => p.property_id === room.property_id);
       const category = categoriesData.find(c => c.category_id === room.category_id);
-
-      const statusColors = {
-        'available': 'from-emerald-500 to-teal-400',
-        'occupied': 'from-red-500 to-rose-400',
-        'reserved': 'from-blue-500 to-cyan-400',
-        'cleaning': 'from-yellow-500 to-orange-400',
-        'maintenance': 'from-slate-600 to-slate-500',
-        'out_of_order': 'from-red-600 to-red-400',
-        'blocked': 'from-purple-500 to-violet-400'
-      };
-      const statusClass = statusColors[room.room_status] || 'from-gray-500 to-slate-400';
+      const status = room.room_status || 'available';
+      const statusLabel = status.replace(/_/g, ' ');
+      const avatarHtml = (room.images && room.images.length > 0)
+        ? `<div class="rm-avatar"><img src="../${room.images[0].image_url}" alt="${room.room_name || room.room_number}"></div>`
+        : `<div class="rm-avatar"><i class="fas fa-door-open"></i></div>`;
 
       return `
         <tr class="room-row">
-          <td class="align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent" style="padding: 1rem 0.75rem;">
-            <div class="flex items-center" style="gap: 0.75rem;">
-              ${room.images && room.images.length > 0
-                ? `<img src="../${room.images[0].image_url}" alt="${room.room_name || room.room_number}" class="object-cover rounded-lg" style="width: 2.5rem; height: 2.5rem; background-color: #e5e7eb;">`
-                : `<div class="inline-flex items-center justify-center text-sm text-white transition-all duration-200 ease-in-out rounded-lg bg-gradient-to-tl from-blue-500 to-violet-500" style="width: 2.5rem; height: 2.5rem;">
-                    <i class="fas fa-door-open text-xs"></i>
-                  </div>`
-              }
+          <td>
+            <div style="display:flex;align-items:center;gap:10px;">
+              ${avatarHtml}
               <div>
-                <h6 class="mb-0 text-sm leading-normal dark:text-white" style="font-size: 0.875rem;">${room.room_name || room.room_number}</h6>
-                <p class="mb-0 text-xs leading-tight dark:text-white dark:opacity-60 text-slate-400">${room.room_number}</p>
+                <div class="rm-name">${room.room_name || room.room_number}</div>
+                <div class="rm-code">${room.room_number}</div>
               </div>
             </div>
           </td>
-          <td class="align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent" style="padding: 1rem 0.75rem;">
-            <p class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80" style="font-size: 0.875rem;">${property ? property.property_name : 'N/A'}</p>
-          </td>
-          <td class="align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent" style="padding: 1rem 0.75rem;">
-            <p class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80" style="font-size: 0.875rem;">${category ? category.category_name : 'N/A'}</p>
-          </td>
-          <td class="align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent" style="padding: 1rem 0.75rem;">
-            <p class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80" style="font-size: 0.875rem;">${room.floor_number || 'None'}</p>
-          </td>
-          <td class="align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent" style="padding: 1rem 0.75rem;">
-            <span class="bg-gradient-to-tl ${statusClass} inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white rounded-lg" style="padding: 0.5rem 1rem; font-size: 0.875rem;">${room.room_status || 'available'}</span>
-          </td>
-          <td class="align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent" style="padding: 1rem 0.75rem;">
-            <div class="flex items-center gap-2">
-              <button onclick="viewRoomDetails('${room.room_id}')" class="group relative inline-flex items-center px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-700/50 border border-blue-200 dark:border-white/10 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 hover:text-blue-700 dark:hover:text-blue-300 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md" title="View Room" style="font-size: 0.875rem;">
-                <i class="fas fa-eye mr-1.5 text-xs"></i>
-                <span>View</span>
-              </button>
-              <button onclick="openEditRoomModal('${room.room_id}')" class="group relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-500/20 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-300 dark:hover:border-amber-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Edit Room" style="font-size: 0.875rem;">
-                <i class="fas fa-edit mr-1.5 text-xs"></i>
-                <span>Edit</span>
-              </button>
-              <button onclick="confirmDeleteRoom('${room.room_id}', '${room.room_number}')" class="group relative inline-flex items-center px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 bg-white dark:bg-slate-700/50 border border-red-200 dark:border-white/10 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-700 dark:hover:text-red-300 hover:border-red-300 dark:hover:border-red-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Delete Room">
-                <i class="fas fa-trash-alt mr-1.5 text-xs"></i>
-                <span>Delete</span>
-              </button>
+          <td><span class="rm-text">${property ? property.property_name : '—'}</span></td>
+          <td><span class="rm-text">${category ? category.category_name : '—'}</span></td>
+          <td><span class="rm-text">${room.floor_number || '—'}</span></td>
+          <td style="text-align:center;"><span class="rm-status-badge rm-status-${status}">${statusLabel}</span></td>
+          <td>
+            <div class="rm-actions">
+              <button class="rm-icon-btn view" onclick="viewRoomDetails('${room.room_id}')" title="View"><i class="fas fa-eye"></i></button>
+              <button class="rm-icon-btn edit" onclick="openEditRoomModal('${room.room_id}')" title="Edit"><i class="fas fa-pen"></i></button>
+              <button class="rm-icon-btn del" onclick="confirmDeleteRoom('${room.room_id}', '${(room.room_name || room.room_number).replace(/'/g, "\\'")}')" title="Delete"><i class="fas fa-trash"></i></button>
             </div>
           </td>
         </tr>
@@ -276,29 +510,31 @@ function generateUUID()
     const startItem = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
     const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
+    let pageButtons = '';
+    const maxVisible = 5;
+    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(totalPages, start + maxVisible - 1);
+    if (end - start < maxVisible - 1) start = Math.max(1, end - maxVisible + 1);
+    for (let i = start; i <= end; i++) {
+      pageButtons += `<button class="rm-pag-btn${i === currentPage ? ' active' : ''}" onclick="changePage(${i})">${i}</button>`;
+    }
+
     container.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-        <label style="font-size: 0.875rem; color: #64748b; white-space: nowrap;">Show</label>
-        <select id="itemsPerPage" onchange="changeItemsPerPage(this.value)" style="padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.875rem; outline: none;">
-          <option value="5" ${itemsPerPage === 5 ? 'selected' : ''}>5</option>
+      <div class="rm-per-page-wrap">
+        Show
+        <select class="rm-per-page-select" onchange="changeItemsPerPage(this.value)">
+          <option value="5"  ${itemsPerPage === 5  ? 'selected' : ''}>5</option>
           <option value="10" ${itemsPerPage === 10 ? 'selected' : ''}>10</option>
           <option value="25" ${itemsPerPage === 25 ? 'selected' : ''}>25</option>
           <option value="50" ${itemsPerPage === 50 ? 'selected' : ''}>50</option>
-          <option value="100" ${itemsPerPage === 100 ? 'selected' : ''}>100</option>
         </select>
-        <label style="font-size: 0.875rem; color: #64748b; white-space: nowrap;">entries</label>
+        entries
       </div>
-      <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-        <span style="font-size: 0.875rem; color: #64748b; white-space: nowrap;">
-          Showing ${startItem} to ${endItem} of ${totalItems} entries
-        </span>
-        <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} style="padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 600; color: #475569; background: white; border: 1px solid #e2e8f0; border-radius: 0.5rem; cursor: pointer; ${currentPage === 1 ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
-          <i class="fas fa-chevron-left"></i>
-        </button>
-        <span style="font-size: 0.875rem; font-weight: 600; color: #475569; white-space: nowrap;">Page ${currentPage} of ${totalPages}</span>
-        <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} style="padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 600; color: #475569; background: white; border: 1px solid #e2e8f0; border-radius: 0.5rem; cursor: pointer; ${currentPage === totalPages ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
-          <i class="fas fa-chevron-right"></i>
-        </button>
+      <span class="rm-pag-info">Showing ${startItem}–${endItem} of ${totalItems}</span>
+      <div class="rm-pag-controls">
+        <button class="rm-pag-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
+        ${pageButtons}
+        <button class="rm-pag-btn" onclick="changePage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>
       </div>
     `;
   }
@@ -454,16 +690,13 @@ function generateUUID()
       </div>
     `;
 
-    modal.classList.remove('hidden');
-    modal.style.display = 'block';
+    document.getElementById('roomDetailsModal').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
 
   function closeRoomDetailsModal() {
-    const modal = document.getElementById('roomDetailsModal');
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
-    document.body.style.overflow = 'auto';
+    document.getElementById('roomDetailsModal').classList.remove('open');
+    document.body.style.overflow = '';
   }
 
   // Add Room Form Submission (API-based)
@@ -542,30 +775,14 @@ function generateUUID()
           }
         }
 
-        Swal.fire({
-          icon: 'success',
-          title: 'Success',
-          text: 'Room added successfully!',
-          confirmButtonColor: '#3085d6'
-        });
-
+        showRmToast('Room added successfully!');
         closeAddRoomModal();
         await fetchRoomsData();
       } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: result.message || 'Failed to add room',
-          confirmButtonColor: '#3085d6'
-        });
+        showRmToast(result.message || 'Failed to add room', 'error');
       }
     } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'An error occurred while adding the room',
-        confirmButtonColor: '#3085d6'
-      });
+      showRmToast('An error occurred while adding the room', 'error');
     }
   }
 
@@ -641,531 +858,316 @@ function generateUUID()
           }
         }
 
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: 'Room updated successfully!',
-          timer: 2000,
-          showConfirmButton: false
-        });
+        showRmToast('Room updated successfully!');
         closeEditRoomModal();
         await fetchRoomsData();
       } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: result.message || 'Failed to update room',
-          confirmButtonColor: '#3085d6'
-        });
+        showRmToast(result.message || 'Failed to update room', 'error');
       }
     } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'An error occurred while updating the room',
-        confirmButtonColor: '#3085d6'
-      });
+      showRmToast('An error occurred while updating the room', 'error');
     }
   }
 
   // Delete Room Function (API-based)
   async function confirmDeleteRoom(roomId, roomNumber) {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: `Are you sure you want to delete room "${roomNumber}"? This action cannot be undone.`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
-      customClass: {
-        confirmButton: 'swal-confirm-button',
-        cancelButton: 'swal-cancel-button'
+    if (!confirm(`Delete room "${roomNumber}"? This action cannot be undone.`)) return;
+    try {
+      const response = await fetch('../api/rooms.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+        body: JSON.stringify({ action: 'delete', room_id: roomId, csrf_token: csrfToken })
+      });
+      const result = await response.json();
+      if (result.success) {
+        showRmToast('Room deleted successfully!');
+        await fetchRoomsData();
+      } else {
+        showRmToast(result.message || 'Failed to delete room', 'error');
       }
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const response = await fetch('../api/rooms.php', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-Token': csrfToken
-            },
-            body: JSON.stringify({
-              action: 'delete',
-              room_id: roomId,
-              csrf_token: csrfToken
-            })
-          });
-          const result = await response.json();
-
-          if (result.success) {
-            Swal.fire({
-              icon: 'success',
-              title: 'Deleted!',
-              text: 'Room deleted successfully!',
-              timer: 2000,
-              showConfirmButton: false
-            });
-            await fetchRoomsData();
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: result.message || 'Failed to delete room',
-              confirmButtonColor: '#3085d6'
-            });
-          }
-        } catch (error) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'An error occurred while deleting the room',
-            confirmButtonColor: '#3085d6'
-          });
-        }
-      }
-    });
+    } catch (error) {
+      showRmToast('An error occurred while deleting the room', 'error');
+    }
   }
 </script>
 
 <!-- PAGE CONTENT -->
-<!-- table 1 -->
-<div class="flex flex-wrap -mx-3">
-  <div class="flex-none w-full max-w-full px-3">
-    <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent flex justify-between items-center">
-        <h6 class="dark:text-white">Rooms</h6>
-        <button onclick="openAddRoomModal()" class="bg-gradient-to-tl from-blue-500 to-violet-500 text-white px-4 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-          <i class="fas fa-plus mr-1"></i> Add Room
+<div class="rm-page">
+  <div class="rm-card">
+    <div class="rm-card-header">
+      <span class="rm-card-title">Rooms</span>
+      <div class="rm-toolbar">
+        <div class="rm-search-wrap">
+          <i class="fas fa-magnifying-glass"></i>
+          <input type="text" id="searchInput" class="rm-search-input" placeholder="Search rooms…" oninput="filterTable()">
+        </div>
+        <select class="rm-filter-select" id="statusFilter" onchange="filterTable()">
+          <option value="">All statuses</option>
+          <option value="available">Available</option>
+          <option value="occupied">Occupied</option>
+          <option value="reserved">Reserved</option>
+          <option value="cleaning">Cleaning</option>
+          <option value="maintenance">Maintenance</option>
+          <option value="out_of_order">Out of Order</option>
+          <option value="blocked">Blocked</option>
+        </select>
+        <button class="rm-btn rm-btn-primary" onclick="openAddRoomModal()">
+          <i class="fas fa-plus"></i> Add Room
         </button>
       </div>
-      <div class="flex-auto px-0 pt-0 pb-2">
-        <div class="p-0 overflow-x-auto">
-          <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500" id="roomsTable">
-            <thead class="align-bottom">
-              <tr>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Room</th>
-                <th class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Property</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Category</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Floor Number</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Action</th>
-
-              </tr>
-            </thead>
-            <tbody id="roomsTableBody">
-              <!-- Table rows will be populated by JavaScript -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <!-- Pagination Controls -->
-      <div class="px-6 py-4 border-t border-gray-200 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4" id="paginationControls">
-        <!-- Pagination will be rendered by JavaScript -->
-      </div>
     </div>
+    <div class="rm-table-wrap">
+      <table class="rm-table" id="roomsTable">
+        <thead>
+          <tr>
+            <th>Room</th>
+            <th>Property</th>
+            <th>Category</th>
+            <th>Floor</th>
+            <th style="text-align:center;">Status</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="roomsTableBody"></tbody>
+      </table>
+    </div>
+    <div class="rm-pagination" id="paginationControls"></div>
   </div>
 </div>
 
+<div id="rmToast" class="rm-toast"></div>
+
 <!-- Room Details Modal -->
-<div id="roomDetailsModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeRoomDetailsModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-  <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-    <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-      <h3 class="text-xl font-bold dark:text-white" id="modalRoomName" style="font-size: 1.25rem; font-weight: bold; margin: 0;">Room Details</h3>
-      <button onclick="closeRoomDetailsModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-        <i class="fas fa-times text-xl"></i>
-      </button>
+<div id="roomDetailsModal" class="rm-modal-backdrop" onclick="if(event.target===this)closeRoomDetailsModal()">
+  <div class="rm-modal">
+    <div class="rm-modal-header">
+      <span class="rm-modal-title" id="modalRoomName">Room Details</span>
+      <button class="rm-modal-close" onclick="closeRoomDetailsModal()"><i class="fas fa-times"></i></button>
     </div>
-    <div class="p-6" id="modalRoomContent" style="padding: 1.5rem;">
-      <!-- Content will be populated by JavaScript -->
-    </div>
+    <div class="rm-modal-body" id="modalRoomContent"></div>
   </div>
 </div>
 
 <!-- Add Room Modal -->
-<div id="addRoomModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddRoomModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-  <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 900px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-    <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-      <h3 class="text-xl font-bold dark:text-white">Add New Room</h3>
-      <button onclick="closeAddRoomModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-        <i class="fas fa-times text-xl"></i>
-      </button>
+<div id="addRoomModal" class="rm-modal-backdrop" onclick="if(event.target===this)closeAddRoomModal()">
+  <div class="rm-modal">
+    <div class="rm-modal-header">
+      <span class="rm-modal-title">Add New Room</span>
+      <button class="rm-modal-close" onclick="closeAddRoomModal()"><i class="fas fa-times"></i></button>
     </div>
-    <form id="addRoomForm" class="p-6" onsubmit="handleAddRoomSubmit(event)" style="padding: 1.5rem;">
-      <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-        <!-- Property Selection -->
-        <div>
-          <label class="block text-sm font-semibold text-slate-500 dark:text-white/60 mb-2" style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Property *</label>
-          <select name="property_id" id="addPropertyDropdown" required style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;">
-            <option value="">Select Property</option>
-          </select>
-        </div>
-
-        <!-- Category Selection -->
-        <div>
-          <label class="block text-sm font-semibold text-slate-500 dark:text-white/60 mb-2" style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Room Category *</label>
-          <select name="category_id" id="addCategoryDropdown" required style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;">
-            <option value="">Select Category</option>
-          </select>
-        </div>
-
-        <!-- Room Number -->
-        <div>
-          <label class="block text-sm font-semibold text-slate-500 dark:text-white/60 mb-2" style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Room Number *</label>
-          <input type="text" name="room_number" required style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;" placeholder="e.g., 101, A-02, Cottage-3">
-        </div>
-
-        <!-- Room Name -->
-        <div>
-          <label class="block text-sm font-semibold text-slate-500 dark:text-white/60 mb-2" style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Room Name</label>
-          <input type="text" name="room_name" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;" placeholder="e.g., Sunset Villa, Lagoon Cottage">
-        </div>
-
-        <!-- Floor Number -->
-        <div>
-          <label class="block text-sm font-semibold text-slate-500 dark:text-white/60 mb-2" style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Floor Number</label>
-          <input type="number" name="floor_number" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;" placeholder="e.g., 1, 2, 3">
-        </div>
-
-        <!-- Building Block -->
-        <div>
-          <label class="block text-sm font-semibold text-slate-500 dark:text-white/60 mb-2" style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Building Block</label>
-          <input type="text" name="building_block" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;" placeholder="e.g., Building A, East Wing">
-        </div>
-
-        <!-- Room Status -->
-        <div>
-          <label class="block text-sm font-semibold text-slate-500 dark:text-white/60 mb-2" style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Room Status *</label>
-          <select name="room_status" required style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;">
-            <option value="available">Available</option>
-            <option value="occupied">Occupied</option>
-            <option value="reserved">Reserved</option>
-            <option value="cleaning">Cleaning</option>
-            <option value="maintenance">Maintenance</option>
-            <option value="out_of_order">Out of Order</option>
-            <option value="blocked">Blocked</option>
-          </select>
-        </div>
-
-        <!-- Price Override Per Night -->
-        <div>
-          <label class="block text-sm font-semibold text-slate-500 dark:text-white/60 mb-2" style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Override Price Per Night (PHP)</label>
-          <input type="number" step="0.01" name="override_price_per_night" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;" placeholder="Leave empty to use category price">
-        </div>
-
-        <!-- Price Override Per Hour -->
-        <div>
-          <label class="block text-sm font-semibold text-slate-500 dark:text-white/60 mb-2" style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Override Price Per Hour (PHP)</label>
-          <input type="number" step="0.01" name="override_price_per_hour" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;" placeholder="Leave empty to use category price">
-        </div>
-
-        <!-- Price Override Day Use -->
-        <div>
-          <label class="block text-sm font-semibold text-slate-500 dark:text-white/60 mb-2" style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Override Price Day Use (PHP)</label>
-          <input type="number" step="0.01" name="override_price_day_use" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;" placeholder="Leave empty to use category price">
-        </div>
-
-        <!-- Internal Notes -->
-        <div style="grid-column: 1 / -1;">
-          <label class="block text-sm font-semibold text-slate-500 dark:text-white/60 mb-2" style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Internal Notes</label>
-          <textarea name="internal_notes" rows="3" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;" placeholder="Any additional notes about this room..."></textarea>
-        </div>
-
-        <!-- Image Upload Section -->
-        <div class="md:col-span-2">
-          <label class="block text-sm font-semibold text-slate-500 dark:text-white/60 mb-2">Room Images</label>
-          <div id="imageUploadContainer">
-            <div class="image-entry mb-4 p-4 border border-gray-200 rounded-lg dark:border-white/20">
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label class="block text-xs text-slate-500 dark:text-white/60 mb-2">Image File</label>
-                  <input type="file" name="room_images[]" accept="image/*" class="w-full text-sm text-slate-500 dark:text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-slate-700 dark:file:text-white">
-                </div>
-                <div>
-                  <label class="block text-xs text-slate-500 dark:text-white/60 mb-2">Image Type</label>
-                  <select name="image_type[]" class="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-slate-800 dark:border-white/20 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="interior">Interior</option>
-                    <option value="exterior">Exterior</option>
-                    <option value="bathroom">Bathroom</option>
-                    <option value="view">View</option>
-                    <option value="amenity">Amenity</option>
-                    <option value="bed">Bed</option>
-                    <option value="balcony">Balcony</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-xs text-slate-500 dark:text-white/60 mb-2">Caption</label>
-                  <input type="text" name="image_caption[]" class="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-slate-800 dark:border-white/20 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Image caption">
-                </div>
-              </div>
-            </div>
+    <form id="addRoomForm" onsubmit="handleAddRoomSubmit(event)">
+      <div class="rm-modal-body">
+        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
+        <p class="rm-section-label">Basic Info</p>
+        <div class="rm-form-grid">
+          <div class="rm-form-group">
+            <label>Property *</label>
+            <select name="property_id" id="addPropertyDropdown" required><option value="">Select Property</option></select>
           </div>
-          <button type="button" onclick="addImageField()" class="mt-2 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-            <i class="fas fa-plus mr-1"></i> Add Another Image
-          </button>
+          <div class="rm-form-group">
+            <label>Room Category *</label>
+            <select name="category_id" id="addCategoryDropdown" required><option value="">Select Category</option></select>
+          </div>
+          <div class="rm-form-group">
+            <label>Room Number *</label>
+            <input type="text" name="room_number" required placeholder="e.g., 101, A-02">
+          </div>
+          <div class="rm-form-group">
+            <label>Room Name</label>
+            <input type="text" name="room_name" placeholder="e.g., Sunset Villa">
+          </div>
+          <div class="rm-form-group">
+            <label>Floor Number</label>
+            <input type="number" name="floor_number" placeholder="e.g., 1">
+          </div>
+          <div class="rm-form-group">
+            <label>Building Block</label>
+            <input type="text" name="building_block" placeholder="e.g., Building A">
+          </div>
+          <div class="rm-form-group">
+            <label>Room Status *</label>
+            <select name="room_status" required>
+              <option value="available">Available</option>
+              <option value="occupied">Occupied</option>
+              <option value="reserved">Reserved</option>
+              <option value="cleaning">Cleaning</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="out_of_order">Out of Order</option>
+              <option value="blocked">Blocked</option>
+            </select>
+          </div>
+          <div class="rm-form-group full"></div>
         </div>
+        <p class="rm-section-label">Pricing Overrides</p>
+        <div class="rm-form-grid">
+          <div class="rm-form-group">
+            <label>Per Night (PHP)</label>
+            <input type="number" step="0.01" name="override_price_per_night" placeholder="Leave empty for category price">
+          </div>
+          <div class="rm-form-group">
+            <label>Per Hour (PHP)</label>
+            <input type="number" step="0.01" name="override_price_per_hour" placeholder="Leave empty for category price">
+          </div>
+          <div class="rm-form-group">
+            <label>Day Use (PHP)</label>
+            <input type="number" step="0.01" name="override_price_day_use" placeholder="Leave empty for category price">
+          </div>
+          <div class="rm-form-group full">
+            <label>Internal Notes</label>
+            <textarea name="internal_notes" rows="3" placeholder="Any notes about this room..."></textarea>
+          </div>
+        </div>
+        <p class="rm-section-label">Room Images</p>
+        <div id="imageUploadContainer">
+          <div class="rm-image-entry">
+            <div class="rm-form-group"><label>Image File</label><input type="file" name="room_images[]" accept="image/*"></div>
+            <div class="rm-form-group"><label>Image Type</label>
+              <select name="image_type[]">
+                <option value="interior">Interior</option><option value="exterior">Exterior</option>
+                <option value="bathroom">Bathroom</option><option value="view">View</option>
+                <option value="amenity">Amenity</option><option value="bed">Bed</option>
+                <option value="balcony">Balcony</option><option value="other">Other</option>
+              </select>
+            </div>
+            <div class="rm-form-group"><label>Caption</label><input type="text" name="image_caption[]" placeholder="Image caption"></div>
+          </div>
+        </div>
+        <button type="button" class="rm-add-image-btn" onclick="addImageField()"><i class="fas fa-plus"></i> Add another image</button>
       </div>
-
-      <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-white/10">
-        <button type="button" onclick="closeAddRoomModal()" class="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600">
-          Cancel
-        </button>
-        <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-tl from-blue-500 to-violet-500 rounded-lg hover:shadow-md transition-all">
-          <i class="fas fa-save mr-1"></i> Save Room
-        </button>
+      <div class="rm-modal-footer">
+        <button type="button" class="rm-btn" onclick="closeAddRoomModal()">Cancel</button>
+        <button type="submit" class="rm-btn rm-btn-primary"><i class="fas fa-save"></i> Save Room</button>
       </div>
     </form>
   </div>
 </div>
 
 <!-- Edit Room Modal -->
-<div id="editRoomModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeEditRoomModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-  <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 900px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-    <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-      <h3 class="text-xl font-bold dark:text-white">Edit Room</h3>
-      <button onclick="closeEditRoomModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-        <i class="fas fa-times text-xl"></i>
-      </button>
+<div id="editRoomModal" class="rm-modal-backdrop" onclick="if(event.target===this)closeEditRoomModal()">
+  <div class="rm-modal">
+    <div class="rm-modal-header">
+      <span class="rm-modal-title">Edit Room</span>
+      <button class="rm-modal-close" onclick="closeEditRoomModal()"><i class="fas fa-times"></i></button>
     </div>
-    <form id="editRoomForm" class="p-6" onsubmit="handleEditRoomSubmit(event)">
-      <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
-      <input type="hidden" name="room_id" id="edit_room_id">
-
-      <!-- Basic Information -->
-      <div style="margin-bottom: 1.5rem;">
-        <h4 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 1rem; text-transform: uppercase;">Basic Information</h4>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div>
-            <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Property *</label>
-            <select name="property_id" id="editPropertyDropdown" required style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;">
-              <option value="">Select Property</option>
+    <form id="editRoomForm" onsubmit="handleEditRoomSubmit(event)">
+      <div class="rm-modal-body">
+        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
+        <input type="hidden" name="room_id" id="edit_room_id">
+        <p class="rm-section-label">Basic Info</p>
+        <div class="rm-form-grid">
+          <div class="rm-form-group">
+            <label>Property *</label>
+            <select name="property_id" id="editPropertyDropdown" required><option value="">Select Property</option></select>
+          </div>
+          <div class="rm-form-group">
+            <label>Room Category *</label>
+            <select name="category_id" id="editCategoryDropdown" required><option value="">Select Category</option></select>
+          </div>
+          <div class="rm-form-group">
+            <label>Room Number *</label>
+            <input type="text" name="room_number" id="edit_room_number" required placeholder="e.g., 101, A-02">
+          </div>
+          <div class="rm-form-group">
+            <label>Room Name</label>
+            <input type="text" name="room_name" id="edit_room_name" placeholder="e.g., Sunset Villa">
+          </div>
+          <div class="rm-form-group">
+            <label>Floor Number</label>
+            <input type="number" name="floor_number" id="edit_floor_number" placeholder="e.g., 1">
+          </div>
+          <div class="rm-form-group">
+            <label>Building Block</label>
+            <input type="text" name="building_block" id="edit_building_block" placeholder="e.g., Building A">
+          </div>
+          <div class="rm-form-group">
+            <label>Room Status *</label>
+            <select name="room_status" id="edit_room_status" required>
+              <option value="available">Available</option>
+              <option value="occupied">Occupied</option>
+              <option value="reserved">Reserved</option>
+              <option value="cleaning">Cleaning</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="out_of_order">Out of Order</option>
+              <option value="blocked">Blocked</option>
             </select>
           </div>
-          <div>
-            <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Room Category *</label>
-            <select name="category_id" id="editCategoryDropdown" required style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;">
-              <option value="">Select Category</option>
-            </select>
+        </div>
+        <p class="rm-section-label">Pricing Overrides</p>
+        <div class="rm-form-grid">
+          <div class="rm-form-group">
+            <label>Per Night (PHP)</label>
+            <input type="number" step="0.01" name="override_price_per_night" id="edit_override_price_per_night" placeholder="Leave empty for category price">
           </div>
-          <div>
-            <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Room Number *</label>
-            <input type="text" name="room_number" id="edit_room_number" required style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;" placeholder="e.g., 101, A-02, Cottage-3">
+          <div class="rm-form-group">
+            <label>Per Hour (PHP)</label>
+            <input type="number" step="0.01" name="override_price_per_hour" id="edit_override_price_per_hour" placeholder="Leave empty for category price">
           </div>
-          <div>
-            <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Room Name</label>
-            <input type="text" name="room_name" id="edit_room_name" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;" placeholder="e.g., Sunset Villa, Lagoon Cottage">
+          <div class="rm-form-group">
+            <label>Day Use (PHP)</label>
+            <input type="number" step="0.01" name="override_price_day_use" id="edit_override_price_day_use" placeholder="Leave empty for category price">
+          </div>
+          <div class="rm-form-group full">
+            <label>Internal Notes</label>
+            <textarea name="internal_notes" id="edit_internal_notes" rows="3" placeholder="Any notes about this room..."></textarea>
           </div>
         </div>
-      </div>
-
-      <!-- Location -->
-      <div style="margin-bottom: 1.5rem;">
-        <h4 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 1rem; text-transform: uppercase;">Location</h4>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div>
-            <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Floor Number</label>
-            <input type="number" name="floor_number" id="edit_floor_number" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;" placeholder="e.g., 1, 2, 3">
-          </div>
-          <div>
-            <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Building Block</label>
-            <input type="text" name="building_block" id="edit_building_block" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;" placeholder="e.g., Building A, East Wing">
-          </div>
-        </div>
-      </div>
-
-      <!-- Status -->
-      <div style="margin-bottom: 1.5rem;">
-        <h4 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 1rem; text-transform: uppercase;">Status</h4>
-        <div>
-          <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Room Status *</label>
-          <select name="room_status" id="edit_room_status" required style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;">
-            <option value="available">Available</option>
-            <option value="occupied">Occupied</option>
-            <option value="reserved">Reserved</option>
-            <option value="cleaning">Cleaning</option>
-            <option value="maintenance">Maintenance</option>
-            <option value="out_of_order">Out of Order</option>
-            <option value="blocked">Blocked</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Pricing -->
-      <div style="margin-bottom: 1.5rem;">
-        <h4 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 1rem; text-transform: uppercase;">Pricing Overrides</h4>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
-          <div>
-            <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Per Night (PHP)</label>
-            <input type="number" step="0.01" name="override_price_per_night" id="edit_override_price_per_night" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;" placeholder="Leave empty to use category price">
-          </div>
-          <div>
-            <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Per Hour (PHP)</label>
-            <input type="number" step="0.01" name="override_price_per_hour" id="edit_override_price_per_hour" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;" placeholder="Leave empty to use category price">
-          </div>
-          <div>
-            <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Day Use (PHP)</label>
-            <input type="number" step="0.01" name="override_price_day_use" id="edit_override_price_day_use" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;" placeholder="Leave empty to use category price">
-          </div>
-        </div>
-      </div>
-
-      <!-- Notes -->
-      <div style="margin-bottom: 1.5rem;">
-        <h4 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 1rem; text-transform: uppercase;">Notes</h4>
-        <div>
-          <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Internal Notes</label>
-          <textarea name="internal_notes" id="edit_internal_notes" rows="3" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;" placeholder="Any additional notes about this room..."></textarea>
-        </div>
-      </div>
-
-      <!-- Images -->
-      <div style="margin-bottom: 1.5rem;">
-        <h4 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 1rem; text-transform: uppercase;">Images</h4>
-
-        <!-- Existing Images -->
-        <div style="margin-bottom: 1rem;">
-          <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Existing Images</label>
-          <div id="existingImagesContainer" style="margin-bottom: 1rem;">
-            <!-- Existing images will be loaded here -->
-          </div>
-        </div>
-
-        <!-- New Images -->
-        <div>
-          <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Add New Images</label>
-          <div id="editImageUploadContainer">
-            <div style="margin-bottom: 1rem; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem;">
-              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
-                <div>
-                  <label style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 0.25rem;">Image File</label>
-                  <input type="file" name="room_images[]" accept="image/*" class="w-full text-sm text-slate-500 dark:text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-slate-700 dark:file:text-white">
-                </div>
-                <div>
-                  <label style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 0.25rem;">Image Type</label>
-                  <select name="image_type[]" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;">
-                    <option value="interior">Interior</option>
-                    <option value="exterior">Exterior</option>
-                    <option value="bathroom">Bathroom</option>
-                    <option value="view">View</option>
-                    <option value="amenity">Amenity</option>
-                    <option value="bed">Bed</option>
-                    <option value="balcony">Balcony</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 0.25rem;">Caption</label>
-                  <input type="text" name="image_caption[]" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; color: #1f2937; outline: none;" placeholder="Image caption">
-                </div>
-              </div>
+        <p class="rm-section-label">Images</p>
+        <div class="rm-existing-images" id="existingImagesContainer"></div>
+        <p class="rm-section-label" style="margin-top:12px;">Add New Images</p>
+        <div id="editImageUploadContainer">
+          <div class="rm-image-entry">
+            <div class="rm-form-group"><label>Image File</label><input type="file" name="room_images[]" accept="image/*"></div>
+            <div class="rm-form-group"><label>Image Type</label>
+              <select name="image_type[]">
+                <option value="interior">Interior</option><option value="exterior">Exterior</option>
+                <option value="bathroom">Bathroom</option><option value="view">View</option>
+                <option value="amenity">Amenity</option><option value="bed">Bed</option>
+                <option value="balcony">Balcony</option><option value="other">Other</option>
+              </select>
             </div>
+            <div class="rm-form-group"><label>Caption</label><input type="text" name="image_caption[]" placeholder="Image caption"></div>
           </div>
-          <button type="button" onclick="addEditImageField()" style="margin-top: 0.5rem; font-size: 0.875rem; color: #2563eb; background: none; border: none; cursor: pointer;">
-            <i class="fas fa-plus" style="margin-right: 0.25rem;"></i> Add Another Image
-          </button>
         </div>
+        <button type="button" class="rm-add-image-btn" onclick="addEditImageField()"><i class="fas fa-plus"></i> Add another image</button>
       </div>
-
-      <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-white/10">
-        <button type="button" onclick="closeEditRoomModal()" class="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600">
-          Cancel
-        </button>
-        <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-tl from-blue-500 to-violet-500 rounded-lg hover:shadow-md transition-all">
-          <i class="fas fa-save mr-1"></i> Update Room
-        </button>
+      <div class="rm-modal-footer">
+        <button type="button" class="rm-btn" onclick="closeEditRoomModal()">Cancel</button>
+        <button type="submit" class="rm-btn rm-btn-primary"><i class="fas fa-save"></i> Update Room</button>
       </div>
     </form>
   </div>
 </div>
 
 <script>
-  function deleteRoom(roomId, roomName) {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: `Are you sure you want to delete the room "${roomName}"? This action cannot be undone.`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
-      customClass: {
-        confirmButton: 'swal-confirm-button',
-        cancelButton: 'swal-cancel-button'
-      }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = window.location.href;
-
-        const actionInput = document.createElement('input');
-        actionInput.type = 'hidden';
-        actionInput.name = 'action';
-        actionInput.value = 'delete_room';
-
-        const roomIdInput = document.createElement('input');
-        roomIdInput.type = 'hidden';
-        roomIdInput.name = 'room_id';
-        roomIdInput.value = roomId;
-
-        form.appendChild(actionInput);
-        form.appendChild(roomIdInput);
-        document.body.appendChild(form);
-        form.submit();
-      }
-    });
-  }
 
   function openAddRoomModal() {
-    const modal = document.getElementById('addRoomModal');
-    modal.classList.remove('hidden');
-    modal.style.display = 'block';
+    document.getElementById('addRoomModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
   }
 
   function closeAddRoomModal() {
-    const modal = document.getElementById('addRoomModal');
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
+    document.getElementById('addRoomModal').classList.remove('open');
+    document.body.style.overflow = '';
     document.getElementById('addRoomForm').reset();
   }
 
   function addImageField() {
     const container = document.getElementById('imageUploadContainer');
     const imageEntry = document.createElement('div');
-    imageEntry.className = 'image-entry mb-4 p-4 border border-gray-200 rounded-lg dark:border-white/20 relative';
+    imageEntry.className = 'rm-image-entry';
     imageEntry.innerHTML = `
-        <button type="button" onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
-          <i class="fas fa-times"></i>
-        </button>
-        <div class="grid grid-cols-1 md:grid-cols-3" style="gap: 1.5rem;">
-          <div>
-            <label style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem;">Image File</label>
-            <input type="file" name="room_images[]" accept="image/*" class="w-full text-sm text-slate-500 dark:text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-slate-700 dark:file:text-white">
-          </div>
-          <div>
-            <label style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem;">Image Type</label>
-            <select name="image_type[]" class="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-slate-800 dark:border-white/20 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="interior">Interior</option>
-              <option value="exterior">Exterior</option>
-              <option value="bathroom">Bathroom</option>
-              <option value="view">View</option>
-              <option value="amenity">Amenity</option>
-              <option value="bed">Bed</option>
-              <option value="balcony">Balcony</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem;">Caption</label>
-            <input type="text" name="image_caption[]" class="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-slate-800 dark:border-white/20 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Image caption">
-          </div>
-        </div>
-      `;
+      <button type="button" class="rm-image-entry-remove" onclick="this.closest('.rm-image-entry').remove()"><i class="fas fa-times"></i></button>
+      <div class="rm-form-group"><label>Image File</label><input type="file" name="room_images[]" accept="image/*"></div>
+      <div class="rm-form-group"><label>Image Type</label>
+        <select name="image_type[]">
+          <option value="interior">Interior</option><option value="exterior">Exterior</option>
+          <option value="bathroom">Bathroom</option><option value="view">View</option>
+          <option value="amenity">Amenity</option><option value="bed">Bed</option>
+          <option value="balcony">Balcony</option><option value="other">Other</option>
+        </select>
+      </div>
+      <div class="rm-form-group"><label>Caption</label><input type="text" name="image_caption[]" placeholder="Image caption"></div>
+    `;
     container.appendChild(imageEntry);
   }
 
@@ -1190,78 +1192,48 @@ function generateUUID()
     // Load existing images
     loadExistingImages(roomId);
 
-    const modal = document.getElementById('editRoomModal');
-    modal.classList.remove('hidden');
-    modal.style.display = 'block';
+    document.getElementById('editRoomModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
   }
 
   function closeEditRoomModal() {
-    const modal = document.getElementById('editRoomModal');
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
+    document.getElementById('editRoomModal').classList.remove('open');
+    document.body.style.overflow = '';
     document.getElementById('editRoomForm').reset();
     document.getElementById('existingImagesContainer').innerHTML = '';
     document.getElementById('editImageUploadContainer').innerHTML = `
-        <div class="image-entry mb-4 p-4 border border-gray-200 rounded-lg dark:border-white/20">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-xs text-slate-500 dark:text-white/60 mb-1">Image File</label>
-              <input type="file" name="room_images[]" accept="image/*" class="w-full text-sm text-slate-500 dark:text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-slate-700 dark:file:text-white">
-            </div>
-            <div>
-              <label class="block text-xs text-slate-500 dark:text-white/60 mb-1">Image Type</label>
-              <select name="image_type[]" class="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-slate-800 dark:border-white/20 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="interior">Interior</option>
-                <option value="exterior">Exterior</option>
-                <option value="bathroom">Bathroom</option>
-                <option value="view">View</option>
-                <option value="amenity">Amenity</option>
-                <option value="bed">Bed</option>
-                <option value="balcony">Balcony</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs text-slate-500 dark:text-white/60 mb-1">Caption</label>
-              <input type="text" name="image_caption[]" class="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-slate-800 dark:border-white/20 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Image caption">
-            </div>
-          </div>
+      <div class="rm-image-entry">
+        <div class="rm-form-group"><label>Image File</label><input type="file" name="room_images[]" accept="image/*"></div>
+        <div class="rm-form-group"><label>Image Type</label>
+          <select name="image_type[]">
+            <option value="interior">Interior</option><option value="exterior">Exterior</option>
+            <option value="bathroom">Bathroom</option><option value="view">View</option>
+            <option value="amenity">Amenity</option><option value="bed">Bed</option>
+            <option value="balcony">Balcony</option><option value="other">Other</option>
+          </select>
         </div>
-      `;
+        <div class="rm-form-group"><label>Caption</label><input type="text" name="image_caption[]" placeholder="Image caption"></div>
+      </div>
+    `;
   }
 
   function addEditImageField() {
     const container = document.getElementById('editImageUploadContainer');
     const imageEntry = document.createElement('div');
-    imageEntry.className = 'image-entry mb-4 p-4 border border-gray-200 rounded-lg dark:border-white/20 relative';
+    imageEntry.className = 'rm-image-entry';
     imageEntry.innerHTML = `
-        <button type="button" onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
-          <i class="fas fa-times"></i>
-        </button>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-xs text-slate-500 dark:text-white/60 mb-1">Image File</label>
-            <input type="file" name="room_images[]" accept="image/*" class="w-full text-sm text-slate-500 dark:text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-slate-700 dark:file:text-white">
-          </div>
-          <div>
-            <label class="block text-xs text-slate-500 dark:text-white/60 mb-1">Image Type</label>
-            <select name="image_type[]" class="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-slate-800 dark:border-white/20 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="interior">Interior</option>
-              <option value="exterior">Exterior</option>
-              <option value="bathroom">Bathroom</option>
-              <option value="view">View</option>
-              <option value="amenity">Amenity</option>
-              <option value="bed">Bed</option>
-              <option value="balcony">Balcony</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs text-slate-500 dark:text-white/60 mb-1">Caption</label>
-            <input type="text" name="image_caption[]" class="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-slate-800 dark:border-white/20 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Image caption">
-          </div>
-        </div>
-      `;
+      <button type="button" class="rm-image-entry-remove" onclick="this.closest('.rm-image-entry').remove()"><i class="fas fa-times"></i></button>
+      <div class="rm-form-group"><label>Image File</label><input type="file" name="room_images[]" accept="image/*"></div>
+      <div class="rm-form-group"><label>Image Type</label>
+        <select name="image_type[]">
+          <option value="interior">Interior</option><option value="exterior">Exterior</option>
+          <option value="bathroom">Bathroom</option><option value="view">View</option>
+          <option value="amenity">Amenity</option><option value="bed">Bed</option>
+          <option value="balcony">Balcony</option><option value="other">Other</option>
+        </select>
+      </div>
+      <div class="rm-form-group"><label>Caption</label><input type="text" name="image_caption[]" placeholder="Image caption"></div>
+    `;
     container.appendChild(imageEntry);
   }
 
@@ -1275,29 +1247,24 @@ function generateUUID()
     }
 
     container.innerHTML = images.map(img => `
-        <div class="relative inline-block mr-2 mb-2">
-          <img src="../${img.image_url}" alt="${img.caption || ''}" class="w-24 h-24 object-cover rounded-lg border border-gray-200">
-          <button type="button" onclick="markImageForDeletion('${img.image_id}', this)" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
-            <i class="fas fa-times"></i>
-          </button>
-          <input type="hidden" name="delete_images[]" id="delete_img_${img.image_id}" value="">
-          <p class="text-xs text-slate-500 mt-1 w-24 truncate">${img.caption || img.image_type}</p>
-        </div>
-      `).join('');
+      <div class="rm-existing-img">
+        <img src="../${img.image_url}" alt="${img.caption || ''}">
+        <button type="button" class="rm-existing-img-del" onclick="markImageForDeletion('${img.image_id}', this)"><i class="fas fa-times"></i></button>
+        <input type="hidden" name="delete_images[]" id="delete_img_${img.image_id}" value="">
+        <p>${img.caption || img.image_type}</p>
+      </div>
+    `).join('');
   }
 
   function markImageForDeletion(imageId, button) {
     const input = document.getElementById(`delete_img_${imageId}`);
+    const wrapper = button.closest('.rm-existing-img');
     if (input.value === imageId) {
       input.value = '';
-      button.classList.remove('bg-red-600');
-      button.classList.add('bg-red-500');
-      button.parentElement.classList.remove('opacity-50');
+      wrapper.style.opacity = '1';
     } else {
       input.value = imageId;
-      button.classList.remove('bg-red-500');
-      button.classList.add('bg-red-600');
-      button.parentElement.classList.add('opacity-50');
+      wrapper.style.opacity = '0.4';
     }
   }
 
@@ -1330,80 +1297,34 @@ function generateUUID()
     }
   });
 
-  // Show success/error messages
   window.addEventListener('load', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-
-    // Show error message if present
     <?php if (isset($error_message)): ?>
-      Swal.fire({
-        icon: 'error',
-        title: 'Error!',
-        text: <?php echo json_encode($error_message); ?>,
-        confirmButtonColor: '#3085d6'
-      });
+      showRmToast(<?php echo json_encode($error_message); ?>, 'error');
     <?php endif; ?>
-
+    const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('success') === 'room_added') {
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Success!',
-        text: 'Room added successfully!',
-        timer: 3000,
-        showConfirmButton: false
-      });
+      window.history.replaceState({}, document.title, window.location.pathname);
+      showRmToast('Room added successfully!');
     }
-
     if (urlParams.get('success') === 'room_deleted') {
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Deleted!',
-        text: 'Room deleted successfully!',
-        timer: 3000,
-        showConfirmButton: false
-      });
+      window.history.replaceState({}, document.title, window.location.pathname);
+      showRmToast('Room deleted successfully!');
     }
-
     if (urlParams.get('success') === 'room_updated') {
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Updated!',
-        text: 'Room updated successfully!',
-        timer: 3000,
-        showConfirmButton: false
-      });
+      window.history.replaceState({}, document.title, window.location.pathname);
+      showRmToast('Room updated successfully!');
     }
   });
 
-  // Filter table function
   function filterTable() {
-    const input = document.getElementById('searchInput');
-    const filter = input.value.toLowerCase();
-    const table = document.getElementById('roomsTable');
-    const rows = table.getElementsByClassName('room-row');
-
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      const cells = row.getElementsByTagName('td');
-      let found = false;
-
-      for (let j = 0; j < cells.length; j++) {
-        if (cells[j].textContent.toLowerCase().indexOf(filter) > -1) {
-          found = true;
-          break;
-        }
-      }
-
-      row.style.display = found ? '' : 'none';
-    }
+    const filter = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    const statusFilter = (document.getElementById('statusFilter')?.value || '').toLowerCase();
+    const rows = document.querySelectorAll('#roomsTableBody .room-row');
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      const matchText = !filter || text.includes(filter);
+      const matchStatus = !statusFilter || text.includes(statusFilter.replace(/_/g, ' '));
+      row.style.display = (matchText && matchStatus) ? '' : 'none';
+    });
   }
 </script>

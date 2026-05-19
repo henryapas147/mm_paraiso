@@ -1,198 +1,702 @@
-<?php if (false) {} ?>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0
+  }
+
+  .page {
+    padding: 24px;
+    max-width: 100%;
+    margin: 0 auto
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px
+  }
+
+  .stat-card {
+    background: #fff;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0
+  }
+
+  .stat-icon.blue {
+    background: linear-gradient(135deg, #185FA5, #534AB7);
+    color: #fff
+  }
+
+  .stat-icon.green {
+    background: linear-gradient(135deg, #3B6D11, #537D1E);
+    color: #fff
+  }
+
+  .stat-content {
+    flex: 1
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 500;
+    color: #333
+  }
+
+  .main-layout {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 16px
+  }
+
+  @media (max-width: 1024px) {
+    .main-layout {
+      grid-template-columns: 1fr
+    }
+  }
+
+  .card {
+    background: #fff;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 12px
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 0.5px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap
+  }
+
+  .card-title {
+    font-size: 16px;
+    font-weight: 500
+  }
+
+  .table-wrap {
+    overflow-x: auto
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px
+  }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 0.5px solid #e5e7eb;
+    white-space: nowrap
+  }
+
+  thead th.center {
+    text-align: center
+  }
+
+  tbody tr {
+    border-bottom: 0.5px solid #e5e7eb;
+    transition: background .1s;
+    cursor: pointer
+  }
+
+  tbody tr:last-child {
+    border-bottom: none
+  }
+
+  tbody tr:hover {
+    background: #f9fafb
+  }
+
+  tbody tr.selected {
+    background: rgba(24, 95, 165, 0.07)
+  }
+
+  td {
+    padding: 11px 16px;
+    vertical-align: middle;
+    white-space: nowrap
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500
+  }
+
+  .status-badge.active {
+    background: #EAF3DE;
+    color: #27500A
+  }
+
+  .status-badge.inactive {
+    background: #F1EFE8;
+    color: #5F5E5A
+  }
+
+  .status-badge.granted {
+    background: #EAF3DE;
+    color: #27500A
+  }
+
+  .status-badge.denied {
+    background: #F1EFE8;
+    color: #5F5E5A
+  }
+
+  .role-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #333
+  }
+
+  .role-meta {
+    font-size: 12px;
+    color: #666
+  }
+
+  .placeholder {
+    padding: 48px 24px;
+    text-align: center;
+    color: #666
+  }
+
+  .placeholder i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+    color: #999
+  }
+
+  .panel-header {
+    padding: 16px 20px;
+    border-bottom: 0.5px solid #e5e7eb
+  }
+
+  .panel-title {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 4px
+  }
+
+  .panel-subtitle {
+    font-size: 12px;
+    color: #666
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+    border: 0.5px solid #d1d5db;
+    background: #fff;
+    color: #333;
+    cursor: pointer;
+    transition: background .15s
+  }
+
+  .btn:hover {
+    background: #f9fafb
+  }
+
+  .btn-primary {
+    background: #185FA5;
+    color: #fff;
+    border-color: #185FA5
+  }
+
+  .btn-primary:hover {
+    background: #0C447C;
+    border-color: #0C447C
+  }
+
+  .btn-success {
+    background: #3B6D11;
+    color: #fff;
+    border-color: #3B6D11
+  }
+
+  .btn-success:hover {
+    background: #2D530C;
+    border-color: #2D530C
+  }
+
+  .btn i {
+    font-size: 14px
+  }
+
+  .perm-manager {
+    margin-top: 16px;
+    padding: 16px;
+    background: #f9fafb;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 8px
+  }
+
+  .perm-manager-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px
+  }
+
+  label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.05em
+  }
+
+  label .req {
+    color: #A32D2D;
+    margin-left: 2px
+  }
+
+  input,
+  select,
+  textarea {
+    font-family: system-ui, sans-serif;
+    font-size: 13px;
+    color: #333;
+    background: #fff;
+    border: 0.5px solid #d1d5db;
+    border-radius: 8px;
+    padding: 8px 12px;
+    outline: none;
+    width: 100%;
+    transition: border .15s
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: #185FA5;
+    background: #fff
+  }
+
+  .search-wrap {
+    margin-top: 16px;
+    position: relative
+  }
+
+  .search-wrap i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 15px;
+    pointer-events: none
+  }
+
+  .search-input {
+    padding: 7px 12px 7px 34px;
+    font-size: 13px;
+    border: 0.5px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    color: #333;
+    outline: none;
+    width: 100%
+  }
+
+  .search-input:focus {
+    border-color: #185FA5
+  }
+
+  .category-row {
+    background: #f9fafb;
+    cursor: pointer
+  }
+
+  .category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    gap: 8px
+  }
+
+  .category-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #666
+  }
+
+  .category-count {
+    font-size: 11px;
+    color: #999
+  }
+
+  .category-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #666;
+    cursor: pointer
+  }
+
+  .category-toggle input {
+    width: 16px;
+    height: 16px;
+    accent-color: #185FA5;
+    cursor: pointer
+  }
+
+  .perm-row {
+    transition: background .1s
+  }
+
+  .perm-row:hover {
+    background: #f9fafb
+  }
+
+  .perm-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer
+  }
+
+  .perm-checkbox input {
+    width: 16px;
+    height: 16px;
+    accent-color: #185FA5;
+    flex-shrink: 0;
+    cursor: pointer;
+    margin-top: 2px
+  }
+
+  .perm-code {
+    font-size: 13px;
+    font-weight: 500;
+    color: #333
+  }
+
+  .perm-label {
+    font-size: 12px;
+    color: #666
+  }
+
+  .perm-action {
+    font-size: 12px;
+    color: #666;
+    text-transform: capitalize
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #fff;
+    border: 0.5px solid #d1d5db;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 9999;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all .25s;
+    min-width: 260px
+  }
+
+  .toast.show {
+    transform: none;
+    opacity: 1
+  }
+
+  .toast.success {
+    border-color: #9FE1CB;
+    color: #085041
+  }
+
+  .toast.error {
+    border-color: #F7C1C1;
+    color: #791F1F
+  }
+
+  .toast-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    font-size: 16px;
+    line-height: 1;
+    padding: 4px;
+    margin-left: auto
+  }
+
+  .toast-close:hover {
+    color: #333
+  }
+
+  .skeleton-row td {
+    padding: 12px 16px
+  }
+
+  .skeleton-line {
+    height: 12px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    animation: pulse 1.5s ease-in-out infinite
+  }
+
+  .skeleton-line.short {
+    width: 50%
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1 }
+    50% { opacity: 0.5 }
+  }
+</style>
 
 <!-- Toast -->
-<div id="rbacToast" class="flex items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl px-5 py-3"
-  style="display:none; position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999; min-width:260px;">
-  <i id="rbacToastIcon" class="fas fa-check-circle mr-2 text-emerald-500"></i>
-  <span id="rbacToastMsg" class="text-sm font-semibold dark:text-white flex-1"></span>
-  <button onclick="document.getElementById('rbacToast').style.display='none'"
-    class="ml-3 text-slate-400 hover:text-slate-600 dark:hover:text-white bg-transparent border-0 cursor-pointer p-0">
-    <i class="fas fa-times text-xs"></i>
-  </button>
-</div>
+<div id="rbacToast" class="toast"></div>
 
-<!-- PAGE CONTENT -->
-
-<!-- Stats Row -->
-<div class="flex flex-wrap -mx-3 mb-6">
-  <div class="w-full max-w-full px-3 mb-4 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/2">
-    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="flex-auto p-4">
-        <div class="flex flex-row -mx-3">
-          <div class="flex-none w-2/3 max-w-full px-3">
-            <p class="mb-0 font-sans text-xs font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Total Roles</p>
-            <h5 class="mb-0 font-bold dark:text-white" id="statTotal">...</h5>
-          </div>
-          <div class="px-3 text-right basis-1/3">
-            <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-blue-500 to-violet-500">
-              <i class="ni leading-none ni-single-02 text-lg relative top-3.5 text-white"></i>
-            </div>
-          </div>
-        </div>
+<div class="page">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">Total Roles</div>
+        <div class="stat-value" id="statTotal">—</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="fas fa-check"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">Active Roles</div>
+        <div class="stat-value" id="statActive">—</div>
       </div>
     </div>
   </div>
-  <div class="w-full max-w-full px-3 mb-4 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/2">
-    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="flex-auto p-4">
-        <div class="flex flex-row -mx-3">
-          <div class="flex-none w-2/3 max-w-full px-3">
-            <p class="mb-0 font-sans text-xs font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Active Roles</p>
-            <h5 class="mb-0 font-bold dark:text-white" id="statActive">...</h5>
-          </div>
-          <div class="px-3 text-right basis-1/3">
-            <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-emerald-500 to-teal-400">
-              <i class="ni leading-none ni-check-bold text-lg relative top-3.5 text-white"></i>
-            </div>
-          </div>
-        </div>
+
+  <div class="main-layout">
+    <!-- Left: Role List -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">User Roles</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <colgroup>
+            <col style="width:70%">
+            <col style="width:30%">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Role</th>
+              <th class="center">Status</th>
+            </tr>
+          </thead>
+          <tbody id="rolesList">
+            <?php for ($i = 0; $i < 6; $i++): ?>
+            <tr class="skeleton-row">
+              <td>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line short"></div>
+              </td>
+              <td class="center">
+                <div class="skeleton-line short" style="width:55px;margin:0 auto"></div>
+              </td>
+            </tr>
+            <?php endfor; ?>
+          </tbody>
+        </table>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- Main Panel -->
-<div class="flex flex-wrap -mx-3">
-
-  <!-- Left: Role List -->
-  <div class="flex-none w-full max-w-full px-3 lg:w-5/12 mb-6 lg:mb-0">
-    <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-        <h6 class="dark:text-white">User Roles</h6>
+    <!-- Right: Permissions -->
+    <div class="card">
+      <!-- Placeholder -->
+      <div id="permissionPlaceholder" class="placeholder">
+        <i class="fas fa-shield"></i>
+        Select a role to manage permissions
       </div>
-      <div class="flex-auto px-0 pt-0 pb-2">
-        <div class="p-0 overflow-x-auto">
-          <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500" style="table-layout:fixed;">
-            <colgroup>
-              <col style="width:70%;">
-              <col style="width:30%;">
-            </colgroup>
-            <thead class="align-bottom">
+
+      <!-- Panel -->
+      <div id="permissionPanel" style="display:none;">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title" id="panelRoleName"></div>
+            <div class="panel-subtitle" id="panelPermCount"></div>
+          </div>
+          <div class="toolbar">
+            <button onclick="togglePermissionManager()" class="btn btn-success"><i class="fas fa-key"></i> Manage Permissions</button>
+            <button id="panelSaveBtn" class="btn btn-primary"><i class="fas fa-device-floppy"></i> Save Changes</button>
+          </div>
+        </div>
+
+        <!-- Permission Manager Panel -->
+        <div id="permissionManagerPanel" style="display:none;" class="perm-manager">
+          <div class="perm-manager-title">Add New Permission</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Permission Code <span class="req">*</span></label>
+              <input type="text" id="newPermCode" placeholder="e.g., module.action">
+            </div>
+            <div class="form-group">
+              <label>Label <span class="req">*</span></label>
+              <input type="text" id="newPermLabel" placeholder="Human readable name">
+            </div>
+            <div class="form-group">
+              <label>Category</label>
+              <select id="newPermCategory">
+                <option value="General">General</option>
+                <option value="Dashboard">Dashboard</option>
+                <option value="Users">Users</option>
+                <option value="Properties">Properties</option>
+                <option value="Reservations">Reservations</option>
+                <option value="Customers">Customers</option>
+                <option value="Inventory">Inventory</option>
+                <option value="Food & Canteen">Food & Canteen</option>
+                <option value="Payments">Payments</option>
+                <option value="Reports">Reports</option>
+                <option value="Settings">Settings</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <input type="text" id="newPermDesc" placeholder="Optional description">
+            </div>
+          </div>
+          <div style="margin-top:12px;display:flex;justify-content:flex-end">
+            <button onclick="createPermission()" class="btn btn-success"><i class="fas fa-plus"></i> Create Permission</button>
+          </div>
+        </div>
+
+        <!-- Search -->
+        <div class="search-wrap">
+          <i class="fas fa-search"></i>
+          <input id="permSearch" type="text" placeholder="Search permissions..." oninput="applyPermFilter(this.value)" class="search-input">
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
               <tr>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Role</th>
-                <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
+                <th>Permission</th>
+                <th>Action</th>
+                <th class="center">Access</th>
               </tr>
             </thead>
-            <tbody id="rolesList">
-              <?php for ($i = 0; $i < 6; $i++): ?>
-              <tr class="skeleton-row">
-                <td class="p-2 px-6 align-middle bg-transparent border-b dark:border-white/40">
-                  <div class="h-3 bg-slate-200 dark:bg-slate-700 rounded animate-pulse mb-1" style="width:80%"></div>
-                  <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded animate-pulse" style="width:50%"></div>
-                </td>
-                <td class="p-2 px-3 align-middle text-center bg-transparent border-b dark:border-white/40">
-                  <div class="h-5 bg-slate-200 dark:bg-slate-700 rounded animate-pulse mx-auto" style="width:55px"></div>
-                </td>
-              </tr>
-              <?php endfor; ?>
-            </tbody>
+            <tbody id="permTableBody"></tbody>
           </table>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- Right: Permissions -->
-  <div class="flex-none w-full max-w-full px-3 lg:w-7/12">
-    <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-
-      <!-- Placeholder -->
-      <div id="permissionPlaceholder" class="p-12 text-center">
-        <i class="fas fa-shield-alt text-4xl text-slate-200 dark:text-white/10 mb-3 block"></i>
-        <p class="mb-0 text-sm text-slate-400 dark:text-white/40">Select a role to manage permissions</p>
-      </div>
-
-      <!-- Panel -->
-      <div id="permissionPanel" style="display:none;">
-        <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h6 class="dark:text-white mb-0" id="panelRoleName"></h6>
-              <p class="mb-0 text-xs text-slate-400 dark:text-white/60" id="panelPermCount"></p>
-            </div>
-            <button id="panelSaveBtn" class="bg-gradient-to-tl from-blue-500 to-violet-500 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide shadow-md hover:shadow-xs transition-all border-0 cursor-pointer">
-              <i class="fas fa-save mr-1"></i> Save Changes
-            </button>
-          </div>
-
-          <!-- Search -->
-          <div class="mt-4 relative">
-            <i class="fas fa-search absolute text-xs text-slate-400 dark:text-white/40 pointer-events-none" style="left:12px; top:50%; transform:translateY(-50%);"></i>
-            <input id="permSearch" type="text" placeholder="Search permissions..."
-              oninput="applyPermFilter(this.value)"
-              class="w-full text-xs border border-slate-200 dark:border-white/10 dark:bg-slate-700/50 dark:text-white rounded-lg transition-all"
-              style="padding:8px 12px 8px 32px;">
-          </div>
-        </div>
-        <div class="flex-auto px-0 pt-0 pb-2">
-          <div class="p-0 overflow-x-auto">
-            <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
-              <thead class="align-bottom">
-                <tr>
-                  <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Permission</th>
-                  <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Action</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Access</th>
-                </tr>
-              </thead>
-              <tbody id="permTableBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
 </div>
 
 <script>
   let rolesData = [];
   let selectedRole = null;
   let permFilter = '';
+  let permissionsData = {}; // Fetched from API: { category: [permissions] }
+  let allPermissions = []; // Flat list of all permission codes
+  let permissionCategories = [];
+  let showPermissionManager = false;
 
-  const PERMISSIONS = {
-    'Dashboard':      ['dashboard.view', 'dashboard.manage'],
-    'Users':          ['users.view', 'users.create', 'users.edit', 'users.delete', 'users.roles.manage'],
-    'Properties':     ['properties.view', 'properties.create', 'properties.edit', 'properties.delete',
-                       'properties.properties.view', 'properties.rooms.view', 'properties.room_categories.view',
-                       'properties.amenities.view', 'properties.room_blocks.view'],
-    'Rooms':          ['rooms.view', 'rooms.create', 'rooms.edit', 'rooms.delete'],
-    'Reservations':   ['reservations.view', 'reservations.create', 'reservations.edit', 'reservations.delete',
-                       'reservations.check_in', 'reservations.check_out',
-                       'reservations.reservations.view', 'reservations.rooms.view', 'reservations.guests.view',
-                       'reservations.requirement_types.view', 'reservations.requirements.view',
-                       'reservations.check_in_logs.view', 'reservations.entrance_logs.view'],
-    'Customers':      ['customers.view', 'customers.create', 'customers.edit', 'customers.delete'],
-    'Inventory':      ['inventory.view', 'inventory.create', 'inventory.edit', 'inventory.delete',
-                       'inventory.products.view', 'inventory.categories.view', 'inventory.units.view',
-                       'inventory.locations.view', 'inventory.suppliers.view', 'inventory.stock_location.view',
-                       'inventory.purchase_orders.view', 'inventory.stock_transactions.view',
-                       'inventory.stock_transfers.view', 'inventory.sales.view'],
-    'Food & Canteen': ['food_canteen.view', 'food_canteen.create', 'food_canteen.edit', 'food_canteen.delete',
-                       'food_canteen.categories.view', 'food_canteen.menu_items.view', 'food_canteen.orders.view'],
-    'Payments':       ['payments.view', 'payments.create', 'payments.edit', 'payments.delete',
-                       'payments.payment_methods.view', 'payments.payments.view', 'payments.invoices.view',
-                       'payments.invoice_line_items.view', 'payments.discounts.view',
-                       'payments.discount_usages.view', 'payments.extra_charges.view', 'payments.billing.view'],
-    'Reports':        ['reports.view',
-                       'reports.dashboard.view', 'reports.revenue.view', 'reports.occupancy.view',
-                       'reports.inventory.view', 'reports.customers.view', 'reports.food_canteen.view',
-                       'reports.financial.view'],
-    'Settings':       ['settings.view', 'settings.edit', 'settings.manage',
-                       'settings.system.view', 'settings.pricing_rules.view', 'settings.seasonal_rates.view',
-                       'settings.booking_policies.view', 'settings.promotions.view', 'settings.promotion_images.view',
-                       'settings.notifications.view', 'settings.notification_recipients.view', 'settings.rbac.view']
-  };
-  const TOTAL_PERMS = Object.values(PERMISSIONS).reduce((a, c) => a + c.length, 0);
+  function getTotalPerms() {
+    return allPermissions.length;
+  }
 
   function showToast(msg, isError) {
     const t = document.getElementById('rbacToast');
-    document.getElementById('rbacToastMsg').textContent = msg;
-    document.getElementById('rbacToastIcon').className = isError
-      ? 'fas fa-times-circle mr-2 text-red-500'
-      : 'fas fa-check-circle mr-2 text-emerald-500';
-    t.style.display = 'flex';
-    setTimeout(() => { t.style.display = 'none'; }, 3500);
+    t.textContent = msg;
+    t.className = 'toast ' + (isError ? 'error' : 'success') + ' show';
+    setTimeout(() => { t.classList.remove('show'); }, 3500);
+  }
+
+  async function fetchPermissions() {
+    try {
+      const res = await fetch('../api/permissions.php?action=list');
+      const json = await res.json();
+      if (!json.success) throw new Error(json.message);
+      permissionsData = json.data.permissions || {};
+      permissionCategories = json.data.categories || [];
+      // Build flat list
+      allPermissions = [];
+      Object.values(permissionsData).forEach(catPerms => {
+        catPerms.forEach(p => allPermissions.push(p.permission_code));
+      });
+      return true;
+    } catch (e) {
+      showToast('Failed to load permissions: ' + e.message, true);
+      return false;
+    }
   }
 
   async function fetchRoles() {
@@ -217,15 +721,13 @@
       const count = role.permissions ? role.permissions.length : 0;
       return `
         <tr id="roleRow_${role.role_code}" onclick="selectRole('${role.role_code}')"
-            class="role-row cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-          <td class="p-2 px-6 align-middle bg-transparent border-b dark:border-white/40">
-            <h6 class="mb-0 text-xs leading-normal dark:text-white">${role.role_label}</h6>
-            <p class="mb-0 text-xs leading-tight text-slate-400 dark:text-white/60">${count} of ${TOTAL_PERMS} permissions</p>
+            class="role-row">
+          <td>
+            <div class="role-name">${role.role_label}</div>
+            <div class="role-meta">${count} of ${getTotalPerms()} permissions</div>
           </td>
-          <td class="p-2 px-3 align-middle text-center bg-transparent border-b dark:border-white/40">
-            <span class="bg-gradient-to-tl ${role.is_active ? 'from-emerald-500 to-teal-400' : 'from-slate-600 to-slate-400'} px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">
-              ${role.is_active ? 'Active' : 'Inactive'}
-            </span>
+          <td class="center">
+            <span class="status-badge ${role.is_active ? 'active' : 'inactive'}">${role.is_active ? 'Active' : 'Inactive'}</span>
           </td>
         </tr>`;
     }).join('');
@@ -249,74 +751,95 @@
 
     let tableRows = '';
     let visibleCount = 0;
-    for (const [cat, perms] of Object.entries(PERMISSIONS)) {
+
+    // Use permissionsData from API
+    for (const [cat, perms] of Object.entries(permissionsData)) {
+      // Filter permissions within this category
       const filtered = filter
-        ? perms.filter(p => p.toLowerCase().includes(filter) || cat.toLowerCase().includes(filter))
+        ? perms.filter(p =>
+            p.permission_code.toLowerCase().includes(filter) ||
+            (p.permission_label && p.permission_label.toLowerCase().includes(filter)) ||
+            cat.toLowerCase().includes(filter)
+          )
         : perms;
+
       if (!filtered.length) continue;
 
-      const allChecked = perms.every(p => role.permissions.includes(p));
+      // Get all permission codes in this category for "All" checkbox check
+      const allPermCodes = perms.map(p => p.permission_code);
+      const allChecked = allPermCodes.every(p => role.permissions.includes(p));
+      const catId = 'cat-' + cat.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase().replace(/-+/g, '-').replace(/^-|-$/g, '');
+
       tableRows += `
-        <tr class="bg-slate-50 dark:bg-slate-700/30">
-          <td colspan="3" class="px-6 py-2 border-b dark:border-white/40">
-            <div class="flex items-center justify-between">
-              <span class="text-xxs font-bold uppercase tracking-none text-slate-400 dark:text-white opacity-70">${cat}</span>
-              <label class="flex items-center gap-1.5 cursor-pointer mb-0">
+        <tr class="category-row" onclick="toggleCategoryCollapse('${catId}')">
+          <td colspan="3">
+            <div class="category-header">
+              <div class="category-label">
+                <i id="icon-${catId}" class="fas fa-chevron-down"></i>
+                ${cat}
+                <span class="category-count">(${filtered.length})</span>
+              </div>
+              <label class="category-toggle" onclick="event.stopPropagation()">
                 <input type="checkbox" class="cat-toggle" data-role="${roleCode}" data-cat="${cat}"
                   ${allChecked ? 'checked' : ''}
-                  onchange="toggleCategory('${roleCode}','${cat}',this.checked)"
-                  style="accent-color:#5e72e4; width:13px; height:13px;">
-                <span class="text-xxs text-slate-400 dark:text-white/60">All</span>
+                  onchange="toggleCategory('${roleCode}','${cat}',this.checked)">
+                All
               </label>
             </div>
           </td>
         </tr>`;
 
       filtered.forEach(perm => {
-        const action = perm.split('.').slice(1).join('.');
-        const isGranted = role.permissions.includes(perm);
+        const permCode = perm.permission_code;
+        const action = permCode.split('.').slice(1).join('.');
+        const isGranted = role.permissions.includes(permCode);
         visibleCount++;
         tableRows += `
-        <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-          <td class="p-2 px-6 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <label class="flex items-center cursor-pointer mb-0" style="gap:12px;">
-              <input type="checkbox" class="perm-cb" data-role="${roleCode}" data-perm="${perm}" data-cat="${cat}"
-                ${isGranted ? 'checked' : ''} onchange="onPermChange('${roleCode}','${cat}',this)"
-                style="accent-color:#5e72e4; width:16px; height:16px; flex-shrink:0; cursor:pointer;">
-              <span class="text-xs font-semibold leading-tight dark:text-white">${perm}</span>
+        <tr class="perm-row perm-row-${catId}">
+          <td>
+            <label class="perm-checkbox">
+              <input type="checkbox" class="perm-cb" data-role="${roleCode}" data-perm="${permCode}" data-cat="${cat}"
+                ${isGranted ? 'checked' : ''} onchange="onPermChange('${roleCode}','${cat}',this)">
+              <div>
+                <div class="perm-code">${permCode}</div>
+                ${perm.permission_label !== permCode ? `<div class="perm-label">${perm.permission_label}</div>` : ''}
+              </div>
             </label>
           </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <span class="text-xs leading-tight text-slate-400 dark:text-white/60 uppercase">${action.replace(/_/g, ' ')}</span>
+          <td>
+            <span class="perm-action">${action.replace(/_/g, ' ')}</span>
           </td>
-          <td class="p-2 align-middle text-center bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <span class="status-badge bg-gradient-to-tl ${isGranted ? 'from-emerald-500 to-teal-400' : 'from-slate-600 to-slate-400'} px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">
-              ${isGranted ? 'Granted' : 'Denied'}
-            </span>
+          <td class="center">
+            <span class="status-badge ${isGranted ? 'granted' : 'denied'}">${isGranted ? 'Granted' : 'Denied'}</span>
           </td>
         </tr>`;
       });
     }
 
     if (visibleCount === 0 && filter) {
-      tableRows = `<tr><td colspan="3" class="p-6 text-center">
-        <p class="mb-0 text-xs text-slate-400 dark:text-white/40">No permissions match "${filter}"</p>
+      tableRows = `<tr><td colspan="3" class="placeholder">
+        No permissions match "${filter}"
       </td></tr>`;
     }
 
     document.getElementById('panelRoleName').textContent = role.role_label;
-    document.getElementById('panelPermCount').textContent = `${granted} of ${TOTAL_PERMS} permissions granted`;
+    document.getElementById('panelPermCount').textContent = `${granted} of ${getTotalPerms()} permissions granted`;
     document.getElementById('panelSaveBtn').setAttribute('onclick', `savePermissions('${roleCode}')`);
     document.getElementById('permTableBody').innerHTML = tableRows;
     document.getElementById('permissionPanel').style.display = 'block';
     document.getElementById('permissionPlaceholder').style.display = 'none';
 
+    // Restore collapsed state from localStorage
+    restoreCollapsedCategories();
+
     // Fix indeterminate
     document.querySelectorAll('.cat-toggle').forEach(cb => {
-      const perms = PERMISSIONS[cb.dataset.cat];
-      if (!perms) return;
-      const all = perms.every(p => role.permissions.includes(p));
-      const some = perms.some(p => role.permissions.includes(p));
+      const cat = cb.dataset.cat;
+      const catPerms = permissionsData[cat];
+      if (!catPerms) return;
+      const permCodes = catPerms.map(p => p.permission_code);
+      const all = permCodes.every(p => role.permissions.includes(p));
+      const some = permCodes.some(p => role.permissions.includes(p));
       cb.indeterminate = some && !all;
     });
   }
@@ -330,13 +853,13 @@
     if (!cb) return;
     const badge = cb.closest('tr')?.querySelector('.status-badge');
     if (!badge) return;
-    badge.className = `status-badge bg-gradient-to-tl ${cb.checked ? 'from-emerald-500 to-teal-400' : 'from-slate-600 to-slate-400'} px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white`;
+    badge.className = `status-badge ${cb.checked ? 'granted' : 'denied'}`;
     badge.textContent = cb.checked ? 'Granted' : 'Denied';
   }
 
   function updateCounter(roleCode) {
     const checked = document.querySelectorAll(`.perm-cb[data-role="${roleCode}"]:checked`).length;
-    document.getElementById('panelPermCount').textContent = `${checked} of ${TOTAL_PERMS} permissions granted`;
+    document.getElementById('panelPermCount').textContent = `${checked} of ${getTotalPerms()} permissions granted`;
   }
 
   function onPermChange(roleCode, cat, cb) {
@@ -386,5 +909,113 @@
     }
   }
 
-  document.addEventListener('DOMContentLoaded', fetchRoles);
+  // Permission CRUD functions
+  async function createPermission() {
+    const code = document.getElementById('newPermCode')?.value.trim();
+    const label = document.getElementById('newPermLabel')?.value.trim();
+    const description = document.getElementById('newPermDesc')?.value.trim();
+    const category = document.getElementById('newPermCategory')?.value || 'General';
+
+    if (!code || !label) {
+      showToast('Permission code and label are required', true);
+      return;
+    }
+
+    try {
+      const res = await fetch('../api/permissions.php?action=create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': '<?php echo htmlspecialchars($csrf_token ?? ''); ?>'
+        },
+        body: JSON.stringify({ permission_code: code, permission_label: label, description, category })
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast('Permission created successfully');
+        await fetchPermissions();
+        if (selectedRole) renderPermissionMatrix(selectedRole);
+        document.getElementById('newPermCode').value = '';
+        document.getElementById('newPermLabel').value = '';
+        document.getElementById('newPermDesc').value = '';
+      } else {
+        showToast('Error: ' + json.message, true);
+      }
+    } catch (e) {
+      showToast('Failed to create permission', true);
+    }
+  }
+
+  async function deletePermission(permId) {
+    if (!confirm('Are you sure you want to delete this permission?')) return;
+
+    try {
+      const res = await fetch('../api/permissions.php?action=delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': '<?php echo htmlspecialchars($csrf_token ?? ''); ?>'
+        },
+        body: JSON.stringify({ permission_id: permId })
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast('Permission deleted');
+        await fetchPermissions();
+        if (selectedRole) renderPermissionMatrix(selectedRole);
+      } else {
+        showToast('Error: ' + json.message, true);
+      }
+    } catch (e) {
+      showToast('Failed to delete permission', true);
+    }
+  }
+
+  function togglePermissionManager() {
+    showPermissionManager = !showPermissionManager;
+    const panel = document.getElementById('permissionManagerPanel');
+    if (panel) panel.style.display = showPermissionManager ? 'block' : 'none';
+  }
+
+  function toggleCategoryCollapse(catId, forceState = null) {
+    const rows = document.querySelectorAll(`.perm-row-${catId}`);
+    const icon = document.getElementById(`icon-${catId}`);
+    const isExpanded = forceState !== null ? forceState : icon?.classList.contains('ti-chevron-down');
+
+    rows.forEach(row => {
+      row.style.display = isExpanded ? 'none' : '';
+    });
+
+    if (icon) {
+      icon.classList.toggle('ti-chevron-down', !isExpanded);
+      icon.classList.toggle('ti-chevron-right', isExpanded);
+    }
+
+    // Save to localStorage
+    const collapsed = JSON.parse(localStorage.getItem('rbacCollapsedCats') || '[]');
+    if (isExpanded) {
+      if (!collapsed.includes(catId)) collapsed.push(catId);
+    } else {
+      const idx = collapsed.indexOf(catId);
+      if (idx > -1) collapsed.splice(idx, 1);
+    }
+    localStorage.setItem('rbacCollapsedCats', JSON.stringify(collapsed));
+  }
+
+  function restoreCollapsedCategories() {
+    const collapsed = JSON.parse(localStorage.getItem('rbacCollapsedCats') || '[]');
+    collapsed.forEach(catId => {
+      toggleCategoryCollapse(catId, true); // Force collapse
+    });
+  }
+
+  // Initialize - fetch permissions first, then roles
+  async function init() {
+    const success = await fetchPermissions();
+    if (success) {
+      await fetchRoles();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
 </script>

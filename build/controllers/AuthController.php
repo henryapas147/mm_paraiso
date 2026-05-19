@@ -19,6 +19,11 @@ class AuthController extends Controller
         $this->viewRaw('auth/logout');
     }
 
+    public function signout()
+    {
+        $this->viewRaw('auth/sign-out');
+    }
+
     public function profile()
     {
         $this->view('auth/profile');

@@ -1,5 +1,12 @@
 <?php
 
+// Track referrer if user came from pages directory
+if (!isset($_SESSION['auth_referrer']) && isset($_SERVER['HTTP_REFERER'])) {
+    $referrer = $_SERVER['HTTP_REFERER'];
+    if (strpos($referrer, '/pages/') !== false || strpos($referrer, '/admin_booking/pages') !== false) {
+        $_SESSION['auth_referrer'] = 'pages';
+    }
+}
 
 // Generate CSRF token if not exists
 if (!isset($_SESSION['csrf_token'])) {

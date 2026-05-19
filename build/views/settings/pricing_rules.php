@@ -1,17 +1,624 @@
-<?php if (false) {} ?>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0
+  }
+
+  .page {
+    padding: 24px;
+    max-width: 100%;
+    margin: 0 auto
+  }
+
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 500;
+    color: #333
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+    color: #666;
+    margin-top: 2px
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px
+  }
+
+  .stat-card {
+    background: #fff;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px 20px
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 500
+  }
+
+  .stat-value.blue {
+    color: #185FA5
+  }
+
+  .stat-value.green {
+    color: #3B6D11
+  }
+
+  .stat-value.purple {
+    color: #534AB7
+  }
+
+  .stat-value.orange {
+    color: #F97316
+  }
+
+  .card {
+    background: #fff;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 12px
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 0.5px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap
+  }
+
+  .card-title {
+    font-size: 16px;
+    font-weight: 500
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap
+  }
+
+  .search-wrap {
+    position: relative
+  }
+
+  .search-wrap i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 15px;
+    pointer-events: none
+  }
+
+  .search-input {
+    padding: 7px 12px 7px 34px;
+    font-size: 13px;
+    border: 0.5px solid #d1d5db;
+    border-radius: 8px;
+    background: #f9fafb;
+    color: #333;
+    outline: none;
+    width: 220px
+  }
+
+  .search-input:focus {
+    border-color: #185FA5
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+    border: 0.5px solid #d1d5db;
+    background: #fff;
+    color: #333;
+    cursor: pointer;
+    transition: background .15s
+  }
+
+  .btn:hover {
+    background: #f9fafb
+  }
+
+  .btn-primary {
+    background: #185FA5;
+    color: #fff;
+    border-color: #185FA5
+  }
+
+  .btn-primary:hover {
+    background: #0C447C;
+    border-color: #0C447C
+  }
+
+  .btn i {
+    font-size: 14px
+  }
+
+  .table-wrap {
+    overflow-x: auto
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px
+  }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 0.5px solid #e5e7eb;
+    white-space: nowrap
+  }
+
+  thead th.center {
+    text-align: center
+  }
+
+  tbody tr {
+    border-bottom: 0.5px solid #e5e7eb;
+    transition: background .1s
+  }
+
+  tbody tr:last-child {
+    border-bottom: none
+  }
+
+  tbody tr:hover {
+    background: #f9fafb
+  }
+
+  td {
+    padding: 11px 16px;
+    vertical-align: middle;
+    white-space: nowrap
+  }
+
+  .rule-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: capitalize
+  }
+
+  .rule-badge.fixed_price {
+    background: #E6F1FB;
+    color: #0C447C
+  }
+
+  .rule-badge.percentage_add {
+    background: #EAF3DE;
+    color: #27500A
+  }
+
+  .rule-badge.percentage_discount {
+    background: #FAEEDA;
+    color: #633806
+  }
+
+  .rule-badge.fixed_add {
+    background: #EEEDFE;
+    color: #3C3489
+  }
+
+  .rule-badge.minimum_stay {
+    background: #FCEBEB;
+    color: #791F1F
+  }
+
+  .rule-badge.other {
+    background: #F1EFE8;
+    color: #444441
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500
+  }
+
+  .status-badge.active {
+    background: #EAF3DE;
+    color: #27500A
+  }
+
+  .status-badge.inactive {
+    background: #F1EFE8;
+    color: #5F5E5A
+  }
+
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 8px;
+    border: 0.5px solid #e5e7eb;
+    background: transparent;
+    cursor: pointer;
+    transition: all .15s;
+    color: #666
+  }
+
+  .action-btn:hover {
+    background: #f9fafb;
+    color: #333;
+    border-color: #d1d5db
+  }
+
+  .action-btn.danger:hover {
+    background: #FCEBEB;
+    color: #791F1F;
+    border-color: #F09595
+  }
+
+  .action-btn i {
+    font-size: 12px
+  }
+
+  .actions-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px
+  }
+
+  .label-text {
+    font-size: 13px;
+    color: #333
+  }
+
+  .value-text {
+    font-size: 12px;
+    color: #666
+  }
+
+  .empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    color: #666
+  }
+
+  .empty-state i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+    color: #999
+  }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .45);
+    z-index: 9000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px
+  }
+
+  .overlay.open {
+    display: flex
+  }
+
+  .modal {
+    background: #fff;
+    border-radius: 16px;
+    border: 0.5px solid #e5e7eb;
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, .18)
+  }
+
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 0.5px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between
+  }
+
+  .modal-title {
+    font-size: 16px;
+    font-weight: 500
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    font-size: 20px;
+    line-height: 1;
+    padding: 4px
+  }
+
+  .modal-close:hover {
+    color: #333
+  }
+
+  .modal-body {
+    padding: 24px
+  }
+
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 0.5px solid #e5e7eb;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px
+  }
+
+  .form-group.full {
+    grid-column: 1/-1
+  }
+
+  label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.05em
+  }
+
+  label .req {
+    color: #A32D2D;
+    margin-left: 2px
+  }
+
+  input,
+  select,
+  textarea {
+    font-family: system-ui, sans-serif;
+    font-size: 13px;
+    color: #333;
+    background: #f9fafb;
+    border: 0.5px solid #d1d5db;
+    border-radius: 8px;
+    padding: 8px 12px;
+    outline: none;
+    width: 100%;
+    transition: border .15s
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: #185FA5;
+    background: #fff
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px
+  }
+
+  .divider {
+    grid-column: 1/-1;
+    border: none;
+    border-top: 0.5px solid #e5e7eb;
+    margin: 4px 0
+  }
+
+  .section-label {
+    grid-column: 1/-1;
+    font-size: 11px;
+    font-weight: 500;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding-top: 4px
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #fff;
+    border: 0.5px solid #d1d5db;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 9999;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all .25s
+  }
+
+  .toast.show {
+    transform: none;
+    opacity: 1
+  }
+
+  .toast.success {
+    border-color: #9FE1CB;
+    color: #085041
+  }
+
+  .toast.error {
+    border-color: #F7C1C1;
+    color: #791F1F
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-top: 0.5px solid #e5e7eb
+  }
+
+  .pagination-info {
+    font-size: 13px;
+    color: #666
+  }
+
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px
+  }
+
+  .pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+    border: 0.5px solid #d1d5db;
+    background: #fff;
+    color: #333;
+    cursor: pointer;
+    transition: background .15s
+  }
+
+  .pagination-btn:hover:not(:disabled) {
+    background: #f9fafb
+  }
+
+  .pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed
+  }
+
+  .pagination-btn.active {
+    background: #185FA5;
+    color: #fff;
+    border-color: #185FA5
+  }
+
+  .entries-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #666
+  }
+
+  .entries-select select {
+    padding: 6px 10px;
+    font-size: 13px;
+    border: 0.5px solid #d1d5db;
+    border-radius: 8px;
+    background: #f9fafb;
+    color: #333;
+    outline: none;
+    cursor: pointer
+  }
+
+  .entries-select select:focus {
+    border-color: #185FA5;
+    background: #fff
+  }
+
+  .days-checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px
+  }
+
+  .days-checkbox-group label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #333;
+    text-transform: none;
+    cursor: pointer
+  }
+
+  .days-checkbox-group input[type="checkbox"] {
+    width: auto;
+    padding: 0;
+    margin: 0
+  }
+</style>
+
 <script>
   let pricingRulesData = [];
   let propertiesData = [];
   let categoriesData = [];
+  let pagination = {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0
+  };
 
   async function fetchPricingRules() {
     try {
-      const res = await fetch('../api/pricing_rules.php?action=list');
+      const res = await fetch(`../api/pricing_rules.php?action=list&page=${pagination.page}&limit=${pagination.limit}`);
       const json = await res.json();
       if (json.success) {
         pricingRulesData = json.data;
+        pagination = json.pagination;
         renderStats();
         renderTable();
+        renderPagination();
       }
     } catch (e) {
       console.error('Error fetching pricing rules:', e);
@@ -32,49 +639,86 @@
     }
   }
 
+  function ruleClass(r) {
+    return ['fixed_price', 'percentage_add', 'percentage_discount', 'fixed_add', 'minimum_stay'].includes(r) ? r : 'other'
+  }
+
   function renderStats() {
-    const active = pricingRulesData.filter(r => r.is_active == 1).length;
-    const discount = pricingRulesData.filter(r => ['percentage_discount', 'fixed_add'].includes(r.rule_type)).length;
-    const minStay = pricingRulesData.filter(r => r.rule_type == 'minimum_stay').length;
-    document.getElementById('statTotal').textContent = pricingRulesData.length;
-    document.getElementById('statActive').textContent = active;
-    document.getElementById('statDiscount').textContent = discount;
-    document.getElementById('statMinStay').textContent = minStay;
+    document.getElementById('statTotal').textContent = pagination.total;
+    document.getElementById('statActive').textContent = pricingRulesData.filter(r => r.is_active == 1).length;
+    document.getElementById('statDiscount').textContent = pricingRulesData.filter(r => ['percentage_discount', 'fixed_add'].includes(r.rule_type)).length;
+    document.getElementById('statMinStay').textContent = pricingRulesData.filter(r => r.rule_type == 'minimum_stay').length;
+  }
+
+  function renderPagination() {
+    const start = (pagination.page - 1) * pagination.limit + 1;
+    const end = Math.min(pagination.page * pagination.limit, pagination.total);
+    document.getElementById('paginationInfo').textContent = `Showing ${start} to ${end} of ${pagination.total} entries`;
+
+    document.getElementById('prevBtn').disabled = pagination.page === 1;
+    document.getElementById('nextBtn').disabled = pagination.page === pagination.totalPages;
+
+    const pageNumbers = document.getElementById('pageNumbers');
+    pageNumbers.innerHTML = '';
+
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, pagination.page - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(pagination.totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      const btn = document.createElement('button');
+      btn.className = `pagination-btn ${i === pagination.page ? 'active' : ''}`;
+      btn.textContent = i;
+      btn.onclick = () => goToPage(i);
+      pageNumbers.appendChild(btn);
+    }
+  }
+
+  function changePage(delta) {
+    const newPage = pagination.page + delta;
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      pagination.page = newPage;
+      fetchPricingRules();
+    }
+  }
+
+  function goToPage(page) {
+    pagination.page = page;
+    fetchPricingRules();
+  }
+
+  function changeEntriesPerPage() {
+    pagination.limit = parseInt(document.getElementById('entriesPerPage').value);
+    pagination.page = 1;
+    fetchPricingRules();
   }
 
   function renderTable() {
     const tbody = document.getElementById('pricingRulesTableBody');
     if (!pricingRulesData.length) {
-      tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400 dark:text-white/60">No pricing rules found.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><i class="fas fa-database-off"></i>No pricing rules found.</td></tr>`;
       return;
     }
-    tbody.innerHTML = pricingRulesData.map(rule => `
-      <tr class="pricing-rule-row">
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">${rule.rule_name}</p>
-        </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <span class="bg-gradient-to-tl from-blue-500 to-cyan-400 px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">${rule.rule_type.replace(/_/g, ' ')}</span>
-        </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">${rule.property_name || 'All Properties'}</p>
-        </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">${rule.category_name || 'All Categories'}</p>
-        </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">${rule.rule_value}</p>
-        </td>
-        <td class="p-2 text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <span class="bg-gradient-to-tl ${rule.is_active ? 'from-emerald-500 to-teal-400' : 'from-slate-500 to-slate-400'} px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">${rule.is_active ? 'Active' : 'Inactive'}</span>
-        </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <div class="flex items-center gap-2">
-            <button onclick="openEditRuleModal('${rule.rule_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-500/20 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-300 dark:hover:border-amber-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Edit Rule">
-              <i class="fas fa-edit mr-1.5 text-xs"></i><span>Edit</span>
+    tbody.innerHTML = pricingRulesData.map(r => `
+      <tr class="pricing-rule-row" data-id="${r.rule_id}">
+        <td><span class="label-text">${r.rule_name}</span></td>
+        <td><span class="rule-badge ${ruleClass(r.rule_type)}">${r.rule_type.replace(/_/g, ' ')}</span></td>
+        <td><span class="value-text">${r.property_name || 'All Properties'}</span></td>
+        <td><span class="value-text">${r.category_name || 'All Categories'}</span></td>
+        <td><span class="value-text">${r.rule_value}</span></td>
+        <td><span class="value-text">${r.priority}</span></td>
+        <td style="text-align:center"><span class="status-badge ${r.is_active==1?'active':'inactive'}">${r.is_active?'Active':'Inactive'}</span></td>
+        <td>
+          <div class="actions-cell">
+            <button class="action-btn" onclick="openEditModal('${r.rule_id}')">
+              <i class="fas fa-edit"></i> Edit
             </button>
-            <button onclick="deleteRule(this)" data-id="${rule.rule_id}" data-name="${rule.rule_name}" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 bg-white dark:bg-slate-700/50 border border-red-200 dark:border-white/10 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-700 dark:hover:text-red-300 hover:border-red-300 dark:hover:border-red-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Delete Rule">
-              <i class="fas fa-trash-alt mr-1.5 text-xs"></i><span>Delete</span>
+            <button class="action-btn danger" onclick="confirmDelete('${r.rule_id}','${r.rule_name}')">
+              <i class="fas fa-trash"></i> Delete
             </button>
           </div>
         </td>
@@ -84,8 +728,15 @@
   function populateDropdowns() {
     const propOpts = '<option value="">All Properties</option>' + propertiesData.map(p => `<option value="${p.property_id}">${p.property_name}</option>`).join('');
     const catOpts = '<option value="">All Categories</option>' + categoriesData.map(c => `<option value="${c.category_id}">${c.category_name}</option>`).join('');
-    ['addProperty', 'editProperty'].forEach(id => { const sel = document.getElementById(id); if (sel) sel.innerHTML = propOpts; });
-    ['addCategory', 'editCategory'].forEach(id => { const sel = document.getElementById(id); if (sel) sel.innerHTML = catOpts; });
+    ['addProperty', 'editProperty'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = propOpts; });
+    ['addCategory', 'editCategory'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = catOpts; });
+  }
+
+  function filterTable() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('#pricingRulesTableBody .pricing-rule-row').forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -94,399 +745,351 @@
   });
 </script>
 
-<!-- PAGE CONTENT -->
-      <!-- Stats Cards -->
-      <div class="flex flex-wrap -mx-3 mb-6">
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Total Rules</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statTotal">...</h5>
-            </div>
-          </div>
-        </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Active Rules</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl text-emerald-500" id="statActive">...</h5>
-            </div>
-          </div>
-        </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Discount Rules</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl text-blue-500" id="statDiscount">...</h5>
-            </div>
-          </div>
-        </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Min Stay Rules</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl text-orange-500" id="statMinStay">...</h5>
-            </div>
-          </div>
-        </div>
-      </div>
+<div class="page">
+  
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total rules</div>
+      <div class="stat-value" id="statTotal">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Active</div>
+      <div class="stat-value green" id="statActive">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Discount rules</div>
+      <div class="stat-value blue" id="statDiscount">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Min stay rules</div>
+      <div class="stat-value orange" id="statMinStay">—</div>
+    </div>
+  </div>
 
-      <!-- Pricing Rules Table -->
-      <div class="flex flex-wrap -mx-3">
-        <div class="flex-none w-full max-w-full px-3">
-          <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent flex justify-between items-center">
-              <h6 class="dark:text-white">Pricing Rules</h6>
-              <div class="flex gap-2">
-                <button class="bg-gradient-to-tl from-slate-500 to-slate-400 text-white px-3 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                  <i class="fas fa-download mr-1"></i> Export
-                </button>
-                <button class="bg-gradient-to-tl from-purple-500 to-indigo-400 text-white px-3 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                  <i class="fas fa-copy mr-1"></i> Duplicate
-                </button>
-                <button class="bg-gradient-to-tl from-emerald-500 to-teal-400 text-white px-3 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                  <i class="fas fa-check-double mr-1"></i> Activate All
-                </button>
-                <button class="bg-gradient-to-tl from-slate-500 to-slate-400 text-white px-3 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                  <i class="fas fa-ban mr-1"></i> Deactivate All
-                </button>
-                <button onclick="openAddRuleModal()" class="bg-gradient-to-tl from-blue-500 to-violet-500 text-white px-4 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                  <i class="fas fa-plus mr-1"></i> New Rule
-                </button>
-              </div>
-            </div>
-            <div class="flex-auto px-0 pt-0 pb-2">
-              <div class="p-0 overflow-x-auto">
-                <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500" id="rulesTable">
-                  <thead class="align-bottom">
-                    <tr>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Rule Name</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Type</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Property</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Value</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Priority</th>
-                      <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
-                      <th class="px-6 py-3 font-semibold capitalize align-middle bg-transparent border-b border-collapse border-solid shadow-none dark:border-white/40 dark:text-white tracking-none whitespace-nowrap text-slate-400 opacity-70"></th>
-                    </tr>
-                  </thead>
-                  <tbody id="pricingRulesTableBody">
-                    <tr><td colspan="7" class="p-4 text-center text-slate-400 dark:text-white/60">Loading...</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Rules</span>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <i class="fas fa-search"></i>
+          <input type="text" class="search-input" id="searchInput" placeholder="Search rules…" oninput="filterTable()">
         </div>
+        <button class="btn" onclick="showToast('Export coming soon', 'success')"><i class="fas fa-download"></i> Export</button>
+        <button class="btn" onclick="showToast('Duplicate coming soon', 'success')"><i class="fas fa-copy"></i> Duplicate</button>
+        <button class="btn" onclick="showToast('Bulk actions coming soon', 'success')"><i class="fas fa-check"></i> Activate All</button>
+        <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> New rule</button>
       </div>
+    </div>
+    <div class="table-wrap">
+      <table id="pricingRulesTable">
+        <thead>
+          <tr>
+            <th>Rule name</th>
+            <th>Type</th>
+            <th>Property</th>
+            <th>Category</th>
+            <th>Value</th>
+            <th>Priority</th>
+            <th class="center">Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="pricingRulesTableBody">
+          <tr><td colspan="8" class="empty-state">
+            <i class="fas fa-loader-2"></i>
+            Loading rules…
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <div class="entries-select">
+        <label>Show</label>
+        <select id="entriesPerPage" onchange="changeEntriesPerPage()">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+        <span>entries</span>
+      </div>
+      <div class="pagination-controls">
+        <span class="pagination-info" id="paginationInfo">Showing 0 to 0 of 0 entries</span>
+        <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>
+          <i class="fas fa-chevron-left"></i> Previous
+        </button>
+        <div id="pageNumbers" style="display:flex;gap:4px"></div>
+        <button class="pagination-btn" id="nextBtn" onclick="changePage(1)" disabled>
+          Next <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
-      <!-- Add Rule Modal -->
-      <div id="addRuleModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddRuleModal()"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 900px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-            <h3 class="text-xl font-bold dark:text-white">Create New Pricing Rule</h3>
-            <button onclick="closeAddRuleModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
+<!-- Add Modal -->
+<div class="overlay" id="addOverlay" onclick="handleOverlayClick(event,'addOverlay')">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
+    <div class="modal-header">
+      <span class="modal-title" id="addModalTitle">New pricing rule</span>
+      <button class="modal-close" onclick="closeAddModal()" aria-label="Close">×</button>
+    </div>
+    <form id="addForm" onsubmit="submitAdd(event)">
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="section-label">Scope</div>
+          <div class="form-group">
+            <label>Property</label>
+            <select name="property_id" id="addProperty">
+              <option value="">All Properties</option>
+            </select>
           </div>
-          <form id="addRuleForm" onsubmit="submitAddRule(event)">
-            <div class="p-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Property <span class="text-red-500">*</span></label>
-                  <select name="property_id" id="addProperty" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">All Properties</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Category</label>
-                  <select name="category_id" id="addCategory" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">All Categories</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Rule Name <span class="text-red-500">*</span></label>
-                  <input type="text" name="rule_name" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Weekend Rate">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Rule Type <span class="text-red-500">*</span></label>
-                  <select name="rule_type" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="fixed_price">Fixed Price</option>
-                    <option value="percentage_add">Percentage Add</option>
-                    <option value="percentage_discount">Percentage Discount</option>
-                    <option value="fixed_add">Fixed Add</option>
-                    <option value="minimum_stay">Minimum Stay</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Applies To <span class="text-red-500">*</span></label>
-                  <select name="applies_to" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="all">All Types</option>
-                    <option value="overnight">Overnight</option>
-                    <option value="hourly">Hourly</option>
-                    <option value="day_use">Day Use</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Rule Value <span class="text-red-500">*</span></label>
-                  <input type="number" step="0.01" name="rule_value" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 10.00">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Minimum Nights</label>
-                  <input type="number" name="minimum_nights" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 2">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Priority <span class="text-red-500">*</span></label>
-                  <input type="number" name="priority" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 0">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Date Start</label>
-                  <input type="date" name="date_start" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Date End</label>
-                  <input type="date" name="date_end" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </div>
-                <div class="md:col-span-2">
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Days of Week</label>
-                  <div class="flex flex-wrap gap-2">
-                    <?php $days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']; ?>
-                    <?php foreach ($days as $day): ?>
-                      <label class="inline-flex items-center">
-                        <input type="checkbox" name="day_of_week[]" value="<?php echo $day; ?>" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        <span class="ml-2 text-sm text-slate-600 dark:text-white capitalize"><?php echo $day; ?></span>
-                      </label>
-                    <?php endforeach; ?>
-                  </div>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Is Active</label>
-                  <select name="is_active" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="1">Active</option>
-                    <option value="0">Inactive</option>
-                  </select>
-                </div>
-              </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select name="category_id" id="addCategory">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+          <hr class="divider">
+          <div class="section-label">Rule Details</div>
+          <div class="form-group">
+            <label>Rule name <span class="req">*</span></label>
+            <input type="text" name="rule_name" required placeholder="e.g. Weekend Rate">
+          </div>
+          <div class="form-group">
+            <label>Rule type <span class="req">*</span></label>
+            <select name="rule_type" required>
+              <option value="fixed_price">Fixed Price</option>
+              <option value="percentage_add">Percentage Add</option>
+              <option value="percentage_discount">Percentage Discount</option>
+              <option value="fixed_add">Fixed Add</option>
+              <option value="minimum_stay">Minimum Stay</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Applies to <span class="req">*</span></label>
+            <select name="applies_to" required>
+              <option value="all">All Types</option>
+              <option value="overnight">Overnight</option>
+              <option value="hourly">Hourly</option>
+              <option value="day_use">Day Use</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Rule value <span class="req">*</span></label>
+            <input type="number" step="0.01" name="rule_value" required placeholder="e.g. 10.00">
+          </div>
+          <div class="form-group">
+            <label>Minimum nights</label>
+            <input type="number" name="minimum_nights" placeholder="e.g. 2">
+          </div>
+          <div class="form-group">
+            <label>Priority <span class="req">*</span></label>
+            <input type="number" name="priority" required placeholder="e.g. 0">
+          </div>
+          <div class="form-group">
+            <label>Date start</label>
+            <input type="date" name="date_start">
+          </div>
+          <div class="form-group">
+            <label>Date end</label>
+            <input type="date" name="date_end">
+          </div>
+          <div class="form-group full">
+            <label>Days of week</label>
+            <div class="days-checkbox-group">
+              <?php $days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']; ?>
+              <?php foreach ($days as $day): ?>
+                <label>
+                  <input type="checkbox" name="day_of_week[]" value="<?php echo $day; ?>">
+                  <span><?php echo ucfirst($day); ?></span>
+                </label>
+              <?php endforeach; ?>
             </div>
-            <div class="p-6 border-t border-gray-200 dark:border-white/10 flex justify-end gap-3">
-              <button type="button" onclick="closeAddRuleModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
-                Cancel
-              </button>
-              <button type="submit" class="px-6 py-2 text-sm font-semibold text-white bg-gradient-to-tl from-blue-500 to-violet-500 rounded-lg hover:from-blue-600 hover:to-violet-600 transition-all duration-200 shadow-md hover:shadow-lg">
-                <i class="fas fa-save mr-2"></i>Create Rule
-              </button>
-            </div>
-          </form>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select name="is_active">
+              <option value="1">Active</option>
+              <option value="0">Inactive</option>
+            </select>
+          </div>
         </div>
       </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeAddModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-device-floppy"></i> Create rule</button>
+      </div>
+    </form>
+  </div>
+</div>
 
-      <!-- Edit Rule Modal -->
-      <div id="editRuleModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeEditRuleModal()"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 900px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-            <h3 class="text-xl font-bold dark:text-white">Edit Pricing Rule</h3>
-            <button onclick="closeEditRuleModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
+<!-- Edit Modal -->
+<div class="overlay" id="editOverlay" onclick="handleOverlayClick(event,'editOverlay')">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+    <div class="modal-header">
+      <span class="modal-title" id="editModalTitle">Edit pricing rule</span>
+      <button class="modal-close" onclick="closeEditModal()" aria-label="Close">×</button>
+    </div>
+    <form id="editForm" onsubmit="submitEdit(event)">
+      <div class="modal-body">
+        <div class="form-grid">
+          <input type="hidden" name="rule_id" id="editRuleId">
+          <div class="section-label">Scope</div>
+          <div class="form-group">
+            <label>Property</label>
+            <select name="property_id" id="editProperty">
+              <option value="">All Properties</option>
+            </select>
           </div>
-          <form id="editRuleForm" onsubmit="submitEditRule(event)">
-            <div class="p-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input type="hidden" name="rule_id" id="editRuleId">
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Property <span class="text-red-500">*</span></label>
-                  <select name="property_id" id="editProperty" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">All Properties</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Category</label>
-                  <select name="category_id" id="editCategory" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">All Categories</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Rule Name <span class="text-red-500">*</span></label>
-                  <input type="text" name="rule_name" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Weekend Rate">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Rule Type <span class="text-red-500">*</span></label>
-                  <select name="rule_type" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="fixed_price">Fixed Price</option>
-                    <option value="percentage_add">Percentage Add</option>
-                    <option value="percentage_discount">Percentage Discount</option>
-                    <option value="fixed_add">Fixed Add</option>
-                    <option value="minimum_stay">Minimum Stay</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Applies To <span class="text-red-500">*</span></label>
-                  <select name="applies_to" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="all">All Types</option>
-                    <option value="overnight">Overnight</option>
-                    <option value="hourly">Hourly</option>
-                    <option value="day_use">Day Use</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Rule Value <span class="text-red-500">*</span></label>
-                  <input type="number" step="0.01" name="rule_value" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 10.00">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Minimum Nights</label>
-                  <input type="number" name="minimum_nights" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 2">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Priority <span class="text-red-500">*</span></label>
-                  <input type="number" name="priority" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 0">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Date Start</label>
-                  <input type="date" name="date_start" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Date End</label>
-                  <input type="date" name="date_end" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </div>
-                <div class="md:col-span-2">
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Days of Week</label>
-                  <div class="flex flex-wrap gap-2">
-                    <?php $days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']; ?>
-                    <?php foreach ($days as $day): ?>
-                      <label class="inline-flex items-center">
-                        <input type="checkbox" name="day_of_week[]" value="<?php echo $day; ?>" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        <span class="ml-2 text-sm text-slate-600 dark:text-white capitalize"><?php echo $day; ?></span>
-                      </label>
-                    <?php endforeach; ?>
-                  </div>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Is Active</label>
-                  <select name="is_active" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="1">Active</option>
-                    <option value="0">Inactive</option>
-                  </select>
-                </div>
-              </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select name="category_id" id="editCategory">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+          <hr class="divider">
+          <div class="section-label">Rule Details</div>
+          <div class="form-group">
+            <label>Rule name <span class="req">*</span></label>
+            <input type="text" name="rule_name" required placeholder="e.g. Weekend Rate">
+          </div>
+          <div class="form-group">
+            <label>Rule type <span class="req">*</span></label>
+            <select name="rule_type" required>
+              <option value="fixed_price">Fixed Price</option>
+              <option value="percentage_add">Percentage Add</option>
+              <option value="percentage_discount">Percentage Discount</option>
+              <option value="fixed_add">Fixed Add</option>
+              <option value="minimum_stay">Minimum Stay</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Applies to <span class="req">*</span></label>
+            <select name="applies_to" required>
+              <option value="all">All Types</option>
+              <option value="overnight">Overnight</option>
+              <option value="hourly">Hourly</option>
+              <option value="day_use">Day Use</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Rule value <span class="req">*</span></label>
+            <input type="number" step="0.01" name="rule_value" required placeholder="e.g. 10.00">
+          </div>
+          <div class="form-group">
+            <label>Minimum nights</label>
+            <input type="number" name="minimum_nights" placeholder="e.g. 2">
+          </div>
+          <div class="form-group">
+            <label>Priority <span class="req">*</span></label>
+            <input type="number" name="priority" required placeholder="e.g. 0">
+          </div>
+          <div class="form-group">
+            <label>Date start</label>
+            <input type="date" name="date_start">
+          </div>
+          <div class="form-group">
+            <label>Date end</label>
+            <input type="date" name="date_end">
+          </div>
+          <div class="form-group full">
+            <label>Days of week</label>
+            <div class="days-checkbox-group">
+              <?php $days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']; ?>
+              <?php foreach ($days as $day): ?>
+                <label>
+                  <input type="checkbox" name="day_of_week[]" value="<?php echo $day; ?>">
+                  <span><?php echo ucfirst($day); ?></span>
+                </label>
+              <?php endforeach; ?>
             </div>
-            <div class="p-6 border-t border-gray-200 dark:border-white/10 flex justify-end gap-3">
-              <button type="button" onclick="closeEditRuleModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
-                Cancel
-              </button>
-              <button type="submit" class="px-6 py-2 text-sm font-semibold text-white bg-gradient-to-tl from-blue-500 to-violet-500 rounded-lg hover:from-blue-600 hover:to-violet-600 transition-all duration-200 shadow-md hover:shadow-lg">
-                <i class="fas fa-save mr-2"></i>Update Rule
-              </button>
-            </div>
-          </form>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select name="is_active">
+              <option value="1">Active</option>
+              <option value="0">Inactive</option>
+            </select>
+          </div>
         </div>
       </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeEditModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-device-floppy"></i> Update rule</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-  function filterTable() {
-    const input = document.getElementById('searchInput');
-    const filter = input.value.toLowerCase();
-    const table = document.getElementById('rulesTable');
-    const rows = table.getElementsByTagName('tr');
-
-    for (let i = 1; i < rows.length; i++) {
-      const row = rows[i];
-      const cells = row.getElementsByTagName('td');
-      let found = false;
-
-      for (let j = 0; j < cells.length; j++) {
-        if (cells[j]) {
-          const text = cells[j].textContent || cells[j].innerText;
-          if (text.toLowerCase().indexOf(filter) > -1) {
-            found = true;
-            break;
-          }
-        }
-      }
-
-      row.style.display = found ? '' : 'none';
-    }
+  function openAddModal() {
+    document.getElementById('addOverlay').classList.add('open')
   }
 
-  function openAddRuleModal() {
-    document.getElementById('addRuleModal').style.display = 'block';
+  function closeAddModal() {
+    document.getElementById('addOverlay').classList.remove('open');
+    document.getElementById('addForm').reset();
   }
 
-  function closeAddRuleModal() {
-    document.getElementById('addRuleModal').style.display = 'none';
-    document.getElementById('addRuleForm').reset();
-  }
+  function openEditModal(id) {
+    const r = pricingRulesData.find(x => x.rule_id == id);
+    if (!r) return;
+    const f = document.getElementById('editForm');
+    document.getElementById('editRuleId').value = r.rule_id;
+    f.property_id.value = r.property_id || '';
+    f.category_id.value = r.category_id || '';
+    f.rule_name.value = r.rule_name;
+    f.rule_type.value = r.rule_type;
+    f.applies_to.value = r.applies_to;
+    f.rule_value.value = r.rule_value;
+    f.minimum_nights.value = r.minimum_nights || '';
+    f.priority.value = r.priority;
+    f.date_start.value = r.date_start || '';
+    f.date_end.value = r.date_end || '';
+    f.is_active.value = r.is_active;
 
-  function openEditRuleModal(ruleId) {
-    const rule = pricingRulesData.find(r => r.rule_id == ruleId);
-    if (rule) {
-      document.getElementById('editRuleId').value = rule.rule_id;
-      const form = document.getElementById('editRuleForm');
-      form.property_id.value = rule.property_id;
-      form.category_id.value = rule.category_id || '';
-      form.rule_name.value = rule.rule_name;
-      form.rule_type.value = rule.rule_type;
-      form.applies_to.value = rule.applies_to;
-      form.rule_value.value = rule.rule_value;
-      form.minimum_nights.value = rule.minimum_nights || '';
-      form.priority.value = rule.priority;
-      form.date_start.value = rule.date_start || '';
-      form.date_end.value = rule.date_end || '';
-      form.is_active.value = rule.is_active;
-
-      // Handle day_of_week checkboxes
-      const days = rule.day_of_week ? explode(',', rule.day_of_week) : [];
-      const checkboxes = form.querySelectorAll('input[name="day_of_week[]"]');
-      checkboxes.forEach(cb => {
-        cb.checked = days.includes(cb.value);
-      });
-
-      document.getElementById('editRuleModal').style.display = 'block';
-    }
-  }
-
-  function closeEditRuleModal() {
-    document.getElementById('editRuleModal').style.display = 'none';
-    document.getElementById('editRuleForm').reset();
-  }
-
-  function submitAddRule(event) {
-    event.preventDefault();
-    const form = document.getElementById('addRuleForm');
-    const checkboxes = form.querySelectorAll('input[name="day_of_week[]"]:checked');
-    const daysOfWeek = Array.from(checkboxes).map(cb => cb.value);
-    const payload = {
-      property_id: form.elements['property_id'].value,
-      category_id: form.elements['category_id'].value || null,
-      room_id: form.elements['room_id'].value || null,
-      rule_name: form.elements['rule_name'].value,
-      rule_type: form.elements['rule_type'].value,
-      applies_to: form.elements['applies_to'].value || 'all',
-      rule_value: form.elements['rule_value'].value,
-      minimum_nights: form.elements['minimum_nights'].value || null,
-      day_of_week: daysOfWeek,
-      date_start: form.elements['date_start'].value || null,
-      date_end: form.elements['date_end'].value || null,
-      priority: form.elements['priority'].value || 0,
-      is_active: form.elements['is_active'].value
-    };
-
-    Swal.fire({
-      title: 'Creating...',
-      text: 'Please wait while we create the pricing rule.',
-      allowOutsideClick: false,
-      didOpen: () => { Swal.showLoading(); },
-      customClass: { popup: 'swal2-popup-high-z' }
+    const days = r.day_of_week ? r.day_of_week.split(',') : [];
+    const checkboxes = f.querySelectorAll('input[name="day_of_week[]"]');
+    checkboxes.forEach(cb => {
+      cb.checked = days.includes(cb.value);
     });
 
+    document.getElementById('editOverlay').classList.add('open');
+  }
+
+  function closeEditModal() {
+    document.getElementById('editOverlay').classList.remove('open');
+    document.getElementById('editForm').reset();
+  }
+
+  function handleOverlayClick(e, id) {
+    if (e.target === document.getElementById(id)) document.getElementById(id).classList.remove('open');
+  }
+
+  function submitAdd(e) {
+    e.preventDefault();
+    const f = document.getElementById('addForm');
+    const checkboxes = f.querySelectorAll('input[name="day_of_week[]"]:checked');
+    const daysOfWeek = Array.from(checkboxes).map(cb => cb.value);
+    const payload = {
+      property_id: f.elements['property_id'].value || null,
+      category_id: f.elements['category_id'].value || null,
+      room_id: null,
+      rule_name: f.elements['rule_name'].value,
+      rule_type: f.elements['rule_type'].value,
+      applies_to: f.elements['applies_to'].value || 'all',
+      rule_value: f.elements['rule_value'].value,
+      minimum_nights: f.elements['minimum_nights'].value || null,
+      day_of_week: daysOfWeek,
+      date_start: f.elements['date_start'].value || null,
+      date_end: f.elements['date_end'].value || null,
+      priority: f.elements['priority'].value || 0,
+      is_active: f.elements['is_active'].value
+    };
     fetch('../api/pricing_rules.php?action=create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -494,50 +1097,41 @@
       })
       .then(r => r.json())
       .then(data => {
-        closeAddRuleModal();
+        closeAddModal();
         if (data.success) {
-          Swal.fire({ icon: 'success', title: 'Success!', text: data.message, confirmButtonColor: '#3085d6', customClass: { popup: 'swal2-popup-high-z' } })
-            .then(() => fetchPricingRules());
+          fetchPricingRules();
+          showToast('Rule created', 'success');
         } else {
-          Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
+          showToast(data.message, 'error');
         }
       })
       .catch(() => {
-        closeAddRuleModal();
-        Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while creating the pricing rule.', confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
+        closeAddModal();
+        showToast('An error occurred while creating the rule', 'error');
       });
   }
 
-  function submitEditRule(event) {
-    event.preventDefault();
-    const form = document.getElementById('editRuleForm');
-    const checkboxes = form.querySelectorAll('input[name="day_of_week[]"]:checked');
+  function submitEdit(e) {
+    e.preventDefault();
+    const f = document.getElementById('editForm');
+    const checkboxes = f.querySelectorAll('input[name="day_of_week[]"]:checked');
     const daysOfWeek = Array.from(checkboxes).map(cb => cb.value);
     const payload = {
-      rule_id: form.elements['rule_id'].value,
-      property_id: form.elements['property_id'].value,
-      category_id: form.elements['category_id'].value || null,
-      room_id: form.elements['room_id'].value || null,
-      rule_name: form.elements['rule_name'].value,
-      rule_type: form.elements['rule_type'].value,
-      applies_to: form.elements['applies_to'].value || 'all',
-      rule_value: form.elements['rule_value'].value,
-      minimum_nights: form.elements['minimum_nights'].value || null,
+      rule_id: document.getElementById('editRuleId').value,
+      property_id: f.elements['property_id'].value || null,
+      category_id: f.elements['category_id'].value || null,
+      room_id: null,
+      rule_name: f.elements['rule_name'].value,
+      rule_type: f.elements['rule_type'].value,
+      applies_to: f.elements['applies_to'].value || 'all',
+      rule_value: f.elements['rule_value'].value,
+      minimum_nights: f.elements['minimum_nights'].value || null,
       day_of_week: daysOfWeek,
-      date_start: form.elements['date_start'].value || null,
-      date_end: form.elements['date_end'].value || null,
-      priority: form.elements['priority'].value || 0,
-      is_active: form.elements['is_active'].value
+      date_start: f.elements['date_start'].value || null,
+      date_end: f.elements['date_end'].value || null,
+      priority: f.elements['priority'].value || 0,
+      is_active: f.elements['is_active'].value
     };
-
-    Swal.fire({
-      title: 'Updating...',
-      text: 'Please wait while we update the pricing rule.',
-      allowOutsideClick: false,
-      didOpen: () => { Swal.showLoading(); },
-      customClass: { popup: 'swal2-popup-high-z' }
-    });
-
     fetch('../api/pricing_rules.php?action=update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -545,59 +1139,50 @@
       })
       .then(r => r.json())
       .then(data => {
-        closeEditRuleModal();
+        closeEditModal();
         if (data.success) {
-          Swal.fire({ icon: 'success', title: 'Success!', text: data.message, confirmButtonColor: '#3085d6', customClass: { popup: 'swal2-popup-high-z' } })
-            .then(() => fetchPricingRules());
+          fetchPricingRules();
+          showToast('Rule updated', 'success');
         } else {
-          Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
+          showToast(data.message, 'error');
         }
       })
       .catch(() => {
-        closeEditRuleModal();
-        Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while updating the pricing rule.', confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
+        closeEditModal();
+        showToast('An error occurred while updating the rule', 'error');
       });
   }
 
-  function deleteRule(btn, ruleId, ruleName) {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: `You are about to delete the pricing rule: ${ruleName}`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
-      customClass: { popup: 'swal2-popup-high-z' }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        Swal.fire({
-          title: 'Deleting...',
-          text: 'Please wait while we delete the pricing rule.',
-          allowOutsideClick: false,
-          didOpen: () => { Swal.showLoading(); },
-          customClass: { popup: 'swal2-popup-high-z' }
-        });
+  function confirmDelete(id, name) {
+    if (!confirm(`Delete rule "${name}"? This cannot be undone.`)) return;
+    fetch('../api/pricing_rules.php?action=delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rule_id: id })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          fetchPricingRules();
+          showToast('Rule deleted', 'success');
+        } else {
+          showToast(data.message, 'error');
+        }
+      })
+      .catch(() => {
+        showToast('An error occurred while deleting the rule', 'error');
+      });
+  }
 
-        fetch('../api/pricing_rules.php?action=delete', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rule_id: ruleId })
-          })
-          .then(r => r.json())
-          .then(data => {
-            if (data.success) {
-              Swal.fire({ icon: 'success', title: 'Deleted!', text: data.message, confirmButtonColor: '#3085d6', customClass: { popup: 'swal2-popup-high-z' } })
-                .then(() => fetchPricingRules());
-            } else {
-              Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
-            }
-          })
-          .catch(() => {
-            Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while deleting the pricing rule.', confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
-          });
-      }
-    });
+  let toastTimer;
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type + ' show';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      t.classList.remove('show')
+    }, 3000);
   }
 </script>

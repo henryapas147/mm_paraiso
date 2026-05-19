@@ -13,11 +13,18 @@ try {
 
 // Use database values or fallback to defaults
 $email = $companyInfo['email'] ?? 'info@company.com';
-$address = $companyInfo['address_line1'] ?? '';
-$city = $companyInfo['city'] ?? '';
-$province = $companyInfo['province'] ?? '';
-$country = $companyInfo['country'] ?? '';
-$fullAddress = trim("$address, $city, $province, $country", ', ');
+
+// Build full address with all geocode components
+$addressParts = [
+    $companyInfo['address_line1'] ?? null,
+    $companyInfo['address_line2'] ?? null,
+    $companyInfo['barangay'] ?? null,
+    $companyInfo['city'] ?? null,
+    $companyInfo['province'] ?? null,
+    $companyInfo['postal_code'] ?? null,
+    $companyInfo['country'] ?? 'Philippines'
+];
+$fullAddress = implode(', ', array_filter($addressParts));
 if (empty($fullAddress)) $fullAddress = 'Sunny Isles Beach, FL 33160';
 
 $facebookUrl = $companyInfo['facebook_url'] ?? '#';
@@ -31,7 +38,7 @@ $instagramUrl = $companyInfo['instagram_url'] ?? '#';
             <div class="col-lg-8 col-md-8">
                 <ul class="info">
                     <li><i class="fa fa-envelope"></i> <?php echo htmlspecialchars($email); ?></li>
-                    <li><i class="fa fa-map"></i> <?php echo htmlspecialchars($fullAddress); ?></li>
+                    <li><i class="fa fa-map"></i> <span title="<?php echo htmlspecialchars($fullAddress); ?>"><?php echo htmlspecialchars($fullAddress); ?></span></li>
                 </ul>
             </div>
             <div class="col-lg-4 col-md-4">

@@ -247,12 +247,25 @@ class RBAC
 
     /**
      * Check if user can access a sub-page.
-     * Strict mode: requires the specific sub-page permission to be granted.
-     * The parent .view permission only controls dropdown visibility, not sub-page access.
+     * If the specific sub-page permission exists and is granted, allow access.
+     * If the specific sub-page permission does not exist in the role's permission list,
+     * fall back to the parent permission (first dot-separated segment + ".view").
      */
     public static function canAccessSubPage($subPermission)
     {
-        return self::hasPermission($subPermission);
+        // If the role explicitly has the specific sub-page permission, allow
+        if (self::hasPermission($subPermission)) {
+            return true;
+        }
+
+        // Derive parent permission: e.g. "properties.properties.view" -> "properties.view"
+        $parts = explode('.', $subPermission);
+        if (count($parts) >= 2) {
+            $parentPermission = $parts[0] . '.view';
+            return self::hasPermission($parentPermission);
+        }
+
+        return false;
     }
 
     /**
@@ -413,7 +426,12 @@ class RBAC
             'users/edit' => ['users.edit'],
             // Customers (admin management)
             'customers' => ['customers.view'],
-            'customers/list' => ['customers.view']
+            'customers/list' => ['customers.view'],
+            // Contact Inquiries
+            'contact-inquiries' => ['customers.view'],
+            'contact-inquiries/view' => ['customers.view'],
+            'contact-inquiries/updateStatus' => ['customers.view'],
+            'contact-inquiries/delete' => ['customers.view']
         ];
 
         $required = $routePermissions[$route] ?? ['dashboard.view'];

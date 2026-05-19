@@ -1,17 +1,603 @@
-<?php if (false) {} ?>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0
+  }
+
+  .page {
+    padding: 24px;
+    max-width: 100%;
+    margin: 0 auto
+  }
+
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 500;
+    color: #333
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+    color: #666;
+    margin-top: 2px
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px
+  }
+
+  .stat-card {
+    background: #fff;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px 20px
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 500
+  }
+
+  .stat-value.blue {
+    color: #185FA5
+  }
+
+  .stat-value.green {
+    color: #3B6D11
+  }
+
+  .stat-value.purple {
+    color: #534AB7
+  }
+
+  .stat-value.red {
+    color: #A32D2D
+  }
+
+  .stat-value.orange {
+    color: #C75100
+  }
+
+  .card {
+    background: #fff;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 12px
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 0.5px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap
+  }
+
+  .card-title {
+    font-size: 16px;
+    font-weight: 500
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap
+  }
+
+  .search-wrap {
+    position: relative
+  }
+
+  .search-wrap i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 15px;
+    pointer-events: none
+  }
+
+  .search-input {
+    padding: 7px 12px 7px 34px;
+    font-size: 13px;
+    border: 0.5px solid #d1d5db;
+    border-radius: 8px;
+    background: #f9fafb;
+    color: #333;
+    outline: none;
+    width: 220px
+  }
+
+  .search-input:focus {
+    border-color: #185FA5
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+    border: 0.5px solid #d1d5db;
+    background: #fff;
+    color: #333;
+    cursor: pointer;
+    transition: background .15s
+  }
+
+  .btn:hover {
+    background: #f9fafb
+  }
+
+  .btn-primary {
+    background: #185FA5;
+    color: #fff;
+    border-color: #185FA5
+  }
+
+  .btn-primary:hover {
+    background: #0C447C;
+    border-color: #0C447C
+  }
+
+  .btn i {
+    font-size: 14px
+  }
+
+  .table-wrap {
+    overflow-x: auto
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px
+  }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 0.5px solid #e5e7eb;
+    white-space: nowrap
+  }
+
+  thead th.center {
+    text-align: center
+  }
+
+  tbody tr {
+    border-bottom: 0.5px solid #e5e7eb;
+    transition: background .1s
+  }
+
+  tbody tr:last-child {
+    border-bottom: none
+  }
+
+  tbody tr:hover {
+    background: #f9fafb
+  }
+
+  td {
+    padding: 11px 16px;
+    vertical-align: middle;
+    white-space: nowrap
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500
+  }
+
+  .status-badge.active {
+    background: #EAF3DE;
+    color: #27500A
+  }
+
+  .status-badge.inactive {
+    background: #F1EFE8;
+    color: #5F5E5A
+  }
+
+  .policy-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500
+  }
+
+  .policy-badge.cancellation {
+    background: #E6F1FB;
+    color: #0C447C
+  }
+
+  .policy-badge.deposit {
+    background: #FCEBEB;
+    color: #791F1F
+  }
+
+  .policy-badge.no_show {
+    background: #F1EFE8;
+    color: #5F5E5A
+  }
+
+  .policy-badge.minimum_stay {
+    background: #EAF3DE;
+    color: #27500A
+  }
+
+  .policy-badge.advance_booking {
+    background: #F3E6F6;
+    color: #534AB7
+  }
+
+  .policy-badge.child_policy {
+    background: #FEF6E6;
+    color: #C75100
+  }
+
+  .policy-badge.pet_policy {
+    background: #F6E6E6;
+    color: #A32D2D
+  }
+
+  .policy-badge.early_checkout {
+    background: #E6F1FB;
+    color: #0C447C
+  }
+
+  .policy-badge.late_checkout {
+    background: #FCEBEB;
+    color: #791F1F
+  }
+
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 8px;
+    border: 0.5px solid #e5e7eb;
+    background: transparent;
+    cursor: pointer;
+    transition: all .15s;
+    color: #666
+  }
+
+  .action-btn:hover {
+    background: #f9fafb;
+    color: #333;
+    border-color: #d1d5db
+  }
+
+  .action-btn.danger:hover {
+    background: #FCEBEB;
+    color: #791F1F;
+    border-color: #F09595
+  }
+
+  .action-btn i {
+    font-size: 12px
+  }
+
+  .actions-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px
+  }
+
+  .label-text {
+    font-size: 13px;
+    color: #333
+  }
+
+  .value-text {
+    font-size: 12px;
+    color: #666
+  }
+
+  .empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    color: #666
+  }
+
+  .empty-state i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+    color: #999
+  }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .45);
+    z-index: 9000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px
+  }
+
+  .overlay.open {
+    display: flex
+  }
+
+  .modal {
+    background: #fff;
+    border-radius: 16px;
+    border: 0.5px solid #e5e7eb;
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, .18)
+  }
+
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 0.5px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between
+  }
+
+  .modal-title {
+    font-size: 16px;
+    font-weight: 500
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    font-size: 20px;
+    line-height: 1;
+    padding: 4px
+  }
+
+  .modal-close:hover {
+    color: #333
+  }
+
+  .modal-body {
+    padding: 24px
+  }
+
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 0.5px solid #e5e7eb;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px
+  }
+
+  .form-group.full {
+    grid-column: 1/-1
+  }
+
+  label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.05em
+  }
+
+  label .req {
+    color: #A32D2D;
+    margin-left: 2px
+  }
+
+  input,
+  select,
+  textarea {
+    font-family: system-ui, sans-serif;
+    font-size: 13px;
+    color: #333;
+    background: #f9fafb;
+    border: 0.5px solid #d1d5db;
+    border-radius: 8px;
+    padding: 8px 12px;
+    outline: none;
+    width: 100%;
+    transition: border .15s
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: #185FA5;
+    background: #fff
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #fff;
+    border: 0.5px solid #d1d5db;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 9999;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all .25s
+  }
+
+  .toast.show {
+    transform: none;
+    opacity: 1
+  }
+
+  .toast.success {
+    border-color: #9FE1CB;
+    color: #085041
+  }
+
+  .toast.error {
+    border-color: #F7C1C1;
+    color: #791F1F
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-top: 0.5px solid #e5e7eb
+  }
+
+  .pagination-info {
+    font-size: 13px;
+    color: #666
+  }
+
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px
+  }
+
+  .pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+    border: 0.5px solid #d1d5db;
+    background: #fff;
+    color: #333;
+    cursor: pointer;
+    transition: background .15s
+  }
+
+  .pagination-btn:hover:not(:disabled) {
+    background: #f9fafb
+  }
+
+  .pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed
+  }
+
+  .pagination-btn.active {
+    background: #185FA5;
+    color: #fff;
+    border-color: #185FA5
+  }
+
+  .entries-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #666
+  }
+
+  .entries-select select {
+    padding: 6px 10px;
+    font-size: 13px;
+    border: 0.5px solid #d1d5db;
+    border-radius: 8px;
+    background: #f9fafb;
+    color: #333;
+    outline: none;
+    cursor: pointer
+  }
+
+  .entries-select select:focus {
+    border-color: #185FA5;
+    background: #fff
+  }
+</style>
+
 <script>
   let bookingPoliciesData = [];
   let propertiesData = [];
   let categoriesData = [];
+  let pagination = {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0
+  };
 
   async function fetchBookingPolicies() {
     try {
-      const res = await fetch('../api/booking_policies.php?action=list');
+      const res = await fetch(`../api/booking_policies.php?action=list&page=${pagination.page}&limit=${pagination.limit}`);
       const json = await res.json();
       if (json.success) {
         bookingPoliciesData = json.data;
+        pagination = json.pagination;
         renderStats();
         renderTable();
+        renderPagination();
       }
     } catch (e) {
       console.error('Error fetching booking policies:', e);
@@ -32,49 +618,85 @@
     }
   }
 
+  function policyClass(t) {
+    return ['cancellation', 'deposit', 'no_show', 'minimum_stay', 'advance_booking', 'child_policy', 'pet_policy', 'early_checkout', 'late_checkout'].includes(t) ? t : 'cancellation'
+  }
+
   function renderStats() {
-    const active = bookingPoliciesData.filter(p => p.is_active == 1).length;
-    const cancel = bookingPoliciesData.filter(p => p.policy_type == 'cancellation').length;
-    const deposit = bookingPoliciesData.filter(p => p.policy_type == 'deposit').length;
-    document.getElementById('statTotal').textContent = bookingPoliciesData.length;
-    document.getElementById('statActive').textContent = active;
-    document.getElementById('statCancel').textContent = cancel;
-    document.getElementById('statDeposit').textContent = deposit;
+    document.getElementById('statTotal').textContent = pagination.total;
+    document.getElementById('statActive').textContent = bookingPoliciesData.filter(p => p.is_active == 1).length;
+    document.getElementById('statCancel').textContent = bookingPoliciesData.filter(p => p.policy_type == 'cancellation').length;
+    document.getElementById('statDeposit').textContent = bookingPoliciesData.filter(p => p.policy_type == 'deposit').length;
+  }
+
+  function renderPagination() {
+    const start = (pagination.page - 1) * pagination.limit + 1;
+    const end = Math.min(pagination.page * pagination.limit, pagination.total);
+    document.getElementById('paginationInfo').textContent = `Showing ${start} to ${end} of ${pagination.total} entries`;
+
+    document.getElementById('prevBtn').disabled = pagination.page === 1;
+    document.getElementById('nextBtn').disabled = pagination.page === pagination.totalPages;
+
+    const pageNumbers = document.getElementById('pageNumbers');
+    pageNumbers.innerHTML = '';
+
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, pagination.page - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(pagination.totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      const btn = document.createElement('button');
+      btn.className = `pagination-btn ${i === pagination.page ? 'active' : ''}`;
+      btn.textContent = i;
+      btn.onclick = () => goToPage(i);
+      pageNumbers.appendChild(btn);
+    }
+  }
+
+  function changePage(delta) {
+    const newPage = pagination.page + delta;
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      pagination.page = newPage;
+      fetchBookingPolicies();
+    }
+  }
+
+  function goToPage(page) {
+    pagination.page = page;
+    fetchBookingPolicies();
+  }
+
+  function changeEntriesPerPage() {
+    pagination.limit = parseInt(document.getElementById('entriesPerPage').value);
+    pagination.page = 1;
+    fetchBookingPolicies();
   }
 
   function renderTable() {
     const tbody = document.getElementById('bookingPoliciesTableBody');
     if (!bookingPoliciesData.length) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 dark:text-white/60">No booking policies found.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><i class="fas fa-database-off"></i>No booking policies found.</td></tr>`;
       return;
     }
-    tbody.innerHTML = bookingPoliciesData.map(policy => `
-      <tr class="booking-policy-row">
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">${policy.policy_name}</p>
-        </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <span class="bg-gradient-to-tl from-blue-500 to-cyan-400 px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">${policy.policy_type}</span>
-        </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">${policy.property_name || 'All Properties'}</p>
-        </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">${policy.category_name || 'All Categories'}</p>
-        </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-bold leading-tight dark:text-white">${policy.policy_value || '-'}</p>
-        </td>
-        <td class="p-2 text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <span class="bg-gradient-to-tl ${policy.is_active ? 'from-emerald-500 to-teal-400' : 'from-slate-500 to-slate-400'} px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">${policy.is_active ? 'Active' : 'Inactive'}</span>
-        </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <div class="flex items-center gap-2">
-            <button onclick="openEditPolicyModal('${policy.policy_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-500/20 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-300 dark:hover:border-amber-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Edit Policy">
-              <i class="fas fa-edit mr-1.5 text-xs"></i><span>Edit</span>
+    tbody.innerHTML = bookingPoliciesData.map(p => `
+      <tr class="booking-policy-row" data-id="${p.policy_id}">
+        <td><span class="label-text">${p.policy_name}</span></td>
+        <td><span class="policy-badge ${policyClass(p.policy_type)}">${p.policy_type}</span></td>
+        <td><span class="value-text">${p.property_name || 'All Properties'}</span></td>
+        <td><span class="value-text">${p.category_name || 'All Categories'}</span></td>
+        <td><span class="value-text">${p.description || '—'}</span></td>
+        <td style="text-align:center"><span class="status-badge ${p.is_active?'active':'inactive'}">${p.is_active?'Active':'Inactive'}</span></td>
+        <td>
+          <div class="actions-cell">
+            <button class="action-btn" onclick="openEditModal('${p.policy_id}')">
+              <i class="fas fa-edit"></i> Edit
             </button>
-            <button onclick="deletePolicy(this)" data-id="${policy.policy_id}" data-name="${policy.policy_name}" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 bg-white dark:bg-slate-700/50 border border-red-200 dark:border-white/10 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-700 dark:hover:text-red-300 hover:border-red-300 dark:hover:border-red-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Delete Policy">
-              <i class="fas fa-trash-alt mr-1.5 text-xs"></i><span>Delete</span>
+            <button class="action-btn danger" onclick="confirmDelete('${p.policy_id}','${p.policy_name}')">
+              <i class="fas fa-trash"></i> Delete
             </button>
           </div>
         </td>
@@ -84,8 +706,15 @@
   function populateDropdowns() {
     const propOpts = '<option value="">All Properties</option>' + propertiesData.map(p => `<option value="${p.property_id}">${p.property_name}</option>`).join('');
     const catOpts = '<option value="">All Categories</option>' + categoriesData.map(c => `<option value="${c.category_id}">${c.category_name}</option>`).join('');
-    ['addProperty', 'editProperty'].forEach(id => { const sel = document.getElementById(id); if (sel) sel.innerHTML = propOpts; });
-    ['addCategory', 'editCategory'].forEach(id => { const sel = document.getElementById(id); if (sel) sel.innerHTML = catOpts; });
+    ['addProperty', 'editProperty'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = propOpts; });
+    ['addCategory', 'editCategory'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = catOpts; });
+  }
+
+  function filterTable() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('#bookingPoliciesTableBody .booking-policy-row').forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -94,391 +723,338 @@
   });
 </script>
 
-<!-- PAGE CONTENT -->
-      <!-- Stats Cards -->
-      <div class="flex flex-wrap -mx-3 mb-6">
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Total Policies</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statTotal">...</h5>
-            </div>
-          </div>
-        </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Active Policies</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl text-emerald-500" id="statActive">...</h5>
-            </div>
-          </div>
-        </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Cancellation</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl text-blue-500" id="statCancel">...</h5>
-            </div>
-          </div>
-        </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Deposit</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl text-orange-500" id="statDeposit">...</h5>
-            </div>
-          </div>
-        </div>
-      </div>
+<div class="page">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total policies</div>
+      <div class="stat-value" id="statTotal">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Active</div>
+      <div class="stat-value green" id="statActive">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Cancellation</div>
+      <div class="stat-value blue" id="statCancel">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Deposit</div>
+      <div class="stat-value orange" id="statDeposit">—</div>
+    </div>
+  </div>
 
-      <!-- Booking Policies Table -->
-      <div class="flex flex-wrap -mx-3">
-        <div class="flex-none w-full max-w-full px-3">
-          <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent flex justify-between items-center">
-              <h6 class="dark:text-white">Booking Policies</h6>
-              <div class="flex gap-2">
-                <button class="bg-gradient-to-tl from-slate-500 to-slate-400 text-white px-3 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                  <i class="fas fa-download mr-1"></i> Export
-                </button>
-                <button class="bg-gradient-to-tl from-purple-500 to-indigo-400 text-white px-3 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                  <i class="fas fa-copy mr-1"></i> Duplicate
-                </button>
-                <button class="bg-gradient-to-tl from-emerald-500 to-teal-400 text-white px-3 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                  <i class="fas fa-check-double mr-1"></i> Activate All
-                </button>
-                <button class="bg-gradient-to-tl from-slate-500 to-slate-400 text-white px-3 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                  <i class="fas fa-ban mr-1"></i> Deactivate All
-                </button>
-                <button onclick="openAddPolicyModal()" class="bg-gradient-to-tl from-blue-500 to-violet-500 text-white px-4 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                  <i class="fas fa-plus mr-1"></i> New Policy
-                </button>
-              </div>
-            </div>
-            <div class="flex-auto px-0 pt-0 pb-2">
-              <div class="p-0 overflow-x-auto">
-                <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500" id="policiesTable">
-                  <thead class="align-bottom">
-                    <tr>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Policy Name</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Type</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Property</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Description</th>
-                      <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
-                      <th class="px-6 py-3 font-semibold capitalize align-middle bg-transparent border-b border-collapse border-solid shadow-none dark:border-white/40 dark:text-white tracking-none whitespace-nowrap text-slate-400 opacity-70"></th>
-                    </tr>
-                  </thead>
-                  <tbody id="bookingPoliciesTableBody">
-                    <tr><td colspan="6" class="p-4 text-center text-slate-400 dark:text-white/60">Loading...</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Booking policies</span>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <i class="fas fa-search"></i>
+          <input type="text" class="search-input" id="searchInput" placeholder="Search policies…" oninput="filterTable()">
         </div>
+        <button class="btn" onclick="showToast('Export coming soon', 'success')"><i class="fas fa-download"></i> Export</button>
+        <button class="btn" onclick="showToast('Duplicate coming soon', 'success')"><i class="fas fa-copy"></i> Duplicate</button>
+        <button class="btn" onclick="showToast('Bulk actions coming soon', 'success')"><i class="fas fa-check"></i> Activate All</button>
+        <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> New policy</button>
       </div>
+    </div>
+    <div class="table-wrap">
+      <table id="policiesTable">
+        <thead>
+          <tr>
+            <th>Policy name</th>
+            <th>Type</th>
+            <th>Property</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th class="center">Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="bookingPoliciesTableBody">
+          <tr><td colspan="7" class="empty-state">
+            <i class="fas fa-loader-2"></i>
+            Loading policies…
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <div class="entries-select">
+        <label>Show</label>
+        <select id="entriesPerPage" onchange="changeEntriesPerPage()">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+        <span>entries</span>
+      </div>
+      <div class="pagination-controls">
+        <span class="pagination-info" id="paginationInfo">Showing 0 to 0 of 0 entries</span>
+        <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>
+          <i class="fas fa-chevron-left"></i> Previous
+        </button>
+        <div id="pageNumbers" style="display:flex;gap:4px"></div>
+        <button class="pagination-btn" id="nextBtn" onclick="changePage(1)" disabled>
+          Next <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
-      <!-- Add Policy Modal -->
-      <div id="addPolicyModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddPolicyModal()"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 900px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-            <h3 class="text-xl font-bold dark:text-white">Create New Booking Policy</h3>
-            <button onclick="closeAddPolicyModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
+<!-- Add Modal -->
+<div class="overlay" id="addOverlay" onclick="handleOverlayClick(event,'addOverlay')">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
+    <div class="modal-header">
+      <span class="modal-title" id="addModalTitle">New booking policy</span>
+      <button class="modal-close" onclick="closeAddModal()" aria-label="Close">×</button>
+    </div>
+    <form id="addForm" onsubmit="submitAdd(event)">
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Property</label>
+            <select name="property_id" id="addProperty">
+              <option value="">All Properties</option>
+            </select>
           </div>
-          <form id="addPolicyForm" onsubmit="submitAddPolicy(event)">
-            <div class="p-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Property</label>
-                  <select name="property_id" id="addProperty" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">All Properties</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Category (Optional)</label>
-                  <select name="category_id" id="addCategory" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">All Categories</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Policy Type <span class="text-red-500">*</span></label>
-                  <select name="policy_type" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="cancellation">Cancellation</option>
-                    <option value="deposit">Deposit</option>
-                    <option value="no_show">No Show</option>
-                    <option value="early_checkout">Early Checkout</option>
-                    <option value="late_checkout">Late Checkout</option>
-                    <option value="minimum_stay">Minimum Stay</option>
-                    <option value="advance_booking">Advance Booking</option>
-                    <option value="child_policy">Child Policy</option>
-                    <option value="pet_policy">Pet Policy</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Policy Name <span class="text-red-500">*</span></label>
-                  <input type="text" name="policy_name" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Standard Cancellation Policy">
-                </div>
-                <div class="md:col-span-2">
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Description <span class="text-red-500">*</span></label>
-                  <textarea name="description" required rows="3" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Policy description..."></textarea>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Free Cancel Hours</label>
-                  <input type="number" name="free_cancel_hours" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 24">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Penalty Type</label>
-                  <select name="penalty_type" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Select Type</option>
-                    <option value="percentage">Percentage</option>
-                    <option value="fixed">Fixed</option>
-                    <option value="first_night">First Night</option>
-                    <option value="full_stay">Full Stay</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Penalty Value</label>
-                  <input type="number" step="0.01" name="penalty_value" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 10.00">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Deposit Type</label>
-                  <select name="deposit_type" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Select Type</option>
-                    <option value="percentage">Percentage</option>
-                    <option value="fixed">Fixed</option>
-                    <option value="first_night">First Night</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Deposit Value</label>
-                  <input type="number" step="0.01" name="deposit_value" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 20.00">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Min Nights</label>
-                  <input type="number" name="min_nights" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 2">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Is Active</label>
-                  <select name="is_active" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="1">Active</option>
-                    <option value="0">Inactive</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="p-6 border-t border-gray-200 dark:border-white/10 flex justify-end gap-3">
-              <button type="button" onclick="closeAddPolicyModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
-                Cancel
-              </button>
-              <button type="submit" class="px-6 py-2 text-sm font-semibold text-white bg-gradient-to-tl from-blue-500 to-violet-500 rounded-lg hover:from-blue-600 hover:to-violet-600 transition-all duration-200 shadow-md hover:shadow-lg">
-                <i class="fas fa-save mr-2"></i>Create Policy
-              </button>
-            </div>
-          </form>
+          <div class="form-group">
+            <label>Category</label>
+            <select name="category_id" id="addCategory">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Policy type <span class="req">*</span></label>
+            <select name="policy_type" required>
+              <option value="cancellation">Cancellation</option>
+              <option value="deposit">Deposit</option>
+              <option value="no_show">No Show</option>
+              <option value="early_checkout">Early Checkout</option>
+              <option value="late_checkout">Late Checkout</option>
+              <option value="minimum_stay">Minimum Stay</option>
+              <option value="advance_booking">Advance Booking</option>
+              <option value="child_policy">Child Policy</option>
+              <option value="pet_policy">Pet Policy</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Policy name <span class="req">*</span></label>
+            <input type="text" name="policy_name" required placeholder="e.g. Standard Cancellation Policy">
+          </div>
+          <div class="form-group full">
+            <label>Description <span class="req">*</span></label>
+            <textarea name="description" required placeholder="Policy description..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Free cancel hours</label>
+            <input type="number" name="free_cancel_hours" placeholder="e.g. 24">
+          </div>
+          <div class="form-group">
+            <label>Penalty type</label>
+            <select name="penalty_type">
+              <option value="">Select type</option>
+              <option value="percentage">Percentage</option>
+              <option value="fixed">Fixed</option>
+              <option value="first_night">First Night</option>
+              <option value="full_stay">Full Stay</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Penalty value</label>
+            <input type="number" step="0.01" name="penalty_value" placeholder="e.g. 10.00">
+          </div>
+          <div class="form-group">
+            <label>Deposit type</label>
+            <select name="deposit_type">
+              <option value="">Select type</option>
+              <option value="percentage">Percentage</option>
+              <option value="fixed">Fixed</option>
+              <option value="first_night">First Night</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Deposit value</label>
+            <input type="number" step="0.01" name="deposit_value" placeholder="e.g. 20.00">
+          </div>
+          <div class="form-group">
+            <label>Min nights</label>
+            <input type="number" name="min_nights" placeholder="e.g. 2">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select name="is_active">
+              <option value="1">Active</option>
+              <option value="0">Inactive</option>
+            </select>
+          </div>
         </div>
       </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeAddModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-device-floppy"></i> Create policy</button>
+      </div>
+    </form>
+  </div>
+</div>
 
-      <!-- Edit Policy Modal -->
-      <div id="editPolicyModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeEditPolicyModal()"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 900px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-            <h3 class="text-xl font-bold dark:text-white">Edit Booking Policy</h3>
-            <button onclick="closeEditPolicyModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
+<!-- Edit Modal -->
+<div class="overlay" id="editOverlay" onclick="handleOverlayClick(event,'editOverlay')">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+    <div class="modal-header">
+      <span class="modal-title" id="editModalTitle">Edit booking policy</span>
+      <button class="modal-close" onclick="closeEditModal()" aria-label="Close">×</button>
+    </div>
+    <form id="editForm" onsubmit="submitEdit(event)">
+      <div class="modal-body">
+        <div class="form-grid">
+          <input type="hidden" name="policy_id" id="editPolicyId">
+          <div class="form-group">
+            <label>Property</label>
+            <select name="property_id" id="editProperty">
+              <option value="">All Properties</option>
+            </select>
           </div>
-          <form id="editPolicyForm" onsubmit="submitEditPolicy(event)">
-            <div class="p-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input type="hidden" name="policy_id" id="editPolicyId">
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Property</label>
-                  <select name="property_id" id="editProperty" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">All Properties</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Category (Optional)</label>
-                  <select name="category_id" id="editCategory" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">All Categories</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Policy Type <span class="text-red-500">*</span></label>
-                  <select name="policy_type" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="cancellation">Cancellation</option>
-                    <option value="deposit">Deposit</option>
-                    <option value="no_show">No Show</option>
-                    <option value="early_checkout">Early Checkout</option>
-                    <option value="late_checkout">Late Checkout</option>
-                    <option value="minimum_stay">Minimum Stay</option>
-                    <option value="advance_booking">Advance Booking</option>
-                    <option value="child_policy">Child Policy</option>
-                    <option value="pet_policy">Pet Policy</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Policy Name <span class="text-red-500">*</span></label>
-                  <input type="text" name="policy_name" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Standard Cancellation Policy">
-                </div>
-                <div class="md:col-span-2">
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Description <span class="text-red-500">*</span></label>
-                  <textarea name="description" required rows="3" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Policy description..."></textarea>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Free Cancel Hours</label>
-                  <input type="number" name="free_cancel_hours" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 24">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Penalty Type</label>
-                  <select name="penalty_type" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Select Type</option>
-                    <option value="percentage">Percentage</option>
-                    <option value="fixed">Fixed</option>
-                    <option value="first_night">First Night</option>
-                    <option value="full_stay">Full Stay</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Penalty Value</label>
-                  <input type="number" step="0.01" name="penalty_value" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 10.00">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Deposit Type</label>
-                  <select name="deposit_type" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Select Type</option>
-                    <option value="percentage">Percentage</option>
-                    <option value="fixed">Fixed</option>
-                    <option value="first_night">First Night</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Deposit Value</label>
-                  <input type="number" step="0.01" name="deposit_value" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 20.00">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Min Nights</label>
-                  <input type="number" name="min_nights" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 2">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Is Active</label>
-                  <select name="is_active" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="1">Active</option>
-                    <option value="0">Inactive</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="p-6 border-t border-gray-200 dark:border-white/10 flex justify-end gap-3">
-              <button type="button" onclick="closeEditPolicyModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
-                Cancel
-              </button>
-              <button type="submit" class="px-6 py-2 text-sm font-semibold text-white bg-gradient-to-tl from-blue-500 to-violet-500 rounded-lg hover:from-blue-600 hover:to-violet-600 transition-all duration-200 shadow-md hover:shadow-lg">
-                <i class="fas fa-save mr-2"></i>Update Policy
-              </button>
-            </div>
-          </form>
+          <div class="form-group">
+            <label>Category</label>
+            <select name="category_id" id="editCategory">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Policy type <span class="req">*</span></label>
+            <select name="policy_type" required>
+              <option value="cancellation">Cancellation</option>
+              <option value="deposit">Deposit</option>
+              <option value="no_show">No Show</option>
+              <option value="early_checkout">Early Checkout</option>
+              <option value="late_checkout">Late Checkout</option>
+              <option value="minimum_stay">Minimum Stay</option>
+              <option value="advance_booking">Advance Booking</option>
+              <option value="child_policy">Child Policy</option>
+              <option value="pet_policy">Pet Policy</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Policy name <span class="req">*</span></label>
+            <input type="text" name="policy_name" required placeholder="e.g. Standard Cancellation Policy">
+          </div>
+          <div class="form-group full">
+            <label>Description <span class="req">*</span></label>
+            <textarea name="description" required placeholder="Policy description..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Free cancel hours</label>
+            <input type="number" name="free_cancel_hours" placeholder="e.g. 24">
+          </div>
+          <div class="form-group">
+            <label>Penalty type</label>
+            <select name="penalty_type">
+              <option value="">Select type</option>
+              <option value="percentage">Percentage</option>
+              <option value="fixed">Fixed</option>
+              <option value="first_night">First Night</option>
+              <option value="full_stay">Full Stay</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Penalty value</label>
+            <input type="number" step="0.01" name="penalty_value" placeholder="e.g. 10.00">
+          </div>
+          <div class="form-group">
+            <label>Deposit type</label>
+            <select name="deposit_type">
+              <option value="">Select type</option>
+              <option value="percentage">Percentage</option>
+              <option value="fixed">Fixed</option>
+              <option value="first_night">First Night</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Deposit value</label>
+            <input type="number" step="0.01" name="deposit_value" placeholder="e.g. 20.00">
+          </div>
+          <div class="form-group">
+            <label>Min nights</label>
+            <input type="number" name="min_nights" placeholder="e.g. 2">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select name="is_active">
+              <option value="1">Active</option>
+              <option value="0">Inactive</option>
+            </select>
+          </div>
         </div>
       </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeEditModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-device-floppy"></i> Update policy</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-  function filterTable() {
-    const input = document.getElementById('searchInput');
-    const filter = input.value.toLowerCase();
-    const table = document.getElementById('policiesTable');
-    const rows = table.getElementsByTagName('tr');
-
-    for (let i = 1; i < rows.length; i++) {
-      const row = rows[i];
-      const cells = row.getElementsByTagName('td');
-      let found = false;
-
-      for (let j = 0; j < cells.length; j++) {
-        if (cells[j]) {
-          const text = cells[j].textContent || cells[j].innerText;
-          if (text.toLowerCase().indexOf(filter) > -1) {
-            found = true;
-            break;
-          }
-        }
-      }
-
-      row.style.display = found ? '' : 'none';
-    }
+  function openAddModal() {
+    document.getElementById('addOverlay').classList.add('open')
   }
 
-  function openAddPolicyModal() {
-    document.getElementById('addPolicyModal').style.display = 'block';
+  function closeAddModal() {
+    document.getElementById('addOverlay').classList.remove('open');
+    document.getElementById('addForm').reset();
   }
 
-  function closeAddPolicyModal() {
-    document.getElementById('addPolicyModal').style.display = 'none';
-    document.getElementById('addPolicyForm').reset();
+  function openEditModal(id) {
+    const p = bookingPoliciesData.find(x => x.policy_id == id);
+    if (!p) return;
+    const f = document.getElementById('editForm');
+    document.getElementById('editPolicyId').value = p.policy_id;
+    f.property_id.value = p.property_id || '';
+    f.category_id.value = p.category_id || '';
+    f.policy_type.value = p.policy_type;
+    f.policy_name.value = p.policy_name;
+    f.description.value = p.description;
+    f.free_cancel_hours.value = p.free_cancel_hours || '';
+    f.penalty_type.value = p.penalty_type || '';
+    f.penalty_value.value = p.penalty_value || '';
+    f.deposit_type.value = p.deposit_type || '';
+    f.deposit_value.value = p.deposit_value || '';
+    f.min_nights.value = p.min_nights || '';
+    f.is_active.value = p.is_active;
+    document.getElementById('editOverlay').classList.add('open');
   }
 
-  function openEditPolicyModal(policyId) {
-    const policy = bookingPoliciesData.find(p => p.policy_id == policyId);
-    if (policy) {
-      document.getElementById('editPolicyId').value = policy.policy_id;
-      const form = document.getElementById('editPolicyForm');
-      form.property_id.value = policy.property_id || '';
-      form.category_id.value = policy.category_id || '';
-      form.policy_type.value = policy.policy_type;
-      form.policy_name.value = policy.policy_name;
-      form.description.value = policy.description;
-      form.free_cancel_hours.value = policy.free_cancel_hours || '';
-      form.penalty_type.value = policy.penalty_type || '';
-      form.penalty_value.value = policy.penalty_value || '';
-      form.deposit_type.value = policy.deposit_type || '';
-      form.deposit_value.value = policy.deposit_value || '';
-      form.min_nights.value = policy.min_nights || '';
-      form.is_active.value = policy.is_active;
-      document.getElementById('editPolicyModal').style.display = 'block';
-    }
+  function closeEditModal() {
+    document.getElementById('editOverlay').classList.remove('open');
+    document.getElementById('editForm').reset();
   }
 
-  function closeEditPolicyModal() {
-    document.getElementById('editPolicyModal').style.display = 'none';
-    document.getElementById('editPolicyForm').reset();
+  function handleOverlayClick(e, id) {
+    if (e.target === document.getElementById(id)) document.getElementById(id).classList.remove('open');
   }
 
-  function submitAddPolicy(event) {
-    event.preventDefault();
-    const form = document.getElementById('addPolicyForm');
+  function submitAdd(e) {
+    e.preventDefault();
+    const f = document.getElementById('addForm');
     const payload = {
-      property_id: form.elements['property_id'].value,
-      category_id: form.elements['category_id'].value || null,
-      policy_name: form.elements['policy_name'].value,
-      policy_type: form.elements['policy_type'].value,
-      policy_description: form.elements['description'].value || null,
-      penalty_type: form.elements['penalty_type'].value || null,
-      penalty_value: form.elements['penalty_value'].value || null,
-      deposit_type: form.elements['deposit_type'].value || null,
-      deposit_value: form.elements['deposit_value'].value || null,
-      min_nights: form.elements['min_nights'].value || null,
-      is_active: form.elements['is_active'].value
+      property_id: f.elements['property_id'].value || null,
+      category_id: f.elements['category_id'].value || null,
+      policy_name: f.elements['policy_name'].value,
+      policy_type: f.elements['policy_type'].value,
+      description: f.elements['description'].value,
+      free_cancel_hours: f.elements['free_cancel_hours'].value || null,
+      penalty_type: f.elements['penalty_type'].value || null,
+      penalty_value: f.elements['penalty_value'].value || null,
+      deposit_type: f.elements['deposit_type'].value || null,
+      deposit_value: f.elements['deposit_value'].value || null,
+      min_nights: f.elements['min_nights'].value || null,
+      is_active: f.elements['is_active'].value
     };
-
-    Swal.fire({
-      title: 'Creating...',
-      text: 'Please wait while we create the booking policy.',
-      allowOutsideClick: false,
-      didOpen: () => { Swal.showLoading(); },
-      customClass: { popup: 'swal2-popup-high-z' }
-    });
-
     fetch('../api/booking_policies.php?action=create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -486,46 +1062,38 @@
       })
       .then(r => r.json())
       .then(data => {
-        closeAddPolicyModal();
+        closeAddModal();
         if (data.success) {
-          Swal.fire({ icon: 'success', title: 'Success!', text: data.message, confirmButtonColor: '#3085d6', customClass: { popup: 'swal2-popup-high-z' } })
-            .then(() => fetchBookingPolicies());
+          fetchBookingPolicies();
+          showToast('Policy created', 'success');
         } else {
-          Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
+          showToast(data.message, 'error');
         }
       })
       .catch(() => {
-        closeAddPolicyModal();
-        Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while creating the booking policy.', confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
+        closeAddModal();
+        showToast('An error occurred while creating the policy', 'error');
       });
   }
 
-  function submitEditPolicy(event) {
-    event.preventDefault();
-    const form = document.getElementById('editPolicyForm');
+  function submitEdit(e) {
+    e.preventDefault();
+    const f = document.getElementById('editForm');
     const payload = {
-      policy_id: form.elements['policy_id'].value,
-      property_id: form.elements['property_id'].value,
-      category_id: form.elements['category_id'].value || null,
-      policy_name: form.elements['policy_name'].value,
-      policy_type: form.elements['policy_type'].value,
-      policy_description: form.elements['description'].value || null,
-      penalty_type: form.elements['penalty_type'].value || null,
-      penalty_value: form.elements['penalty_value'].value || null,
-      deposit_type: form.elements['deposit_type'].value || null,
-      deposit_value: form.elements['deposit_value'].value || null,
-      min_nights: form.elements['min_nights'].value || null,
-      is_active: form.elements['is_active'].value
+      policy_id: document.getElementById('editPolicyId').value,
+      property_id: f.elements['property_id'].value || null,
+      category_id: f.elements['category_id'].value || null,
+      policy_name: f.elements['policy_name'].value,
+      policy_type: f.elements['policy_type'].value,
+      description: f.elements['description'].value,
+      free_cancel_hours: f.elements['free_cancel_hours'].value || null,
+      penalty_type: f.elements['penalty_type'].value || null,
+      penalty_value: f.elements['penalty_value'].value || null,
+      deposit_type: f.elements['deposit_type'].value || null,
+      deposit_value: f.elements['deposit_value'].value || null,
+      min_nights: f.elements['min_nights'].value || null,
+      is_active: f.elements['is_active'].value
     };
-
-    Swal.fire({
-      title: 'Updating...',
-      text: 'Please wait while we update the booking policy.',
-      allowOutsideClick: false,
-      didOpen: () => { Swal.showLoading(); },
-      customClass: { popup: 'swal2-popup-high-z' }
-    });
-
     fetch('../api/booking_policies.php?action=update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -533,59 +1101,50 @@
       })
       .then(r => r.json())
       .then(data => {
-        closeEditPolicyModal();
+        closeEditModal();
         if (data.success) {
-          Swal.fire({ icon: 'success', title: 'Success!', text: data.message, confirmButtonColor: '#3085d6', customClass: { popup: 'swal2-popup-high-z' } })
-            .then(() => fetchBookingPolicies());
+          fetchBookingPolicies();
+          showToast('Policy updated', 'success');
         } else {
-          Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
+          showToast(data.message, 'error');
         }
       })
       .catch(() => {
-        closeEditPolicyModal();
-        Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while updating the booking policy.', confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
+        closeEditModal();
+        showToast('An error occurred while updating the policy', 'error');
       });
   }
 
-  function deletePolicy(btn, policyId, policyName) {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: `You are about to delete the booking policy: ${policyName}`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
-      customClass: { popup: 'swal2-popup-high-z' }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        Swal.fire({
-          title: 'Deleting...',
-          text: 'Please wait while we delete the booking policy.',
-          allowOutsideClick: false,
-          didOpen: () => { Swal.showLoading(); },
-          customClass: { popup: 'swal2-popup-high-z' }
-        });
+  function confirmDelete(id, name) {
+    if (!confirm(`Delete policy "${name}"? This cannot be undone.`)) return;
+    fetch('../api/booking_policies.php?action=delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ policy_id: id })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          fetchBookingPolicies();
+          showToast('Policy deleted', 'success');
+        } else {
+          showToast(data.message, 'error');
+        }
+      })
+      .catch(() => {
+        showToast('An error occurred while deleting the policy', 'error');
+      });
+  }
 
-        fetch('../api/booking_policies.php?action=delete', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ policy_id: policyId })
-          })
-          .then(r => r.json())
-          .then(data => {
-            if (data.success) {
-              Swal.fire({ icon: 'success', title: 'Deleted!', text: data.message, confirmButtonColor: '#3085d6', customClass: { popup: 'swal2-popup-high-z' } })
-                .then(() => fetchBookingPolicies());
-            } else {
-              Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
-            }
-          })
-          .catch(() => {
-            Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while deleting the booking policy.', confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
-          });
-      }
-    });
+  let toastTimer;
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type + ' show';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      t.classList.remove('show')
+    }, 3000);
   }
 </script>

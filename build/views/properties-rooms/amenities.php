@@ -16,6 +16,286 @@ function generateUUID()
 }
 ?>
 
+<style>
+  :root {
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #f8fafc;
+    --color-border-primary: #185fa5;
+    --color-border-secondary: #e2e8f0;
+    --color-border-tertiary: #cbd5e1;
+    --color-text-primary: #1e293b;
+    --color-text-secondary: #64748b;
+  }
+  .am-page { padding: 24px; max-width: 100%; margin: 0 auto; overflow-x: hidden; }
+  .am-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .am-stat-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .am-stat-label { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.3px; }
+  .am-stat-value { font-size: 24px; font-weight: 600; color: var(--color-text-primary); margin-top: 4px; }
+  .am-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 12px;
+    margin-bottom: 0;
+  }
+  .am-card-header {
+    padding: 16px 20px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .am-card-title { font-size: 16px; font-weight: 500; }
+  .am-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+  .am-search-wrap {
+    display: flex;
+    align-items: center;
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 6px;
+    padding: 4px 10px 4px 30px;
+    background: #f9fafb;
+    position: relative;
+    min-width: 200px;
+  }
+  .am-search-wrap i {
+    position: absolute;
+    left: 8px;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+  }
+  .am-search-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 13px;
+    width: 100%;
+    color: var(--color-text-primary);
+  }
+  .am-filter-select {
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+    color: var(--color-text-primary);
+    outline: none;
+    background: #f9fafb;
+  }
+  .am-btn {
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.18s ease;
+  }
+  .am-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+  .am-btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: white;
+    border: none;
+  }
+  .am-btn-primary:hover { opacity: 0.9; box-shadow: 0 2px 8px rgba(59,130,246,0.25); }
+  .am-table-wrap { overflow-x: auto; }
+  .am-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .am-table th {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 0.5px solid var(--color-border-secondary);
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    background: #f9fafb;
+  }
+  .am-table td {
+    padding: 10px 12px;
+    border-bottom: 0.5px solid var(--color-border-secondary);
+    color: var(--color-text-primary);
+  }
+  .am-table tr:hover td { background: #f8fafc; }
+  .am-name { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+  .am-code { font-size: 12px; color: var(--color-text-secondary); }
+  .am-text { color: var(--color-text-primary); font-size: 13px; }
+  .am-status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .am-status-active { background: #dcfce7; color: #166534; }
+  .am-status-inactive { background: #e5e7eb; color: #374151; }
+  .am-actions { display: flex; gap: 4px; justify-content: flex-end; }
+  .am-icon-btn {
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: #ffffff;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    transition: all 0.18s ease;
+  }
+  .am-icon-btn.view:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
+  .am-icon-btn.edit:hover { border-color: #f59e0b; color: #f59e0b; background: #fffbeb; }
+  .am-icon-btn.del:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
+  .am-empty-state { text-align: center; padding: 24px; color: var(--color-text-secondary); font-size: 13px; }
+  .am-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+  }
+  .am-modal-backdrop.open { opacity: 1; pointer-events: auto; }
+  .am-modal {
+    background: #ffffff;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    transform: scale(0.96) translateY(10px);
+    transition: transform 0.18s ease;
+  }
+  .am-modal-backdrop.open .am-modal { transform: scale(1) translateY(0); }
+  .am-modal-header {
+    padding: 14px 18px;
+    border-bottom: 0.5px solid var(--color-border-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: #ffffff;
+    z-index: 1;
+  }
+  .am-modal-title { font-size: 15px; font-weight: 500; }
+  .am-modal-close {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    font-size: 16px;
+    padding: 4px;
+    border-radius: 4px;
+  }
+  .am-modal-close:hover { background: #f1f5f9; color: var(--color-text-primary); }
+  .am-modal-body { padding: 16px 18px; }
+  .am-modal-footer {
+    padding: 12px 18px;
+    border-top: 0.5px solid var(--color-border-secondary);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    position: sticky;
+    bottom: 0;
+    background: #ffffff;
+  }
+  .am-section-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin: 0 0 10px;
+  }
+  .am-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .am-form-group { display: flex; flex-direction: column; gap: 4px; }
+  .am-form-group.full { grid-column: 1 / -1; }
+  .am-form-group label { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); }
+  .am-form-group input,
+  .am-form-group select,
+  .am-form-group textarea {
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 13px;
+    color: var(--color-text-primary);
+    outline: none;
+    background: #ffffff;
+  }
+  .am-form-group input:focus,
+  .am-form-group select:focus,
+  .am-form-group textarea:focus { border-color: var(--color-border-primary); }
+  .am-form-group textarea { resize: vertical; min-height: 60px; }
+  .am-checkbox-wrap { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .am-checkbox-wrap input[type=checkbox] {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--color-border-primary);
+  }
+  .am-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #10b981;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.25s ease;
+    z-index: 2000;
+  }
+  .am-toast.error { background: #ef4444; }
+  .am-toast.show { opacity: 1; transform: translateY(0); }
+  @media (max-width: 1024px) {
+    .am-table th:nth-child(3),
+    .am-table td:nth-child(3) { display: none; }
+  }
+  @media (max-width: 768px) {
+    .am-stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .am-card-header { flex-direction: column; align-items: stretch; }
+    .am-toolbar { flex-wrap: wrap; }
+    .am-search-wrap { min-width: 100%; }
+    .am-form-grid { grid-template-columns: 1fr; }
+    .am-modal { width: 95%; max-height: 95vh; }
+    .am-table th:nth-child(2),
+    .am-table td:nth-child(2) { display: none; }
+  }
+  @media (max-width: 480px) {
+    .am-page { padding: 12px; }
+    .am-card-header { padding: 12px; }
+    .am-toolbar { gap: 6px; }
+    .am-btn { font-size: 12px; padding: 5px 10px; }
+    .am-icon-btn { width: 26px; height: 26px; }
+    .am-stats-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
 <script>
   // Data will be fetched from API on page load
   let amenitiesData = [];
@@ -36,13 +316,16 @@ function generateUUID()
       }
     } catch (error) {
       console.error('Error fetching amenities:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to load amenities data',
-        confirmButtonColor: '#3085d6'
-      });
+      showAmToast('Failed to load amenities data', 'error');
     }
+  }
+
+  function showAmToast(message, type = 'success') {
+    const toast = document.getElementById('amToast');
+    toast.textContent = message;
+    toast.className = `am-toast ${type}`;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
   }
 
   function updateStatsCounts() {
@@ -65,48 +348,24 @@ function generateUUID()
   function renderAmenitiesTable() {
     const tbody = document.querySelector('#amenitiesTableBody');
     if (!tbody) return;
-    
     if (amenitiesData.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="5" class="p-4 text-center text-slate-400 dark:text-white/60">
-            No amenities found. <a href="javascript:;" onclick="openAddAmenityModal()" class="text-blue-500 font-semibold">Add your first amenity</a>.
-          </td>
-        </tr>
-      `;
+      tbody.innerHTML = `<tr><td colspan="4"><div class="am-empty-state">No amenities found. <a href="javascript:;" onclick="openAddAmenityModal()" style="color:#185fa5;font-weight:500;">Add your first amenity</a>.</div></td></tr>`;
       return;
     }
-
     tbody.innerHTML = amenitiesData.map((amenity) => {
-      const iconHtml = amenity.icon ? `<i class="${amenity.icon} mr-2"></i>` : '';
-      
+      const iconHtml = amenity.icon ? `<i class="${amenity.icon}"></i>` : '';
       return `
         <tr class="amenity-row">
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <div class="flex items-center">
-              ${iconHtml}
-              <h6 class="mb-0 text-sm leading-normal dark:text-white">${amenity.amenity_name}</h6>
-            </div>
+          <td>
+            <div class="am-name">${iconHtml}<span>${amenity.amenity_name}</span></div>
           </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${amenity.amenity_code || 'N/A'}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${amenity.amenity_type || 'general'}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <span class="bg-gradient-to-tl ${amenity.is_active ? 'from-emerald-500 to-teal-400' : 'from-gray-500 to-slate-400'} px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">${amenity.is_active ? 'Active' : 'Inactive'}</span>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <div class="flex items-center gap-2">
-              <button onclick="openEditAmenityModal('${amenity.amenity_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-500/20 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-300 dark:hover:border-amber-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Edit Amenity">
-                <i class="fas fa-edit mr-1.5 text-xs"></i>
-                <span>Edit</span>
-              </button>
-              <button onclick="confirmDeleteAmenity('${amenity.amenity_id}', '${amenity.amenity_name}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 bg-white dark:bg-slate-700/50 border border-red-200 dark:border-white/10 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-700 dark:hover:text-red-300 hover:border-red-300 dark:hover:border-red-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Delete Amenity">
-                <i class="fas fa-trash-alt mr-1.5 text-xs"></i>
-                <span>Delete</span>
-              </button>
+          <td><span class="am-code">${amenity.amenity_code || '—'}</span></td>
+          <td><span class="am-text">${amenity.amenity_type || 'general'}</span></td>
+          <td style="text-align:center;"><span class="am-status-badge am-status-${amenity.is_active ? 'active' : 'inactive'}">${amenity.is_active ? 'Active' : 'Inactive'}</span></td>
+          <td>
+            <div class="am-actions">
+              <button class="am-icon-btn edit" onclick="openEditAmenityModal('${amenity.amenity_id}')" title="Edit"><i class="fas fa-pen"></i></button>
+              <button class="am-icon-btn del" onclick="confirmDeleteAmenity('${amenity.amenity_id}', '${(amenity.amenity_name).replace(/'/g, "\\'")}')" title="Delete"><i class="fas fa-trash"></i></button>
             </div>
           </td>
         </tr>
@@ -114,578 +373,239 @@ function generateUUID()
     }).join('');
   }
 
-  // Delete Amenity Function (API-based)
   async function confirmDeleteAmenity(amenityId, amenityName) {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: `Are you sure you want to delete "${amenityName}"? This action cannot be undone.`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel'
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const response = await fetch('../api/amenities.php', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              action: 'delete',
-              amenity_id: amenityId
-            })
-          });
-          const result = await response.json();
-          
-          if (result.success) {
-            Swal.fire({
-              icon: 'success',
-              title: 'Deleted!',
-              text: 'Amenity deleted successfully!',
-              timer: 2000,
-              showConfirmButton: false
-            });
-            await fetchAmenitiesData();
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: result.message || 'Failed to delete amenity',
-              confirmButtonColor: '#3085d6'
-            });
-          }
-        } catch (error) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'An error occurred while deleting the amenity',
-            confirmButtonColor: '#3085d6'
-          });
-        }
-      }
-    });
-  }
-
-  // Add Amenity Form Submission (API-based)
-  async function handleAddAmenitySubmit(event) {
-    event.preventDefault();
-    const form = event.target;
-    const formData = new FormData(form);
-    
-    // Generate UUID for amenity_id
-    const amenity_id = generateUUID();
-    
-    // Prepare data for API
-    const data = {
-      amenity_id: amenity_id,
-      amenity_code: formData.get('amenity_code'),
-      amenity_name: formData.get('amenity_name'),
-      amenity_type: formData.get('amenity_type') || 'general',
-      icon: formData.get('icon') || null,
-      description: formData.get('description') || null,
-      is_active: formData.get('is_active') || 1,
-      sort_order: formData.get('sort_order') || 0
-    };
-
+    if (!confirm(`Delete "${amenityName}"? This action cannot be undone.`)) return;
     try {
       const response = await fetch('../api/amenities.php', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ action: 'create', ...data })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', amenity_id: amenityId })
       });
       const result = await response.json();
-      
       if (result.success) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: 'Amenity added successfully!',
-          timer: 2000,
-          showConfirmButton: false
-        });
-        closeAddAmenityModal();
+        showAmToast('Amenity deleted successfully!');
         await fetchAmenitiesData();
       } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: result.message || 'Failed to add amenity',
-          confirmButtonColor: '#3085d6'
-        });
+        showAmToast(result.message || 'Failed to delete amenity', 'error');
       }
     } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'An error occurred while adding the amenity',
-        confirmButtonColor: '#3085d6'
-      });
+      showAmToast('An error occurred while deleting the amenity', 'error');
     }
   }
 
-  // Edit Amenity Form Submission (API-based)
-  async function handleEditAmenitySubmit(event) {
+  // Unified Form Submission (API-based)
+  async function handleAmenityFormSubmit(event) {
     event.preventDefault();
     const form = event.target;
     const formData = new FormData(form);
-    
+    const amenityId = formData.get('amenity_id');
+    const isEdit = !!amenityId;
+    const amenity_id = isEdit ? amenityId : generateUUID();
     const data = {
-      amenity_id: formData.get('amenity_id'),
-      amenity_code: formData.get('amenity_code'),
+      amenity_id: amenity_id,
+      amenity_code: formData.get('icon_code') || formData.get('amenity_name').substring(0, 3).toUpperCase(),
       amenity_name: formData.get('amenity_name'),
-      amenity_type: formData.get('amenity_type') || 'general',
-      icon: formData.get('icon') || null,
-      description: formData.get('description') || null,
+      amenity_type: formData.get('amenity_type') || 'comfort',
+      icon: formData.get('icon_code') || null,
       is_active: formData.get('is_active') || 1,
       sort_order: formData.get('sort_order') || 0
     };
-
     try {
       const response = await fetch('../api/amenities.php', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ action: 'update', ...data })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: isEdit ? 'update' : 'create', ...data })
       });
       const result = await response.json();
-      
       if (result.success) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: 'Amenity updated successfully!',
-          timer: 2000,
-          showConfirmButton: false
-        });
-        closeEditAmenityModal();
+        showAmToast(isEdit ? 'Amenity updated successfully!' : 'Amenity added successfully!');
+        closeAmenityFormModal();
         await fetchAmenitiesData();
       } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: result.message || 'Failed to update amenity',
-          confirmButtonColor: '#3085d6'
-        });
+        showAmToast(result.message || 'Failed to save amenity', 'error');
       }
     } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'An error occurred while updating the amenity',
-        confirmButtonColor: '#3085d6'
-      });
+      showAmToast('An error occurred while saving the amenity', 'error');
     }
   }
 </script>
 
 <!-- PAGE CONTENT -->
-    <!-- cards -->
-    <div class="w-full px-6 py-6 mx-auto">
-      <!-- PAGE CONTENT -->
-      <!-- Stats Cards -->
-      <div class="flex flex-wrap -mx-3 mb-6">
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Total Amenities</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="totalAmenitiesCount">0</h5>
-            </div>
-          </div>
-        </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Comfort</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="comfortAmenitiesCount">0</h5>
-            </div>
-          </div>
-        </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Technology</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="techAmenitiesCount">0</h5>
-            </div>
-          </div>
-        </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Safety</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="safetyAmenitiesCount">0</h5>
-            </div>
-          </div>
-        </div>
-      </div>
+<div class="am-page">
+  <div class="am-stats-grid">
+    <div class="am-stat-card">
+      <p class="am-stat-label">Total Amenities</p>
+      <p class="am-stat-value" id="totalAmenitiesCount">0</p>
+    </div>
+    <div class="am-stat-card">
+      <p class="am-stat-label">Comfort</p>
+      <p class="am-stat-value" id="comfortAmenitiesCount">0</p>
+    </div>
+    <div class="am-stat-card">
+      <p class="am-stat-label">Technology</p>
+      <p class="am-stat-value" id="techAmenitiesCount">0</p>
+    </div>
+    <div class="am-stat-card">
+      <p class="am-stat-label">Safety</p>
+      <p class="am-stat-value" id="safetyAmenitiesCount">0</p>
+    </div>
+  </div>
 
-      <!-- Amenities Table -->
-      <div class="flex flex-wrap -mx-3">
-        <div class="flex-none w-full max-w-full px-3">
-          <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent flex justify-between items-center">
-              <h6 class="dark:text-white">Amenities</h6>
-              <button onclick="openAddAmenityModal()" class="bg-gradient-to-tl from-blue-500 to-violet-500 text-white px-4 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                <i class="fas fa-plus mr-1"></i> Add Amenity
-              </button>
-            </div>
-            <div class="flex-auto px-0 pt-0 pb-2">
-              <div class="p-0 overflow-x-auto">
-                <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500" id="amenitiesTable">
-                  <thead class="align-bottom">
-                    <tr>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Amenity</th>
-                      <th class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Icon Code</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Category</th>
-                      <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
-                      <th class="px-6 py-3 font-semibold capitalize align-middle bg-transparent border-b border-collapse border-solid shadow-none dark:border-white/40 dark:text-white tracking-none whitespace-nowrap text-slate-400 opacity-70"></th>
-                    </tr>
-                  </thead>
-                  <tbody id="amenitiesTableBody">
-                    <!-- Table rows will be populated by JavaScript -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+  <div class="am-card">
+    <div class="am-card-header">
+      <span class="am-card-title">Amenities</span>
+      <div class="am-toolbar">
+        <div class="am-search-wrap">
+          <i class="fas fa-magnifying-glass"></i>
+          <input type="text" id="searchInput" class="am-search-input" placeholder="Search amenities…" oninput="filterTable()">
         </div>
-      </div>
-
-      <!-- Add Amenity Modal -->
-      <div id="addAmenityModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddAmenityModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-lg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; max-width: 500px; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; display: flex; flex-direction: column;">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center flex-shrink-0" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-            <h3 class="text-xl font-bold dark:text-white">Add New Amenity</h3>
-            <button onclick="closeAddAmenityModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <div class="p-6 overflow-y-auto" style="padding: 1.5rem; flex: 1;">
-            <form id="addAmenityForm" class="p-6" onsubmit="handleAddAmenitySubmit(event)">
-              <div class="space-y-4">
-                <div>
-                  <label for="amenity_name" class="block text-sm font-medium text-gray-700">Amenity Name</label>
-                  <input type="text" name="amenity_name" id="amenity_name" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="icon_code" class="block text-sm font-medium text-gray-700">Icon Code</label>
-                  <input type="text" name="icon_code" id="icon_code" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., fa-wifi">
-                </div>
-                <div>
-                  <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
-                  <select name="category" id="category" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="comfort">Comfort</option>
-                    <option value="technology">Technology</option>
-                    <option value="bathroom">Bathroom</option>
-                    <option value="kitchen">Kitchen</option>
-                    <option value="outdoor">Outdoor</option>
-                    <option value="safety">Safety</option>
-                    <option value="accessibility">Accessibility</option>
-                    <option value="entertainment">Entertainment</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="sort_order" class="block text-sm font-medium text-gray-700">Sort Order</label>
-                  <input type="number" name="sort_order" id="sort_order" value="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label class="flex items-center">
-                    <input type="checkbox" name="is_active" value="1" checked class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
-                    <span class="ml-2 text-sm text-gray-700">Active</span>
-                  </label>
-                </div>
-              </div>
-
-              <!-- Form Actions -->
-              <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-white/10">
-                <button type="button" onclick="closeAddAmenityModal()" class="px-6 py-2 border border-gray-300 dark:border-white/20 rounded-lg text-slate-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-                  Cancel
-                </button>
-                <button type="submit" class="px-6 py-2 bg-gradient-to-tl from-blue-500 to-violet-500 text-white rounded-lg font-semibold hover:shadow-md transition-all">
-                  Add Amenity
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      <!-- Edit Amenity Modal -->
-      <div id="editAmenityModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeEditAmenityModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-lg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; max-width: 500px; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; display: flex; flex-direction: column;">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center flex-shrink-0" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-            <h3 class="text-xl font-bold dark:text-white">Edit Amenity</h3>
-            <button onclick="closeEditAmenityModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <div class="p-6 overflow-y-auto" style="padding: 1.5rem; flex: 1;">
-            <form id="editAmenityForm" class="p-6" onsubmit="handleEditAmenitySubmit(event)">
-              <input type="hidden" name="amenity_id" id="edit_amenity_id">
-              <div class="space-y-4">
-                <div>
-                  <label for="edit_amenity_name" class="block text-sm font-medium text-gray-700">Amenity Name</label>
-                  <input type="text" name="amenity_name" id="edit_amenity_name" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="edit_icon_code" class="block text-sm font-medium text-gray-700">Icon Code</label>
-                  <input type="text" name="icon_code" id="edit_icon_code" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., fa-wifi">
-                </div>
-                <div>
-                  <label for="edit_category" class="block text-sm font-medium text-gray-700">Category</label>
-                  <select name="category" id="edit_category" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="comfort">Comfort</option>
-                    <option value="technology">Technology</option>
-                    <option value="bathroom">Bathroom</option>
-                    <option value="kitchen">Kitchen</option>
-                    <option value="outdoor">Outdoor</option>
-                    <option value="safety">Safety</option>
-                    <option value="accessibility">Accessibility</option>
-                    <option value="entertainment">Entertainment</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="edit_sort_order" class="block text-sm font-medium text-gray-700">Sort Order</label>
-                  <input type="number" name="sort_order" id="edit_sort_order" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label class="flex items-center">
-                    <input type="checkbox" name="is_active" value="1" id="edit_is_active" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
-                    <span class="ml-2 text-sm text-gray-700">Active</span>
-                  </label>
-                </div>
-              </div>
-
-              <!-- Form Actions -->
-              <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-white/10">
-                <button type="button" onclick="closeEditAmenityModal()" class="px-6 py-2 border border-gray-300 dark:border-white/20 rounded-lg text-slate-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-                  Cancel
-                </button>
-                <button type="submit" class="px-6 py-2 bg-gradient-to-tl from-blue-500 to-violet-500 text-white rounded-lg font-semibold hover:shadow-md transition-all">
-                  Update Amenity
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      <!-- View Amenity Modal -->
-      <div id="viewAmenityModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeViewAmenityModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-lg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; max-width: 500px; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; display: flex; flex-direction: column;">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center flex-shrink-0" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-            <h3 class="text-xl font-bold dark:text-white">Amenity Details</h3>
-            <button onclick="closeViewAmenityModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <div class="p-6 overflow-y-auto" style="padding: 1.5rem; flex: 1;">
-            <div class="space-y-3">
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Amenity Name</label>
-                <p id="view_amenity_name" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Icon Code</label>
-                <p id="view_icon_code" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Category</label>
-                <p id="view_category" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Sort Order</label>
-                <p id="view_sort_order" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Status</label>
-                <p id="view_is_active" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-            </div>
-          </div>
-          <div class="p-6 border-t border-gray-200 dark:border-white/10 flex justify-end flex-shrink-0" style="padding: 1.5rem; border-top: 1px solid #e5e7eb;">
-            <button type="button" onclick="closeViewAmenityModal()" class="px-6 py-2 border border-gray-300 dark:border-white/20 rounded-lg text-slate-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-              Close
-            </button>
-          </div>
-        </div>
+        <select class="am-filter-select" id="typeFilter" onchange="filterTable()">
+          <option value="">All types</option>
+          <option value="comfort">Comfort</option>
+          <option value="technology">Technology</option>
+          <option value="safety">Safety</option>
+          <option value="bathroom">Bathroom</option>
+          <option value="kitchen">Kitchen</option>
+          <option value="outdoor">Outdoor</option>
+          <option value="accessibility">Accessibility</option>
+          <option value="entertainment">Entertainment</option>
+          <option value="other">Other</option>
+        </select>
+        <button class="am-btn am-btn-primary" onclick="openAddAmenityModal()">
+          <i class="fas fa-plus"></i> Add Amenity
+        </button>
       </div>
     </div>
+    <div class="am-table-wrap">
+      <table class="am-table" id="amenitiesTable">
+        <thead>
+          <tr>
+            <th>Amenity</th>
+            <th>Icon Code</th>
+            <th>Category</th>
+            <th style="text-align:center;">Status</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="amenitiesTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
-    <!-- Delete Confirmation Form -->
+<div id="amToast" class="am-toast"></div>
+
+<!-- Add/Edit Amenity Modal -->
+<div id="amenityFormModal" class="am-modal-backdrop" onclick="if(event.target===this)closeAmenityFormModal()">
+  <div class="am-modal">
+    <div class="am-modal-header">
+      <span class="am-modal-title" id="formModalTitle">Add Amenity</span>
+      <button class="am-modal-close" onclick="closeAmenityFormModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="amenityForm" onsubmit="handleAmenityFormSubmit(event)">
+      <input type="hidden" name="amenity_id" id="formAmenityId">
+      <div class="am-modal-body">
+        <p class="am-section-label">Basic Information</p>
+        <div class="am-form-grid">
+          <div class="am-form-group full">
+            <label>Amenity Name *</label>
+            <input type="text" name="amenity_name" id="formAmenityName" required placeholder="e.g. WiFi">
+          </div>
+          <div class="am-form-group">
+            <label>Icon Code</label>
+            <input type="text" name="icon_code" id="formIconCode" placeholder="e.g. fa-wifi">
+          </div>
+          <div class="am-form-group">
+            <label>Category *</label>
+            <select name="amenity_type" id="formAmenityType" required>
+              <option value="comfort">Comfort</option>
+              <option value="technology">Technology</option>
+              <option value="bathroom">Bathroom</option>
+              <option value="kitchen">Kitchen</option>
+              <option value="outdoor">Outdoor</option>
+              <option value="safety">Safety</option>
+              <option value="accessibility">Accessibility</option>
+              <option value="entertainment">Entertainment</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="am-form-group">
+            <label>Sort Order</label>
+            <input type="number" name="sort_order" id="formSortOrder" value="0">
+          </div>
+          <div class="am-form-group">
+            <label class="am-checkbox-wrap">
+              <input type="checkbox" name="is_active" id="formIsActive" value="1" checked>
+              Active
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="am-modal-footer">
+        <button type="button" class="am-btn" onclick="closeAmenityFormModal()">Cancel</button>
+        <button type="submit" class="am-btn am-btn-primary"><i class="fas fa-save"></i> Save Amenity</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <script>
-    // Filter table function
-    function filterTable() {
-      const input = document.getElementById('searchInput');
-      const filter = input.value.toLowerCase();
-      const table = document.getElementById('amenitiesTable');
-      const rows = table.getElementsByClassName('amenity-row');
-
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      const cells = row.getElementsByTagName('td');
-      let found = false;
-
-      for (let j = 0; j < cells.length; j++) {
-        if (cells[j].textContent.toLowerCase().indexOf(filter) > -1) {
-          found = true;
-          break;
-        }
-      }
-
-      row.style.display = found ? '' : 'none';
-    }
-  }
-
-  // Modal functions
-  function openAddAmenityModal() {
-    const modal = document.getElementById('addAmenityModal');
-    modal.classList.remove('hidden');
-    modal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeAddAmenityModal() {
-    const modal = document.getElementById('addAmenityModal');
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
-    document.body.style.overflow = 'auto';
-    // Reset form
-    const form = modal.querySelector('form');
-    if (form) {
-      form.reset();
-    }
-  }
-
-  function openEditAmenityModal(amenityId) {
-    const row = document.querySelector(`tr[data-amenity-id="${amenityId}"]`);
-    if (row) {
-      document.getElementById('edit_amenity_id').value = amenityId;
-      document.getElementById('edit_amenity_name').value = row.dataset.amenityName;
-      document.getElementById('edit_icon_code').value = row.dataset.amenityIcon;
-      document.getElementById('edit_category').value = row.dataset.amenityCategory;
-      document.getElementById('edit_sort_order').value = row.dataset.amenitySort;
-      document.getElementById('edit_is_active').checked = row.dataset.amenityActive === '1';
-
-      const modal = document.getElementById('editAmenityModal');
-      modal.classList.remove('hidden');
-      modal.style.display = 'block';
-      document.body.style.overflow = 'hidden';
-    }
-  }
-
-  function closeEditAmenityModal() {
-    const modal = document.getElementById('editAmenityModal');
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
-    document.body.style.overflow = 'auto';
-
-    // Reset form
-    const form = modal.querySelector('form');
-    if (form) {
-      form.reset();
-    }
-  }
-
-  function openViewAmenityModal(amenityId) {
-    const row = document.querySelector(`tr[data-amenity-id="${amenityId}"]`);
-    if (row) {
-      document.getElementById('view_amenity_name').textContent = row.dataset.amenityName;
-      document.getElementById('view_icon_code').textContent = row.dataset.amenityIcon || '-';
-      document.getElementById('view_category').textContent = row.dataset.amenityCategory;
-      document.getElementById('view_sort_order').textContent = row.dataset.amenitySort;
-      document.getElementById('view_is_active').textContent = row.dataset.amenityActive === '1' ? 'Active' : 'Inactive';
-
-      const modal = document.getElementById('viewAmenityModal');
-      modal.classList.remove('hidden');
-      modal.style.display = 'block';
-      document.body.style.overflow = 'hidden';
-    }
-  }
-
-  function closeViewAmenityModal() {
-    const modal = document.getElementById('viewAmenityModal');
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
-    document.body.style.overflow = 'auto';
-  }
-
-  function confirmDeleteAmenity(amenityId) {
-    const row = document.querySelector(`tr[data-amenity-id="${amenityId}"]`);
-    const amenityName = row ? row.dataset.amenityName : 'this amenity';
-
-    Swal.fire({
-      title: 'Are you sure?',
-      text: `You are about to delete "${amenityName}". This action cannot be undone.`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        document.getElementById('delete_amenity_id').value = amenityId;
-        document.getElementById('deleteAmenityForm').submit();
-      }
+  function filterTable() {
+    const filter = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    const typeFilter = (document.getElementById('typeFilter')?.value || '').toLowerCase();
+    const rows = document.querySelectorAll('#amenitiesTableBody .amenity-row');
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      const matchText = !filter || text.includes(filter);
+      const matchType = !typeFilter || text.includes(typeFilter);
+      row.style.display = (matchText && matchType) ? '' : 'none';
     });
   }
 
-  // Show success/error messages (wrapped in DOMContentLoaded to ensure SweetAlert is loaded)
-  document.addEventListener('DOMContentLoaded', function() {
-    <?php if (isset($_GET['success'])): ?>
-      <?php if ($_GET['success'] === 'amenity_added'): ?>
-        Swal.fire({
-          title: 'Success!',
-          text: 'Amenity has been added successfully.',
-          icon: 'success',
-          confirmButtonColor: '#3085d6'
-        });
-      <?php elseif ($_GET['success'] === 'amenity_updated'): ?>
-        Swal.fire({
-          title: 'Success!',
-          text: 'Amenity has been updated successfully.',
-          icon: 'success',
-          confirmButtonColor: '#3085d6'
-        });
-      <?php elseif ($_GET['success'] === 'amenity_deleted'): ?>
-        Swal.fire({
-          title: 'Deleted!',
-          text: 'Amenity has been deleted successfully.',
-          icon: 'success',
-          confirmButtonColor: '#3085d6'
-        });
-      <?php endif; ?>
-    <?php endif; ?>
+  function openAddAmenityModal() {
+    document.getElementById('amenityForm').reset();
+    document.getElementById('formModalTitle').textContent = 'Add Amenity';
+    document.getElementById('formIsActive').checked = true;
+    document.getElementById('amenityFormModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
 
+  function openEditAmenityModal(amenityId) {
+    const amenity = amenitiesData.find(a => a.amenity_id === amenityId);
+    if (!amenity) return;
+    document.getElementById('formModalTitle').textContent = 'Edit Amenity';
+    document.getElementById('formAmenityId').value = amenity.amenity_id;
+    document.getElementById('formAmenityName').value = amenity.amenity_name;
+    document.getElementById('formIconCode').value = amenity.icon || '';
+    document.getElementById('formAmenityType').value = amenity.amenity_type || 'comfort';
+    document.getElementById('formSortOrder').value = amenity.sort_order || 0;
+    document.getElementById('formIsActive').checked = amenity.is_active == 1;
+    document.getElementById('amenityFormModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeAmenityFormModal() {
+    document.getElementById('amenityFormModal').classList.remove('open');
+    document.body.style.overflow = '';
+    document.getElementById('amenityForm').reset();
+  }
+
+  window.addEventListener('load', function() {
     <?php if (isset($error_message)): ?>
-      Swal.fire({
-        title: 'Error!',
-        text: '<?php echo addslashes($error_message); ?>',
-        icon: 'error',
-        confirmButtonColor: '#3085d6'
-      });
+      showAmToast(<?php echo json_encode($error_message); ?>, 'error');
     <?php endif; ?>
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'amenity_added') {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      showAmToast('Amenity added successfully!');
+    }
+    if (urlParams.get('success') === 'amenity_updated') {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      showAmToast('Amenity updated successfully!');
+    }
+    if (urlParams.get('success') === 'amenity_deleted') {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      showAmToast('Amenity deleted successfully!');
+    }
   });
 </script>
-
-</html>

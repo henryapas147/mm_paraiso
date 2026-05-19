@@ -99,6 +99,7 @@ $router->add('settings/promotion-images', ['controller' => 'SettingsController',
 $router->add('settings/notifications', ['controller' => 'SettingsController', 'action' => 'notifications']);
 $router->add('settings/notification-recipients', ['controller' => 'SettingsController', 'action' => 'notificationRecipients']);
 $router->add('settings/rbac-settings', ['controller' => 'SettingsController', 'action' => 'rbacSettings']);
+$router->add('settings/company', ['controller' => 'SettingsController', 'action' => 'company']);
 
 // Users
 $router->add('users', ['controller' => 'UsersController', 'action' => 'index']);
@@ -127,6 +128,7 @@ $router->add('reports/financial', ['controller' => 'ReportsController', 'action'
 // Authentication
 $router->add('sign-in', ['controller' => 'AuthController', 'action' => 'signIn']);
 $router->add('sign-up', ['controller' => 'AuthController', 'action' => 'signUp']);
+$router->add('sign-out', ['controller' => 'AuthController', 'action' => 'signout']);
 $router->add('logout', ['controller' => 'AuthController', 'action' => 'logout']);
 $router->add('profile', ['controller' => 'ProfileController', 'action' => 'index']);
 $router->add('account-settings', ['controller' => 'AuthController', 'action' => 'accountSettings']);
@@ -140,6 +142,12 @@ $router->add('build/google-callback', ['file' => 'google-callback.php']);
 // Email Verification
 $router->add('verify-email', ['file' => 'verify-email.php']);
 $router->add('build/verify-email', ['file' => 'verify-email.php']);
+
+// Contact Inquiries
+$router->add('contact-inquiries', ['controller' => 'ContactInquiriesController', 'action' => 'index']);
+$router->add('contact-inquiries/view', ['controller' => 'ContactInquiriesController', 'action' => 'detail']);
+$router->add('contact-inquiries/updateStatus', ['controller' => 'ContactInquiriesController', 'action' => 'updateStatus']);
+$router->add('contact-inquiries/delete', ['controller' => 'ContactInquiriesController', 'action' => 'delete']);
 
 // Remove query string from URL (reuse $url set at line 3)
 $url = strtok($url, '?');

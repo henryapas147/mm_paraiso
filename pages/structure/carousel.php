@@ -2,20 +2,20 @@
     <div class="owl-carousel owl-banner">
         <div class="item item-1">
             <div class="header-text">
-                <span class="category">Toronto, <em>Canada</em></span>
-                <h2>Hurry!<br>Get the Best Villa for you</h2>
+                <span class="category">M&M <em>PARAISO</em></span>
+                <h2>Experience<br>Paradise Awaits</h2>
             </div>
         </div>
         <div class="item item-2">
             <div class="header-text">
-                <span class="category">Melbourne, <em>Australia</em></span>
-                <h2>Be Quick!<br>Get the best villa in town</h2>
+                <span class="category">Your <em>Escape</em></span>
+                <h2>Luxury Stays<br>Unforgettable Memories</h2>
             </div>
         </div>
         <div class="item item-3">
             <div class="header-text">
-                <span class="category">Miami, <em>South Florida</em></span>
-                <h2>Act Now!<br>Get the highest level penthouse</h2>
+                <span class="category">Book <em>Today</em></span>
+                <h2>Reserve Now<br>Exclusive Villas & Rooms</h2>
             </div>
         </div>
     </div>

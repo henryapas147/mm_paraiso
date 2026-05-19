@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS company_information (
     province_code           VARCHAR(12)     NULL                                  COMMENT 'FK → psgc_provinces.province_code',
     city_municipality_code  VARCHAR(12)     NULL                                  COMMENT 'FK → psgc_cities_municipalities.city_municipality_code',
     barangay_code           VARCHAR(12)     NULL                                  COMMENT 'FK → psgc_barangays.barangay_code',
+    barangay                VARCHAR(100)    NULL                                  COMMENT 'Barangay name',
     phone_number            VARCHAR(20)     NOT NULL,
     phone_number_2          VARCHAR(20)     NULL                                  COMMENT 'Secondary phone number',
     email                   VARCHAR(180)    NOT NULL,

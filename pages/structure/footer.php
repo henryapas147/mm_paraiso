@@ -13,13 +13,18 @@ try {
 
 // Use database values or fallback to defaults
 $companyName = $companyInfo['company_name'] ?? 'M&M Paraiso';
-$description = $companyInfo['description'] ?? 'Your perfect getaway destination. Experience luxury and comfort in our beautifully designed properties.';
+$description = $companyInfo['description'] ?? 'A beautiful beachfront resort offering luxurious accommodations, excellent dining, and unforgettable experiences in Puerto Galera.';
 
-$address = $companyInfo['address_line1'] ?? '';
-$city = $companyInfo['city'] ?? '';
-$province = $companyInfo['province'] ?? '';
-$country = $companyInfo['country'] ?? '';
-$fullAddress = trim("$address, $city, $province, $country", ', ');
+// Build full address with geocode components
+$addressParts = [
+    $companyInfo['address_line1'] ?? null,
+    $companyInfo['address_line2'] ?? null,
+    $companyInfo['barangay'] ?? null,
+    $companyInfo['city'] ?? null,
+    $companyInfo['province'] ?? null,
+    $companyInfo['country'] ?? 'Philippines'
+];
+$fullAddress = implode(', ', array_filter($addressParts));
 if (empty($fullAddress)) $fullAddress = 'Paradise City, Philippines';
 
 $phone = $companyInfo['phone_number'] ?? '+63 XXX XXX XXXX';
@@ -60,7 +65,7 @@ if (empty($hoursDisplay)) {
             <!-- About Section -->
             <div class="col-lg-4 col-md-6 mb-4">
                 <h5 class="text-uppercase mb-3 text-white">About <?php echo htmlspecialchars($companyName); ?></h5>
-                <p class="text-white-50"><?php echo htmlspecialchars($description); ?></p>
+                <p class="text-white-50" style="line-height:1.7; margin-bottom:0; text-align:justify;"><?php echo htmlspecialchars($description); ?></p>
                 <div class="social-links mt-3">
                     <a href="<?php echo htmlspecialchars($facebookUrl); ?>" target="_blank" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
                     <a href="<?php echo htmlspecialchars($instagramUrl); ?>" target="_blank" class="text-white me-3"><i class="fab fa-instagram"></i></a>

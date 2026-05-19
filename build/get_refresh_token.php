@@ -29,7 +29,7 @@ $client->setApplicationName('Resort Booking System');
 $client->setClientId($credentials['web']['client_id']);
 $client->setClientSecret($credentials['web']['client_secret']);
 $client->setRedirectUri($redirectUri);
-$client->setScopes([\Google\Service\Gmail::GMAIL_SEND]);
+$client->setScopes([\Google\Service\Gmail::GMAIL_SEND, \Google\Service\Gmail::GMAIL_READONLY]);
 $client->setAccessType('offline');
 $client->setPrompt('consent');
 
@@ -38,12 +38,12 @@ if (isset($_GET['code'])) {
     // Exchange code for access token
     $token = $client->fetchAccessTokenWithAuthCode($_GET['code']);
     
-    echo "<h2>Success! Copy your refresh token:</h2>";
-    echo "<pre>";
-    print_r($token);
-    echo "</pre>";
-    echo "<p><strong>Refresh Token:</strong> " . $token['refresh_token'] . "</p>";
-    echo "<p>Add this to your config/gmail-credentials.json file in the 'refresh_token' field.</p>";
+    $refreshToken = $token['refresh_token'] ?? 'NOT RETURNED — re-run with ?prompt=consent';
+    echo "<h2>✅ Success! Your refresh token:</h2>";
+    echo "<p>Copy the value below and add it to <code>config/credentials.php</code>:</p>";
+    echo "<pre style='background:#1e1e1e;color:#4ec9b0;padding:16px;border-radius:8px;font-size:14px;'>putenv('GMAIL_POLLING_REFRESH_TOKEN=" . htmlspecialchars($refreshToken) . "');</pre>";
+    echo "<hr>";
+    echo "<details><summary>Full token response</summary><pre>" . htmlspecialchars(json_encode($token, JSON_PRETTY_PRINT)) . "</pre></details>";
 } else {
     // Generate authorization URL
     $authUrl = $client->createAuthUrl();

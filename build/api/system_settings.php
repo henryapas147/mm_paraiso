@@ -12,6 +12,9 @@ try {
       if ($action === 'list') {
         $propertyId = $_GET['property_id'] ?? null;
         $settingGroup = $_GET['setting_group'] ?? null;
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $offset = ($page - 1) * $limit;
         
         $sql = "SELECT s.*, p.property_name 
                 FROM system_settings s 
@@ -30,9 +33,31 @@ try {
         
         $sql .= " ORDER BY s.setting_group, s.setting_label";
         
+        $countSql = "SELECT COUNT(*) FROM ($sql) as count_table";
+        $countStmt = $pdo->prepare($countSql);
+        $countStmt->execute($params);
+        $total = $countStmt->fetchColumn();
+        
+        $sql .= " LIMIT ? OFFSET ?";
+        $params[] = $limit;
+        $params[] = $offset;
+        
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
-        echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $totalPages = ceil($total / $limit);
+        
+        echo json_encode([
+          'success' => true,
+          'data' => $data,
+          'pagination' => [
+            'page' => $page,
+            'limit' => $limit,
+            'total' => $total,
+            'totalPages' => $totalPages
+          ]
+        ]);
 
       } elseif ($action === 'related') {
         $properties = $pdo->query("SELECT property_id, property_name FROM properties ORDER BY property_name ASC")->fetchAll(PDO::FETCH_ASSOC);

@@ -1,9 +1,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <!-- DEBUG: assets_path = <?php echo isset($assets_path) ? $assets_path : 'NOT SET'; ?> -->
-<link rel="apple-touch-icon" sizes="76x76" href="<?php echo $assets_path ?? './assets'; ?>/img/apple-icon.png" />
-<link rel="icon" type="image/png" href="<?php echo $assets_path ?? './assets'; ?>/img/favicon.png" />
-<title>Paradise Booking System<?php echo isset($page_title) ? ' - ' . htmlspecialchars($page_title) : ''; ?></title>
+<link rel="apple-touch-icon" sizes="76x76" href="<?php echo $assets_path ?? './assets'; ?>/img/apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="<?php echo $assets_path ?? './assets'; ?>/img/favicon.ico" />
+<title>M&M Paraiso<?php echo isset($page_title) ? ' - ' . htmlspecialchars($page_title) : ''; ?></title>
 <!--     Fonts and icons     -->
 <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
 <!-- Font Awesome Icons -->

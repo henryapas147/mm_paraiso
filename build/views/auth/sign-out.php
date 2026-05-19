@@ -3,5 +3,5 @@ session_start();
 session_destroy();
 
 // Redirect to the public index page
-header('Location: ../../pages/index.php');
+header('Location: ../pages/index.php');
 exit;

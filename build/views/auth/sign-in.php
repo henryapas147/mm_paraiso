@@ -1,6 +1,15 @@
 <?php
 
+// Track referrer if user came from pages directory
+if (!isset($_SESSION['auth_referrer']) && isset($_SERVER['HTTP_REFERER'])) {
+    $referrer = $_SERVER['HTTP_REFERER'];
+    if (strpos($referrer, '/pages/') !== false || strpos($referrer, '/../pages') !== false) {
+        $_SESSION['auth_referrer'] = 'pages';
+    }
+}
+
 // Generate UUID v4
+if (!function_exists('generateUUID')) {
 function generateUUID()
 {
   $data = random_bytes(16);
@@ -8,12 +17,19 @@ function generateUUID()
   $data[8] = chr(ord($data[8]) & 0x3f | 0x80); // variant
   return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
+}
 
 $error = '';
 $success = '';
 
 // Check if user is already logged in, redirect to dashboard
 if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
+  // If user came from pages, redirect back there
+  if (isset($_SESSION['auth_referrer']) && $_SESSION['auth_referrer'] === 'pages') {
+    unset($_SESSION['auth_referrer']);
+    header('Location: ../pages/');
+    exit;
+  }
   // Redirect to the last visited URL if stored, otherwise dashboard
   $redirectUrl = $_SESSION['last_visited_url'] ?? '../';
   unset($_SESSION['last_visited_url']); // Clear the stored URL
@@ -166,20 +182,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               setcookie('remember_token', $token, time() + (30 * 24 * 60 * 60), '/', '', $secureCookie, true);
             }
 
-            // Redirect based on user role
+            // Redirect based on user role and referrer
             $redirectUrl = './';
-            switch ($user['role_code']) {
-              case 'customer':
-                $redirectUrl = './customer/dashboard';
-                break;
-              case 'api_client':
-                // API clients should not access the web dashboard
-                $error = 'API clients cannot access the web dashboard.';
-                break;
+            
+            // If user came from pages, redirect back there
+            if (isset($_SESSION['auth_referrer']) && $_SESSION['auth_referrer'] === 'pages') {
+                $redirectUrl = '../pages/';
+                unset($_SESSION['auth_referrer']);
+            } else {
+                switch ($user['role_code']) {
+                  case 'customer':
+                    $redirectUrl = './customer/dashboard';
+                    break;
+                  case 'api_client':
+                    // API clients should not access the web dashboard
+                    $error = 'API clients cannot access the web dashboard.';
+                    break;
               default:
                 // Admin and staff roles go to dashboard
                 $redirectUrl = './';
                 break;
+            }
             }
 
             if (!$error) {
@@ -315,10 +338,10 @@ $page_title = 'Sign In'; ?>
               </div>
             </div>
             <div class="absolute top-0 right-0 flex-col justify-center hidden w-6/12 h-full max-w-full px-3 pr-0 my-auto text-center flex-0 lg:flex">
-              <div class="relative flex flex-col justify-center h-full bg-cover px-24 m-4 overflow-hidden bg-[url('https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/signin-ill.jpg')] rounded-xl ">
+              <div class="relative flex flex-col justify-center h-full bg-cover px-24 m-4 overflow-hidden rounded-xl" style="background-image: url('<?php echo $assets_path; ?>/img/paraiso.jpg'); background-size: cover; background-position: center;">
                 <span class="absolute top-0 left-0 w-full h-full bg-center bg-cover bg-gradient-to-tl from-blue-500 to-violet-500 opacity-60"></span>
-                <h4 class="z-20 mt-12 font-bold text-white">"Attention is the new currency"</h4>
-                <p class="z-20 text-white ">The more effortless the writing looks, the more effort the writer actually put into the process.</p>
+                <h4 class="z-20 mt-12 font-bold text-white">Your Paradise Awaits</h4>
+                <p class="z-20 text-white">Sign in and start planning your perfect stay at M&M Paraiso — where every moment feels like a getaway.</p>
               </div>
             </div>
           </div>

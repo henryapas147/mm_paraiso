@@ -1,16 +1,601 @@
-<?php if (false) {} ?>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0
+  }
+
+  .page {
+    padding: 24px;
+    max-width: 100%;
+    margin: 0 auto
+  }
+
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 500;
+    color: #333
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+    color: #666;
+    margin-top: 2px
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px
+  }
+
+  .stat-card {
+    background: #fff;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px 20px
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 500
+  }
+
+  .stat-value.blue {
+    color: #185FA5
+  }
+
+  .stat-value.green {
+    color: #3B6D11
+  }
+
+  .stat-value.purple {
+    color: #534AB7
+  }
+
+  .stat-value.red {
+    color: #A32D2D
+  }
+
+  .stat-value.orange {
+    color: #C75100
+  }
+
+  .stat-value.yellow {
+    color: #C77600
+  }
+
+  .card {
+    background: #fff;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 12px
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 0.5px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap
+  }
+
+  .card-title {
+    font-size: 16px;
+    font-weight: 500
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap
+  }
+
+  .search-wrap {
+    position: relative
+  }
+
+  .search-wrap i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 15px;
+    pointer-events: none
+  }
+
+  .search-input {
+    padding: 7px 12px 7px 34px;
+    font-size: 13px;
+    border: 0.5px solid #d1d5db;
+    border-radius: 8px;
+    background: #f9fafb;
+    color: #333;
+    outline: none;
+    width: 220px
+  }
+
+  .search-input:focus {
+    border-color: #185FA5
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+    border: 0.5px solid #d1d5db;
+    background: #fff;
+    color: #333;
+    cursor: pointer;
+    transition: background .15s
+  }
+
+  .btn:hover {
+    background: #f9fafb
+  }
+
+  .btn-primary {
+    background: #185FA5;
+    color: #fff;
+    border-color: #185FA5
+  }
+
+  .btn-primary:hover {
+    background: #0C447C;
+    border-color: #0C447C
+  }
+
+  .btn i {
+    font-size: 14px
+  }
+
+  .table-wrap {
+    overflow-x: auto
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px
+  }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 0.5px solid #e5e7eb;
+    white-space: nowrap
+  }
+
+  thead th.center {
+    text-align: center
+  }
+
+  tbody tr {
+    border-bottom: 0.5px solid #e5e7eb;
+    transition: background .1s
+  }
+
+  tbody tr:last-child {
+    border-bottom: none
+  }
+
+  tbody tr:hover {
+    background: #f9fafb
+  }
+
+  td {
+    padding: 11px 16px;
+    vertical-align: middle;
+    white-space: nowrap
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500
+  }
+
+  .status-badge.sent {
+    background: #EAF3DE;
+    color: #27500A
+  }
+
+  .status-badge.scheduled {
+    background: #E6F1FB;
+    color: #0C447C
+  }
+
+  .status-badge.draft {
+    background: #F1EFE8;
+    color: #5F5E5A
+  }
+
+  .status-badge.cancelled {
+    background: #FCEBEB;
+    color: #791F1F
+  }
+
+  .type-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500
+  }
+
+  .type-badge.reservation_confirmed,
+  .type-badge.reservation_cancelled {
+    background: #E6F1FB;
+    color: #0C447C
+  }
+
+  .type-badge.check_in_reminder,
+  .type-badge.check_out_reminder {
+    background: #EAF3DE;
+    color: #27500A
+  }
+
+  .type-badge.payment_received,
+  .type-badge.payment_due {
+    background: #F3E6F6;
+    color: #534AB7
+  }
+
+  .type-badge.promo_announcement,
+  .type-badge.custom {
+    background: #FFF4E6;
+    color: #C75100
+  }
+
+  .type-badge.system_alert,
+  .type-badge.staff_alert {
+    background: #FCEBEB;
+    color: #791F1F
+  }
+
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 8px;
+    border: 0.5px solid #e5e7eb;
+    background: transparent;
+    cursor: pointer;
+    transition: all .15s;
+    color: #666
+  }
+
+  .action-btn:hover {
+    background: #f9fafb;
+    color: #333;
+    border-color: #d1d5db
+  }
+
+  .action-btn.danger:hover {
+    background: #FCEBEB;
+    color: #791F1F;
+    border-color: #F09595
+  }
+
+  .action-btn i {
+    font-size: 12px
+  }
+
+  .actions-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px
+  }
+
+  .label-text {
+    font-size: 13px;
+    color: #333
+  }
+
+  .value-text {
+    font-size: 12px;
+    color: #666
+  }
+
+  .empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    color: #666
+  }
+
+  .empty-state i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+    color: #999
+  }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .45);
+    z-index: 9000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px
+  }
+
+  .overlay.open {
+    display: flex
+  }
+
+  .modal {
+    background: #fff;
+    border-radius: 16px;
+    border: 0.5px solid #e5e7eb;
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, .18)
+  }
+
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 0.5px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between
+  }
+
+  .modal-title {
+    font-size: 16px;
+    font-weight: 500
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    font-size: 20px;
+    line-height: 1;
+    padding: 4px
+  }
+
+  .modal-close:hover {
+    color: #333
+  }
+
+  .modal-body {
+    padding: 24px
+  }
+
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 0.5px solid #e5e7eb;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px
+  }
+
+  .form-group.full {
+    grid-column: 1/-1
+  }
+
+  label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.05em
+  }
+
+  label .req {
+    color: #A32D2D;
+    margin-left: 2px
+  }
+
+  input,
+  select,
+  textarea {
+    font-family: system-ui, sans-serif;
+    font-size: 13px;
+    color: #333;
+    background: #f9fafb;
+    border: 0.5px solid #d1d5db;
+    border-radius: 8px;
+    padding: 8px 12px;
+    outline: none;
+    width: 100%;
+    transition: border .15s
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: #185FA5;
+    background: #fff
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #fff;
+    border: 0.5px solid #d1d5db;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 9999;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all .25s
+  }
+
+  .toast.show {
+    transform: none;
+    opacity: 1
+  }
+
+  .toast.success {
+    border-color: #9FE1CB;
+    color: #085041
+  }
+
+  .toast.error {
+    border-color: #F7C1C1;
+    color: #791F1F
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-top: 0.5px solid #e5e7eb
+  }
+
+  .pagination-info {
+    font-size: 13px;
+    color: #666
+  }
+
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px
+  }
+
+  .pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+    border: 0.5px solid #d1d5db;
+    background: #fff;
+    color: #333;
+    cursor: pointer;
+    transition: background .15s
+  }
+
+  .pagination-btn:hover:not(:disabled) {
+    background: #f9fafb
+  }
+
+  .pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed
+  }
+
+  .pagination-btn.active {
+    background: #185FA5;
+    color: #fff;
+    border-color: #185FA5
+  }
+
+  .entries-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #666
+  }
+
+  .entries-select select {
+    padding: 6px 10px;
+    font-size: 13px;
+    border: 0.5px solid #d1d5db;
+    border-radius: 8px;
+    background: #f9fafb;
+    color: #333;
+    outline: none;
+    cursor: pointer
+  }
+
+  .entries-select select:focus {
+    border-color: #185FA5;
+    background: #fff
+  }
+</style>
+
 <script>
   let notificationsData = [];
   let propertiesData = [];
+  let pagination = {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0
+  };
 
   async function fetchNotifications() {
     try {
-      const res = await fetch('../api/notifications.php?action=list');
+      const res = await fetch(`../api/notifications.php?action=list&page=${pagination.page}&limit=${pagination.limit}`);
       const json = await res.json();
       if (json.success) {
         notificationsData = json.data;
+        pagination = json.pagination;
         renderStats();
         renderTable();
+        renderPagination();
       }
     } catch (e) {
       console.error('Error fetching notifications:', e);
@@ -30,46 +615,100 @@
     }
   }
 
+  function statusClass(s) {
+    return ['sent', 'scheduled', 'draft', 'cancelled'].includes(s) ? s : 'draft'
+  }
+
+  function typeClass(t) {
+    const map = {
+      'reservation_confirmed': 'reservation_confirmed',
+      'reservation_cancelled': 'reservation_cancelled',
+      'check_in_reminder': 'check_in_reminder',
+      'check_out_reminder': 'check_out_reminder',
+      'payment_received': 'payment_received',
+      'payment_due': 'payment_due',
+      'promo_announcement': 'promo_announcement',
+      'system_alert': 'system_alert',
+      'staff_alert': 'staff_alert',
+      'custom': 'custom'
+    };
+    return map[t] || 'custom'
+  }
+
   function renderStats() {
-    const sent = notificationsData.filter(n => n.status == 'sent').length;
-    const scheduled = notificationsData.filter(n => n.status == 'scheduled').length;
-    const draft = notificationsData.filter(n => n.status == 'draft').length;
-    document.getElementById('statTotal').textContent = notificationsData.length;
-    document.getElementById('statSent').textContent = sent;
-    document.getElementById('statScheduled').textContent = scheduled;
-    document.getElementById('statDraft').textContent = draft;
+    document.getElementById('statTotal').textContent = pagination.total;
+    document.getElementById('statSent').textContent = notificationsData.filter(n => n.status == 'sent').length;
+    document.getElementById('statScheduled').textContent = notificationsData.filter(n => n.status == 'scheduled').length;
+    document.getElementById('statDraft').textContent = notificationsData.filter(n => n.status == 'draft').length;
+  }
+
+  function renderPagination() {
+    const start = (pagination.page - 1) * pagination.limit + 1;
+    const end = Math.min(pagination.page * pagination.limit, pagination.total);
+    document.getElementById('paginationInfo').textContent = `Showing ${start} to ${end} of ${pagination.total} entries`;
+
+    document.getElementById('prevBtn').disabled = pagination.page === 1;
+    document.getElementById('nextBtn').disabled = pagination.page === pagination.totalPages;
+
+    const pageNumbers = document.getElementById('pageNumbers');
+    pageNumbers.innerHTML = '';
+
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, pagination.page - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(pagination.totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      const btn = document.createElement('button');
+      btn.className = `pagination-btn ${i === pagination.page ? 'active' : ''}`;
+      btn.textContent = i;
+      btn.onclick = () => goToPage(i);
+      pageNumbers.appendChild(btn);
+    }
+  }
+
+  function changePage(delta) {
+    const newPage = pagination.page + delta;
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      pagination.page = newPage;
+      fetchNotifications();
+    }
+  }
+
+  function goToPage(page) {
+    pagination.page = page;
+    fetchNotifications();
+  }
+
+  function changeEntriesPerPage() {
+    pagination.limit = parseInt(document.getElementById('entriesPerPage').value);
+    pagination.page = 1;
+    fetchNotifications();
   }
 
   function renderTable() {
     const tbody = document.getElementById('notificationsTableBody');
     if (!notificationsData.length) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 dark:text-white/60">No notifications found.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><i class="fas fa-database-off"></i>No notifications found.</td></tr>`;
       return;
     }
-    tbody.innerHTML = notificationsData.map(notif => `
-      <tr class="notification-row">
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">${notif.subject}</p>
-        </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">${notif.property_name || 'All Properties'}</p>
-        </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">${notif.notification_type}</p>
-        </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">${notif.scheduled_at || '-'}</p>
-        </td>
-        <td class="p-2 text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <span class="bg-gradient-to-tl ${notif.status === 'sent' ? 'from-emerald-500 to-teal-400' : notif.status === 'scheduled' ? 'from-blue-500 to-cyan-400' : 'from-slate-500 to-slate-400'} px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">${notif.status}</span>
-        </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <div class="flex items-center gap-2">
-            <button onclick="openEditNotifModal('${notif.notification_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-500/20 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-300 dark:hover:border-amber-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Edit Notification">
-              <i class="fas fa-edit mr-1.5 text-xs"></i><span>Edit</span>
+    tbody.innerHTML = notificationsData.map(n => `
+      <tr class="notification-row" data-id="${n.notif_id}">
+        <td><span class="label-text">${n.title || '—'}</span></td>
+        <td><span class="type-badge ${typeClass(n.notif_type)}">${n.notif_type.replace(/_/g, ' ')}</span></td>
+        <td><span class="value-text">${n.property_name || 'All Properties'}</span></td>
+        <td><span class="value-text">${n.scheduled_at || '—'}</span></td>
+        <td style="text-align:center"><span class="status-badge ${statusClass(n.status)}">${n.status}</span></td>
+        <td>
+          <div class="actions-cell">
+            <button class="action-btn" onclick="openEditModal('${n.notif_id}')">
+              <i class="fas fa-pencil"></i> Edit
             </button>
-            <button onclick="deleteNotif(this)" data-id="${notif.notification_id}" data-name="${notif.subject}" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 bg-white dark:bg-slate-700/50 border border-red-200 dark:border-white/10 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-700 dark:hover:text-red-300 hover:border-red-300 dark:hover:border-red-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Delete Notification">
-              <i class="fas fa-trash-alt mr-1.5 text-xs"></i><span>Delete</span>
+            <button class="action-btn danger" onclick="confirmDelete('${n.notif_id}','${n.title}')">
+              <i class="fas fa-trash"></i> Delete
             </button>
           </div>
         </td>
@@ -78,7 +717,14 @@
 
   function populateDropdowns() {
     const propOpts = '<option value="">All Properties</option>' + propertiesData.map(p => `<option value="${p.property_id}">${p.property_name}</option>`).join('');
-    ['addProperty', 'editProperty'].forEach(id => { const sel = document.getElementById(id); if (sel) sel.innerHTML = propOpts; });
+    ['addProperty', 'editProperty'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = propOpts; });
+  }
+
+  function filterTable() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('#notificationsTableBody .notification-row').forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -87,363 +733,307 @@
   });
 </script>
 
-<!-- PAGE CONTENT -->
-      <!-- Stats Cards -->
-      <div class="flex flex-wrap -mx-3 mb-6">
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Total Notifications</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statTotal">...</h5>
-            </div>
-          </div>
-        </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Sent</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl text-emerald-500" id="statSent">...</h5>
-            </div>
-          </div>
-        </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Scheduled</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl text-blue-500" id="statScheduled">...</h5>
-            </div>
-          </div>
-        </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Draft</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl text-slate-500" id="statDraft">...</h5>
-            </div>
-          </div>
-        </div>
-      </div>
+<div class="page">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total notifications</div>
+      <div class="stat-value" id="statTotal">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Sent</div>
+      <div class="stat-value green" id="statSent">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Scheduled</div>
+      <div class="stat-value blue" id="statScheduled">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Draft</div>
+      <div class="stat-value" id="statDraft">—</div>
+    </div>
+  </div>
 
-      <!-- Notifications Table -->
-      <div class="flex flex-wrap -mx-3">
-        <div class="flex-none w-full max-w-full px-3">
-          <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent flex justify-between items-center">
-              <h6 class="dark:text-white">Notifications</h6>
-              <div class="flex gap-2">
-                <button class="bg-gradient-to-tl from-cyan-500 to-blue-400 text-white px-3 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                  <i class="fas fa-paper-plane mr-1"></i> Send Now
-                </button>
-                <button class="bg-gradient-to-tl from-purple-500 to-indigo-400 text-white px-3 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                  <i class="fas fa-copy mr-1"></i> Duplicate
-                </button>
-                <button class="bg-gradient-to-tl from-red-500 to-rose-400 text-white px-3 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                  <i class="fas fa-times-circle mr-1"></i> Cancel Scheduled
-                </button>
-                <button class="bg-gradient-to-tl from-pink-500 to-rose-400 text-white px-3 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                  <i class="fas fa-chart-bar mr-1"></i> Delivery Report
-                </button>
-                <button onclick="openAddNotifModal()" class="bg-gradient-to-tl from-blue-500 to-violet-500 text-white px-4 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                  <i class="fas fa-plus mr-1"></i> New Notification
-                </button>
-              </div>
-            </div>
-            <div class="flex-auto px-0 pt-0 pb-2">
-              <div class="p-0 overflow-x-auto">
-                <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500" id="notifsTable">
-                  <thead class="align-bottom">
-                    <tr>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Title</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Type</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Target</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Scheduled</th>
-                      <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
-                      <th class="px-6 py-3 font-semibold capitalize align-middle bg-transparent border-b border-collapse border-solid shadow-none dark:border-white/40 dark:text-white tracking-none whitespace-nowrap text-slate-400 opacity-70"></th>
-                    </tr>
-                  </thead>
-                  <tbody id="notificationsTableBody">
-                    <tr><td colspan="6" class="p-4 text-center text-slate-400 dark:text-white/60">Loading...</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Notifications</span>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <i class="fas fa-search"></i>
+          <input type="text" class="search-input" id="searchInput" placeholder="Search notifications…" oninput="filterTable()">
         </div>
+        <button class="btn" onclick="showToast('Send now coming soon', 'success')"><i class="fas fa-send"></i> Send now</button>
+        <button class="btn" onclick="showToast('Duplicate coming soon', 'success')"><i class="fas fa-copy"></i> Duplicate</button>
+        <button class="btn" onclick="showToast('Cancel scheduled coming soon', 'success')"><i class="fas fa-x"></i> Cancel scheduled</button>
+        <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> New notification</button>
       </div>
+    </div>
+    <div class="table-wrap">
+      <table id="notifsTable">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Type</th>
+            <th>Target</th>
+            <th>Scheduled</th>
+            <th class="center">Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="notificationsTableBody">
+          <tr><td colspan="6" class="empty-state">
+            <i class="fas fa-loader-2"></i>
+            Loading notifications…
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <div class="entries-select">
+        <label>Show</label>
+        <select id="entriesPerPage" onchange="changeEntriesPerPage()">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+        <span>entries</span>
+      </div>
+      <div class="pagination-controls">
+        <span class="pagination-info" id="paginationInfo">Showing 0 to 0 of 0 entries</span>
+        <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>
+          <i class="fas fa-chevron-left"></i> Previous
+        </button>
+        <div id="pageNumbers" style="display:flex;gap:4px"></div>
+        <button class="pagination-btn" id="nextBtn" onclick="changePage(1)" disabled>
+          Next <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
-      <!-- Add Notification Modal -->
-      <div id="addNotifModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddNotifModal()"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 900px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-            <h3 class="text-xl font-bold dark:text-white">Create New Notification</h3>
-            <button onclick="closeAddNotifModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
+<!-- Add Modal -->
+<div class="overlay" id="addOverlay" onclick="handleOverlayClick(event,'addOverlay')">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
+    <div class="modal-header">
+      <span class="modal-title" id="addModalTitle">New notification</span>
+      <button class="modal-close" onclick="closeAddModal()" aria-label="Close">×</button>
+    </div>
+    <form id="addForm" onsubmit="submitAdd(event)">
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Property</label>
+            <select name="property_id" id="addProperty">
+              <option value="">All Properties</option>
+            </select>
           </div>
-          <form id="addNotifForm" onsubmit="submitAddNotif(event)">
-            <div class="p-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Property</label>
-                  <select name="property_id" id="addProperty" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">All Properties</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Notification Type <span class="text-red-500">*</span></label>
-                  <select name="notif_type" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="reservation_confirmed">Reservation Confirmed</option>
-                    <option value="reservation_cancelled">Reservation Cancelled</option>
-                    <option value="check_in_reminder">Check-in Reminder</option>
-                    <option value="check_out_reminder">Check-out Reminder</option>
-                    <option value="payment_received">Payment Received</option>
-                    <option value="payment_due">Payment Due</option>
-                    <option value="promo_announcement">Promo Announcement</option>
-                    <option value="system_alert">System Alert</option>
-                    <option value="staff_alert">Staff Alert</option>
-                    <option value="custom">Custom</option>
-                  </select>
-                </div>
-                <div class="md:col-span-2">
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Title <span class="text-red-500">*</span></label>
-                  <input type="text" name="title" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Booking Confirmation">
-                </div>
-                <div class="md:col-span-2">
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Body <span class="text-red-500">*</span></label>
-                  <textarea name="body" required rows="3" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Notification message..."></textarea>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Target Audience <span class="text-red-500">*</span></label>
-                  <select name="target_audience" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="specific_user">Specific User</option>
-                    <option value="all_customers">All Customers</option>
-                    <option value="all_staff">All Staff</option>
-                    <option value="reservation_guests">Reservation Guests</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Action URL</label>
-                  <input type="url" name="action_url" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="https://example.com">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Reference Type</label>
-                  <input type="text" name="reference_type" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., reservation">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Reference ID</label>
-                  <input type="text" name="reference_id" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., UUID">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Scheduled At</label>
-                  <input type="datetime-local" name="scheduled_at" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <p class="text-xs text-slate-400 mt-1">Leave empty to send immediately</p>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Status <span class="text-red-500">*</span></label>
-                  <select name="status" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="draft">Draft</option>
-                    <option value="scheduled">Scheduled</option>
-                    <option value="sent">Sent</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="p-6 border-t border-gray-200 dark:border-white/10 flex justify-end gap-3">
-              <button type="button" onclick="closeAddNotifModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
-                Cancel
-              </button>
-              <button type="submit" class="px-6 py-2 text-sm font-semibold text-white bg-gradient-to-tl from-blue-500 to-violet-500 rounded-lg hover:from-blue-600 hover:to-violet-600 transition-all duration-200 shadow-md hover:shadow-lg">
-                <i class="fas fa-save mr-2"></i>Create Notification
-              </button>
-            </div>
-          </form>
+          <div class="form-group">
+            <label>Notification type <span class="req">*</span></label>
+            <select name="notif_type" required>
+              <option value="reservation_confirmed">Reservation Confirmed</option>
+              <option value="reservation_cancelled">Reservation Cancelled</option>
+              <option value="check_in_reminder">Check-in Reminder</option>
+              <option value="check_out_reminder">Check-out Reminder</option>
+              <option value="payment_received">Payment Received</option>
+              <option value="payment_due">Payment Due</option>
+              <option value="promo_announcement">Promo Announcement</option>
+              <option value="system_alert">System Alert</option>
+              <option value="staff_alert">Staff Alert</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>Title <span class="req">*</span></label>
+            <input type="text" name="title" required placeholder="e.g. Booking Confirmation">
+          </div>
+          <div class="form-group full">
+            <label>Body <span class="req">*</span></label>
+            <textarea name="body" required placeholder="Notification message..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Target audience <span class="req">*</span></label>
+            <select name="target_audience" required>
+              <option value="specific_user">Specific User</option>
+              <option value="all_customers">All Customers</option>
+              <option value="all_staff">All Staff</option>
+              <option value="reservation_guests">Reservation Guests</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Action URL</label>
+            <input type="url" name="action_url" placeholder="https://example.com">
+          </div>
+          <div class="form-group">
+            <label>Reference type</label>
+            <input type="text" name="reference_type" placeholder="e.g. reservation">
+          </div>
+          <div class="form-group">
+            <label>Reference ID</label>
+            <input type="text" name="reference_id" placeholder="e.g. UUID">
+          </div>
+          <div class="form-group">
+            <label>Scheduled at</label>
+            <input type="datetime-local" name="scheduled_at">
+          </div>
+          <div class="form-group">
+            <label>Status <span class="req">*</span></label>
+            <select name="status" required>
+              <option value="draft">Draft</option>
+              <option value="scheduled">Scheduled</option>
+              <option value="sent">Sent</option>
+            </select>
+          </div>
         </div>
       </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeAddModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-device-floppy"></i> Create notification</button>
+      </div>
+    </form>
+  </div>
+</div>
 
-      <!-- Edit Notification Modal -->
-      <div id="editNotifModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeEditNotifModal()"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 900px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-            <h3 class="text-xl font-bold dark:text-white">Edit Notification</h3>
-            <button onclick="closeEditNotifModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
+<!-- Edit Modal -->
+<div class="overlay" id="editOverlay" onclick="handleOverlayClick(event,'editOverlay')">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+    <div class="modal-header">
+      <span class="modal-title" id="editModalTitle">Edit notification</span>
+      <button class="modal-close" onclick="closeEditModal()" aria-label="Close">×</button>
+    </div>
+    <form id="editForm" onsubmit="submitEdit(event)">
+      <div class="modal-body">
+        <div class="form-grid">
+          <input type="hidden" name="notif_id" id="editNotifId">
+          <div class="form-group">
+            <label>Property</label>
+            <select name="property_id" id="editProperty">
+              <option value="">All Properties</option>
+            </select>
           </div>
-          <form id="editNotifForm" onsubmit="submitEditNotif(event)">
-            <div class="p-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input type="hidden" name="notification_id" id="editNotifId">
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Property</label>
-                  <select name="property_id" id="editProperty" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">All Properties</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Notification Type <span class="text-red-500">*</span></label>
-                  <select name="notif_type" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="reservation_confirmed">Reservation Confirmed</option>
-                    <option value="reservation_cancelled">Reservation Cancelled</option>
-                    <option value="check_in_reminder">Check-in Reminder</option>
-                    <option value="check_out_reminder">Check-out Reminder</option>
-                    <option value="payment_received">Payment Received</option>
-                    <option value="payment_due">Payment Due</option>
-                    <option value="promo_announcement">Promo Announcement</option>
-                    <option value="system_alert">System Alert</option>
-                    <option value="staff_alert">Staff Alert</option>
-                    <option value="custom">Custom</option>
-                  </select>
-                </div>
-                <div class="md:col-span-2">
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Title <span class="text-red-500">*</span></label>
-                  <input type="text" name="title" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Booking Confirmation">
-                </div>
-                <div class="md:col-span-2">
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Body <span class="text-red-500">*</span></label>
-                  <textarea name="body" required rows="3" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Notification message..."></textarea>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Target Audience <span class="text-red-500">*</span></label>
-                  <select name="target_audience" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="specific_user">Specific User</option>
-                    <option value="all_customers">All Customers</option>
-                    <option value="all_staff">All Staff</option>
-                    <option value="reservation_guests">Reservation Guests</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Action URL</label>
-                  <input type="url" name="action_url" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="https://example.com">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Reference Type</label>
-                  <input type="text" name="reference_type" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., reservation">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Reference ID</label>
-                  <input type="text" name="reference_id" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., UUID">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Scheduled At</label>
-                  <input type="datetime-local" name="scheduled_at" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <p class="text-xs text-slate-400 mt-1">Leave empty to send immediately</p>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Status <span class="text-red-500">*</span></label>
-                  <select name="status" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="draft">Draft</option>
-                    <option value="scheduled">Scheduled</option>
-                    <option value="sent">Sent</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="p-6 border-t border-gray-200 dark:border-white/10 flex justify-end gap-3">
-              <button type="button" onclick="closeEditNotifModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
-                Cancel
-              </button>
-              <button type="submit" class="px-6 py-2 text-sm font-semibold text-white bg-gradient-to-tl from-blue-500 to-violet-500 rounded-lg hover:from-blue-600 hover:to-violet-600 transition-all duration-200 shadow-md hover:shadow-lg">
-                <i class="fas fa-save mr-2"></i>Update Notification
-              </button>
-            </div>
-          </form>
+          <div class="form-group">
+            <label>Notification type <span class="req">*</span></label>
+            <select name="notif_type" required>
+              <option value="reservation_confirmed">Reservation Confirmed</option>
+              <option value="reservation_cancelled">Reservation Cancelled</option>
+              <option value="check_in_reminder">Check-in Reminder</option>
+              <option value="check_out_reminder">Check-out Reminder</option>
+              <option value="payment_received">Payment Received</option>
+              <option value="payment_due">Payment Due</option>
+              <option value="promo_announcement">Promo Announcement</option>
+              <option value="system_alert">System Alert</option>
+              <option value="staff_alert">Staff Alert</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>Title <span class="req">*</span></label>
+            <input type="text" name="title" required placeholder="e.g. Booking Confirmation">
+          </div>
+          <div class="form-group full">
+            <label>Body <span class="req">*</span></label>
+            <textarea name="body" required placeholder="Notification message..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Target audience <span class="req">*</span></label>
+            <select name="target_audience" required>
+              <option value="specific_user">Specific User</option>
+              <option value="all_customers">All Customers</option>
+              <option value="all_staff">All Staff</option>
+              <option value="reservation_guests">Reservation Guests</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Action URL</label>
+            <input type="url" name="action_url" placeholder="https://example.com">
+          </div>
+          <div class="form-group">
+            <label>Reference type</label>
+            <input type="text" name="reference_type" placeholder="e.g. reservation">
+          </div>
+          <div class="form-group">
+            <label>Reference ID</label>
+            <input type="text" name="reference_id" placeholder="e.g. UUID">
+          </div>
+          <div class="form-group">
+            <label>Scheduled at</label>
+            <input type="datetime-local" name="scheduled_at">
+          </div>
+          <div class="form-group">
+            <label>Status <span class="req">*</span></label>
+            <select name="status" required>
+              <option value="draft">Draft</option>
+              <option value="scheduled">Scheduled</option>
+              <option value="sent">Sent</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
         </div>
       </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeEditModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-device-floppy"></i> Update notification</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-  function filterTable() {
-    const input = document.getElementById('searchInput');
-    const filter = input.value.toLowerCase();
-    const table = document.getElementById('notifsTable');
-    const rows = table.getElementsByTagName('tr');
-
-    for (let i = 1; i < rows.length; i++) {
-      const row = rows[i];
-      const cells = row.getElementsByTagName('td');
-      let found = false;
-
-      for (let j = 0; j < cells.length; j++) {
-        if (cells[j]) {
-          const text = cells[j].textContent || cells[j].innerText;
-          if (text.toLowerCase().indexOf(filter) > -1) {
-            found = true;
-            break;
-          }
-        }
-      }
-
-      row.style.display = found ? '' : 'none';
-    }
+  function openAddModal() {
+    document.getElementById('addOverlay').classList.add('open')
   }
 
-  function openAddNotifModal() {
-    document.getElementById('addNotifModal').style.display = 'block';
+  function closeAddModal() {
+    document.getElementById('addOverlay').classList.remove('open');
+    document.getElementById('addForm').reset();
   }
 
-  function closeAddNotifModal() {
-    document.getElementById('addNotifModal').style.display = 'none';
-    document.getElementById('addNotifForm').reset();
+  function openEditModal(id) {
+    const n = notificationsData.find(x => x.notif_id == id);
+    if (!n) return;
+    const f = document.getElementById('editForm');
+    document.getElementById('editNotifId').value = n.notif_id;
+    f.property_id.value = n.property_id || '';
+    f.notif_type.value = n.notif_type;
+    f.title.value = n.title;
+    f.body.value = n.body;
+    f.target_audience.value = n.target_audience;
+    f.action_url.value = n.action_url || '';
+    f.reference_type.value = n.reference_type || '';
+    f.reference_id.value = n.reference_id || '';
+    f.scheduled_at.value = n.scheduled_at ? n.scheduled_at.replace(' ', 'T') : '';
+    f.status.value = n.status;
+    document.getElementById('editOverlay').classList.add('open');
   }
 
-  function openEditNotifModal(notifId) {
-    const notif = notificationsData.find(n => n.notif_id == notifId);
-    if (notif) {
-      document.getElementById('editNotifId').value = notif.notif_id;
-      const form = document.getElementById('editNotifForm');
-      form.property_id.value = notif.property_id || '';
-      form.notif_type.value = notif.notif_type;
-      form.title.value = notif.title;
-      form.body.value = notif.body;
-      form.target_audience.value = notif.target_audience;
-      form.action_url.value = notif.action_url || '';
-      form.reference_type.value = notif.reference_type || '';
-      form.reference_id.value = notif.reference_id || '';
-      form.scheduled_at.value = notif.scheduled_at ? notif.scheduled_at.replace(' ', 'T') : '';
-      form.status.value = notif.status;
-      document.getElementById('editNotifModal').style.display = 'block';
-    }
+  function closeEditModal() {
+    document.getElementById('editOverlay').classList.remove('open');
+    document.getElementById('editForm').reset();
   }
 
-  function closeEditNotifModal() {
-    document.getElementById('editNotifModal').style.display = 'none';
-    document.getElementById('editNotifForm').reset();
+  function handleOverlayClick(e, id) {
+    if (e.target === document.getElementById(id)) document.getElementById(id).classList.remove('open');
   }
 
-  function submitAddNotif(event) {
-    event.preventDefault();
-    const form = document.getElementById('addNotifForm');
+  function submitAdd(e) {
+    e.preventDefault();
+    const f = document.getElementById('addForm');
     const payload = {
-      property_id: form.elements['property_id'].value,
-      notif_type: form.elements['notif_type'].value,
-      title: form.elements['title'].value,
-      body: form.elements['body'].value,
-      target_audience: form.elements['target_audience'].value,
-      action_url: form.elements['action_url'].value || null,
-      reference_type: form.elements['reference_type'].value || null,
-      reference_id: form.elements['reference_id'].value || null,
-      scheduled_at: form.elements['scheduled_at'].value || null,
-      status: form.elements['status'].value
+      property_id: f.elements['property_id'].value || null,
+      notif_type: f.elements['notif_type'].value,
+      title: f.elements['title'].value,
+      body: f.elements['body'].value,
+      target_audience: f.elements['target_audience'].value,
+      action_url: f.elements['action_url'].value || null,
+      reference_type: f.elements['reference_type'].value || null,
+      reference_id: f.elements['reference_id'].value || null,
+      scheduled_at: f.elements['scheduled_at'].value || null,
+      status: f.elements['status'].value,
+      recipients: []
     };
-
-    Swal.fire({
-      title: 'Creating...',
-      text: 'Please wait while we create the notification.',
-      allowOutsideClick: false,
-      didOpen: () => { Swal.showLoading(); },
-      customClass: { popup: 'swal2-popup-high-z' }
-    });
-
     fetch('../api/notifications.php?action=create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -451,45 +1041,37 @@
       })
       .then(r => r.json())
       .then(data => {
-        closeAddNotifModal();
+        closeAddModal();
         if (data.success) {
-          Swal.fire({ icon: 'success', title: 'Success!', text: data.message, confirmButtonColor: '#3085d6', customClass: { popup: 'swal2-popup-high-z' } })
-            .then(() => fetchNotifications());
+          fetchNotifications();
+          showToast('Notification created', 'success');
         } else {
-          Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
+          showToast(data.message, 'error');
         }
       })
       .catch(() => {
-        closeAddNotifModal();
-        Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while creating the notification.', confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
+        closeAddModal();
+        showToast('An error occurred while creating the notification', 'error');
       });
   }
 
-  function submitEditNotif(event) {
-    event.preventDefault();
-    const form = document.getElementById('editNotifForm');
+  function submitEdit(e) {
+    e.preventDefault();
+    const f = document.getElementById('editForm');
     const payload = {
-      notification_id: form.elements['notification_id'].value,
-      property_id: form.elements['property_id'].value,
-      notif_type: form.elements['notif_type'].value,
-      title: form.elements['title'].value,
-      body: form.elements['body'].value,
-      target_audience: form.elements['target_audience'].value,
-      action_url: form.elements['action_url'].value || null,
-      reference_type: form.elements['reference_type'].value || null,
-      reference_id: form.elements['reference_id'].value || null,
-      scheduled_at: form.elements['scheduled_at'].value || null,
-      status: form.elements['status'].value
+      notif_id: document.getElementById('editNotifId').value,
+      property_id: f.elements['property_id'].value || null,
+      notif_type: f.elements['notif_type'].value,
+      title: f.elements['title'].value,
+      body: f.elements['body'].value,
+      target_audience: f.elements['target_audience'].value,
+      action_url: f.elements['action_url'].value || null,
+      reference_type: f.elements['reference_type'].value || null,
+      reference_id: f.elements['reference_id'].value || null,
+      scheduled_at: f.elements['scheduled_at'].value || null,
+      status: f.elements['status'].value,
+      recipients: []
     };
-
-    Swal.fire({
-      title: 'Updating...',
-      text: 'Please wait while we update the notification.',
-      allowOutsideClick: false,
-      didOpen: () => { Swal.showLoading(); },
-      customClass: { popup: 'swal2-popup-high-z' }
-    });
-
     fetch('../api/notifications.php?action=update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -497,59 +1079,50 @@
       })
       .then(r => r.json())
       .then(data => {
-        closeEditNotifModal();
+        closeEditModal();
         if (data.success) {
-          Swal.fire({ icon: 'success', title: 'Success!', text: data.message, confirmButtonColor: '#3085d6', customClass: { popup: 'swal2-popup-high-z' } })
-            .then(() => fetchNotifications());
+          fetchNotifications();
+          showToast('Notification updated', 'success');
         } else {
-          Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
+          showToast(data.message, 'error');
         }
       })
       .catch(() => {
-        closeEditNotifModal();
-        Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while updating the notification.', confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
+        closeEditModal();
+        showToast('An error occurred while updating the notification', 'error');
       });
   }
 
-  function deleteNotif(btn, notifId, title) {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: `You are about to delete the notification: ${title}`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
-      customClass: { popup: 'swal2-popup-high-z' }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        Swal.fire({
-          title: 'Deleting...',
-          text: 'Please wait while we delete the notification.',
-          allowOutsideClick: false,
-          didOpen: () => { Swal.showLoading(); },
-          customClass: { popup: 'swal2-popup-high-z' }
-        });
+  function confirmDelete(id, name) {
+    if (!confirm(`Delete notification "${name}"? This cannot be undone.`)) return;
+    fetch('../api/notifications.php?action=delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notif_id: id })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          fetchNotifications();
+          showToast('Notification deleted', 'success');
+        } else {
+          showToast(data.message, 'error');
+        }
+      })
+      .catch(() => {
+        showToast('An error occurred while deleting the notification', 'error');
+      });
+  }
 
-        fetch('../api/notifications.php?action=delete', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ notification_id: notifId })
-          })
-          .then(r => r.json())
-          .then(data => {
-            if (data.success) {
-              Swal.fire({ icon: 'success', title: 'Deleted!', text: data.message, confirmButtonColor: '#3085d6', customClass: { popup: 'swal2-popup-high-z' } })
-                .then(() => fetchNotifications());
-            } else {
-              Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
-            }
-          })
-          .catch(() => {
-            Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while deleting the notification.', confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
-          });
-      }
-    });
+  let toastTimer;
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type + ' show';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      t.classList.remove('show')
+    }, 3000);
   }
 </script>

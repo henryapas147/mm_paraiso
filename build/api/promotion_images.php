@@ -11,6 +11,9 @@ try {
     case 'GET':
       if ($action === 'list') {
         $promoId = $_GET['promo_id'] ?? null;
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $offset = ($page - 1) * $limit;
         
         $sql = "SELECT pi.*, p.promo_title 
                 FROM promotion_images pi 
@@ -25,9 +28,29 @@ try {
         
         $sql .= " ORDER BY pi.sort_order ASC";
         
+        $countSql = "SELECT COUNT(*) FROM ($sql) as count_table";
+        $countStmt = $pdo->prepare($countSql);
+        $countStmt->execute($params);
+        $total = $countStmt->fetchColumn();
+        
+        $sql .= " LIMIT ? OFFSET ?";
+        $params[] = $limit;
+        $params[] = $offset;
+        
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
-        echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+        $totalPages = ceil($total / $limit);
+        
+        echo json_encode([
+          'success' => true,
+          'data' => $stmt->fetchAll(PDO::FETCH_ASSOC),
+          'pagination' => [
+            'page' => $page,
+            'limit' => $limit,
+            'total' => $total,
+            'totalPages' => $totalPages
+          ]
+        ]);
 
       } elseif ($action === 'related') {
         $promotions = $pdo->query("SELECT promo_id, promo_title FROM promotions WHERE is_active = 1 ORDER BY promo_title ASC")->fetchAll(PDO::FETCH_ASSOC);

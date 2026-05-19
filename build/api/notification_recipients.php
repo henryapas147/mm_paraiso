@@ -11,6 +11,9 @@ try {
     case 'GET':
       if ($action === 'list') {
         $notifId = $_GET['notif_id'] ?? null;
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $offset = ($page - 1) * $limit;
 
         $sql = "SELECT nr.*, n.title as notif_title, ua.email, up.first_name, up.last_name
                 FROM notification_recipients nr
@@ -27,9 +30,30 @@ try {
 
         $sql .= " ORDER BY nr.created_at DESC";
 
+        $countSql = "SELECT COUNT(*) FROM ($sql) as count_table";
+        $countStmt = $pdo->prepare($countSql);
+        $countStmt->execute($params);
+        $total = $countStmt->fetchColumn();
+
+        $sql .= " LIMIT ? OFFSET ?";
+        $params[] = $limit;
+        $params[] = $offset;
+
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
-        echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+
+        $totalPages = ceil($total / $limit);
+
+        echo json_encode([
+          'success' => true,
+          'data' => $stmt->fetchAll(PDO::FETCH_ASSOC),
+          'pagination' => [
+            'page' => $page,
+            'limit' => $limit,
+            'total' => $total,
+            'totalPages' => $totalPages
+          ]
+        ]);
 
       } elseif ($action === 'related') {
         $notifications = $pdo->query("SELECT notif_id, title FROM notifications WHERE status IN ('draft', 'scheduled') ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
