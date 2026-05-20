@@ -242,6 +242,7 @@ $categoryId = $_GET['category_id'] ?? null;
         const result = await response.json();
 
         if (result.success) {
+          // Amenities now included in API response, no separate fetch needed
           renderRoomDetails(result.data, roomId ? 'room' : 'category');
         } else {
           document.getElementById('roomDetailsContainer').innerHTML = `
@@ -257,6 +258,29 @@ $categoryId = $_GET['category_id'] ?? null;
             <p>Error loading room details. Please try again later.</p>
           </div>
         `;
+      }
+    }
+
+    // Fetch room amenities
+    async function fetchRoomAmenities(roomId, categoryId) {
+      try {
+        let apiUrl;
+        if (roomId) {
+          apiUrl = `../build/api/room_amenities.php?action=by_room&room_id=${encodeURIComponent(roomId)}`;
+        } else {
+          apiUrl = `../build/api/room_amenities.php?action=by_category&category_id=${encodeURIComponent(categoryId)}`;
+        }
+
+        const response = await fetch(apiUrl);
+        const result = await response.json();
+
+        if (result.success) {
+          return result.data;
+        }
+        return [];
+      } catch (error) {
+        console.error('Error fetching amenities:', error);
+        return [];
       }
     }
 
@@ -510,7 +534,46 @@ $categoryId = $_GET['category_id'] ?? null;
               ${isRoom ? ` • <i class="fa fa-door-open"></i> Room ${escapeHtml(room.room_number)}` : ''}
             </div>
             <p>${(isRoom ? room.category_description : room.description) ? escapeHtml(isRoom ? room.category_description : room.description) : 'No description available.'}</p>
-            ${isRoom && room.building_block ? `<p style="font-size: 13px; color: #666;"><i class="fa fa-building"></i> Building: ${escapeHtml(room.building_block)} • Floor: ${room.floor_number || '1'}</p>` : ''}
+            
+            ${isRoom && room.building_block ? `
+            <!-- Building & Floor Info Cards -->
+            <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 20px;">
+              <!-- Building Card -->
+              <div style="display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-left: 4px solid #f35525; border-radius: 8px; min-width: 200px;">
+                <div style="width: 50px; height: 50px; background: #f35525; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  <i class="fa fa-building" style="color: white; font-size: 24px;"></i>
+                </div>
+                <div>
+                  <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Building</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #1e293b;">${escapeHtml(room.building_block)}</div>
+                </div>
+              </div>
+              
+              <!-- Floor Card -->
+              <div style="display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-left: 4px solid #3b82f6; border-radius: 8px; min-width: 200px;">
+                <div style="width: 50px; height: 50px; background: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  <i class="fa fa-level-up" style="color: white; font-size: 24px;"></i>
+                </div>
+                <div>
+                  <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Floor Level</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #1e293b;">${room.floor_number ? 'Floor ' + escapeHtml(String(room.floor_number)) : 'Ground Floor'}</div>
+                </div>
+              </div>
+              
+              ${room.room_number ? `
+              <!-- Room Number Card -->
+              <div style="display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-left: 4px solid #10b981; border-radius: 8px; min-width: 200px;">
+                <div style="width: 50px; height: 50px; background: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  <i class="fa fa-door-open" style="color: white; font-size: 24px;"></i>
+                </div>
+                <div>
+                  <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Room Number</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #1e293b;">${escapeHtml(room.room_number)}</div>
+                </div>
+              </div>
+              ` : ''}
+            </div>
+            ` : ''}
           </div>
 
           <!-- Room Features -->
@@ -520,6 +583,296 @@ $categoryId = $_GET['category_id'] ?? null;
               ${features.length > 0 ? features.join('') : '<li>No additional features listed</li>'}
             </ul>
           </div>
+
+          <!-- Room Amenities -->
+          ${room.amenities && room.amenities.length > 0 ? `
+            <div class="info-card">
+              <h4><i class="fa fa-concierge-bell" style="color: #f35525; margin-right: 10px;"></i>Amenities</h4>
+              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px;">
+                ${(() => {
+                  // Font Awesome 6 to FA4 icon mapping - comprehensive for amenities
+                  const iconMap = {
+                    // Temperature & Climate
+                    'fa-temperature-arrow-down': 'fa-thermometer-half',
+                    'fa-temperature-arrow-up': 'fa-thermometer-half',
+                    'fa-temperature-empty': 'fa-thermometer-empty',
+                    'fa-temperature-half': 'fa-thermometer-half',
+                    'fa-temperature-full': 'fa-thermometer-full',
+                    'fa-temperature-quarter': 'fa-thermometer-quarter',
+                    'fa-temperature-three-quarters': 'fa-thermometer-three-quarters',
+                    'fa-snowflake': 'fa-archive',
+                    'fa-fire': 'fa-fire',
+                    'fa-fire-burner': 'fa-fire',
+                    'fa-fan': 'fa-refresh',
+                    'fa-wind': 'fa-refresh',
+                    'fa-air-conditioner': 'fa-thermometer-half',
+
+                    // Bath & Toilet
+                    'fa-shower': 'fa-shower',
+                    'fa-bath': 'fa-bath',
+                    'fa-bathtub': 'fa-bath',
+                    'fa-soap': 'fa-shopping-bag',
+                    'fa-sink': 'fa-tint',
+                    'fa-toilet': 'fa-male',
+                    'fa-toilet-paper': 'fa-clipboard',
+                    'fa-spray-can': 'fa-spray',
+                    'fa-sprayer': 'fa-spray',
+                    'fa-hand-holding-droplet': 'fa-hand-o-up',
+                    'fa-droplet': 'fa-tint',
+                    'fa-water': 'fa-tint',
+                    'fa-hot-tub': 'fa-bath',
+                    'fa-spa': 'fa-leaf',
+
+                    // Bed & Furniture
+                    'fa-bed': 'fa-bed',
+                    'fa-bed-pulse': 'fa-bed',
+                    'fa-mattress-pillow': 'fa-bed',
+                    'fa-couch': 'fa-couch',
+                    'fa-chair': 'fa-couch',
+                    'fa-table': 'fa-table',
+                    'fa-desk': 'fa-table',
+                    'fa-lamp': 'fa-lightbulb-o',
+                    'fa-lightbulb': 'fa-lightbulb-o',
+                    'fa-blinds': 'fa-columns',
+                    'fa-dungeon': 'fa-lock',
+                    'fa-closet': 'fa-archive',
+
+                    // Kitchen & Dining
+                    'fa-kitchen-set': 'fa-cutlery',
+                    'fa-utensils': 'fa-cutlery',
+                    'fa-utensil-spoon': 'fa-spoon',
+                    'fa-utensil-fork': 'fa-cutlery',
+                    'fa-utensil-knife': 'fa-cutlery',
+                    'fa-mug-hot': 'fa-coffee',
+                    'fa-mug-saucer': 'fa-coffee',
+                    'fa-coffee': 'fa-coffee',
+                    'fa-cup-straw': 'fa-glass',
+                    'fa-glass-water': 'fa-glass',
+                    'fa-wine-glass': 'fa-glass',
+                    'fa-champagne-glasses': 'fa-glass',
+                    'fa-ice-cream': 'fa-birthday-cake',
+                    'fa-refrigerator': 'fa-archive',
+                    'fa-fridge': 'fa-archive',
+                    'fa-microwave': 'fa-fire',
+                    'fa-stove': 'fa-fire',
+                    'fa-oven': 'fa-fire',
+                    'fa-dishwasher': 'fa-tint',
+                    'fa-plate-wheat': 'fa-cutlery',
+                    'fa-bread-slice': 'fa-birthday-cake',
+                    'fa-burger': 'fa-cutlery',
+                    'fa-pizza-slice': 'fa-cutlery',
+
+                    // Electronics & Entertainment
+                    'fa-tv': 'fa-television',
+                    'fa-television': 'fa-television',
+                    'fa-radio': 'fa-music',
+                    'fa-headphones': 'fa-headphones',
+                    'fa-music': 'fa-music',
+                    'fa-film': 'fa-film',
+                    'fa-video': 'fa-video-camera',
+                    'fa-laptop': 'fa-laptop',
+                    'fa-computer': 'fa-desktop',
+                    'fa-desktop': 'fa-desktop',
+                    'fa-mobile': 'fa-mobile',
+                    'fa-mobile-screen': 'fa-mobile',
+                    'fa-phone': 'fa-phone',
+                    'fa-voicemail': 'fa-microphone',
+                    'fa-microphone': 'fa-microphone',
+                    'fa-speaker': 'fa-volume-up',
+                    'fa-volume-high': 'fa-volume-up',
+                    'fa-gamepad': 'fa-gamepad',
+                    'fa-cable-car': 'fa-cog',
+
+                    // Internet & Communication
+                    'fa-wifi': 'fa-wifi',
+                    'fa-wifi-3': 'fa-wifi',
+                    'fa-wifi-strong': 'fa-wifi',
+                    'fa-signal': 'fa-signal',
+                    'fa-tower-cell': 'fa-signal',
+                    'fa-satellite-dish': 'fa-signal',
+                    'fa-globe': 'fa-globe',
+                    'fa-earth-americas': 'fa-globe',
+                    'fa-envelope': 'fa-envelope',
+                    'fa-envelope-open': 'fa-envelope-o',
+
+                    // Security & Safety
+                    'fa-lock': 'fa-lock',
+                    'fa-key': 'fa-key',
+                    'fa-fingerprint': 'fa-hand-o-up',
+                    'fa-id-card': 'fa-id-card',
+                    'fa-id-badge': 'fa-id-badge',
+                    'fa-shield-halved': 'fa-shield',
+                    'fa-shield': 'fa-shield',
+                    'fa-user-shield': 'fa-shield',
+                    'fa-video-slash': 'fa-video-camera',
+                    'fa-camera': 'fa-camera',
+                    'fa-camera-security': 'fa-camera',
+                    'fa-fire-extinguisher': 'fa-fire-extinguisher',
+                    'fa-life-ring': 'fa-life-ring',
+
+                    // Cleaning & Housekeeping
+                    'fa-broom': 'fa-broom',
+                    'fa-broom-ball': 'fa-broom',
+                    'fa-vacuum': 'fa-cog',
+                    'fa-socks': 'fa-archive',
+                    'fa-shirt': 'fa-archive',
+                    'fa-soap': 'fa-shopping-bag',
+                    'fa-pump-soap': 'fa-shopping-bag',
+                    'fa-hands-bubbles': 'fa-hand-o-up',
+                    'fa-hand-sparkles': 'fa-hand-o-up',
+                    'fa-spray-can-sparkles': 'fa-spray',
+                    'fa-air-freshener': 'fa-leaf',
+
+                    // Accessibility
+                    'fa-wheelchair': 'fa-wheelchair',
+                    'fa-wheelchair-move': 'fa-wheelchair',
+                    'fa-person-cane': 'fa-blind',
+                    'fa-braille': 'fa-braille',
+                    'fa-universal-access': 'fa-wheelchair',
+                    'fa-ear-listen': 'fa-assistive-listening-systems',
+                    'fa-hands-american-sign-language-interpreting': 'fa-deaf',
+                    'fa-tty': 'fa-tty',
+
+                    // Nature & Outdoor
+                    'fa-tree': 'fa-tree',
+                    'fa-leaf': 'fa-leaf',
+                    'fa-seedling': 'fa-leaf',
+                    'fa-plant-wilt': 'fa-leaf',
+                    'fa-sun': 'fa-sun-o',
+                    'fa-sun-plant-wilt': 'fa-sun-o',
+                    'fa-cloud-sun': 'fa-cloud',
+                    'fa-mountain-sun': 'fa-mountain',
+                    'fa-mountain': 'fa-mountain',
+                    'fa-mountains': 'fa-mountain',
+                    'fa-umbrella-beach': 'fa-umbrella',
+                    'fa-water-ladder': 'fa-life-ring',
+                    'fa-swimmer': 'fa-life-ring',
+                    'fa-person-swimming': 'fa-life-ring',
+                    'fa-fish': 'fa-anchor',
+                    'fa-crab': 'fa-anchor',
+
+                    // Fitness & Wellness
+                    'fa-dumbbell': 'fa-bolt',
+                    'fa-person-running': 'fa-male',
+                    'fa-person-walking': 'fa-male',
+                    'fa-person-biking': 'fa-bicycle',
+                    'fa-bicycle': 'fa-bicycle',
+                    'fa-heart-pulse': 'fa-heartbeat',
+                    'fa-heart': 'fa-heart',
+                    'fa-medal': 'fa-trophy',
+                    'fa-trophy': 'fa-trophy',
+
+                    // Business & Work
+                    'fa-briefcase': 'fa-briefcase',
+                    'fa-suitcase': 'fa-suitcase',
+                    'fa-laptop-file': 'fa-laptop',
+                    'fa-print': 'fa-print',
+                    'fa-fax': 'fa-fax',
+                    'fa-calculator': 'fa-calculator',
+                    'fa-copy': 'fa-copy',
+                    'fa-file': 'fa-file',
+                    'fa-folder': 'fa-folder',
+                    'fa-pen': 'fa-pencil',
+                    'fa-pen-to-square': 'fa-edit',
+
+                    // Parking & Transport
+                    'fa-car': 'fa-car',
+                    'fa-car-side': 'fa-car',
+                    'fa-taxi': 'fa-taxi',
+                    'fa-bus': 'fa-bus',
+                    'fa-van-shuttle': 'fa-bus',
+                    'fa-plane': 'fa-plane',
+                    'fa-train': 'fa-train',
+                    'fa-train-subway': 'fa-subway',
+                    'fa-ferry': 'fa-ship',
+                    'fa-motorcycle': 'fa-motorcycle',
+                    'fa-bicycle': 'fa-bicycle',
+                    'fa-square-parking': 'fa-car',
+                    'fa-parking': 'fa-car',
+
+                    // Services
+                    'fa-bell-concierge': 'fa-bell',
+                    'fa-bell': 'fa-bell',
+                    'fa-clipboard': 'fa-clipboard',
+                    'fa-clipboard-list': 'fa-clipboard',
+                    'fa-clock': 'fa-clock-o',
+                    'fa-clock-four': 'fa-clock-o',
+                    'fa-alarm-clock': 'fa-clock-o',
+                    'fa-stopwatch': 'fa-clock-o',
+                    'fa-hourglass': 'fa-hourglass-half',
+                    'fa-calendar': 'fa-calendar',
+                    'fa-calendar-check': 'fa-calendar-check',
+                    'fa-calendar-days': 'fa-calendar',
+                    'fa-tags': 'fa-tags',
+                    'fa-tag': 'fa-tag',
+                    'fa-money-bill': 'fa-money',
+                    'fa-money-bill-wave': 'fa-money',
+                    'fa-credit-card': 'fa-credit-card',
+                    'fa-coins': 'fa-money',
+                    'fa-gift': 'fa-gift',
+                    'fa-box-open': 'fa-archive',
+                    'fa-truck': 'fa-truck',
+                    'fa-truck-fast': 'fa-truck',
+
+                    // Other common amenities
+                    'fa-smoking': 'fa-fire',
+                    'fa-ban-smoking': 'fa-ban',
+                    'fa-ban': 'fa-ban',
+                    'fa-paw': 'fa-paw',
+                    'fa-dog': 'fa-paw',
+                    'fa-cat': 'fa-paw',
+                    'fa-children': 'fa-child',
+                    'fa-baby': 'fa-child',
+                    'fa-baby-carriage': 'fa-child',
+                    'fa-person-breastfeeding': 'fa-female',
+                    'fa-building': 'fa-building',
+                    'fa-building-columns': 'fa-university',
+                    'fa-landmark': 'fa-university',
+                    'fa-shop': 'fa-shopping-cart',
+                    'fa-store': 'fa-shopping-cart',
+                    'fa-martini-glass': 'fa-glass',
+                    'fa-wine-bottle': 'fa-glass',
+                    'fa-champagne-glass': 'fa-glass',
+                    'fa-mug-beer': 'fa-beer',
+                    'fa-beer-mug-empty': 'fa-beer',
+                    'fa-newspaper': 'fa-newspaper-o',
+                    'fa-book': 'fa-book',
+                    'fa-book-open': 'fa-book',
+                    'fa-mirror': 'fa-columns',
+                    'fa-icicles': 'fa-snowflake-o',
+                    'fa-snowplow': 'fa-truck',
+                    'fa-person-skiing': 'fa-male',
+                    'fa-person-hiking': 'fa-male',
+                    'fa-campground': 'fa-fire',
+                    'fa-binoculars': 'fa-binoculars',
+                    'fa-compass': 'fa-compass',
+                    'fa-map': 'fa-map',
+                    'fa-map-location': 'fa-map-marker',
+                    'fa-map-location-dot': 'fa-map-marker',
+                    'fa-road': 'fa-road',
+                    'fa-street-view': 'fa-street-view',
+                    'fa-person-praying': 'fa-male',
+                    'fa-place-of-worship': 'fa-university',
+                    'fa-om': 'fa-circle',
+                    'fa-cross': 'fa-plus',
+                    'fa-star-of-david': 'fa-star',
+                    'fa-mosque': 'fa-university',
+                    'fa-church': 'fa-university',
+                    'fa-temple': 'fa-university'
+                  };
+                  return room.amenities.map(amenity => {
+                    const fa4Icon = amenity.icon_code ? (iconMap[amenity.icon_code] || amenity.icon_code) : null;
+                    return `
+                      <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #fff; border: 1px solid #eee; border-radius: 8px;">
+                        ${fa4Icon ? `<i class="fa ${escapeHtml(fa4Icon)}" style="color: #f35525; font-size: 18px;"></i>` : '<i class="fa fa-check" style="color: #f35525;"></i>'}
+                        <span style="font-size: 13px; color: #333;">${escapeHtml(amenity.amenity_name)}</span>
+                      </div>
+                    `;
+                  }).join('');
+                })()}
+              </div>
+            </div>
+          ` : ''}
 
           ${individualRoomsHtml}
         </div>

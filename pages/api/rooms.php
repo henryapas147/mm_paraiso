@@ -110,7 +110,7 @@ try {
             }
             $total = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
 
-            // Fetch images for each room
+            // Fetch images and amenities for each room
             foreach ($rooms as &$room) {
                 $imgStmt = $pdo->prepare("
                     SELECT image_id, image_url, caption, is_cover
@@ -123,6 +123,17 @@ try {
                 $imgStmt->execute([$room['room_id']]);
                 $image = $imgStmt->fetch(PDO::FETCH_ASSOC);
                 $room['room_image'] = $image ? $image['image_url'] : null;
+
+                // Fetch amenities for this room
+                $amenityStmt = $pdo->prepare("
+                    SELECT ra.amenity_id, a.amenity_name, a.icon_code
+                    FROM room_amenities ra
+                    JOIN amenities a ON ra.amenity_id = a.amenity_id
+                    WHERE ra.room_id = ?
+                    ORDER BY a.sort_order ASC
+                ");
+                $amenityStmt->execute([$room['room_id']]);
+                $room['amenities'] = $amenityStmt->fetchAll(PDO::FETCH_ASSOC);
             }
 
             // Fetch properties for filter dropdown
@@ -223,6 +234,17 @@ try {
                 $roomItem['room_image'] = !empty($images) ? $images[0]['image_url'] : null;
             }
 
+            // Fetch amenities for the category
+            $amenityStmt = $pdo->prepare("
+                SELECT ra.amenity_id, a.amenity_name, a.icon_code
+                FROM room_amenities ra
+                JOIN amenities a ON ra.amenity_id = a.amenity_id
+                WHERE ra.category_id = ? AND ra.room_id IS NULL
+                ORDER BY a.sort_order ASC
+            ");
+            $amenityStmt->execute([$_GET['id']]);
+            $room['amenities'] = $amenityStmt->fetchAll(PDO::FETCH_ASSOC);
+
             echo json_encode(['success' => true, 'data' => $room]);
             break;
 
@@ -299,6 +321,17 @@ try {
             $room['images'] = $imgStmt->fetchAll(PDO::FETCH_ASSOC);
             $room['room_image'] = !empty($room['images']) ? $room['images'][0]['image_url'] : null;
 
+            // Fetch amenities for the room
+            $amenityStmt = $pdo->prepare("
+                SELECT ra.amenity_id, a.amenity_name, a.icon_code
+                FROM room_amenities ra
+                JOIN amenities a ON ra.amenity_id = a.amenity_id
+                WHERE ra.room_id = ?
+                ORDER BY a.sort_order ASC
+            ");
+            $amenityStmt->execute([$_GET['id']]);
+            $room['amenities'] = $amenityStmt->fetchAll(PDO::FETCH_ASSOC);
+
             echo json_encode(['success' => true, 'data' => $room]);
             break;
 
@@ -367,7 +400,7 @@ try {
             $countStmt->execute([$propertyId]);
             $total = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
 
-            // Fetch images for each room
+            // Fetch images and amenities for each room
             foreach ($rooms as &$room) {
                 $imgStmt = $pdo->prepare("
                     SELECT image_id, image_url, caption, is_cover
@@ -378,6 +411,17 @@ try {
                 ");
                 $imgStmt->execute([$room['room_id']]);
                 $room['images'] = $imgStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                // Fetch amenities for this room
+                $amenityStmt = $pdo->prepare("
+                    SELECT ra.amenity_id, a.amenity_name, a.icon_code
+                    FROM room_amenities ra
+                    JOIN amenities a ON ra.amenity_id = a.amenity_id
+                    WHERE ra.room_id = ?
+                    ORDER BY a.sort_order ASC
+                ");
+                $amenityStmt->execute([$room['room_id']]);
+                $room['amenities'] = $amenityStmt->fetchAll(PDO::FETCH_ASSOC);
             }
 
             echo json_encode([

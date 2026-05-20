@@ -27,9 +27,9 @@ $ROOM_FIELDS = [
   'is_active' => 1
 ];
 
-// Required fields for validation (CREATE only - UPDATE can have empty fields)
-$REQUIRED_FIELDS_CREATE = ['room_id', 'property_id', 'category_id', 'room_number'];
-$REQUIRED_FIELDS_UPDATE = ['room_id', 'property_id', 'category_id', 'room_number'];
+// Required fields for validation (property_id is derived from category_id)
+$REQUIRED_FIELDS_CREATE = ['room_id', 'category_id', 'room_number'];
+$REQUIRED_FIELDS_UPDATE = ['room_id', 'category_id', 'room_number'];
 
 /**
  * Extract room data from request with defaults
@@ -98,8 +98,8 @@ try {
       break;
 
     case 'POST':
-      // Check if this is a multipart form data request (file upload)
-      if (isset($_FILES['room_images']) || isset($_FILES['property_images'])) {
+      // Check if this is a multipart form data request (file upload or image operations)
+      if (isset($_FILES['room_images']) || isset($_FILES['property_images']) || isset($_FILES['replace_images'])) {
         handleImageUpload($pdo);
       } else {
         handlePostRequest($action, $pdo, $ROOM_FIELDS, $REQUIRED_FIELDS_CREATE, $REQUIRED_FIELDS_UPDATE);
@@ -144,12 +144,25 @@ function handleGetRequest(string $action, PDO $pdo): void {
       $stmt->execute([$perPage, $offset]);
       $rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-      // Fetch images for each room
+      // Fetch images and amenities for each room
       foreach ($rooms as &$room) {
+        // Fetch images
         $stmt = $pdo->prepare("SELECT * FROM room_images WHERE room_id = ? ORDER BY sort_order ASC");
         $stmt->execute([$room['room_id']]);
         $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $room['images'] = $images;
+
+        // Fetch amenities with names
+        $stmt = $pdo->prepare("
+          SELECT ra.amenity_id, a.amenity_name, a.icon_code
+          FROM room_amenities ra
+          JOIN amenities a ON ra.amenity_id = a.amenity_id
+          WHERE ra.room_id = ?
+          ORDER BY a.sort_order ASC
+        ");
+        $stmt->execute([$room['room_id']]);
+        $amenities = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $room['amenities'] = $amenities;
       }
 
       sendResponse(true, 'Rooms retrieved', [
@@ -180,7 +193,19 @@ function handleGetRequest(string $action, PDO $pdo): void {
       $stmt->execute([$room['room_id']]);
       $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
       $room['images'] = $images;
-      
+
+      // Fetch amenities with names
+      $stmt = $pdo->prepare("
+        SELECT ra.amenity_id, a.amenity_name, a.icon_code
+        FROM room_amenities ra
+        JOIN amenities a ON ra.amenity_id = a.amenity_id
+        WHERE ra.room_id = ?
+        ORDER BY a.sort_order ASC
+      ");
+      $stmt->execute([$room['room_id']]);
+      $amenities = $stmt->fetchAll(PDO::FETCH_ASSOC);
+      $room['amenities'] = $amenities;
+
       sendResponse(true, 'Room retrieved', $room);
       break;
 
@@ -193,14 +218,27 @@ function handleGetRequest(string $action, PDO $pdo): void {
       $stmt->execute([$_GET['property_id']]);
       $rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
       
-      // Fetch images for each room
+      // Fetch images and amenities for each room
       foreach ($rooms as &$room) {
+        // Fetch images
         $stmt = $pdo->prepare("SELECT * FROM room_images WHERE room_id = ? ORDER BY sort_order ASC");
         $stmt->execute([$room['room_id']]);
         $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $room['images'] = $images;
+
+        // Fetch amenities with names
+        $stmt = $pdo->prepare("
+          SELECT ra.amenity_id, a.amenity_name, a.icon_code
+          FROM room_amenities ra
+          JOIN amenities a ON ra.amenity_id = a.amenity_id
+          WHERE ra.room_id = ?
+          ORDER BY a.sort_order ASC
+        ");
+        $stmt->execute([$room['room_id']]);
+        $amenities = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $room['amenities'] = $amenities;
       }
-      
+
       sendResponse(true, 'Rooms retrieved', $rooms);
       break;
 
@@ -252,6 +290,16 @@ function handlePostRequest(string $action, PDO $pdo, array $fields, array $requi
 }
 
 /**
+ * Get property_id from category_id
+ */
+function getPropertyIdFromCategory(PDO $pdo, string $categoryId): ?string {
+  $stmt = $pdo->prepare("SELECT property_id FROM room_categories WHERE category_id = ?");
+  $stmt->execute([$categoryId]);
+  $result = $stmt->fetch(PDO::FETCH_ASSOC);
+  return $result['property_id'] ?? null;
+}
+
+/**
  * Handle Create Room
  */
 function handleCreate(array $data, PDO $pdo, array $fields, array $required): void {
@@ -261,15 +309,38 @@ function handleCreate(array $data, PDO $pdo, array $fields, array $required): vo
     sendResponse(false, 'Missing required fields: ' . implode(', ', $missing));
   }
 
+  // Derive property_id from category_id
+  $propertyId = getPropertyIdFromCategory($pdo, $data['category_id']);
+  if (!$propertyId) {
+    sendResponse(false, 'Invalid category_id - could not determine property');
+  }
+  $data['property_id'] = $propertyId;
+
   // Extract and prepare data
   $roomData = extractRoomData($data, $fields);
+  $amenities = $data['amenities'] ?? [];
 
   try {
+    $pdo->beginTransaction();
+
     $sql = buildInsertSql('rooms', $roomData);
     $stmt = $pdo->prepare($sql);
     $stmt->execute(array_values($roomData));
+
+    // Sync amenities - copy category defaults to room-specific rows
+    $roomId = $data['room_id'];
+    $categoryId = $data['category_id'];
+
+    // For each amenity, INSERT new row with room_id (category defaults remain untouched)
+    foreach ($amenities as $amenityId) {
+      $insertStmt = $pdo->prepare("INSERT INTO room_amenities (category_id, room_id, amenity_id, notes) VALUES (?, ?, ?, NULL)");
+      $insertStmt->execute([$categoryId, $roomId, $amenityId]);
+    }
+
+    $pdo->commit();
     sendResponse(true, 'Room created successfully');
   } catch (PDOException $e) {
+    $pdo->rollBack();
     if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
       sendResponse(false, 'Room ID or room number already exists');
     } else if (strpos($e->getMessage(), 'foreign key constraint') !== false) {
@@ -294,25 +365,52 @@ function handleUpdate(array $data, PDO $pdo, array $fields, array $required): vo
     sendResponse(false, 'Missing required fields: ' . implode(', ', $missing));
   }
 
+  // Derive property_id from category_id
+  $propertyId = getPropertyIdFromCategory($pdo, $data['category_id']);
+  if (!$propertyId) {
+    sendResponse(false, 'Invalid category_id - could not determine property');
+  }
+  $data['property_id'] = $propertyId;
+
   // Extract and prepare data (exclude room_id from SET clause)
   $updateFields = $fields;
   unset($updateFields['room_id']);
   $roomData = extractRoomData($data, $updateFields);
+  $amenities = $data['amenities'] ?? [];
 
   try {
+    $pdo->beginTransaction();
+
     $sql = buildUpdateSql('rooms', $roomData, 'room_id');
     $stmt = $pdo->prepare($sql);
     // Add room_id as the last parameter for WHERE clause
     $values = array_values($roomData);
     $values[] = $data['room_id'];
     $result = $stmt->execute($values);
-    
+
+    // Sync amenities - delete room-specific amenities and insert new ones
+    $roomId = $data['room_id'];
+    $categoryId = $data['category_id'];
+
+    // Delete existing room-specific amenities (category defaults remain untouched)
+    $deleteStmt = $pdo->prepare("DELETE FROM room_amenities WHERE room_id = ?");
+    $deleteStmt->execute([$roomId]);
+
+    // Insert new room amenities
+    foreach ($amenities as $amenityId) {
+      $insertStmt = $pdo->prepare("INSERT INTO room_amenities (category_id, room_id, amenity_id, notes) VALUES (?, ?, ?, NULL)");
+      $insertStmt->execute([$categoryId, $roomId, $amenityId]);
+    }
+
+    $pdo->commit();
+
     if ($result) {
       sendResponse(true, 'Room updated successfully');
     } else {
       sendResponse(false, 'No changes made or room not found');
     }
   } catch (PDOException $e) {
+    $pdo->rollBack();
     if (strpos($e->getMessage(), 'foreign key constraint') !== false) {
       sendResponse(false, 'Invalid property or category ID');
     } else {
@@ -353,6 +451,10 @@ function handleDelete(array $data, PDO $pdo): void {
       }
     }
 
+    // Delete room-specific amenities (category defaults remain untouched)
+    $stmt = $pdo->prepare("DELETE FROM room_amenities WHERE room_id = ?");
+    $stmt->execute([$data['room_id']]);
+
     // Delete from database (room_images will be deleted by CASCADE)
     $stmt = $pdo->prepare("DELETE FROM rooms WHERE room_id = ?");
     $result = $stmt->execute([$data['room_id']]);
@@ -371,11 +473,13 @@ function handleDelete(array $data, PDO $pdo): void {
 }
 
 /**
- * Handle Image Upload
+ * Handle Image Upload, Replacement, and Deletion
  */
 function handleImageUpload(PDO $pdo): void {
   $data = $_POST;
   $uploadedImages = [];
+  $deletedImages = [];
+  $replacedImages = [];
   
   // Validate room_id
   if (empty($data['room_id'])) {
@@ -390,7 +494,77 @@ function handleImageUpload(PDO $pdo): void {
     }
   }
   
-  // Handle room images
+  // Handle image deletions first
+  if (isset($data['delete_images']) && is_array($data['delete_images'])) {
+    foreach ($data['delete_images'] as $imageId) {
+      if (empty($imageId)) continue;
+      
+      // Get the image path before deleting
+      $stmt = $pdo->prepare("SELECT image_url FROM room_images WHERE image_id = ? AND room_id = ?");
+      $stmt->execute([$imageId, $data['room_id']]);
+      $image = $stmt->fetch(PDO::FETCH_ASSOC);
+      
+      if ($image) {
+        // Delete from database
+        $deleteStmt = $pdo->prepare("DELETE FROM room_images WHERE image_id = ? AND room_id = ?");
+        $deleteStmt->execute([$imageId, $data['room_id']]);
+        
+        // Delete physical file if exists
+        $filePath = '../' . $image['image_url'];
+        if (file_exists($filePath)) {
+          unlink($filePath);
+        }
+        
+        $deletedImages[] = $imageId;
+      }
+    }
+  }
+  
+  // Handle image replacements
+  if (isset($_FILES['replace_images']) && is_array($_FILES['replace_images']['name'])) {
+    foreach ($_FILES['replace_images']['name'] as $imageId => $name) {
+      if ($_FILES['replace_images']['error'][$imageId] === UPLOAD_ERR_OK) {
+        $tmpName = $_FILES['replace_images']['tmp_name'][$imageId];
+        $extension = pathinfo($name, PATHINFO_EXTENSION);
+        $newFileName = uniqid() . '_' . time() . '.' . $extension;
+        $uploadPath = $uploadDir . '/' . $newFileName;
+        
+        // Get old image info before replacing
+        $stmt = $pdo->prepare("SELECT image_url FROM room_images WHERE image_id = ? AND room_id = ?");
+        $stmt->execute([$imageId, $data['room_id']]);
+        $oldImage = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (move_uploaded_file($tmpName, $uploadPath)) {
+          // Delete old file if exists
+          if ($oldImage && file_exists('../' . $oldImage['image_url'])) {
+            unlink('../' . $oldImage['image_url']);
+          }
+          
+          // Update database with new image URL, keep existing metadata
+          $imageType = isset($data['image_type'][$imageId]) ? $data['image_type'][$imageId] : 'interior';
+          $caption = isset($data['image_caption'][$imageId]) ? $data['image_caption'][$imageId] : '';
+          
+          $updateStmt = $pdo->prepare("UPDATE room_images SET image_url = ? WHERE image_id = ? AND room_id = ?");
+          try {
+            $updateStmt->execute(['uploads/room_images/' . $newFileName, $imageId, $data['room_id']]);
+            
+            $replacedImages[] = [
+              'image_id' => $imageId,
+              'image_url' => 'uploads/room_images/' . $newFileName
+            ];
+          } catch (PDOException $e) {
+            sendResponse(false, 'Failed to update replaced image in database: ' . $e->getMessage());
+          }
+        } else {
+          sendResponse(false, 'Failed to move replaced file');
+        }
+      } else {
+        sendResponse(false, 'File upload error for replacement: ' . $_FILES['replace_images']['error'][$imageId]);
+      }
+    }
+  }
+  
+  // Handle new room images
   if (isset($_FILES['room_images']) && is_array($_FILES['room_images']['name'])) {
     foreach ($_FILES['room_images']['name'] as $key => $name) {
       if ($_FILES['room_images']['error'][$key] === UPLOAD_ERR_OK) {
@@ -427,5 +601,11 @@ function handleImageUpload(PDO $pdo): void {
     }
   }
   
-  sendResponse(true, 'Images uploaded successfully', ['images' => $uploadedImages]);
+  $result = [
+    'images' => $uploadedImages,
+    'deleted' => $deletedImages,
+    'replaced' => $replacedImages
+  ];
+  
+  sendResponse(true, 'Image operations completed successfully', $result);
 }

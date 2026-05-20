@@ -178,6 +178,9 @@ function generateUUID()
   transform: scale(0.96) translateY(10px);
   transition: transform 0.18s ease;
   }
+  .rc-modal-wide {
+  max-width: 900px !important;
+  }
   .rc-modal-backdrop.open .rc-modal { transform: scale(1) translateY(0); }
   .rc-modal-header {
   padding: 14px 18px;
@@ -288,13 +291,27 @@ function generateUUID()
   </style>
 
   <script>
+    // Helper function to generate UUID in JavaScript
+    function generateUUID() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
     // Data will be fetched from API on page load
     let categoriesData = [];
     let propertiesData = [];
+    let amenitiesData = [];
+    let currentPage = 1;
+    let itemsPerPage = 10;
+    let totalItems = 0;
 
     // Fetch data from API on page load
     document.addEventListener('DOMContentLoaded', async function() {
       await fetchCategoriesData();
+      await fetchAmenitiesData();
     });
 
     async function fetchCategoriesData() {
@@ -319,6 +336,40 @@ function generateUUID()
         console.error('Error fetching categories:', error);
         showRcToast('Failed to load categories data', 'error');
       }
+    }
+
+    async function fetchAmenitiesData() {
+      try {
+        // Request all amenities without pagination
+        const response = await fetch('../api/amenities.php?action=list&per_page=100');
+        const result = await response.json();
+        if (result.success) {
+          amenitiesData = result.data.data || result.data || [];
+        }
+      } catch (error) {
+        console.error('Error fetching amenities:', error);
+      }
+    }
+
+    function renderAmenitiesCheckboxes(selectedAmenities = []) {
+      const container = document.getElementById('amenitiesContainer');
+      if (!container) return;
+
+      if (amenitiesData.length === 0) {
+        container.innerHTML = '<div style="color:var(--color-text-secondary);font-size:13px;">No amenities available</div>';
+        return;
+      }
+
+      container.innerHTML = amenitiesData.map(amenity => {
+        const isChecked = selectedAmenities.includes(amenity.amenity_id) ? 'checked' : '';
+        const iconHtml = amenity.icon_code ? `<i class="fa-solid ${amenity.icon_code}" style="margin-right:6px;"></i>` : '';
+        return `
+          <label class="rc-checkbox-wrap" style="display:flex;align-items:center;gap:6px;font-size:13px;">
+            <input type="checkbox" name="amenities[]" value="${amenity.amenity_id}" ${isChecked}>
+            ${iconHtml}${amenity.amenity_name}
+          </label>
+        `;
+      }).join('');
     }
 
     function showRcToast(message, type = 'success') {
@@ -358,23 +409,31 @@ function generateUUID()
       const tbody = document.querySelector('#categoriesTableBody');
       if (!tbody) return;
       if (categoriesData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5"><div class="rc-empty-state">No categories found. <a href="javascript:;" onclick="openAddCategoryModal()" style="color:#185fa5;font-weight:500;">Add your first category</a>.</div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6"><div class="rc-empty-state">No categories found. <a href="javascript:;" onclick="openAddCategoryModal()" style="color:#185fa5;font-weight:500;">Add your first category</a>.</div></td></tr>`;
         return;
       }
       tbody.innerHTML = categoriesData.map((category) => {
         const property = propertiesData.find(p => p.property_id === category.property_id);
+        const propertyName = category.property_name || (property ? property.property_name : '—');
+        const roomCount = category.room_count || 0;
+        const availableRooms = category.available_rooms || 0;
         return `
         <tr class="category-row">
           <td>
             <div class="rc-name">${category.category_name}</div>
             <div class="rc-code">${category.category_code}</div>
           </td>
-          <td><span class="rc-text">${property ? property.property_name : '—'}</span></td>
-          <td><span class="rc-text">${category.base_price_per_night || '—'}</span></td>
+          <td><span class="rc-text">${propertyName}</span></td>
+          <td><span class="rc-text">${category.base_price_per_night ? '₱' + parseFloat(category.base_price_per_night).toLocaleString('en-PH', {minimumFractionDigits: 2}) : '—'}</span></td>
           <td><span class="rc-text">${category.max_total_capacity || '—'}</span></td>
+          <td>
+            <span class="rc-text">${roomCount} room${roomCount !== 1 ? 's' : ''}</span>
+            ${availableRooms > 0 ? `<span style="font-size:11px;color:#16a34a;margin-left:4px;">(${availableRooms} available)</span>` : ''}
+          </td>
           <td style="text-align:center;"><span class="rc-status-badge rc-status-${category.is_active ? 'active' : 'inactive'}">${category.is_active ? 'Active' : 'Inactive'}</span></td>
           <td>
             <div class="rc-actions">
+              <button class="rc-icon-btn view" onclick="viewCategoryDetails('${category.category_id}')" title="View Details"><i class="fas fa-eye"></i></button>
               <button class="rc-icon-btn edit" onclick="openEditCategoryModal('${category.category_id}')" title="Edit"><i class="fas fa-pen"></i></button>
               <button class="rc-icon-btn del" onclick="confirmDeleteCategory('${category.category_id}', '${(category.category_name).replace(/'/g, "\\'")}')" title="Delete"><i class="fas fa-trash"></i></button>
             </div>
@@ -386,8 +445,72 @@ function generateUUID()
 
     // Delete Category Function (API-based)
     async function confirmDeleteCategory(categoryId, categoryName) {
-      if (!confirm(`Delete "${categoryName}"? This action cannot be undone.`)) return;
+      showDeleteCategoryConfirmation(categoryName, categoryId);
+    }
+
+    function showDeleteCategoryConfirmation(categoryName, categoryId) {
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5); z-index: 10000;
+        display: flex; align-items: center; justify-content: center;
+      `;
+
+      const dialog = document.createElement('div');
+      dialog.style.cssText = `
+        background: white; border-radius: 12px; padding: 24px;
+        max-width: 400px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        position: relative;
+      `;
+
+      dialog.innerHTML = `
+        <div style="margin-bottom: 16px;">
+          <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #1e293b;">Delete Category</h3>
+          <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">
+            Are you sure you want to delete category "<strong>${categoryName}</strong>"? This action cannot be undone.
+          </p>
+        </div>
+        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button id="cancelDeleteBtn" style="
+            padding: 8px 16px; font-size: 13px; font-weight: 500;
+            border: 0.5px solid #e2e8f0; border-radius: 6px;
+            background: white; color: #64748b; cursor: pointer;
+          ">Cancel</button>
+          <button id="confirmDeleteBtn" style="
+            padding: 8px 16px; font-size: 13px; font-weight: 500;
+            border: none; border-radius: 6px;
+            background: #ef4444; color: white; cursor: pointer;
+          ">Delete</button>
+        </div>
+      `;
+
+      modal.appendChild(dialog);
+      document.body.appendChild(modal);
+
+      const cancelBtn = dialog.querySelector('#cancelDeleteBtn');
+      cancelBtn.onclick = () => {
+        document.body.removeChild(modal);
+      };
+
+      const confirmBtn = dialog.querySelector('#confirmDeleteBtn');
+      confirmBtn.onclick = async () => {
+        document.body.removeChild(modal);
+        await executeDeleteCategory(categoryId, categoryName);
+      };
+
+      modal.onclick = (e) => {
+        if (e.target === modal) {
+          document.body.removeChild(modal);
+        }
+      };
+    }
+
+    async function executeDeleteCategory(categoryId, categoryName) {
       try {
+        // Get CSRF token from the form
+        const form = document.getElementById('addCategoryForm');
+        const csrfToken = form ? form.querySelector('[name="csrf_token"]')?.value : '';
+
         const response = await fetch('../api/room_categories.php', {
           method: 'POST',
           headers: {
@@ -395,7 +518,8 @@ function generateUUID()
           },
           body: JSON.stringify({
             action: 'delete',
-            category_id: categoryId
+            category_id: categoryId,
+            csrf_token: csrfToken
           })
         });
         const result = await response.json();
@@ -418,6 +542,9 @@ function generateUUID()
 
       // Generate UUID for category_id
       const category_id = generateUUID();
+
+      // Get selected amenities
+      const selectedAmenities = Array.from(document.querySelectorAll('input[name="amenities[]"]:checked')).map(cb => cb.value);
 
       // Prepare data for API
       const data = {
@@ -446,7 +573,9 @@ function generateUUID()
         allows_overnight: formData.get('allows_overnight') || 1,
         allows_day_use: formData.get('allows_day_use') || 1,
         sort_order: formData.get('sort_order') || 0,
-        is_active: 1
+        is_active: 1,
+        amenities: selectedAmenities,
+        csrf_token: formData.get('csrf_token')
       };
 
       try {
@@ -480,6 +609,9 @@ function generateUUID()
       const form = event.target;
       const formData = new FormData(form);
 
+      // Get selected amenities
+      const selectedAmenities = Array.from(document.querySelectorAll('input[name="amenities[]"]:checked')).map(cb => cb.value);
+
       const data = {
         category_id: formData.get('category_id'),
         property_id: formData.get('property_id'),
@@ -506,7 +638,9 @@ function generateUUID()
         allows_overnight: formData.get('allows_overnight') || 1,
         allows_day_use: formData.get('allows_day_use') || 1,
         sort_order: formData.get('sort_order') || 0,
-        is_active: formData.get('is_active') || 1
+        is_active: formData.get('is_active') || 1,
+        amenities: selectedAmenities,
+        csrf_token: formData.get('csrf_token')
       };
 
       try {
@@ -563,6 +697,7 @@ function generateUUID()
               <th>Property</th>
               <th>Base Price</th>
               <th>Capacity</th>
+              <th>Rooms</th>
               <th style="text-align:center;">Status</th>
               <th style="text-align:right;">Actions</th>
             </tr>
@@ -577,7 +712,7 @@ function generateUUID()
 
   <!-- Category Details Modal -->
   <div id="categoryDetailsModal" class="rc-modal-backdrop" onclick="if(event.target===this)closeCategoryDetailsModal()">
-    <div class="rc-modal">
+    <div class="rc-modal rc-modal-wide">
       <div class="rc-modal-header">
         <span class="rc-modal-title" id="modalCategoryName">Category Details</span>
         <button class="rc-modal-close" onclick="closeCategoryDetailsModal()"><i class="fas fa-times"></i></button>
@@ -594,6 +729,8 @@ function generateUUID()
         <button class="rc-modal-close" onclick="closeCategoryFormModal()"><i class="fas fa-times"></i></button>
       </div>
       <form id="addCategoryForm" onsubmit="handleAddCategorySubmit(event)">
+        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
+        <input type="hidden" name="category_id" id="formCategoryId">
         <div class="rc-modal-body">
           <p class="rc-section-label">Basic Information</p>
           <div class="rc-form-grid">
@@ -735,6 +872,13 @@ function generateUUID()
               <input type="number" name="sort_order" id="formSortOrder" min="0" value="0">
             </div>
           </div>
+
+          <p class="rc-section-label">Amenities</p>
+          <div class="rc-form-group full">
+            <div id="amenitiesContainer" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;max-height:200px;overflow-y:auto;padding:8px;border:0.5px solid var(--color-border-tertiary);border-radius:6px;">
+              <div style="color:var(--color-text-secondary);font-size:13px;">Loading amenities...</div>
+            </div>
+          </div>
         </div>
         <div class="rc-modal-footer">
           <button type="button" class="rc-btn" onclick="closeCategoryFormModal()">Cancel</button>
@@ -745,44 +889,221 @@ function generateUUID()
   </div>
 
   <script>
-    function viewCategoryDetails(categoryId) {
+    async function viewCategoryDetails(categoryId) {
       const category = categoriesData.find(c => c.category_id === categoryId);
       if (!category) return;
+
+      const property = propertiesData.find(p => p.property_id === category.property_id);
+
+      // Fetch amenities for this category
+      let categoryAmenities = [];
+      try {
+        const response = await fetch(`../api/room_amenities.php?action=by_category&category_id=${categoryId}`);
+        const result = await response.json();
+        if (result.success && result.data) {
+          categoryAmenities = result.data;
+        }
+      } catch (error) {
+        console.error('Error fetching category amenities:', error);
+      }
+
+      // Generate amenities HTML
+      let amenitiesHtml = '';
+      if (categoryAmenities.length > 0) {
+        amenitiesHtml = categoryAmenities.map(ca => {
+          const amenity = amenitiesData.find(a => a.amenity_id === ca.amenity_id);
+          if (!amenity) return '';
+          const iconHtml = amenity.icon_code ? `<i class="fa-solid ${amenity.icon_code}" style="margin-right:8px;color:#185fa5;"></i>` : '<i class="fa-solid fa-check" style="margin-right:8px;color:#185fa5;"></i>';
+          return `<span style="background:#f0f9ff;color:#0c4a6e;padding:6px 12px;border-radius:16px;font-size:12px;display:inline-flex;align-items:center;border:1px solid #bae6fd;">${iconHtml}${amenity.amenity_name}</span>`;
+        }).join('');
+      } else {
+        amenitiesHtml = '<span style="color:#94a3b8;font-size:13px;font-style:italic;">No amenities assigned to this category</span>';
+      }
+
+      // Generate rooms list HTML
+      let roomsHtml = '';
+      if (category.rooms && category.rooms.length > 0) {
+        roomsHtml = category.rooms.map(room => {
+          const statusColors = {
+            'available': '#e8f5e9',
+            'occupied': '#fff3e0',
+            'reserved': '#e3f2fd',
+            'cleaning': '#fce4ec',
+            'maintenance': '#ffebee',
+            'out_of_order': '#37474f'
+          };
+          const statusTextColors = {
+            'available': '#2e7d32',
+            'occupied': '#e65100',
+            'reserved': '#1565c0',
+            'cleaning': '#c2185b',
+            'maintenance': '#c62828',
+            'out_of_order': '#fff'
+          };
+          return `
+            <div style="padding:12px;border:0.5px solid #e2e8f0;border-radius:8px;display:flex;flex-direction:column;gap:6px;background:#fff;transition:all 0.2s;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="font-weight:600;font-size:14px;color:#1e293b;">${room.room_number}</div>
+                <span style="background:${statusColors[room.room_status] || '#e0e0e0'};color:${statusTextColors[room.room_status] || '#424242'};padding:3px 8px;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">${room.room_status.replace('_', ' ')}</span>
+              </div>
+              ${room.room_name ? `<div style="font-size:12px;color:#64748b;">${room.room_name}</div>` : ''}
+              <div style="font-size:11px;color:#94a3b8;">${room.floor_number ? 'Floor ' + room.floor_number : ''}${room.building_block ? ' • ' + room.building_block : ''}</div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        roomsHtml = '<div style="color:#94a3b8;font-size:13px;padding:30px;text-align:center;background:#f8fafc;border-radius:8px;border:1px dashed #cbd5e1;">No rooms assigned to this category</div>';
+      }
+
       const modalName = document.getElementById('modalCategoryName');
       const modalContent = document.getElementById('modalCategoryContent');
       modalName.textContent = category.category_name;
-      const property = propertiesData.find(p => p.property_id === category.property_id);
       modalContent.innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-        <div><p class="rc-section-label">Basic Information</p>
-          <div style="display:flex;flex-direction:column;gap:8px;"><div><span style="font-size:12px;color:#64748b;">Category Code</span><div style="font-size:13px;font-weight:500;">${category.category_code}</div></div>
-          <div><span style="font-size:12px;color:#64748b;">Category Name</span><div>${category.category_name}</div></div>
-          <div><span style="font-size:12px;color:#64748b;">Description</span><div>${category.description || '—'}</div></div></div></div>
-        <div><p class="rc-section-label">Property</p>
-          <div style="display:flex;flex-direction:column;gap:8px;"><div><span style="font-size:12px;color:#64748b;">Property Name</span><div style="font-weight:500;">${property ? property.property_name : '—'}</div></div></div></div>
-        <div><p class="rc-section-label">Pricing</p>
-          <div style="display:flex;flex-direction:column;gap:8px;"><div><span style="font-size:12px;color:#64748b;">Base Price Per Night</span><div style="font-weight:500;">PHP ${parseFloat(category.base_price_per_night || 0).toFixed(2)}</div></div>
-          <div><span style="font-size:12px;color:#64748b;">Base Price Per Hour</span><div style="font-weight:500;">PHP ${parseFloat(category.base_price_per_hour || 0).toFixed(2)}</div></div>
-          <div><span style="font-size:12px;color:#64748b;">Base Price Day Use</span><div style="font-weight:500;">PHP ${parseFloat(category.base_price_day_use || 0).toFixed(2)}</div></div>
-          <div><span style="font-size:12px;color:#64748b;">Minimum Hours</span><div>${category.minimum_hours || 2} hours</div></div></div></div>
-        <div><p class="rc-section-label">Capacity</p>
-          <div style="display:flex;flex-direction:column;gap:8px;"><div><span style="font-size:12px;color:#64748b;">Max Adult Capacity</span><div>${category.max_adult_capacity} adults</div></div>
-          <div><span style="font-size:12px;color:#64748b;">Max Child Capacity</span><div>${category.max_child_capacity} children</div></div>
-          <div><span style="font-size:12px;color:#64748b;">Max Total Capacity</span><div>${category.max_total_capacity} guests</div></div></div></div>
-        <div><p class="rc-section-label">Extra Fees</p>
-          <div style="display:flex;flex-direction:column;gap:8px;"><div><span style="font-size:12px;color:#64748b;">Extra Adult Fee</span><div style="font-weight:500;">PHP ${parseFloat(category.extra_adult_fee || 0).toFixed(2)}</div></div>
-          <div><span style="font-size:12px;color:#64748b;">Extra Child Fee</span><div style="font-weight:500;">PHP ${parseFloat(category.extra_child_fee || 0).toFixed(2)}</div></div>
-          <div><span style="font-size:12px;color:#64748b;">Extra Senior Fee</span><div style="font-weight:500;">PHP ${parseFloat(category.extra_senior_fee || 0).toFixed(2)}</div></div></div></div>
-        <div><p class="rc-section-label">Policies</p>
-          <div style="display:flex;flex-direction:column;gap:8px;"><div><span style="font-size:12px;color:#64748b;">Smoking Policy</span><div>${(category.smoking_policy || 'non_smoking').replace(/_/g, ' ').toUpperCase()}</div></div>
-          <div><span style="font-size:12px;color:#64748b;">Pet Friendly</span><div>${category.pet_friendly ? 'Yes' : 'No'}</div></div></div></div>
-        <div><p class="rc-section-label">Booking Options</p>
-          <div style="display:flex;flex-direction:column;gap:8px;"><div><span style="font-size:12px;color:#64748b;">Allows Hourly</span><div>${category.allows_hourly ? 'Yes' : 'No'}</div></div>
-          <div><span style="font-size:12px;color:#64748b;">Allows Overnight</span><div>${category.allows_overnight ? 'Yes' : 'No'}</div></div>
-          <div><span style="font-size:12px;color:#64748b;">Allows Day Use</span><div>${category.allows_day_use ? 'Yes' : 'No'}</div></div></div></div>
-        <div style="grid-column:1/-1;"><p class="rc-section-label">System Information</p>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"><div><span style="font-size:12px;color:#64748b;">Status</span><div>${category.is_active ? 'Active' : 'Inactive'}</div></div>
-          <div><span style="font-size:12px;color:#64748b;">Sort Order</span><div>${category.sort_order || 0}</div></div></div></div>
+      <!-- Header with Status -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #e2e8f0;">
+        <div>
+          <div style="font-size:18px;font-weight:600;color:#1e293b;">${category.category_name}</div>
+          <div style="font-size:13px;color:#64748b;margin-top:2px;">${category.category_code}</div>
+        </div>
+        <span style="background:${category.is_active ? '#dcfce7' : '#f1f5f9'};color:${category.is_active ? '#166534' : '#64748b'};padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">${category.is_active ? 'Active' : 'Inactive'}</span>
+      </div>
+
+      <!-- Main Content Grid -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <!-- Left Column -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <!-- Basic Info Card -->
+          <div style="background:#f8fafc;padding:16px;border-radius:8px;border:1px solid #e2e8f0;">
+            <p class="rc-section-label" style="margin-bottom:12px;color:#185fa5;">Basic Information</p>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e2e8f0;">
+                <span style="font-size:12px;color:#64748b;">Property</span>
+                <span style="font-size:13px;font-weight:500;">${property ? property.property_name : '—'}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;">
+                <span style="font-size:12px;color:#64748b;">Description</span>
+                <span style="font-size:13px;font-weight:400;text-align:right;max-width:60%;">${category.description || '—'}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pricing Card -->
+          <div style="background:#f8fafc;padding:16px;border-radius:8px;border:1px solid #e2e8f0;">
+            <p class="rc-section-label" style="margin-bottom:12px;color:#185fa5;">Pricing</p>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;justify-content:space-between;padding:6px 0;">
+                <span style="font-size:12px;color:#64748b;">Per Night</span>
+                <span style="font-size:13px;font-weight:600;color:#185fa5;">₱${parseFloat(category.base_price_per_night || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;">
+                <span style="font-size:12px;color:#64748b;">Per Hour</span>
+                <span style="font-size:13px;font-weight:600;color:#185fa5;">₱${parseFloat(category.base_price_per_hour || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;">
+                <span style="font-size:12px;color:#64748b;">Day Use</span>
+                <span style="font-size:13px;font-weight:600;color:#185fa5;">₱${parseFloat(category.base_price_day_use || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid #e2e8f0;">
+                <span style="font-size:12px;color:#64748b;">Minimum Hours</span>
+                <span style="font-size:13px;font-weight:500;">${category.minimum_hours || 2} hrs</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Extra Fees Card -->
+          <div style="background:#f8fafc;padding:16px;border-radius:8px;border:1px solid #e2e8f0;">
+            <p class="rc-section-label" style="margin-bottom:12px;color:#185fa5;">Extra Fees</p>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;justify-content:space-between;padding:6px 0;">
+                <span style="font-size:12px;color:#64748b;">Adult</span>
+                <span style="font-size:13px;font-weight:500;">₱${parseFloat(category.extra_adult_fee || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;">
+                <span style="font-size:12px;color:#64748b;">Child</span>
+                <span style="font-size:13px;font-weight:500;">₱${parseFloat(category.extra_child_fee || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;">
+                <span style="font-size:12px;color:#64748b;">Senior</span>
+                <span style="font-size:13px;font-weight:500;">₱${parseFloat(category.extra_senior_fee || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <!-- Capacity Card -->
+          <div style="background:#f8fafc;padding:16px;border-radius:8px;border:1px solid #e2e8f0;">
+            <p class="rc-section-label" style="margin-bottom:12px;color:#185fa5;">Capacity</p>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+              <div style="text-align:center;padding:10px;background:#fff;border-radius:6px;border:1px solid #e2e8f0;">
+                <div style="font-size:20px;font-weight:700;color:#185fa5;">${category.max_adult_capacity}</div>
+                <div style="font-size:11px;color:#64748b;text-transform:uppercase;">Adults</div>
+              </div>
+              <div style="text-align:center;padding:10px;background:#fff;border-radius:6px;border:1px solid #e2e8f0;">
+                <div style="font-size:20px;font-weight:700;color:#185fa5;">${category.max_child_capacity}</div>
+                <div style="font-size:11px;color:#64748b;text-transform:uppercase;">Children</div>
+              </div>
+              <div style="text-align:center;padding:10px;background:#fff;border-radius:6px;border:1px solid #e2e8f0;">
+                <div style="font-size:20px;font-weight:700;color:#185fa5;">${category.max_total_capacity}</div>
+                <div style="font-size:11px;color:#64748b;text-transform:uppercase;">Total</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Policies Card -->
+          <div style="background:#f8fafc;padding:16px;border-radius:8px;border:1px solid #e2e8f0;">
+            <p class="rc-section-label" style="margin-bottom:12px;color:#185fa5;">Policies</p>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e2e8f0;">
+                <span style="font-size:12px;color:#64748b;">Smoking</span>
+                <span style="font-size:13px;font-weight:500;">${(category.smoking_policy || 'non_smoking').replace(/_/g, ' ').toUpperCase()}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;">
+                <span style="font-size:12px;color:#64748b;">Pet Friendly</span>
+                <span style="font-size:13px;font-weight:500;">${category.pet_friendly ? '<span style="color:#16a34a;">Yes</span>' : '<span style="color:#64748b;">No</span>'}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Booking Options Card -->
+          <div style="background:#f8fafc;padding:16px;border-radius:8px;border:1px solid #e2e8f0;">
+            <p class="rc-section-label" style="margin-bottom:12px;color:#185fa5;">Booking Options</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              ${category.allows_hourly ? '<span style="background:#dbeafe;color:#1e40af;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;">Hourly</span>' : ''}
+              ${category.allows_overnight ? '<span style="background:#dbeafe;color:#1e40af;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;">Overnight</span>' : ''}
+              ${category.allows_day_use ? '<span style="background:#dbeafe;color:#1e40af;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;">Day Use</span>' : ''}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Amenities Section -->
+      <div style="margin-top:20px;">
+        <p class="rc-section-label" style="margin-bottom:12px;color:#185fa5;">Amenities (${categoryAmenities.length})</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;background:#f8fafc;padding:16px;border-radius:8px;border:1px solid #e2e8f0;">
+          ${amenitiesHtml}
+        </div>
+      </div>
+
+      <!-- Rooms Section -->
+      <div style="margin-top:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <p class="rc-section-label" style="margin:0;color:#185fa5;">Rooms (${category.room_count || 0})</p>
+          <div style="font-size:12px;color:#64748b;">
+            <span style="color:#16a34a;font-weight:500;">${category.available_rooms || 0} available</span>
+            ${category.occupied_rooms > 0 ? `• <span style="color:#e65100;">${category.occupied_rooms} occupied</span>` : ''}
+            ${category.reserved_rooms > 0 ? `• <span style="color:#1565c0;">${category.reserved_rooms} reserved</span>` : ''}
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;max-height:280px;overflow-y:auto;padding:4px;">${roomsHtml}</div>
+      </div>
+
+      <!-- System Info Footer -->
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;gap:20px;font-size:12px;color:#94a3b8;">
+        <span>Sort Order: ${category.sort_order || 0}</span>
+        <span>Created: ${new Date(category.created_at).toLocaleDateString()}</span>
+        <span>Updated: ${new Date(category.updated_at).toLocaleDateString()}</span>
       </div>
     `;
       document.getElementById('categoryDetailsModal').classList.add('open');
@@ -795,11 +1116,15 @@ function generateUUID()
     }
 
     function openAddCategoryModal() {
-      document.getElementById('addCategoryForm').reset();
+      const form = document.getElementById('addCategoryForm');
+      form.reset();
+      form.onsubmit = handleAddCategorySubmit;
+      document.getElementById('formCategoryId').value = '';
       document.getElementById('formModalTitle').textContent = 'Add Category';
       document.getElementById('formAllowsHourly').checked = true;
       document.getElementById('formAllowsOvernight').checked = true;
       document.getElementById('formAllowsDayUse').checked = true;
+      renderAmenitiesCheckboxes([]);
       document.getElementById('categoryFormModal').classList.add('open');
       document.body.style.overflow = 'hidden';
     }
@@ -807,6 +1132,9 @@ function generateUUID()
     function openEditCategoryModal(categoryId) {
       const category = categoriesData.find(c => c.category_id === categoryId);
       if (!category) return;
+      const form = document.getElementById('addCategoryForm');
+      form.onsubmit = handleEditCategorySubmit;
+      document.getElementById('formCategoryId').value = categoryId;
       document.getElementById('formModalTitle').textContent = 'Edit Category';
       document.getElementById('addPropertyDropdown').value = category.property_id;
       document.getElementById('formCategoryCode').value = category.category_code;
@@ -832,8 +1160,28 @@ function generateUUID()
       document.getElementById('formAllowsOvernight').checked = category.allows_overnight == 1;
       document.getElementById('formAllowsDayUse').checked = category.allows_day_use == 1;
       document.getElementById('formSortOrder').value = category.sort_order || 0;
+
+      // Fetch and render existing amenities for this category
+      fetchCategoryAmenities(categoryId).then(selectedAmenities => {
+        renderAmenitiesCheckboxes(selectedAmenities);
+      });
+
       document.getElementById('categoryFormModal').classList.add('open');
       document.body.style.overflow = 'hidden';
+    }
+
+    async function fetchCategoryAmenities(categoryId) {
+      try {
+        const response = await fetch(`../api/room_amenities.php?action=by_category&category_id=${categoryId}`);
+        const result = await response.json();
+        if (result.success) {
+          return result.data.map(ra => ra.amenity_id);
+        }
+        return [];
+      } catch (error) {
+        console.error('Error fetching category amenities:', error);
+        return [];
+      }
     }
 
     function closeCategoryFormModal() {

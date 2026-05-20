@@ -254,6 +254,58 @@ function generateUUID()
     height: 14px;
     accent-color: var(--color-border-primary);
   }
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    border-top: 0.5px solid var(--color-border-secondary);
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .pag-info {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+  .per-page-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+  .per-page-wrap select {
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: var(--color-text-primary);
+    outline: none;
+    background: #ffffff;
+  }
+  .pag-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .pag-btn {
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 12px;
+    color: var(--color-text-primary);
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    min-width: 32px;
+  }
+  .pag-btn:hover:not(:disabled) { background: #f1f5f9; border-color: #cbd5e1; }
+  .pag-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .pag-btn.active {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: white;
+    border-color: transparent;
+  }
   .am-toast {
     position: fixed;
     bottom: 20px;
@@ -297,8 +349,14 @@ function generateUUID()
 </style>
 
 <script>
+  // CSRF Token for API requests (from db.php)
+  const CSRF_TOKEN = <?php echo json_encode(CSRF_TOKEN); ?>;
+
   // Data will be fetched from API on page load
   let amenitiesData = [];
+  let currentPage = 1;
+  let itemsPerPage = 10;
+  let totalItems = 0;
 
   // Fetch data from API on page load
   document.addEventListener('DOMContentLoaded', async function() {
@@ -307,11 +365,14 @@ function generateUUID()
 
   async function fetchAmenitiesData() {
     try {
-      const response = await fetch('../api/amenities.php?action=list');
+      const offset = (currentPage - 1) * itemsPerPage;
+      const response = await fetch(`../api/amenities.php?action=list&limit=${itemsPerPage}&offset=${offset}`);
       const result = await response.json();
       if (result.success) {
         amenitiesData = result.data;
+        totalItems = result.total ?? amenitiesData.length;
         renderAmenitiesTable();
+        renderPagination();
         updateStatsCounts();
       }
     } catch (error) {
@@ -353,19 +414,19 @@ function generateUUID()
       return;
     }
     tbody.innerHTML = amenitiesData.map((amenity) => {
-      const iconHtml = amenity.icon ? `<i class="${amenity.icon}"></i>` : '';
+      const iconHtml = amenity.icon_code ? `<i class="fa-solid ${amenity.icon_code}"></i>` : '';
       return `
         <tr class="amenity-row">
           <td>
             <div class="am-name">${iconHtml}<span>${amenity.amenity_name}</span></div>
           </td>
-          <td><span class="am-code">${amenity.amenity_code || '—'}</span></td>
-          <td><span class="am-text">${amenity.amenity_type || 'general'}</span></td>
+          <td><span class="am-code">${amenity.icon_code || '—'}</span></td>
+          <td><span class="am-text">${amenity.category || 'general'}</span></td>
           <td style="text-align:center;"><span class="am-status-badge am-status-${amenity.is_active ? 'active' : 'inactive'}">${amenity.is_active ? 'Active' : 'Inactive'}</span></td>
           <td>
             <div class="am-actions">
-              <button class="am-icon-btn edit" onclick="openEditAmenityModal('${amenity.amenity_id}')" title="Edit"><i class="fas fa-pen"></i></button>
-              <button class="am-icon-btn del" onclick="confirmDeleteAmenity('${amenity.amenity_id}', '${(amenity.amenity_name).replace(/'/g, "\\'")}')" title="Delete"><i class="fas fa-trash"></i></button>
+              <button class="am-icon-btn edit" onclick="openEditAmenityModal('${String(amenity.amenity_id).replace(/'/g, "\\'")}')" title="Edit"><i class="fas fa-pen"></i></button>
+              <button class="am-icon-btn del" onclick="confirmDeleteAmenity('${String(amenity.amenity_id).replace(/'/g, "\\'")}', '${String(amenity.amenity_name).replace(/'/g, "\\'")}')" title="Delete"><i class="fas fa-trash"></i></button>
             </div>
           </td>
         </tr>
@@ -379,7 +440,7 @@ function generateUUID()
       const response = await fetch('../api/amenities.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', amenity_id: amenityId })
+        body: JSON.stringify({ action: 'delete', amenity_id: amenityId, csrf_token: CSRF_TOKEN })
       });
       const result = await response.json();
       if (result.success) {
@@ -414,7 +475,7 @@ function generateUUID()
       const response = await fetch('../api/amenities.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: isEdit ? 'update' : 'create', ...data })
+        body: JSON.stringify({ action: isEdit ? 'update' : 'create', ...data, csrf_token: CSRF_TOKEN })
       });
       const result = await response.json();
       if (result.success) {
@@ -490,6 +551,7 @@ function generateUUID()
         <tbody id="amenitiesTableBody"></tbody>
       </table>
     </div>
+    <div id="paginationContainer"></div>
   </div>
 </div>
 
@@ -571,13 +633,13 @@ function generateUUID()
   }
 
   function openEditAmenityModal(amenityId) {
-    const amenity = amenitiesData.find(a => a.amenity_id === amenityId);
+    const amenity = amenitiesData.find(a => a.amenity_id == amenityId);
     if (!amenity) return;
     document.getElementById('formModalTitle').textContent = 'Edit Amenity';
     document.getElementById('formAmenityId').value = amenity.amenity_id;
     document.getElementById('formAmenityName').value = amenity.amenity_name;
-    document.getElementById('formIconCode').value = amenity.icon || '';
-    document.getElementById('formAmenityType').value = amenity.amenity_type || 'comfort';
+    document.getElementById('formIconCode').value = amenity.icon_code || '';
+    document.getElementById('formAmenityType').value = amenity.category || 'comfort';
     document.getElementById('formSortOrder').value = amenity.sort_order || 0;
     document.getElementById('formIsActive').checked = amenity.is_active == 1;
     document.getElementById('amenityFormModal').classList.add('open');
@@ -588,6 +650,107 @@ function generateUUID()
     document.getElementById('amenityFormModal').classList.remove('open');
     document.body.style.overflow = '';
     document.getElementById('amenityForm').reset();
+  }
+
+  // Pagination functions
+  function renderPagination() {
+    const paginationContainer = document.getElementById('paginationContainer');
+    if (!paginationContainer) return;
+
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startItem = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+    const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+    let paginationHtml = `
+      <div class="pagination">
+        <div class="pag-info">
+          Showing ${startItem} to ${endItem} of ${totalItems} entries
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+          <div class="per-page-wrap">
+            Show
+            <select
+              style="width: 64px; padding: 4px 8px; font-size: 12px"
+              onchange="changeItemsPerPage(this.value)"
+            >
+              <option value="5" ${itemsPerPage === 5 ? 'selected' : ''}>5</option>
+              <option value="10" ${itemsPerPage === 10 ? 'selected' : ''}>10</option>
+              <option value="25" ${itemsPerPage === 25 ? 'selected' : ''}>25</option>
+              <option value="50" ${itemsPerPage === 50 ? 'selected' : ''}>50</option>
+            </select>
+            entries
+          </div>
+          <div class="pag-controls">
+            <button onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''} class="pag-btn">
+              <i class="fas fa-chevrons-left"></i>
+            </button>
+            <button onclick="goToPage(currentPage - 1)" ${currentPage === 1 ? 'disabled' : ''} class="pag-btn">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            ${getPageNumbers().map(page => `
+              <button onclick="goToPage(${page})" ${page === currentPage ? 'disabled' : ''} class="pag-btn ${page === currentPage ? 'active' : ''}">
+                ${page}
+              </button>
+            `).join('')}
+            <button onclick="goToPage(currentPage + 1)" ${currentPage === totalPages ? 'disabled' : ''} class="pag-btn">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+            <button onclick="goToPage(totalPages)" ${currentPage === totalPages ? 'disabled' : ''} class="pag-btn">
+              <i class="fas fa-chevrons-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    paginationContainer.innerHTML = paginationHtml;
+  }
+
+  function getPageNumbers() {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const pages = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    return pages;
+  }
+
+  function changeItemsPerPage(value) {
+    itemsPerPage = parseInt(value);
+    currentPage = 1;
+    fetchAmenitiesData();
+  }
+
+  function goToPage(page) {
+    if (page === '...' || page < 1 || page > Math.ceil(totalItems / itemsPerPage)) return;
+    currentPage = page;
+    fetchAmenitiesData();
   }
 
   window.addEventListener('load', function() {

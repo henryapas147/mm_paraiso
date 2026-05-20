@@ -234,6 +234,88 @@ function generateUUID()
     background: #fee2e2; color: #991b1b; border: none;
     cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center;
   }
+  /* Image Cropper Modal */
+  .crop-modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 10000;
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .crop-modal.open { display: flex; }
+  .crop-modal-content {
+    background: white; border-radius: 12px;
+    max-width: 900px; width: 100%; max-height: 90vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .crop-modal-header {
+    padding: 16px 20px; border-bottom: 1px solid #e2e8f0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .crop-modal-title { font-size: 16px; font-weight: 600; }
+  .crop-modal-close {
+    background: none; border: none; font-size: 20px;
+    color: #64748b; cursor: pointer; padding: 4px;
+  }
+  .crop-modal-body {
+    padding: 20px; flex: 1; overflow: auto;
+    display: flex; gap: 20px; flex-wrap: wrap;
+    justify-content: center;
+  }
+  .crop-container {
+    flex: 1; min-width: 300px; max-width: 500px;
+  }
+  .crop-container img { max-width: 100%; display: block; }
+  .crop-preview-box {
+    width: 350px; padding: 20px;
+    background: #f8fafc; border-radius: 8px;
+    border: 1px solid #e2e8f0;
+  }
+  .crop-preview-title {
+    font-size: 12px; color: #64748b;
+    margin-bottom: 10px; text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .crop-preview {
+    width: 350px; height: 260px; overflow: hidden;
+    border-radius: 8px; border: 2px solid #e2e8f0;
+    background: #fff;
+  }
+  .crop-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .crop-dimensions {
+    text-align: center; margin-top: 10px;
+    font-size: 12px; color: #64748b;
+  }
+  .crop-modal-footer {
+    padding: 16px 20px; border-top: 1px solid #e2e8f0;
+    display: flex; justify-content: flex-end; gap: 10px;
+  }
+  .crop-btn {
+    padding: 10px 20px; border-radius: 8px;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    border: 1px solid #e2e8f0; background: #fff;
+    transition: all 0.2s;
+  }
+  .crop-btn:hover { background: #f8fafc; }
+  .crop-btn-primary {
+    background: #185fa5; color: white; border-color: #185fa5;
+  }
+  .crop-btn-primary:hover { background: #0c447c; }
+  .crop-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  /* Image preview in form */
+  .rm-image-preview {
+    width: 100%; max-width: 200px; height: 150px;
+    object-fit: cover; border-radius: 8px;
+    border: 1px solid #e2e8f0; margin-top: 8px;
+    display: none;
+  }
+  .rm-image-preview.show { display: block; }
+  .rm-crop-btn {
+    font-size: 11px; color: #185fa5; background: #e6f1fb;
+    border: 1px solid #185fa5; border-radius: 4px;
+    padding: 4px 10px; cursor: pointer; margin-top: 5px;
+  }
+  .rm-crop-btn:hover { background: #d1e5f7; }
   .rm-add-image-btn { font-size: 12px; color: #185fa5; background: none; border: none; cursor: pointer; padding: 4px 0; display: inline-flex; align-items: center; gap: 4px; }
   .rm-existing-images { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
   .rm-existing-img { position: relative; }
@@ -349,10 +431,12 @@ function generateUUID()
   let itemsPerPage = 10;
   let totalItems = 0;
   let totalPages = 0;
+  let amenitiesData = [];
 
   // Fetch data from API on page load
   document.addEventListener('DOMContentLoaded', async function() {
     await fetchRoomsData();
+    await fetchAmenitiesData();
   });
 
   async function fetchRoomsData() {
@@ -397,31 +481,72 @@ function generateUUID()
     }
   }
 
+  async function fetchAmenitiesData() {
+    try {
+      // Request all amenities without pagination
+      const response = await fetch('../api/amenities.php?action=list&per_page=100');
+      const result = await response.json();
+      if (result.success) {
+        amenitiesData = result.data.data || result.data || [];
+      }
+    } catch (error) {
+      console.error('Error fetching amenities:', error);
+    }
+  }
+
+  function renderAmenitiesCheckboxes(selectedAmenities = [], containerId = 'amenitiesContainer') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (amenitiesData.length === 0) {
+      container.innerHTML = '<p style="color:var(--color-text-secondary);font-size:13px;">No amenities available</p>';
+      return;
+    }
+
+    container.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;">
+        ${amenitiesData.map(amenity => `
+          <label style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--color-background-secondary);border-radius:6px;cursor:pointer;transition:background 0.15s;">
+            <input type="checkbox" name="amenities[]" value="${amenity.amenity_id}" ${selectedAmenities.includes(amenity.amenity_id) ? 'checked' : ''} style="width:14px;height:14px;accent-color:#185fa5;">
+            <div style="display:flex;align-items:center;gap:6px;flex:1;">
+              ${amenity.icon_code ? `<i class="fa-solid ${amenity.icon_code}" style="color:#185fa5;font-size:14px;"></i>` : ''}
+              <span style="font-size:13px;color:var(--color-text-primary);">${amenity.amenity_name}</span>
+            </div>
+          </label>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  async function fetchRoomAmenities(roomId) {
+    try {
+      const response = await fetch(`../api/room_amenities.php?action=by_room&room_id=${roomId}`);
+      const result = await response.json();
+      if (result.success) {
+        return result.data.map(ra => ra.amenity_id);
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching room amenities:', error);
+      return [];
+    }
+  }
+
+  async function fetchCategoryAmenities(categoryId) {
+    try {
+      const response = await fetch(`../api/room_amenities.php?action=by_category&category_id=${categoryId}`);
+      const result = await response.json();
+      if (result.success) {
+        return result.data.map(ra => ra.amenity_id);
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching category amenities:', error);
+      return [];
+    }
+  }
+
   function populateDropdowns() {
-    // Populate property dropdowns
-    const addPropertyDropdown = document.getElementById('addPropertyDropdown');
-    const editPropertyDropdown = document.getElementById('editPropertyDropdown');
-
-    if (addPropertyDropdown && propertiesData.length > 0) {
-      addPropertyDropdown.innerHTML = '<option value="">Select Property</option>';
-      propertiesData.forEach(property => {
-        const option = document.createElement('option');
-        option.value = property.property_id;
-        option.textContent = `${property.property_name} (${property.property_code})`;
-        addPropertyDropdown.appendChild(option);
-      });
-    }
-
-    if (editPropertyDropdown && propertiesData.length > 0) {
-      editPropertyDropdown.innerHTML = '<option value="">Select Property</option>';
-      propertiesData.forEach(property => {
-        const option = document.createElement('option');
-        option.value = property.property_id;
-        option.textContent = `${property.property_name} (${property.property_code})`;
-        editPropertyDropdown.appendChild(option);
-      });
-    }
-
     // Populate category dropdowns
     const addCategoryDropdown = document.getElementById('addCategoryDropdown');
     const editCategoryDropdown = document.getElementById('editCategoryDropdown');
@@ -429,9 +554,24 @@ function generateUUID()
     if (addCategoryDropdown && categoriesData.length > 0) {
       addCategoryDropdown.innerHTML = '<option value="">Select Category</option>';
       categoriesData.forEach(category => {
+        const property = propertiesData.find(p => p.property_id === category.property_id);
         const option = document.createElement('option');
         option.value = category.category_id;
-        option.textContent = `${category.category_name} (${category.category_code})`;
+        option.textContent = `${category.category_name} ${property ? '(' + property.property_name + ')' : ''}`;
+        option.dataset.propertyId = category.property_id;
+        option.dataset.propertyName = property ? property.property_name : '';
+        // Store category defaults for auto-population
+        option.dataset.basePriceNight = category.base_price_per_night || '';
+        option.dataset.basePriceHour = category.base_price_per_hour || '';
+        option.dataset.basePriceDayUse = category.base_price_day_use || '';
+        option.dataset.floorLevel = category.floor_level || '';
+        option.dataset.bedConfiguration = category.bed_configuration || '';
+        option.dataset.viewType = category.view_type || '';
+        option.dataset.smokingPolicy = category.smoking_policy || 'non_smoking';
+        option.dataset.petFriendly = category.pet_friendly || '0';
+        option.dataset.allowsHourly = category.allows_hourly || '1';
+        option.dataset.allowsOvernight = category.allows_overnight || '1';
+        option.dataset.allowsDayUse = category.allows_day_use || '1';
         addCategoryDropdown.appendChild(option);
       });
     }
@@ -439,11 +579,68 @@ function generateUUID()
     if (editCategoryDropdown && categoriesData.length > 0) {
       editCategoryDropdown.innerHTML = '<option value="">Select Category</option>';
       categoriesData.forEach(category => {
+        const property = propertiesData.find(p => p.property_id === category.property_id);
         const option = document.createElement('option');
         option.value = category.category_id;
-        option.textContent = `${category.category_name} (${category.category_code})`;
+        option.textContent = `${category.category_name} ${property ? '(' + property.property_name + ')' : ''}`;
+        option.dataset.propertyId = category.property_id;
+        option.dataset.propertyName = property ? property.property_name : '';
+        // Store category defaults for auto-population
+        option.dataset.basePriceNight = category.base_price_per_night || '';
+        option.dataset.basePriceHour = category.base_price_per_hour || '';
+        option.dataset.basePriceDayUse = category.base_price_day_use || '';
+        option.dataset.floorLevel = category.floor_level || '';
+        option.dataset.bedConfiguration = category.bed_configuration || '';
+        option.dataset.viewType = category.view_type || '';
+        option.dataset.smokingPolicy = category.smoking_policy || 'non_smoking';
+        option.dataset.petFriendly = category.pet_friendly || '0';
+        option.dataset.allowsHourly = category.allows_hourly || '1';
+        option.dataset.allowsOvernight = category.allows_overnight || '1';
+        option.dataset.allowsDayUse = category.allows_day_use || '1';
         editCategoryDropdown.appendChild(option);
       });
+    }
+  }
+
+  async function onCategoryChange(mode) {
+    const categoryDropdown = document.getElementById(mode + 'CategoryDropdown');
+    const propertyDisplay = document.getElementById(mode + 'PropertyDisplay');
+    const containerId = mode === 'add' ? 'amenitiesContainer' : 'editAmenitiesContainer';
+
+    if (categoryDropdown && propertyDisplay) {
+      const selectedOption = categoryDropdown.options[categoryDropdown.selectedIndex];
+      if (selectedOption && selectedOption.value) {
+        propertyDisplay.value = selectedOption.dataset.propertyName || '';
+
+        // Fetch and render amenities for this category
+        const categoryAmenities = await fetchCategoryAmenities(selectedOption.value);
+        renderAmenitiesCheckboxes(categoryAmenities, containerId);
+
+        // Populate category defaults (only for add mode - edit mode keeps room's own values)
+        if (mode === 'add') {
+          // Populate pricing defaults (can be overridden)
+          const priceNight = document.querySelector('#addRoomForm [name="override_price_per_night"]');
+          const priceHour = document.querySelector('#addRoomForm [name="override_price_per_hour"]');
+          const priceDayUse = document.querySelector('#addRoomForm [name="override_price_day_use"]');
+          if (priceNight && !priceNight.value) priceNight.value = selectedOption.dataset.basePriceNight || '';
+          if (priceHour && !priceHour.value) priceHour.value = selectedOption.dataset.basePriceHour || '';
+          if (priceDayUse && !priceDayUse.value) priceDayUse.value = selectedOption.dataset.basePriceDayUse || '';
+
+          // Populate physical attributes
+          const floorNumber = document.querySelector('#addRoomForm [name="floor_number"]');
+          const buildingBlock = document.querySelector('#addRoomForm [name="building_block"]');
+          // floor_level from category can suggest floor_number
+          if (floorNumber && selectedOption.dataset.floorLevel) {
+            const level = selectedOption.dataset.floorLevel.toLowerCase();
+            if (level.includes('ground') || level.includes('1st') || level.includes('first')) floorNumber.value = '1';
+            else if (level.includes('2nd') || level.includes('second')) floorNumber.value = '2';
+            else if (level.includes('3rd') || level.includes('third')) floorNumber.value = '3';
+          }
+        }
+      } else {
+        propertyDisplay.value = '';
+        renderAmenitiesCheckboxes([], containerId);
+      }
     }
   }
 
@@ -474,6 +671,8 @@ function generateUUID()
         ? `<div class="rm-avatar"><img src="../${room.images[0].image_url}" alt="${room.room_name || room.room_number}"></div>`
         : `<div class="rm-avatar"><i class="fas fa-door-open"></i></div>`;
 
+      const amenityCount = (room.amenities && room.amenities.length) || 0;
+
       return `
         <tr class="room-row">
           <td>
@@ -486,7 +685,10 @@ function generateUUID()
             </div>
           </td>
           <td><span class="rm-text">${property ? property.property_name : '—'}</span></td>
-          <td><span class="rm-text">${category ? category.category_name : '—'}</span></td>
+          <td>
+            <span class="rm-text">${category ? category.category_name : '—'}</span>
+            ${amenityCount > 0 ? `<span style="display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:2px 6px;background:#f1f5f9;border-radius:4px;font-size:11px;color:#64748b;"><i class="fas fa-concierge-bell" style="font-size:9px;"></i>${amenityCount}</span>` : ''}
+          </td>
           <td><span class="rm-text">${room.floor_number || '—'}</span></td>
           <td style="text-align:center;"><span class="rm-status-badge rm-status-${status}">${statusLabel}</span></td>
           <td>
@@ -553,7 +755,11 @@ function generateUUID()
 
   async function viewRoomDetails(roomId) {
     const room = roomsData.find(r => r.room_id === roomId);
-    if (!room) return;
+    if (!room) {
+      console.error('Room not found:', roomId);
+      return;
+    }
+    console.log('View room:', room.room_id, 'Amenities:', room.amenities);
 
     const modal = document.getElementById('roomDetailsModal');
     const modalName = document.getElementById('modalRoomName');
@@ -645,21 +851,21 @@ function generateUUID()
         <div class="rm-grid rm-grid-3">
           <div class="rm-price-card">
             <div class="rm-price-label">Per night</div>
-            <div class="rm-price-base">PHP ${parseFloat(room.base_price_per_night || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</div>
+            <div class="rm-price-base">PHP ${parseFloat((category && category.base_price_per_night) || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</div>
             <div class="rm-price-override ${room.override_price_per_night ? 'rm-price-override-active' : ''}">
               ${room.override_price_per_night ? '↑ Override: PHP ' + parseFloat(room.override_price_per_night).toLocaleString('en-PH', { minimumFractionDigits: 2 }) : 'No override'}
             </div>
           </div>
           <div class="rm-price-card">
             <div class="rm-price-label">Per hour</div>
-            <div class="rm-price-base">PHP ${parseFloat(room.base_price_per_hour || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</div>
+            <div class="rm-price-base">PHP ${parseFloat((category && category.base_price_per_hour) || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</div>
             <div class="rm-price-override ${room.override_price_per_hour ? 'rm-price-override-active' : ''}">
               ${room.override_price_per_hour ? '↑ Override: PHP ' + parseFloat(room.override_price_per_hour).toLocaleString('en-PH', { minimumFractionDigits: 2 }) : 'No override'}
             </div>
           </div>
           <div class="rm-price-card">
             <div class="rm-price-label">Day use</div>
-            <div class="rm-price-base">PHP ${parseFloat(room.base_price_day_use || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</div>
+            <div class="rm-price-base">PHP ${parseFloat((category && category.base_price_day_use) || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</div>
             <div class="rm-price-override ${room.override_price_day_use ? 'rm-price-override-active' : ''}">
               ${room.override_price_day_use ? '↑ Override: PHP ' + parseFloat(room.override_price_day_use).toLocaleString('en-PH', { minimumFractionDigits: 2 }) : 'No override'}
             </div>
@@ -679,6 +885,19 @@ function generateUUID()
       <div class="rm-section">
         <div class="rm-section-title">Internal notes</div>
         <p style="font-size:14px;color:#475569;margin:0;line-height:1.6;padding:0.75rem 1rem;background:#f8fafc;border-left:3px solid #cbd5e1;border-radius:0 6px 6px 0;">${room.internal_notes}</p>
+      </div>` : ''}
+
+      ${(room.amenities && room.amenities.length > 0) ? `
+      <div class="rm-section">
+        <div class="rm-section-title">Amenities (${room.amenities.length})</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          ${room.amenities.map(a => `
+            <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#f1f5f9;border:0.5px solid #e2e8f0;border-radius:6px;font-size:13px;color:#475569;">
+              ${a.icon_code ? `<i class="fas ${a.icon_code}" style="color:#64748b;"></i>` : ''}
+              ${a.amenity_name}
+            </span>
+          `).join('')}
+        </div>
       </div>` : ''}
 
       <div class="rm-section" style="margin-bottom:0;">
@@ -708,11 +927,13 @@ function generateUUID()
     // Generate UUID for room_id
     const room_id = generateUUID();
 
-    // Prepare data for API
+    // Get selected amenities
+    const selectedAmenities = Array.from(document.querySelectorAll('input[name="amenities[]"]:checked')).map(cb => cb.value);
+
+    // Prepare data for API (property_id is derived from category_id on server)
     const data = {
       csrf_token: formData.get('csrf_token'),
       room_id: room_id,
-      property_id: formData.get('property_id'),
       category_id: formData.get('category_id'),
       room_number: formData.get('room_number'),
       room_name: formData.get('room_name') || null,
@@ -722,7 +943,8 @@ function generateUUID()
       override_price_per_night: formData.get('override_price_per_night') || null,
       override_price_per_hour: formData.get('override_price_per_hour') || null,
       override_price_day_use: formData.get('override_price_day_use') || null,
-      internal_notes: formData.get('internal_notes') || null
+      internal_notes: formData.get('internal_notes') || null,
+      amenities: selectedAmenities
     };
 
     try {
@@ -737,21 +959,23 @@ function generateUUID()
       const result = await response.json();
 
       if (result.success) {
-        // Upload images if any
+        // Upload cropped images from hidden inputs (base64 data URLs)
         const imageFormData = new FormData();
-        const imageFiles = form.querySelectorAll('input[type="file"][name*="room_images"]');
+        const hiddenImageInputs = form.querySelectorAll('input[type="hidden"][name="room_images[]"]');
 
         let hasImages = false;
-        imageFiles.forEach((input, index) => {
-          console.log('Image input:', input, 'files:', input.files);
-          if (input.files && input.files[0]) {
+        hiddenImageInputs.forEach((input, index) => {
+          console.log('Hidden image input:', input.id, 'value:', input.value ? 'has data' : 'empty');
+          if (input.value && input.value.startsWith('data:image')) {
             hasImages = true;
-            imageFormData.append('room_images[]', input.files[0]);
+            // Convert base64 to file
+            const file = dataURLtoFile(input.value, 'cropped_' + Date.now() + '_' + index + '.jpg');
+            imageFormData.append('room_images[]', file);
 
-            // Find the corresponding type and caption inputs
-            const parent = input.closest('.image-entry') || input.closest('div');
-            const typeInput = parent ? parent.querySelector('select[name*="image_type"]') : null;
-            const captionInput = parent ? parent.querySelector('input[name*="image_caption"]') : null;
+            // Find the corresponding type and caption inputs from the same image entry
+            const imageEntry = input.closest('.rm-image-entry');
+            const typeInput = imageEntry ? imageEntry.querySelector('select[name="image_type[]"]') : null;
+            const captionInput = imageEntry ? imageEntry.querySelector('input[name="image_caption[]"]') : null;
 
             imageFormData.append('image_type[]', typeInput ? typeInput.value : 'interior');
             imageFormData.append('image_caption[]', captionInput ? captionInput.value : '');
@@ -792,10 +1016,10 @@ function generateUUID()
     const form = event.target;
     const formData = new FormData(form);
 
+    // Prepare data for API (property_id is derived from category_id on server)
     const data = {
       csrf_token: formData.get('csrf_token'),
       room_id: formData.get('room_id'),
-      property_id: formData.get('property_id'),
       category_id: formData.get('category_id'),
       room_number: formData.get('room_number'),
       room_name: formData.get('room_name') || null,
@@ -805,7 +1029,8 @@ function generateUUID()
       override_price_per_night: formData.get('override_price_per_night') || null,
       override_price_per_hour: formData.get('override_price_per_hour') || null,
       override_price_day_use: formData.get('override_price_day_use') || null,
-      internal_notes: formData.get('internal_notes') || null
+      internal_notes: formData.get('internal_notes') || null,
+      amenities: Array.from(document.querySelectorAll('input[name="amenities[]"]:checked')).map(cb => cb.value)
     };
 
     try {
@@ -820,41 +1045,98 @@ function generateUUID()
       const result = await response.json();
 
       if (result.success) {
-        // Upload new images if any
+        // Prepare data for image operations
         const imageFormData = new FormData();
-        const imageFiles = form.querySelectorAll('input[type="file"][name*="room_images"]');
+        let hasImageOperations = false;
+        
+        // 1. Process deleted images
+        const deleteImageInputs = form.querySelectorAll('input[name="delete_images[]"]');
+        deleteImageInputs.forEach(input => {
+          if (input.value) {
+            hasImageOperations = true;
+            imageFormData.append('delete_images[]', input.value);
+          }
+        });
+        
+        // 2. Process replaced images
+        const replaceInputs = form.querySelectorAll('input[name^="replace_image_"]');
+        replaceInputs.forEach((input, index) => {
+          if (input.value && input.value.startsWith('data:image')) {
+            hasImageOperations = true;
+            const imageId = input.name.replace('replace_image_', '');
+            const file = dataURLtoFile(input.value, 'replaced_' + imageId + '_' + Date.now() + '.jpg');
+            imageFormData.append('replace_images[' + imageId + ']', file);
+          }
+        });
+        
+        // 3. Process new cropped images from hidden inputs
+        const hiddenImageInputs = form.querySelectorAll('input[type="hidden"][name="room_images[]"]');
+        hiddenImageInputs.forEach((input, index) => {
+          console.log('Hidden image input:', input.id, 'value:', input.value ? 'has data' : 'empty');
+          if (input.value && input.value.startsWith('data:image')) {
+            hasImageOperations = true;
+            // Convert base64 to file
+            const file = dataURLtoFile(input.value, 'cropped_' + Date.now() + '_' + index + '.jpg');
+            imageFormData.append('room_images[]', file);
 
-        let hasImages = false;
-        imageFiles.forEach((input, index) => {
-          console.log('Image input:', input, 'files:', input.files);
-          if (input.files && input.files[0]) {
-            hasImages = true;
-            imageFormData.append('room_images[]', input.files[0]);
-
-            // Find the corresponding type and caption inputs
-            const parent = input.closest('.image-entry') || input.closest('div');
-            const typeInput = parent ? parent.querySelector('select[name*="image_type"]') : null;
-            const captionInput = parent ? parent.querySelector('input[name*="image_caption"]') : null;
+            // Find the corresponding type and caption inputs from the same image entry
+            const imageEntry = input.closest('.rm-image-entry');
+            const typeInput = imageEntry ? imageEntry.querySelector('select[name="image_type[]"]') : null;
+            const captionInput = imageEntry ? imageEntry.querySelector('input[name="image_caption[]"]') : null;
 
             imageFormData.append('image_type[]', typeInput ? typeInput.value : 'interior');
             imageFormData.append('image_caption[]', captionInput ? captionInput.value : '');
           }
         });
 
-        console.log('Has images:', hasImages);
+        console.log('Has image operations:', hasImageOperations);
 
-        if (hasImages) {
+        if (hasImageOperations) {
           imageFormData.append('room_id', data.room_id);
-          imageFormData.append('csrf_token', formData.get('csrf_token'));
-          const imageResponse = await fetch('../api/rooms.php', {
-            method: 'POST',
-            body: imageFormData
-          });
-          const imageResult = await imageResponse.json();
-          console.log('Image upload result:', imageResult);
+          const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+          imageFormData.append('csrf_token', csrfToken);
+          
+          console.log('Submitting image operations to API...');
+          console.log('delete_images:', imageFormData.getAll('delete_images[]'));
+          console.log('replace_images:', imageFormData.getAll('replace_images[]'));
+          console.log('new images:', imageFormData.getAll('room_images[]'));
+          
+          try {
+            const imageResponse = await fetch('../api/rooms.php', {
+              method: 'POST',
+              body: imageFormData
+            });
+            
+            if (!imageResponse.ok) {
+              console.error('HTTP error:', imageResponse.status, imageResponse.statusText);
+              showRmToast('Server error: ' + imageResponse.status, 'error');
+              return;
+            }
+            
+            const responseText = await imageResponse.text();
+            console.log('Raw API response:', responseText);
+            
+            let imageResult;
+            try {
+              imageResult = JSON.parse(responseText);
+            } catch (parseError) {
+              console.error('Failed to parse JSON:', parseError);
+              console.error('Response was:', responseText);
+              showRmToast('Server returned invalid response', 'error');
+              return;
+            }
+            
+            console.log('Image operations result:', imageResult);
 
-          if (!imageResult.success) {
-            console.error('Image upload failed:', imageResult.message);
+            if (!imageResult.success) {
+              console.error('Image operations failed:', imageResult.message);
+              showRmToast(imageResult.message || 'Image operations failed', 'error');
+              return;
+            }
+          } catch (fetchError) {
+            console.error('Fetch error:', fetchError);
+            showRmToast('Network error: ' + fetchError.message, 'error');
+            return;
           }
         }
 
@@ -871,7 +1153,72 @@ function generateUUID()
 
   // Delete Room Function (API-based)
   async function confirmDeleteRoom(roomId, roomNumber) {
-    if (!confirm(`Delete room "${roomNumber}"? This action cannot be undone.`)) return;
+    // Show custom confirmation dialog
+    if (!showDeleteConfirmation(roomNumber, roomId)) return;
+  }
+
+  function showDeleteConfirmation(roomNumber, roomId) {
+    // Create confirmation modal
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); z-index: 10000;
+      display: flex; align-items: center; justify-content: center;
+    `;
+
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+      background: white; border-radius: 12px; padding: 24px;
+      max-width: 400px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      position: relative;
+    `;
+
+    dialog.innerHTML = `
+      <div style="margin-bottom: 16px;">
+        <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #1e293b;">Delete Room</h3>
+        <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">
+          Are you sure you want to delete room "<strong>${roomNumber}</strong>"? This action cannot be undone.
+        </p>
+      </div>
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button id="cancelDeleteBtn" style="
+          padding: 8px 16px; font-size: 13px; font-weight: 500;
+          border: 0.5px solid #e2e8f0; border-radius: 6px;
+          background: white; color: #64748b; cursor: pointer;
+        ">Cancel</button>
+        <button id="confirmDeleteBtn" style="
+          padding: 8px 16px; font-size: 13px; font-weight: 500;
+          border: none; border-radius: 6px;
+          background: #ef4444; color: white; cursor: pointer;
+        ">Delete</button>
+      </div>
+    `;
+
+    modal.appendChild(dialog);
+    document.body.appendChild(modal);
+
+    // Handle cancel
+    const cancelBtn = dialog.querySelector('#cancelDeleteBtn');
+    cancelBtn.onclick = () => {
+      document.body.removeChild(modal);
+    };
+
+    // Handle confirm
+    const confirmBtn = dialog.querySelector('#confirmDeleteBtn');
+    confirmBtn.onclick = async () => {
+      document.body.removeChild(modal);
+      await executeDeleteRoom(roomId, roomNumber);
+    };
+
+    // Close on backdrop click
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal);
+      }
+    };
+  }
+
+  async function executeDeleteRoom(roomId, roomNumber) {
     try {
       const response = await fetch('../api/rooms.php', {
         method: 'POST',
@@ -961,12 +1308,14 @@ function generateUUID()
         <p class="rm-section-label">Basic Info</p>
         <div class="rm-form-grid">
           <div class="rm-form-group">
-            <label>Property *</label>
-            <select name="property_id" id="addPropertyDropdown" required><option value="">Select Property</option></select>
+            <label>Room Category *</label>
+            <select name="category_id" id="addCategoryDropdown" required onchange="onCategoryChange('add')">
+              <option value="">Select Category</option>
+            </select>
           </div>
           <div class="rm-form-group">
-            <label>Room Category *</label>
-            <select name="category_id" id="addCategoryDropdown" required><option value="">Select Category</option></select>
+            <label>Property</label>
+            <input type="text" id="addPropertyDisplay" readonly style="background:#f8fafc;cursor:not-allowed;" placeholder="Select a category">
           </div>
           <div class="rm-form-group">
             <label>Room Number *</label>
@@ -998,19 +1347,19 @@ function generateUUID()
           </div>
           <div class="rm-form-group full"></div>
         </div>
-        <p class="rm-section-label">Pricing Overrides</p>
+        <p class="rm-section-label">Pricing (Category defaults auto-populated)</p>
         <div class="rm-form-grid">
           <div class="rm-form-group">
             <label>Per Night (PHP)</label>
-            <input type="number" step="0.01" name="override_price_per_night" placeholder="Leave empty for category price">
+            <input type="number" step="0.01" name="override_price_per_night" placeholder="From category or enter custom">
           </div>
           <div class="rm-form-group">
             <label>Per Hour (PHP)</label>
-            <input type="number" step="0.01" name="override_price_per_hour" placeholder="Leave empty for category price">
+            <input type="number" step="0.01" name="override_price_per_hour" placeholder="From category or enter custom">
           </div>
           <div class="rm-form-group">
             <label>Day Use (PHP)</label>
-            <input type="number" step="0.01" name="override_price_day_use" placeholder="Leave empty for category price">
+            <input type="number" step="0.01" name="override_price_day_use" placeholder="From category or enter custom">
           </div>
           <div class="rm-form-group full">
             <label>Internal Notes</label>
@@ -1033,6 +1382,9 @@ function generateUUID()
           </div>
         </div>
         <button type="button" class="rm-add-image-btn" onclick="addImageField()"><i class="fas fa-plus"></i> Add another image</button>
+
+        <p class="rm-section-label">Amenities</p>
+        <div id="amenitiesContainer"></div>
       </div>
       <div class="rm-modal-footer">
         <button type="button" class="rm-btn" onclick="closeAddRoomModal()">Cancel</button>
@@ -1056,12 +1408,14 @@ function generateUUID()
         <p class="rm-section-label">Basic Info</p>
         <div class="rm-form-grid">
           <div class="rm-form-group">
-            <label>Property *</label>
-            <select name="property_id" id="editPropertyDropdown" required><option value="">Select Property</option></select>
+            <label>Room Category *</label>
+            <select name="category_id" id="editCategoryDropdown" required onchange="onCategoryChange('edit')">
+              <option value="">Select Category</option>
+            </select>
           </div>
           <div class="rm-form-group">
-            <label>Room Category *</label>
-            <select name="category_id" id="editCategoryDropdown" required><option value="">Select Category</option></select>
+            <label>Property</label>
+            <input type="text" id="editPropertyDisplay" readonly style="background:#f8fafc;cursor:not-allowed;" placeholder="Select a category">
           </div>
           <div class="rm-form-group">
             <label>Room Number *</label>
@@ -1092,19 +1446,19 @@ function generateUUID()
             </select>
           </div>
         </div>
-        <p class="rm-section-label">Pricing Overrides</p>
+        <p class="rm-section-label">Pricing (Category defaults auto-populated)</p>
         <div class="rm-form-grid">
           <div class="rm-form-group">
             <label>Per Night (PHP)</label>
-            <input type="number" step="0.01" name="override_price_per_night" id="edit_override_price_per_night" placeholder="Leave empty for category price">
+            <input type="number" step="0.01" name="override_price_per_night" id="edit_override_price_per_night" placeholder="From category or enter custom">
           </div>
           <div class="rm-form-group">
             <label>Per Hour (PHP)</label>
-            <input type="number" step="0.01" name="override_price_per_hour" id="edit_override_price_per_hour" placeholder="Leave empty for category price">
+            <input type="number" step="0.01" name="override_price_per_hour" id="edit_override_price_per_hour" placeholder="From category or enter custom">
           </div>
           <div class="rm-form-group">
             <label>Day Use (PHP)</label>
-            <input type="number" step="0.01" name="override_price_day_use" id="edit_override_price_day_use" placeholder="Leave empty for category price">
+            <input type="number" step="0.01" name="override_price_day_use" id="edit_override_price_day_use" placeholder="From category or enter custom">
           </div>
           <div class="rm-form-group full">
             <label>Internal Notes</label>
@@ -1121,14 +1475,16 @@ function generateUUID()
               <select name="image_type[]">
                 <option value="interior">Interior</option><option value="exterior">Exterior</option>
                 <option value="bathroom">Bathroom</option><option value="view">View</option>
-                <option value="amenity">Amenity</option><option value="bed">Bed</option>
-                <option value="balcony">Balcony</option><option value="other">Other</option>
+                <option value="amenity">Amenity</option><option value="bed">Bed</option><option value="balcony">Balcony</option><option value="other">Other</option>
               </select>
             </div>
             <div class="rm-form-group"><label>Caption</label><input type="text" name="image_caption[]" placeholder="Image caption"></div>
           </div>
         </div>
         <button type="button" class="rm-add-image-btn" onclick="addEditImageField()"><i class="fas fa-plus"></i> Add another image</button>
+
+        <p class="rm-section-label" style="margin-top:12px;">Amenities</p>
+        <div id="editAmenitiesContainer"></div>
       </div>
       <div class="rm-modal-footer">
         <button type="button" class="rm-btn" onclick="closeEditRoomModal()">Cancel</button>
@@ -1138,9 +1494,53 @@ function generateUUID()
   </div>
 </div>
 
+<!-- Image Cropper Modal -->
+<div id="imageCropperModal" class="crop-modal" onclick="if(event.target===this)closeCropperModal()">
+  <div class="crop-modal-content">
+    <div class="crop-modal-header">
+      <span class="crop-modal-title"><i class="fas fa-crop"></i> Crop Image (350 × 260)</span>
+      <button class="crop-modal-close" onclick="closeCropperModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="crop-modal-body">
+      <div class="crop-container">
+        <img id="cropperImage" src="" alt="Image to crop">
+      </div>
+      <div class="crop-preview-box">
+        <div class="crop-preview-title">Preview (350 × 260)</div>
+        <div class="crop-preview">
+          <div id="cropPreview" style="width: 350px; height: 260px; overflow: hidden;"></div>
+        </div>
+        <div class="crop-dimensions">Drag to position • Scroll to zoom</div>
+      </div>
+    </div>
+    <div class="crop-modal-footer">
+      <button type="button" class="crop-btn" onclick="closeCropperModal()">Cancel</button>
+      <button type="button" class="crop-btn crop-btn-primary" onclick="applyCrop()">
+        <i class="fas fa-check"></i> Apply Crop
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
 
+  // Global cropper instance and current file input reference
+  let cropper = null;
+  let currentFileInput = null;
+  let currentPreviewImg = null;
+  let croppedFile = null;
+
   function openAddRoomModal() {
+    document.getElementById('addRoomForm').reset();
+    document.getElementById('addPropertyDisplay').value = '';
+    // Clear pricing fields so category defaults populate fresh
+    document.querySelector('#addRoomForm [name="override_price_per_night"]').value = '';
+    document.querySelector('#addRoomForm [name="override_price_per_hour"]').value = '';
+    document.querySelector('#addRoomForm [name="override_price_day_use"]').value = '';
+    renderAmenitiesCheckboxes();
+    // Clear and init first image field with cropper wiring
+    document.getElementById('imageUploadContainer').innerHTML = '';
+    addImageField();
     document.getElementById('addRoomModal').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
@@ -1149,15 +1549,23 @@ function generateUUID()
     document.getElementById('addRoomModal').classList.remove('open');
     document.body.style.overflow = '';
     document.getElementById('addRoomForm').reset();
+    document.getElementById('addPropertyDisplay').value = '';
   }
 
   function addImageField() {
     const container = document.getElementById('imageUploadContainer');
     const imageEntry = document.createElement('div');
     imageEntry.className = 'rm-image-entry';
+    const entryId = 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     imageEntry.innerHTML = `
       <button type="button" class="rm-image-entry-remove" onclick="this.closest('.rm-image-entry').remove()"><i class="fas fa-times"></i></button>
-      <div class="rm-form-group"><label>Image File</label><input type="file" name="room_images[]" accept="image/*"></div>
+      <div class="rm-form-group">
+        <label>Image File</label>
+        <input type="file" id="${entryId}_file" accept="image/*" onchange="handleImageSelect(this, '${entryId}')">
+        <input type="hidden" name="room_images[]" id="${entryId}_input">
+        <img id="${entryId}_preview" class="rm-image-preview" style="width: 100%; max-width: 150px; height: 112px; object-fit: cover; border-radius: 6px; margin-top: 8px; display: none;">
+        <button type="button" id="${entryId}_cropbtn" class="rm-crop-btn" style="display: none;" onclick="reCropImage('${entryId}')"><i class="fas fa-crop"></i> Crop Again</button>
+      </div>
       <div class="rm-form-group"><label>Image Type</label>
         <select name="image_type[]">
           <option value="interior">Interior</option><option value="exterior">Exterior</option>
@@ -1171,14 +1579,257 @@ function generateUUID()
     container.appendChild(imageEntry);
   }
 
+  // Handle image file selection - open cropper immediately
+  function handleImageSelect(fileInput, entryId) {
+    console.log('handleImageSelect called with entryId:', entryId);
+    console.log('fileInput:', fileInput);
+    console.log('files:', fileInput.files);
+    
+    if (fileInput.files && fileInput.files[0]) {
+      const file = fileInput.files[0];
+      console.log('Selected file:', file.name, file.size);
+      
+      // Store reference and open cropper
+      currentFileInput = document.getElementById(entryId + '_input');
+      currentPreviewImg = document.getElementById(entryId + '_preview');
+      const cropBtn = document.getElementById(entryId + '_cropbtn');
+      
+      console.log('currentFileInput:', currentFileInput);
+      console.log('currentPreviewImg:', currentPreviewImg);
+      
+      // Read file and open cropper modal
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        console.log('File read complete, opening cropper modal');
+        // Store original image for re-cropping
+        currentFileInput.dataset.originalImage = e.target.result;
+        openCropperModal(e.target.result, entryId);
+      };
+      reader.onerror = function(e) {
+        console.error('FileReader error:', e);
+        alert('Failed to read image file. Please try again.');
+      };
+      reader.readAsDataURL(file);
+    } else {
+      console.log('No file selected');
+    }
+  }
+
+  // Re-crop existing image
+  function reCropImage(entryId) {
+    const hiddenInput = document.getElementById(entryId + '_input');
+    if (hiddenInput.dataset.originalImage) {
+      currentFileInput = hiddenInput;
+      currentPreviewImg = document.getElementById(entryId + '_preview');
+      openCropperModal(hiddenInput.dataset.originalImage, entryId);
+    }
+  }
+
+  // Open cropper modal with image
+  function openCropperModal(imageSrc, entryId) {
+    console.log('Opening cropper modal for entry:', entryId);
+    const modal = document.getElementById('imageCropperModal');
+    const image = document.getElementById('cropperImage');
+    
+    if (!modal) {
+      console.error('Cropper modal not found!');
+      return;
+    }
+    
+    // Show modal first
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    
+    // Set image source and init cropper when loaded
+    image.src = imageSrc;
+    
+    // Handle both cached and new images
+    if (image.complete) {
+      console.log('Image already loaded (cached), initializing cropper');
+      initCropper();
+    } else {
+      console.log('Waiting for image to load...');
+      image.onload = function() {
+        console.log('Image loaded, initializing cropper');
+        initCropper();
+      };
+      image.onerror = function() {
+        console.error('Failed to load image');
+        alert('Failed to load image. Please try again.');
+        closeCropperModal();
+      };
+    }
+  }
+
+  // Initialize Cropper.js with 350x260 aspect ratio
+  function initCropper() {
+    const image = document.getElementById('cropperImage');
+    const preview = document.getElementById('cropPreview');
+    
+    // Destroy existing cropper if any
+    if (cropper) {
+      cropper.destroy();
+    }
+    
+    cropper = new Cropper(image, {
+      aspectRatio: 350 / 260, // Exact target ratio
+      viewMode: 1,
+      dragMode: 'move',
+      autoCropArea: 0.8,
+      restore: false,
+      guides: true,
+      center: true,
+      highlight: false,
+      cropBoxMovable: true,
+      cropBoxResizable: true,
+      toggleDragModeOnDblclick: false,
+      minCropBoxWidth: 175,
+      minCropBoxHeight: 130,
+      preview: '#cropPreview',
+      ready: function() {
+        // Set crop box to exact 350x260 on canvas
+        const canvasData = cropper.getCanvasData();
+        const scale = Math.min(canvasData.width / 350, canvasData.height / 260);
+        cropper.setCropBoxData({
+          width: 350 * scale,
+          height: 260 * scale
+        });
+      }
+    });
+  }
+
+  // Close cropper modal
+  function closeCropperModal() {
+    const modal = document.getElementById('imageCropperModal');
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+    
+    if (cropper) {
+      cropper.destroy();
+      cropper = null;
+    }
+    
+    // Clear file input if no crop was applied (cancel without saving)
+    if (currentFileInput && !currentFileInput.value) {
+      // Find the visible file input using ID pattern (entryId_file)
+      const entryId = currentFileInput.id.replace('_input', '');
+      const fileInput = document.getElementById(entryId + '_file');
+      if (fileInput) fileInput.value = '';
+    }
+    
+    currentFileInput = null;
+    currentPreviewImg = null;
+  }
+
+  // Apply crop and save to hidden input
+  function applyCrop() {
+    if (!cropper) return;
+    
+    // Get cropped canvas at exact 350x260 size
+    const canvas = cropper.getCroppedCanvas({
+      width: 350,
+      height: 260,
+      fillColor: '#fff',
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: 'high'
+    });
+    
+    // Convert to blob and then to file
+    canvas.toBlob(function(blob) {
+      if (!blob) {
+        console.error('Failed to create blob from canvas');
+        return;
+      }
+      
+      // Create file from blob
+      const fileName = 'cropped_' + Date.now() + '.jpg';
+      croppedFile = new File([blob], fileName, { type: 'image/jpeg', lastModified: Date.now() });
+      
+      // Convert to data URL for preview and storage
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      
+      if (currentFileInput) {
+        // Check if this is a replacement of existing image
+        const isReplacement = currentFileInput.id.startsWith('replace_img_');
+        
+        if (isReplacement) {
+          // Handle existing image replacement
+          const imageId = currentFileInput.id.replace('replace_img_', '');
+          
+          // Store cropped data in replace hidden input
+          currentFileInput.value = dataUrl;
+          currentFileInput.dataset.originalImage = document.getElementById('cropperImage').src;
+          
+          // Update preview image to show replacement
+          const previewImg = document.getElementById('existing_img_src_' + imageId);
+          if (previewImg) {
+            previewImg.src = dataUrl;
+            previewImg.style.border = '2px solid #185fa5';
+          }
+          
+          // Update caption to indicate replacement
+          const caption = document.getElementById('existing_img_caption_' + imageId);
+          if (caption) {
+            caption.innerHTML = '<span style="color: #185fa5; font-weight: 500;"><i class="fas fa-sync-alt"></i> Will be replaced</span>';
+          }
+          
+          showRmToast('Image will be replaced when you save changes');
+        } else {
+          // Handle new image (original flow)
+          currentFileInput.value = dataUrl;
+          currentFileInput.dataset.originalImage = document.getElementById('cropperImage').src;
+          
+          // Update preview
+          if (currentPreviewImg) {
+            currentPreviewImg.src = dataUrl;
+            currentPreviewImg.style.display = 'block';
+          }
+          
+          // Show crop again button
+          const cropBtn = document.getElementById(currentFileInput.id.replace('_input', '_cropbtn'));
+          if (cropBtn) cropBtn.style.display = 'inline-block';
+        }
+      }
+      
+      closeCropperModal();
+    }, 'image/jpeg', 0.9);
+  }
+
+  // Convert data URL to File object for form submission
+  function dataURLtoFile(dataurl, filename) {
+    const arr = dataurl.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+  }
+
   function openEditRoomModal(roomId) {
     const room = roomsData.find(r => r.room_id === roomId);
-    if (!room) return;
+    if (!room) {
+      console.error('Room not found for edit:', roomId);
+      return;
+    }
+    console.log('Edit room:', room.room_id, 'Amenities:', room.amenities);
+
+    // Reset image upload container and add cropping-enabled field
+    document.getElementById('editImageUploadContainer').innerHTML = '';
+    addEditImageField();
 
     // Populate form fields with existing data
     document.getElementById('edit_room_id').value = room.room_id;
-    document.getElementById('editPropertyDropdown').value = room.property_id;
     document.getElementById('editCategoryDropdown').value = room.category_id;
+
+    // Update property display
+    const selectedOption = document.getElementById('editCategoryDropdown').options[document.getElementById('editCategoryDropdown').selectedIndex];
+    if (selectedOption) {
+      document.getElementById('editPropertyDisplay').value = selectedOption.dataset.propertyName || '';
+    }
+
     document.getElementById('edit_room_number').value = room.room_number;
     document.getElementById('edit_room_name').value = room.room_name || '';
     document.getElementById('edit_floor_number').value = room.floor_number || '';
@@ -1192,6 +1843,10 @@ function generateUUID()
     // Load existing images
     loadExistingImages(roomId);
 
+    // Render room amenities from room data (already fetched with the list)
+    const roomAmenityIds = (room.amenities || []).map(a => a.amenity_id);
+    renderAmenitiesCheckboxes(roomAmenityIds, 'editAmenitiesContainer');
+
     document.getElementById('editRoomModal').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
@@ -1200,30 +1855,26 @@ function generateUUID()
     document.getElementById('editRoomModal').classList.remove('open');
     document.body.style.overflow = '';
     document.getElementById('editRoomForm').reset();
+    document.getElementById('editPropertyDisplay').value = '';
     document.getElementById('existingImagesContainer').innerHTML = '';
-    document.getElementById('editImageUploadContainer').innerHTML = `
-      <div class="rm-image-entry">
-        <div class="rm-form-group"><label>Image File</label><input type="file" name="room_images[]" accept="image/*"></div>
-        <div class="rm-form-group"><label>Image Type</label>
-          <select name="image_type[]">
-            <option value="interior">Interior</option><option value="exterior">Exterior</option>
-            <option value="bathroom">Bathroom</option><option value="view">View</option>
-            <option value="amenity">Amenity</option><option value="bed">Bed</option>
-            <option value="balcony">Balcony</option><option value="other">Other</option>
-          </select>
-        </div>
-        <div class="rm-form-group"><label>Caption</label><input type="text" name="image_caption[]" placeholder="Image caption"></div>
-      </div>
-    `;
+    document.getElementById('editImageUploadContainer').innerHTML = '';
+    addEditImageField(); // Use the cropping-enabled image field
   }
 
   function addEditImageField() {
     const container = document.getElementById('editImageUploadContainer');
     const imageEntry = document.createElement('div');
     imageEntry.className = 'rm-image-entry';
+    const entryId = 'edit_img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     imageEntry.innerHTML = `
       <button type="button" class="rm-image-entry-remove" onclick="this.closest('.rm-image-entry').remove()"><i class="fas fa-times"></i></button>
-      <div class="rm-form-group"><label>Image File</label><input type="file" name="room_images[]" accept="image/*"></div>
+      <div class="rm-form-group">
+        <label>Image File</label>
+        <input type="file" id="${entryId}_file" accept="image/*" onchange="handleImageSelect(this, '${entryId}')">
+        <input type="hidden" name="room_images[]" id="${entryId}_input">
+        <img id="${entryId}_preview" class="rm-image-preview" style="width: 100%; max-width: 150px; height: 112px; object-fit: cover; border-radius: 6px; margin-top: 8px; display: none;">
+        <button type="button" id="${entryId}_cropbtn" class="rm-crop-btn" style="display: none;" onclick="reCropImage('${entryId}')"><i class="fas fa-crop"></i> Crop Again</button>
+      </div>
       <div class="rm-form-group"><label>Image Type</label>
         <select name="image_type[]">
           <option value="interior">Interior</option><option value="exterior">Exterior</option>
@@ -1247,13 +1898,83 @@ function generateUUID()
     }
 
     container.innerHTML = images.map(img => `
-      <div class="rm-existing-img">
-        <img src="../${img.image_url}" alt="${img.caption || ''}">
-        <button type="button" class="rm-existing-img-del" onclick="markImageForDeletion('${img.image_id}', this)"><i class="fas fa-times"></i></button>
+      <div class="rm-existing-img" id="existing_img_${img.image_id}">
+        <img src="../${img.image_url}" alt="${img.caption || ''}" id="existing_img_src_${img.image_id}">
+        <div class="rm-existing-img-actions">
+          <button type="button" class="rm-existing-img-replace" onclick="triggerReplaceImage('${img.image_id}')" title="Replace Image"><i class="fas fa-sync-alt"></i></button>
+          <button type="button" class="rm-existing-img-del" onclick="markImageForDeletion('${img.image_id}', this)" title="Delete Image"><i class="fas fa-times"></i></button>
+        </div>
         <input type="hidden" name="delete_images[]" id="delete_img_${img.image_id}" value="">
-        <p>${img.caption || img.image_type}</p>
+        <input type="hidden" name="replace_image_${img.image_id}" id="replace_img_${img.image_id}" value="">
+        <input type="file" id="replace_file_${img.image_id}" accept="image/*" style="display:none" onchange="handleReplaceImageSelect(this, '${img.image_id}')">
+        <p id="existing_img_caption_${img.image_id}">${img.caption || img.image_type}</p>
       </div>
     `).join('');
+  }
+
+  // Trigger file input for replacing an existing image
+  function triggerReplaceImage(imageId) {
+    document.getElementById('replace_file_' + imageId).click();
+  }
+
+  // Handle file selection for replacing existing image
+  function handleReplaceImageSelect(fileInput, imageId) {
+    if (fileInput.files && fileInput.files[0]) {
+      const file = fileInput.files[0];
+      const replaceInput = document.getElementById('replace_img_' + imageId);
+      
+      // Store reference for replacement
+      currentFileInput = replaceInput;
+      currentPreviewImg = document.getElementById('existing_img_src_' + imageId);
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        // Store original for re-cropping
+        replaceInput.dataset.originalImage = e.target.result;
+        replaceInput.dataset.imageId = imageId;
+        openCropperModal(e.target.result, 'replace_' + imageId);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  // Apply crop for replaced image and update preview
+  function applyReplaceCrop(imageId) {
+    if (!cropper) return;
+    
+    const canvas = cropper.getCroppedCanvas({
+      width: 350,
+      height: 260,
+      fillColor: '#fff',
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: 'high'
+    });
+    
+    if (!canvas) {
+      alert('Could not generate cropped image. Please try again.');
+      return;
+    }
+    
+    // Convert to data URL
+    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    
+    // Update the hidden input with cropped data
+    const replaceInput = document.getElementById('replace_img_' + imageId);
+    replaceInput.value = croppedDataUrl;
+    
+    // Update the preview image
+    const previewImg = document.getElementById('existing_img_src_' + imageId);
+    previewImg.src = croppedDataUrl;
+    previewImg.style.border = '2px solid #185fa5'; // Blue border to indicate replaced
+    
+    // Update caption text to show replaced
+    const caption = document.getElementById('existing_img_caption_' + imageId);
+    caption.innerHTML = '<span style="color: #185fa5; font-weight: 500;"><i class="fas fa-sync-alt"></i> Will be replaced</span>';
+    
+    // Close modal and cleanup
+    closeCropperModal();
+    
+    showRmToast('Image will be replaced when you save changes');
   }
 
   function markImageForDeletion(imageId, button) {

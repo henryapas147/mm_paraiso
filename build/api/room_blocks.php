@@ -3,76 +3,155 @@ header('Content-Type: application/json');
 require_once '../config/middleware.php';
 applyAuthMiddleware();
 
+// Start session for CSRF validation
+if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+}
+
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
+$data = null;
+
+// For POST requests, read action from request body
+if ($method === 'POST') {
+  $data = json_decode(file_get_contents('php://input'), true);
+  $action = $data['action'] ?? $action;
+}
 
 try {
   switch ($method) {
     case 'GET':
       if ($action === 'list') {
-        // Get all room blocks with property and category info
-        $stmt = $pdo->query("
-          SELECT rb.*, p.property_name, c.category_name 
-          FROM room_blocks rb 
-          LEFT JOIN properties p ON rb.property_id = p.property_id 
-          LEFT JOIN room_categories c ON rb.category_id = c.category_id 
-          ORDER BY p.property_name, rb.block_name ASC
+        // Get total count
+        $countStmt = $pdo->query("SELECT COUNT(*) as total FROM room_availability_blocks");
+        $total = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
+
+        // Get paginated blocks with room and property details
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+        $stmt = $pdo->prepare("
+          SELECT rab.*, r.room_name, r.room_number, p.property_name
+          FROM room_availability_blocks rab
+          LEFT JOIN rooms r ON rab.room_id = r.room_id
+          LEFT JOIN properties p ON r.property_id = p.property_id
+          ORDER BY rab.date_start DESC
+          LIMIT ? OFFSET ?
         ");
+        $stmt->execute([$limit, $offset]);
         $blocks = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode(['success' => true, 'data' => $blocks]);
+        echo json_encode(['success' => true, 'data' => $blocks, 'total' => $total]);
       } else if ($action === 'single' && isset($_GET['id'])) {
-        // Get single room block
-        $stmt = $pdo->prepare("SELECT * FROM room_blocks WHERE block_id = ?");
+        // Get single block with room and property details
+        $stmt = $pdo->prepare("
+          SELECT rab.*, r.room_name, r.room_number, p.property_name
+          FROM room_availability_blocks rab
+          LEFT JOIN rooms r ON rab.room_id = r.room_id
+          LEFT JOIN properties p ON r.property_id = p.property_id
+          WHERE rab.block_id = ?
+        ");
         $stmt->execute([$_GET['id']]);
         $block = $stmt->fetch(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => $block]);
-      } else if ($action === 'by_property' && isset($_GET['property_id'])) {
-        // Get room blocks by property
-        $stmt = $pdo->prepare("SELECT * FROM room_blocks WHERE property_id = ? ORDER BY block_name ASC");
-        $stmt->execute([$_GET['property_id']]);
-        $blocks = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode(['success' => true, 'data' => $blocks]);
       }
       break;
 
     case 'POST':
-      $data = json_decode(file_get_contents('php://input'), true);
-      
+      // Validate CSRF token for write operations
+      if (!validateCsrfToken($data['csrf_token'] ?? '')) {
+        echo json_encode(['success' => false, 'message' => 'Invalid or missing CSRF token']);
+        exit;
+      }
+
       if ($action === 'create') {
-        // Create new room block
-        $stmt = $pdo->prepare("INSERT INTO room_blocks (block_id, property_id, category_id, block_name, block_code, floor_from, floor_to, total_rooms, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
-        $stmt->execute([
-          $data['block_id'],
-          $data['property_id'],
-          $data['category_id'],
-          $data['block_name'],
-          $data['block_code'],
-          $data['floor_from'],
-          $data['floor_to'],
-          $data['total_rooms'],
-          $data['status']
-        ]);
-        echo json_encode(['success' => true, 'message' => 'Room block created successfully']);
+        // Validate required fields
+        if (empty($data['block_id'])) {
+          echo json_encode(['success' => false, 'message' => 'Missing required field: block_id']);
+          exit;
+        }
+        if (empty($data['room_id'])) {
+          echo json_encode(['success' => false, 'message' => 'Missing required field: room_id']);
+          exit;
+        }
+        if (empty($data['date_start'])) {
+          echo json_encode(['success' => false, 'message' => 'Missing required field: date_start']);
+          exit;
+        }
+        if (empty($data['date_end'])) {
+          echo json_encode(['success' => false, 'message' => 'Missing required field: date_end']);
+          exit;
+        }
+        try {
+          $stmt = $pdo->prepare("INSERT INTO room_availability_blocks (block_id, room_id, block_type, date_start, date_end, time_start, time_end, reason, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
+          $stmt->execute([
+            $data['block_id'],
+            $data['room_id'],
+            $data['block_type'] ?? 'maintenance',
+            $data['date_start'],
+            $data['date_end'],
+            $data['time_start'] ?? null,
+            $data['time_end'] ?? null,
+            $data['reason'] ?? null,
+            $data['is_active'] ?? 1
+          ]);
+          echo json_encode(['success' => true, 'message' => 'Block created successfully']);
+        } catch (PDOException $e) {
+          echo json_encode(['success' => false, 'message' => 'Database error on create: ' . $e->getMessage()]);
+        }
       } else if ($action === 'update') {
-        // Update room block
-        $stmt = $pdo->prepare("UPDATE room_blocks SET property_id = ?, category_id = ?, block_name = ?, block_code = ?, floor_from = ?, floor_to = ?, total_rooms = ?, status = ?, updated_at = NOW() WHERE block_id = ?");
-        $stmt->execute([
-          $data['property_id'],
-          $data['category_id'],
-          $data['block_name'],
-          $data['block_code'],
-          $data['floor_from'],
-          $data['floor_to'],
-          $data['total_rooms'],
-          $data['status'],
-          $data['block_id']
-        ]);
-        echo json_encode(['success' => true, 'message' => 'Room block updated successfully']);
+        // Validate required fields
+        if (empty($data['block_id'])) {
+          echo json_encode(['success' => false, 'message' => 'Missing required field: block_id']);
+          exit;
+        }
+        if (empty($data['room_id'])) {
+          echo json_encode(['success' => false, 'message' => 'Missing required field: room_id']);
+          exit;
+        }
+        if (empty($data['date_start'])) {
+          echo json_encode(['success' => false, 'message' => 'Missing required field: date_start']);
+          exit;
+        }
+        if (empty($data['date_end'])) {
+          echo json_encode(['success' => false, 'message' => 'Missing required field: date_end']);
+          exit;
+        }
+        try {
+          $stmt = $pdo->prepare("UPDATE room_availability_blocks SET room_id = ?, block_type = ?, date_start = ?, date_end = ?, time_start = ?, time_end = ?, reason = ?, is_active = ?, updated_at = NOW() WHERE block_id = ?");
+          $result = $stmt->execute([
+            $data['room_id'],
+            $data['block_type'] ?? 'maintenance',
+            $data['date_start'],
+            $data['date_end'],
+            $data['time_start'] ?? null,
+            $data['time_end'] ?? null,
+            $data['reason'] ?? null,
+            $data['is_active'] ?? 1,
+            $data['block_id']
+          ]);
+          $rowCount = $stmt->rowCount();
+          echo json_encode(['success' => true, 'message' => 'Block updated successfully', 'rows_affected' => $rowCount]);
+        } catch (PDOException $e) {
+          echo json_encode(['success' => false, 'message' => 'Database error on update: ' . $e->getMessage()]);
+        }
       } else if ($action === 'delete') {
-        // Delete room block
-        $stmt = $pdo->prepare("DELETE FROM room_blocks WHERE block_id = ?");
-        $stmt->execute([$data['block_id']]);
-        echo json_encode(['success' => true, 'message' => 'Room block deleted successfully']);
+        if (empty($data['block_id'])) {
+          echo json_encode(['success' => false, 'message' => 'Missing required field: block_id']);
+          exit;
+        }
+        try {
+          $stmt = $pdo->prepare("DELETE FROM room_availability_blocks WHERE block_id = ?");
+          $result = $stmt->execute([$data['block_id']]);
+          $rowCount = $stmt->rowCount();
+          if ($rowCount === 0) {
+            echo json_encode(['success' => false, 'message' => 'No block found with id: ' . $data['block_id']]);
+          } else {
+            echo json_encode(['success' => true, 'message' => 'Block deleted successfully', 'rows_affected' => $rowCount]);
+          }
+        } catch (PDOException $e) {
+          echo json_encode(['success' => false, 'message' => 'Database error on delete: ' . $e->getMessage()]);
+        }
+      } else {
+        echo json_encode(['success' => false, 'message' => 'Invalid action: ' . $action]);
       }
       break;
 
