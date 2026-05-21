@@ -569,9 +569,9 @@ function generateUUID()
         floor_level: formData.get('floor_level') || null,
         smoking_policy: formData.get('smoking_policy') || 'non_smoking',
         pet_friendly: formData.get('pet_friendly') || 0,
-        allows_hourly: formData.get('allows_hourly') || 1,
-        allows_overnight: formData.get('allows_overnight') || 1,
-        allows_day_use: formData.get('allows_day_use') || 1,
+        allows_hourly: formData.get('allows_hourly') ? 1 : 0,
+        allows_overnight: formData.get('allows_overnight') ? 1 : 0,
+        allows_day_use: formData.get('allows_day_use') ? 1 : 0,
         sort_order: formData.get('sort_order') || 0,
         is_active: 1,
         amenities: selectedAmenities,
@@ -634,11 +634,11 @@ function generateUUID()
         floor_level: formData.get('floor_level') || null,
         smoking_policy: formData.get('smoking_policy') || 'non_smoking',
         pet_friendly: formData.get('pet_friendly') || 0,
-        allows_hourly: formData.get('allows_hourly') || 1,
-        allows_overnight: formData.get('allows_overnight') || 1,
-        allows_day_use: formData.get('allows_day_use') || 1,
+        allows_hourly: formData.get('allows_hourly') ? 1 : 0,
+        allows_overnight: formData.get('allows_overnight') ? 1 : 0,
+        allows_day_use: formData.get('allows_day_use') ? 1 : 0,
         sort_order: formData.get('sort_order') || 0,
-        is_active: formData.get('is_active') || 1,
+        is_active: formData.get('is_active') ? 1 : 0,
         amenities: selectedAmenities,
         csrf_token: formData.get('csrf_token')
       };
@@ -830,6 +830,13 @@ function generateUUID()
 
           <p class="rc-section-label">Policies</p>
           <div class="rc-form-grid">
+            <div class="rc-form-group">
+              <label>Status</label>
+              <select name="is_active" id="formIsActive">
+                <option value="1">Active</option>
+                <option value="0">Inactive</option>
+              </select>
+            </div>
             <div class="rc-form-group">
               <label>Smoking Policy</label>
               <select name="smoking_policy" id="formSmokingPolicy">
@@ -1156,6 +1163,7 @@ function generateUUID()
       document.getElementById('formFloorLevel').value = category.floor_level || '';
       document.getElementById('formSmokingPolicy').value = category.smoking_policy || 'non_smoking';
       document.getElementById('formPetFriendly').value = category.pet_friendly || '0';
+      document.getElementById('formIsActive').value = category.is_active ?? 1;
       document.getElementById('formAllowsHourly').checked = category.allows_hourly == 1;
       document.getElementById('formAllowsOvernight').checked = category.allows_overnight == 1;
       document.getElementById('formAllowsDayUse').checked = category.allows_day_use == 1;

@@ -4,6 +4,16 @@ $request_uri = strtok($_SERVER['REQUEST_URI'], '?');
 $base_path = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 $current_route = trim(str_replace($base_path, '', $request_uri), '/');
 
+// Calculate base_url if not set (same logic as sidebar.php)
+if (!isset($base_url) || empty($base_url)) {
+    $script_name = $_SERVER['SCRIPT_NAME'];
+    $script_dir = dirname($script_name);
+    if (substr($script_dir, -1) != '/') {
+        $script_dir .= '/';
+    }
+    $base_url = $script_dir;
+}
+
 // Get user's profile photo for navbar
 // Dynamic default profile image path based on environment
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
@@ -16,16 +26,17 @@ $currentUserPhoto = $defaultProfilePath;
 // Detect environment
 $isLocalhost = in_array($host, ['localhost', '127.0.0.1']) || preg_match('/^192\.168\./', $host) || preg_match('/^10\./', $host);
 
-function normalizeProfilePhotoUrl($url, $isLocalhost, $basePath) {
+function normalizeProfilePhotoUrl($url, $isLocalhost, $basePath)
+{
     if (empty($url) || strpos($url, 'default_profile') !== false) {
         return null;
     }
-    
+
     // Ensure path starts with /
     if (strpos($url, '/') !== 0) {
         $url = '/' . $url;
     }
-    
+
     // If it's already in the current environment format, return as-is
     if ($isLocalhost) {
         // Localhost expects /admin_booking/uploads/profile_photos/
@@ -58,7 +69,7 @@ function normalizeProfilePhotoUrl($url, $isLocalhost, $basePath) {
             return '/uploads/profile_photos/' . $filename;
         }
     }
-    
+
     return $url;
 }
 
@@ -96,7 +107,8 @@ elseif (isset($_SESSION['user_id'])) {
 }
 
 // Function to get breadcrumb info based on current route
-function getBreadcrumbInfo($route) {
+function getBreadcrumbInfo($route)
+{
     $breadcrumb_map = [
         '' => ['Dashboard', 'Dashboard'],
         'properties-rooms' => ['Properties & Rooms', 'Properties & Rooms'],
@@ -165,12 +177,12 @@ $breadcrumb = getBreadcrumbInfo($current_route);
             <!-- breadcrumb -->
             <ol class="flex flex-wrap pt-1 mr-4 md:mr-8 lg:mr-12 xl:mr-16 bg-transparent rounded-lg">
                 <?php if ($breadcrumb[0] !== $breadcrumb[1]): ?>
-                <li class="text-sm leading-normal">
-                    <a class="text-white opacity-50" href="javascript:;"><?php echo htmlspecialchars($breadcrumb[0]); ?></a>
-                </li>
-                <li class="text-sm pl-2 capitalize leading-normal text-white before:float-left before:pr-2 before:text-white before:content-['/']" aria-current="page"><?php echo htmlspecialchars($breadcrumb[1]); ?></li>
+                    <li class="text-sm leading-normal">
+                        <a class="text-white opacity-50" href="javascript:;"><?php echo htmlspecialchars($breadcrumb[0]); ?></a>
+                    </li>
+                    <li class="text-sm pl-2 capitalize leading-normal text-white before:float-left before:pr-2 before:text-white before:content-['/']" aria-current="page"><?php echo htmlspecialchars($breadcrumb[1]); ?></li>
                 <?php else: ?>
-                <li class="text-sm capitalize leading-normal text-white" aria-current="page"><?php echo htmlspecialchars($breadcrumb[1]); ?></li>
+                    <li class="text-sm capitalize leading-normal text-white" aria-current="page"><?php echo htmlspecialchars($breadcrumb[1]); ?></li>
                 <?php endif; ?>
             </ol>
             <h6 class="mb-0 font-bold text-white capitalize truncate" style="font-size: 2rem;"><?php echo htmlspecialchars($breadcrumb[1]); ?></h6>
@@ -191,59 +203,59 @@ $breadcrumb = getBreadcrumbInfo($current_route);
                 <a class="inline-block px-8 py-2 mb-0 mr-4 text-xs font-bold text-center text-blue-500 uppercase align-middle transition-all ease-in bg-transparent border border-blue-500 border-solid rounded-lg shadow-none cursor-pointer leading-pro hover:-translate-y-px active:shadow-xs hover:border-blue-500 active:bg-blue-500 active:hover:text-blue-500 hover:text-blue-500 tracking-tight-rem hover:bg-transparent hover:opacity-75 hover:shadow-none active:text-white active:hover:bg-transparent" target="_blank" href="https://www.creative-tim.com/builder/soft-ui?ref=navbar-dashboard&amp;_ga=2.76518741.1192788655.1647724933-1242940210.1644448053">Online Builder</a>
               </li> -->
                 <?php if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true): ?>
-                <!-- user dropdown -->
-                <li class="relative flex items-center pr-2">
-                    <p class="hidden transform-dropdown-show"></p>
-                    <a href="javascript:;" class="block p-0 text-sm text-white transition-all ease-nav-brand" user-dropdown-trigger aria-expanded="false">
-                        <img id="navbarProfilePhoto" src="<?php echo htmlspecialchars($currentUserPhoto); ?>" class="inline-flex items-center justify-center text-sm text-white h-9 w-9 max-w-none rounded-xl cursor-pointer object-cover" alt="User" />
-                    </a>
+                    <!-- user dropdown -->
+                    <li class="relative flex items-center pr-2">
+                        <p class="hidden transform-dropdown-show"></p>
+                        <a href="javascript:;" class="block p-0 text-sm text-white transition-all ease-nav-brand" user-dropdown-trigger aria-expanded="false">
+                            <img id="navbarProfilePhoto" src="<?php echo htmlspecialchars($currentUserPhoto); ?>" class="inline-flex items-center justify-center text-sm text-white h-9 w-9 max-w-none rounded-xl cursor-pointer object-cover" alt="User" />
+                        </a>
 
-                    <ul user-dropdown-menu class="text-sm transform-dropdown before:font-awesome before:leading-default before:duration-350 before:ease lg:shadow-3xl duration-250 min-w-44 before:sm:right-8 before:text-5.5 pointer-events-none absolute right-0 top-0 z-50 origin-top list-none rounded-lg border-0 border-solid border-transparent dark:shadow-dark-xl dark:bg-slate-850 bg-white bg-clip-padding px-2 py-4 text-left text-slate-500 opacity-0 transition-all before:absolute before:right-2 before:left-auto before:top-0 before:z-50 before:inline-block before:font-normal before:text-white before:antialiased before:transition-all before:content-['\f0d8'] sm:-mr-6 lg:absolute lg:right-0 lg:left-auto lg:mt-2 lg:block lg:cursor-pointer">
-                        <li class="relative">
-                            <a class="dark:hover:bg-slate-900 ease py-1.2 clear-both block w-full whitespace-nowrap rounded-lg bg-transparent px-4 duration-300 hover:bg-gray-200 hover:text-slate-700 lg:transition-colors" href="<?php echo $base_url ?? './'; ?>profile">
-                                <div class="flex py-1">
-                                    <div class="my-auto">
-                                        <i class="fa fa-user mr-4 text-slate-400"></i>
+                        <ul user-dropdown-menu class="text-sm transform-dropdown before:font-awesome before:leading-default before:duration-350 before:ease lg:shadow-3xl duration-250 min-w-44 before:sm:right-8 before:text-5.5 pointer-events-none absolute right-0 top-0 z-50 origin-top list-none rounded-lg border-0 border-solid border-transparent dark:shadow-dark-xl dark:bg-slate-850 bg-white bg-clip-padding px-2 py-4 text-left text-slate-500 opacity-0 transition-all before:absolute before:right-2 before:left-auto before:top-0 before:z-50 before:inline-block before:font-normal before:text-white before:antialiased before:transition-all before:content-['\f0d8'] sm:-mr-6 lg:absolute lg:right-0 lg:left-auto lg:mt-2 lg:block lg:cursor-pointer">
+                            <li class="relative">
+                                <a class="dark:hover:bg-slate-900 ease py-1.2 clear-both block w-full whitespace-nowrap rounded-lg bg-transparent px-4 duration-300 hover:bg-gray-200 hover:text-slate-700 lg:transition-colors" href="<?php echo $base_url ?? './'; ?>profile">
+                                    <div class="flex py-1">
+                                        <div class="my-auto">
+                                            <i class="fa fa-user mr-4 text-slate-400"></i>
+                                        </div>
+                                        <div class="flex flex-col justify-center">
+                                            <h6 class="mb-0 text-sm font-normal leading-normal dark:text-white">Profile</h6>
+                                        </div>
                                     </div>
-                                    <div class="flex flex-col justify-center">
-                                        <h6 class="mb-0 text-sm font-normal leading-normal dark:text-white">Profile</h6>
+                                </a>
+                            </li>
+                            <li class="relative">
+                                <a class="dark:hover:bg-slate-900 ease py-1.2 clear-both block w-full whitespace-nowrap rounded-lg bg-transparent px-4 duration-300 hover:bg-gray-200 hover:text-slate-700 lg:transition-colors" href="<?php echo $base_url ?? './'; ?>account-settings">
+                                    <div class="flex py-1">
+                                        <div class="my-auto">
+                                            <i class="fa fa-cog mr-4 text-slate-400"></i>
+                                        </div>
+                                        <div class="flex flex-col justify-center">
+                                            <h6 class="mb-0 text-sm font-normal leading-normal dark:text-white">Account Settings</h6>
+                                        </div>
                                     </div>
-                                </div>
-                            </a>
-                        </li>
-                        <li class="relative">
-                            <a class="dark:hover:bg-slate-900 ease py-1.2 clear-both block w-full whitespace-nowrap rounded-lg bg-transparent px-4 duration-300 hover:bg-gray-200 hover:text-slate-700 lg:transition-colors" href="<?php echo $base_url ?? './'; ?>account-settings">
-                                <div class="flex py-1">
-                                    <div class="my-auto">
-                                        <i class="fa fa-cog mr-4 text-slate-400"></i>
+                                </a>
+                            </li>
+                            <li class="relative border-t border-gray-200 mt-2 pt-2">
+                                <a class="dark:hover:bg-slate-900 ease py-1.2 clear-both block w-full whitespace-nowrap rounded-lg bg-transparent px-4 duration-300 hover:bg-gray-200 hover:text-slate-700 lg:transition-colors" href="<?php echo $base_url ?? './'; ?>logout" id="logoutDropdownLink">
+                                    <div class="flex py-1">
+                                        <div class="my-auto">
+                                            <i class="fa fa-sign-out-alt mr-4 text-slate-400"></i>
+                                        </div>
+                                        <div class="flex flex-col justify-center">
+                                            <h6 class="mb-0 text-sm font-normal leading-normal dark:text-white">Sign Out</h6>
+                                        </div>
                                     </div>
-                                    <div class="flex flex-col justify-center">
-                                        <h6 class="mb-0 text-sm font-normal leading-normal dark:text-white">Account Settings</h6>
-                                    </div>
-                                </div>
-                            </a>
-                        </li>
-                        <li class="relative border-t border-gray-200 mt-2 pt-2">
-                            <a class="dark:hover:bg-slate-900 ease py-1.2 clear-both block w-full whitespace-nowrap rounded-lg bg-transparent px-4 duration-300 hover:bg-gray-200 hover:text-slate-700 lg:transition-colors" href="<?php echo $base_url ?? './'; ?>logout" id="logoutDropdownLink">
-                                <div class="flex py-1">
-                                    <div class="my-auto">
-                                        <i class="fa fa-sign-out-alt mr-4 text-slate-400"></i>
-                                    </div>
-                                    <div class="flex flex-col justify-center">
-                                        <h6 class="mb-0 text-sm font-normal leading-normal dark:text-white">Sign Out</h6>
-                                    </div>
-                                </div>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                 <?php else: ?>
-                <li class="flex items-center">
-                    <a href="<?php echo $base_url ?? './'; ?>sign-in" class="block px-0 py-2 text-sm font-semibold text-white transition-all ease-nav-brand">
-                        <i class="fa fa-user sm:mr-1"></i>
-                        <span class="hidden sm:inline">Sign In</span>
-                    </a>
-                </li>
+                    <li class="flex items-center">
+                        <a href="<?php echo $base_url ?? './'; ?>sign-in" class="block px-0 py-2 text-sm font-semibold text-white transition-all ease-nav-brand">
+                            <i class="fa fa-user sm:mr-1"></i>
+                            <span class="hidden sm:inline">Sign In</span>
+                        </a>
+                    </li>
                 <?php endif; ?>
                 <li class="flex items-center pl-4 xl:hidden">
                     <a href="javascript:;" class="block p-0 text-sm text-white transition-all ease-nav-brand" sidenav-trigger>
@@ -265,75 +277,140 @@ $breadcrumb = getBreadcrumbInfo($current_route);
 
                 <li class="relative flex items-center pr-2">
                     <p class="hidden transform-dropdown-show"></p>
-                    <a href="javascript:;" class="block p-0 text-sm text-white transition-all ease-nav-brand" dropdown-trigger aria-expanded="false">
+                    <a href="javascript:;" class="block p-0 text-sm text-white transition-all ease-nav-brand relative" dropdown-trigger aria-expanded="false" id="notifBell">
                         <i class="cursor-pointer fa fa-bell"></i>
+                        <span id="notifBadge" class="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-xs text-white items-center justify-center" style="display: none;">0</span>
                     </a>
 
-                    <ul dropdown-menu class="text-sm transform-dropdown before:font-awesome before:leading-default before:duration-350 before:ease lg:shadow-3xl duration-250 min-w-44 before:sm:right-8 before:text-5.5 pointer-events-none absolute right-0 top-0 z-50 origin-top list-none rounded-lg border-0 border-solid border-transparent dark:shadow-dark-xl dark:bg-slate-850 bg-white bg-clip-padding px-2 py-4 text-left text-slate-500 opacity-0 transition-all before:absolute before:right-2 before:left-auto before:top-0 before:z-50 before:inline-block before:font-normal before:text-white before:antialiased before:transition-all before:content-['\f0d8'] sm:-mr-6 lg:absolute lg:right-0 lg:left-auto lg:mt-2 lg:block lg:cursor-pointer">
-                        <!-- add show class on dropdown open js -->
-                        <li class="relative mb-2">
-                            <a class="dark:hover:bg-slate-900 ease py-1.2 clear-both block w-full whitespace-nowrap rounded-lg bg-transparent px-4 duration-300 hover:bg-gray-200 hover:text-slate-700 lg:transition-colors" href="javascript:;">
-                                <div class="flex py-1">
-                                    <div class="my-auto">
-                                        <img src="<?php echo $assets_path ?? './assets'; ?>/img/team-2.jpg" class="inline-flex items-center justify-center mr-4 text-sm text-white h-9 w-9 max-w-none rounded-xl" />
-                                    </div>
-                                    <div class="flex flex-col justify-center">
-                                        <h6 class="mb-1 text-sm font-normal leading-normal dark:text-white"><span class="font-semibold">New message</span> from Laur</h6>
-                                        <p class="mb-0 text-xs leading-tight text-slate-400 dark:text-white/80">
-                                            <i class="mr-1 fa fa-clock"></i>
-                                            13 minutes ago
-                                        </p>
-                                    </div>
-                                </div>
-                            </a>
+                    <ul dropdown-menu class="text-sm transform-dropdown before:font-awesome before:leading-default before:duration-350 before:ease lg:shadow-3xl duration-250 min-w-80 before:sm:right-8 before:text-5.5 pointer-events-none absolute right-0 top-0 z-50 origin-top list-none rounded-lg border-0 border-solid border-transparent dark:shadow-dark-xl dark:bg-slate-850 bg-white bg-clip-padding px-2 py-4 text-left text-slate-500 opacity-0 transition-all before:absolute before:right-2 before:left-auto before:top-0 before:z-50 before:inline-block before:font-normal before:text-white before:antialiased before:transition-all before:content-['\f0d8'] sm:-mr-6 lg:absolute lg:right-0 lg:left-auto lg:mt-2 lg:block lg:cursor-pointer max-h-96 overflow-y-auto">
+                        <li class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                            <h6 class="text-xs font-semibold uppercase text-slate-400 dark:text-slate-500">Notifications</h6>
                         </li>
-
-                        <li class="relative mb-2">
-                            <a class="dark:hover:bg-slate-900 ease py-1.2 clear-both block w-full whitespace-nowrap rounded-lg px-4 transition-colors duration-300 hover:bg-gray-200 hover:text-slate-700" href="javascript:;">
-                                <div class="flex py-1">
-                                    <div class="my-auto">
-                                        <img src="<?php echo $assets_path ?? './assets'; ?>/img/small-logos/logo-spotify.svg" class="inline-flex items-center justify-center mr-4 text-sm text-white bg-gradient-to-tl from-zinc-800 to-zinc-700 dark:bg-gradient-to-tl dark:from-slate-750 dark:to-gray-850 h-9 w-9 max-w-none rounded-xl" />
-                                    </div>
-                                    <div class="flex flex-col justify-center">
-                                        <h6 class="mb-1 text-sm font-normal leading-normal dark:text-white"><span class="font-semibold">New album</span> by Travis Scott</h6>
-                                        <p class="mb-0 text-xs leading-tight text-slate-400 dark:text-white/80">
-                                            <i class="mr-1 fa fa-clock"></i>
-                                            1 day
-                                        </p>
-                                    </div>
-                                </div>
-                            </a>
+                        <li id="notifLoading" class="px-4 py-4 text-center text-sm text-slate-400">
+                            Loading...
                         </li>
-
-                        <li class="relative">
-                            <a class="dark:hover:bg-slate-900 ease py-1.2 clear-both block w-full whitespace-nowrap rounded-lg px-4 transition-colors duration-300 hover:bg-gray-200 hover:text-slate-700" href="javascript:;">
-                                <div class="flex py-1">
-                                    <div class="inline-flex items-center justify-center my-auto mr-4 text-sm text-white transition-all duration-200 ease-nav-brand bg-gradient-to-tl from-slate-600 to-slate-300 h-9 w-9 rounded-xl">
-                                        <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                                            <title>credit-card</title>
-                                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                                <g transform="translate(-2169.000000, -745.000000)" fill="#FFFFFF" fill-rule="nonzero">
-                                                    <g transform="translate(1716.000000, 291.000000)">
-                                                        <g transform="translate(453.000000, 454.000000)">
-                                                            <path class="color-background" d="M43,10.7482083 L43,3.58333333 C43,1.60354167 41.3964583,0 39.4166667,0 L3.58333333,0 C1.60354167,0 0,1.60354167 0,3.58333333 L0,10.7482083 L43,10.7482083 Z" opacity="0.593633743"></path>
-                                                            <path class="color-background" d="M0,16.125 L0,32.25 C0,34.2297917 1.60354167,35.8333333 3.58333333,35.8333333 L39.4166667,35.8333333 C41.3964583,35.8333333 43,34.2297917 43,32.25 L43,16.125 L0,16.125 Z M19.7083333,26.875 L7.16666667,26.875 L7.16666667,23.2916667 L19.7083333,23.2916667 L19.7083333,26.875 Z M35.8333333,26.875 L28.6666667,26.875 L28.6666667,23.2916667 L35.8333333,23.2916667 L35.8333333,26.875 Z"></path>
-                                                        </g>
-                                                    </g>
-                                                </g>
-                                            </g>
-                                        </svg>
-                                    </div>
-                                    <div class="flex flex-col justify-center">
-                                        <h6 class="mb-1 text-sm font-normal leading-normal dark:text-white">Payment successfully completed</h6>
-                                        <p class="mb-0 text-xs leading-tight text-slate-400 dark:text-white/80">
-                                            <i class="mr-1 fa fa-clock"></i>
-                                            2 days
-                                        </p>
-                                    </div>
-                                </div>
-                            </a>
+                        <li id="notifEmpty" class="hidden px-4 py-4 text-center text-sm text-slate-400">
+                            No notifications
+                        </li>
+                        <li id="notifList"></li>
+                        <li class="px-4 py-2 border-t border-gray-200 dark:border-gray-700">
+                            <a href="<?php echo $base_url ?? ''; ?>settings/notifications" class="text-xs font-semibold text-blue-500 hover:text-blue-600">View All Notifications</a>
                         </li>
                     </ul>
+                </li>
+
+                <script>
+                    (function() {
+                        const notifBell = document.getElementById('notifBell');
+                        const notifBadge = document.getElementById('notifBadge');
+                        const notifList = document.getElementById('notifList');
+                        const notifLoading = document.getElementById('notifLoading');
+                        const notifEmpty = document.getElementById('notifEmpty');
+
+                        let notificationsData = [];
+
+                        function loadNotifications() {
+                            fetch('<?php echo $base_url ?? ''; ?>api/notifications?action=my-notifications&limit=5')
+                                .then(r => r.json())
+                                .then(res => {
+                                    if (res.success) {
+                                        notificationsData = res.data || [];
+                                        renderNotifications(res.unread_count || 0);
+                                    }
+                                })
+                                .catch(err => console.error('Failed to load notifications:', err));
+                        }
+
+                        function renderNotifications(unreadCount) {
+                            notifLoading.classList.add('hidden');
+
+                            if (notificationsData.length === 0) {
+                                notifEmpty.classList.remove('hidden');
+                                notifBadge.style.display = 'none';
+                                return;
+                            }
+
+                            notifEmpty.classList.add('hidden');
+
+                            if (unreadCount > 0) {
+                                notifBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+                                notifBadge.style.display = 'flex';
+                            } else {
+                                notifBadge.style.display = 'none';
+                            }
+
+                            notifList.innerHTML = notificationsData.map(n => {
+                                const timeAgo = getTimeAgo(n.created_at);
+                                const unreadClass = !n.is_read ? 'bg-blue-50 dark:bg-slate-800' : '';
+                                const unreadDot = !n.is_read ? '<span class="inline-block w-2 h-2 rounded-full bg-blue-500 mr-2"></span>' : '';
+                                const actionUrl = n.action_url || 'javascript:;';
+
+                                return `
+                                <li class="relative mb-2">
+                                    <a class="dark:hover:bg-slate-900 ease py-2 clear-both block w-full whitespace-nowrap rounded-lg px-4 duration-300 hover:bg-gray-200 hover:text-slate-700 lg:transition-colors ${unreadClass}" 
+                                       href="${actionUrl}" 
+                                       onclick="markAsRead('${n.notif_id}', event)">
+                                        <div class="flex">
+                                            <div class="flex flex-col justify-center flex-1">
+                                                <div class="flex items-center">
+                                                    ${unreadDot}
+                                                    <h6 class="text-sm font-normal leading-normal dark:text-white">${n.title}</h6>
+                                                </div>
+                                                <p class="mb-0 text-xs leading-tight text-slate-400 dark:text-white/80 truncate max-w-xs">
+                                                    ${n.body.substring(0, 60)}${n.body.length > 60 ? '...' : ''}
+                                                </p>
+                                                <p class="mb-0 text-xs leading-tight text-slate-400 dark:text-white/80 mt-1">
+                                                    <i class="mr-1 fa fa-clock"></i>${timeAgo}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                            `;
+                            }).join('');
+                        }
+
+                        function getTimeAgo(dateString) {
+                            const date = new Date(dateString);
+                            const now = new Date();
+                            const seconds = Math.floor((now - date) / 1000);
+
+                            if (seconds < 60) return 'Just now';
+                            if (seconds < 3600) return Math.floor(seconds / 60) + ' minutes ago';
+                            if (seconds < 86400) return Math.floor(seconds / 3600) + ' hours ago';
+                            if (seconds < 604800) return Math.floor(seconds / 86400) + ' days ago';
+                            return date.toLocaleDateString();
+                        }
+
+                        window.markAsRead = function(notifId, event) {
+                            if (event) {
+                                event.preventDefault();
+                            }
+                            fetch('<?php echo $base_url ?? ''; ?>api/notifications?action=mark-read&id=' + notifId)
+                                .then(r => r.json())
+                                .then(res => {
+                                    if (res.success) {
+                                        const notif = notificationsData.find(n => n.notif_id === notifId);
+                                        if (notif && notif.action_url) {
+                                            window.location.href = notif.action_url;
+                                        }
+                                    }
+                                });
+                        };
+
+                        // Load notifications on page load
+                        if (document.readyState === 'loading') {
+                            document.addEventListener('DOMContentLoaded', loadNotifications);
+                        } else {
+                            loadNotifications();
+                        }
+
+                        // Reload notifications when dropdown is opened
+                        notifBell.addEventListener('click', function() {
+                            loadNotifications();
+                        });
+                    })();
+                </script>
                 </li>
             </ul>
         </div>
@@ -341,93 +418,93 @@ $breadcrumb = getBreadcrumbInfo($current_route);
 </nav>
 
 <script>
-// Handle user dropdown toggle
-document.addEventListener('DOMContentLoaded', function() {
-    const userDropdownTrigger = document.querySelector('[user-dropdown-trigger]');
-    const userDropdownMenu = document.querySelector('[user-dropdown-menu]');
-    
-    if (userDropdownTrigger && userDropdownMenu) {
-        userDropdownTrigger.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const isExpanded = userDropdownTrigger.getAttribute('aria-expanded') === 'true';
-            userDropdownTrigger.setAttribute('aria-expanded', !isExpanded);
-            
-            if (isExpanded) {
-                userDropdownMenu.classList.remove('pointer-events-auto', 'opacity-100');
-                userDropdownMenu.classList.add('pointer-events-none', 'opacity-0');
-            } else {
-                userDropdownMenu.classList.remove('pointer-events-none', 'opacity-0');
-                userDropdownMenu.classList.add('pointer-events-auto', 'opacity-100');
-            }
-        });
-        
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!userDropdownTrigger.contains(e.target) && !userDropdownMenu.contains(e.target)) {
-                userDropdownTrigger.setAttribute('aria-expanded', 'false');
-                userDropdownMenu.classList.remove('pointer-events-auto', 'opacity-100');
-                userDropdownMenu.classList.add('pointer-events-none', 'opacity-0');
-            }
-        });
-    }
-    
-    // Handle logout with loading spinner (from dropdown)
-    const logoutDropdownLink = document.getElementById('logoutDropdownLink');
-    if (logoutDropdownLink) {
-        logoutDropdownLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const link = this;
-            const icon = link.querySelector('i');
-            const text = link.querySelector('h6');
-            
-            // Show loading spinner
-            if (icon) {
-                icon.className = 'fa fa-circle-notch mr-4 fa-spin text-slate-400';
-            }
-            if (text) {
-                text.textContent = 'Signing out...';
-            }
-            
-            // Disable the link
-            link.style.pointerEvents = 'none';
-            link.style.opacity = '0.7';
-            
-            // Redirect after a short delay to show the spinner
-            setTimeout(function() {
-                window.location.href = link.href;
-            }, 500);
-        });
-    }
-    
-    // Handle logout with loading spinner (legacy)
-    const logoutLink = document.getElementById('logoutLink');
-    if (logoutLink) {
-        logoutLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const logoutIcon = document.getElementById('logoutIcon');
-            const logoutText = document.getElementById('logoutText');
-            
-            // Show loading spinner
-            if (logoutIcon) {
-                logoutIcon.className = 'fa fa-circle-notch sm:mr-1 fa-spin';
-            }
-            if (logoutText) {
-                logoutText.textContent = 'Signing out...';
-            }
-            
-            // Disable the link
-            logoutLink.style.pointerEvents = 'none';
-            logoutLink.style.opacity = '0.7';
-            
-            // Redirect after a short delay to show the spinner
-            setTimeout(function() {
-                window.location.href = logoutLink.href;
-            }, 500);
-        });
-    }
-});
+    // Handle user dropdown toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const userDropdownTrigger = document.querySelector('[user-dropdown-trigger]');
+        const userDropdownMenu = document.querySelector('[user-dropdown-menu]');
+
+        if (userDropdownTrigger && userDropdownMenu) {
+            userDropdownTrigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const isExpanded = userDropdownTrigger.getAttribute('aria-expanded') === 'true';
+                userDropdownTrigger.setAttribute('aria-expanded', !isExpanded);
+
+                if (isExpanded) {
+                    userDropdownMenu.classList.remove('pointer-events-auto', 'opacity-100');
+                    userDropdownMenu.classList.add('pointer-events-none', 'opacity-0');
+                } else {
+                    userDropdownMenu.classList.remove('pointer-events-none', 'opacity-0');
+                    userDropdownMenu.classList.add('pointer-events-auto', 'opacity-100');
+                }
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!userDropdownTrigger.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+                    userDropdownTrigger.setAttribute('aria-expanded', 'false');
+                    userDropdownMenu.classList.remove('pointer-events-auto', 'opacity-100');
+                    userDropdownMenu.classList.add('pointer-events-none', 'opacity-0');
+                }
+            });
+        }
+
+        // Handle logout with loading spinner (from dropdown)
+        const logoutDropdownLink = document.getElementById('logoutDropdownLink');
+        if (logoutDropdownLink) {
+            logoutDropdownLink.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const link = this;
+                const icon = link.querySelector('i');
+                const text = link.querySelector('h6');
+
+                // Show loading spinner
+                if (icon) {
+                    icon.className = 'fa fa-circle-notch mr-4 fa-spin text-slate-400';
+                }
+                if (text) {
+                    text.textContent = 'Signing out...';
+                }
+
+                // Disable the link
+                link.style.pointerEvents = 'none';
+                link.style.opacity = '0.7';
+
+                // Redirect after a short delay to show the spinner
+                setTimeout(function() {
+                    window.location.href = link.href;
+                }, 500);
+            });
+        }
+
+        // Handle logout with loading spinner (legacy)
+        const logoutLink = document.getElementById('logoutLink');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const logoutIcon = document.getElementById('logoutIcon');
+                const logoutText = document.getElementById('logoutText');
+
+                // Show loading spinner
+                if (logoutIcon) {
+                    logoutIcon.className = 'fa fa-circle-notch sm:mr-1 fa-spin';
+                }
+                if (logoutText) {
+                    logoutText.textContent = 'Signing out...';
+                }
+
+                // Disable the link
+                logoutLink.style.pointerEvents = 'none';
+                logoutLink.style.opacity = '0.7';
+
+                // Redirect after a short delay to show the spinner
+                setTimeout(function() {
+                    window.location.href = logoutLink.href;
+                }, 500);
+            });
+        }
+    });
 </script>

@@ -1,6 +1,6 @@
 ﻿<?php
 header('Content-Type: application/json');
-require_once '../config/middleware.php';
+require_once __DIR__ . '/../config/middleware.php';
 applyAuthMiddleware();
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -47,7 +47,7 @@ try {
         $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($notifications as &$notif) {
-          $stmt = $pdo->prepare("SELECT nr.*, u.username, u.email, u.first_name, u.last_name FROM notification_recipients nr LEFT JOIN users u ON nr.user_id = u.user_id WHERE nr.notif_id = ?");
+          $stmt = $pdo->prepare("SELECT nr.*, u.email, p.first_name, p.last_name FROM notification_recipients nr LEFT JOIN user_accounts u ON nr.user_id = u.user_id LEFT JOIN user_profiles p ON u.user_id = p.user_id WHERE nr.notif_id = ?");
           $stmt->execute([$notif['notif_id']]);
           $notif['recipients'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
@@ -68,7 +68,7 @@ try {
 
       } elseif ($action === 'related') {
         $properties = $pdo->query("SELECT property_id, property_name FROM properties ORDER BY property_name ASC")->fetchAll(PDO::FETCH_ASSOC);
-        $users = $pdo->query("SELECT user_id, username, email, CONCAT(first_name, ' ', last_name) as display FROM users WHERE is_active = 1 ORDER BY username ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $users = $pdo->query("SELECT u.user_id, u.email, CONCAT(p.first_name, ' ', p.last_name) as display FROM user_accounts u LEFT JOIN user_profiles p ON u.user_id = p.user_id WHERE u.account_status = 'active' ORDER BY u.email ASC")->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => ['properties' => $properties, 'users' => $users]]);
 
       } elseif ($action === 'single' && isset($_GET['id'])) {
@@ -77,12 +77,98 @@ try {
         $notif = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($notif) {
-          $stmt = $pdo->prepare("SELECT nr.*, u.username, u.email, u.first_name, u.last_name FROM notification_recipients nr LEFT JOIN users u ON nr.user_id = u.user_id WHERE nr.notif_id = ?");
+          $stmt = $pdo->prepare("SELECT nr.*, u.email, p.first_name, p.last_name FROM notification_recipients nr LEFT JOIN user_accounts u ON nr.user_id = u.user_id LEFT JOIN user_profiles p ON u.user_id = p.user_id WHERE nr.notif_id = ?");
           $stmt->execute([$notif['notif_id']]);
           $notif['recipients'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
         
         echo json_encode(['success' => true, 'data' => $notif]);
+
+      } elseif ($action === 'my-notifications') {
+        $userId = $_SESSION['user_id'] ?? null;
+        
+        // Get user role to filter notifications appropriately
+        $userRole = null;
+        if ($userId) {
+          $stmt = $pdo->prepare("SELECT r.role_code FROM user_accounts ua JOIN user_roles r ON ua.role_id = r.role_id WHERE ua.user_id = ?");
+          $stmt->execute([$userId]);
+          $userRole = $stmt->fetchColumn();
+        }
+        
+        // Debug: Log session user_id and role
+        error_log("my-notifications: Session user_id = " . ($userId ?: 'NULL') . ", role = " . ($userRole ?: 'NULL'));
+        
+        if (!$userId) {
+          echo json_encode(['success' => false, 'message' => 'Not authenticated', 'debug_session_user_id' => $userId]);
+          break;
+        }
+
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
+        
+        // Filter by user role: only staff roles should see admin notifications
+        $staffRoles = ['super_admin', 'admin', 'front_desk', 'housekeeping', 'canteen_staff', 'security'];
+        $isStaff = in_array($userRole, $staffRoles);
+        
+        if (!$isStaff) {
+          // Customers should not see admin notifications
+          echo json_encode([
+            'success' => true,
+            'data' => [],
+            'unread_count' => 0,
+            'debug_user_id' => $userId,
+            'debug_role' => $userRole,
+            'debug_is_staff' => false
+          ]);
+          break;
+        }
+        
+        $sql = "SELECT n.*, p.property_name 
+                FROM notifications n 
+                LEFT JOIN properties p ON n.property_id = p.property_id 
+                LEFT JOIN notification_recipients nr ON n.notif_id = nr.notif_id 
+                WHERE nr.user_id = ? 
+                AND n.status IN ('sent', 'delivered')
+                ORDER BY n.created_at DESC 
+                LIMIT ?";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$userId, $limit]);
+        $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        error_log("my-notifications: Found " . count($notifications) . " notifications for user $userId (role: $userRole)");
+
+        $unreadCount = 0;
+        foreach ($notifications as &$notif) {
+          $stmt = $pdo->prepare("SELECT is_read FROM notification_recipients WHERE notif_id = ? AND user_id = ?");
+          $stmt->execute([$notif['notif_id'], $userId]);
+          $recipient = $stmt->fetch(PDO::FETCH_ASSOC);
+          $notif['is_read'] = $recipient['is_read'] ?? 0;
+          if (!$notif['is_read']) {
+            $unreadCount++;
+          }
+        }
+        unset($notif);
+
+        echo json_encode([
+          'success' => true,
+          'data' => $notifications,
+          'unread_count' => $unreadCount,
+          'debug_user_id' => $userId,
+          'debug_role' => $userRole,
+          'debug_is_staff' => $isStaff
+        ]);
+
+      } elseif ($action === 'mark-read' && isset($_GET['id'])) {
+        $userId = $_SESSION['user_id'] ?? null;
+        if (!$userId) {
+          echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+          break;
+        }
+
+        $stmt = $pdo->prepare("UPDATE notification_recipients SET is_read = 1, read_at = NOW() WHERE notif_id = ? AND user_id = ?");
+        $stmt->execute([$_GET['id'], $userId]);
+        
+        echo json_encode(['success' => true, 'message' => 'Notification marked as read']);
       }
       break;
 

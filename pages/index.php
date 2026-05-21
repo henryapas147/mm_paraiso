@@ -851,11 +851,14 @@ https://templatemo.com/tm-591-villa-agency
             if (checkout) params.append('checkout_date', checkout);
             if (checkoutTime) params.append('checkout_time', checkoutTime);
             params.append('guests', guests);
-            
+
+            console.log('Check availability params:', { checkin, checkinTime, checkout, checkoutTime, guests });
+            console.log('API URL:', 'api/check-availability.php?' + params.toString());
+
             const response = await fetch('api/check-availability.php?' + params.toString());
             const result = await response.json();
             
-            if (result.success && result.data.length > 0) {
+            if (result.success && result.data && result.data.length > 0) {
               renderAvailableRooms(result.data, checkin, checkout, guests, checkinTime, checkoutTime);
             } else {
               roomsContainer.innerHTML = '<div class="col-lg-12 text-center"><p>No rooms available for the selected dates. Please try different dates.</p></div>';

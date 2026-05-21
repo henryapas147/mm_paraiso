@@ -39,6 +39,16 @@ if (strpos($url, 'data-deletion.php') !== false || strpos($url, 'data-deletion')
 // Dashboard
 $router->add('', ['controller' => 'DashboardController', 'action' => 'index']);
 
+// API routes - bypass router and include directly
+// Check for notifications API requests
+if (strpos($url, 'notifications.php') !== false || strpos($url, 'api/notifications') !== false) {
+    // Debug logging
+    error_log("API Route Debug - Caught notifications request: " . $url);
+    error_log("API Route Debug - REQUEST_URI: " . ($_SERVER['REQUEST_URI'] ?? 'N/A'));
+    require_once __DIR__ . '/api/notifications.php';
+    exit;
+}
+
 // Properties & Rooms
 $router->add('properties-rooms', ['controller' => 'PropertiesController', 'action' => 'index']);
 $router->add('properties-rooms/properties', ['controller' => 'PropertiesController', 'action' => 'properties']);
