@@ -1,8 +1,479 @@
 <?php if (false) {} ?>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
+<style>
+  /* ── Design Tokens ── */
+  :root {
+    --brand:        #C84B31;
+    --brand-dark:   #A03525;
+    --brand-light:  #FDF0ED;
+    --accent:       #F0A500;
+    --accent-light: #FFF8E7;
+    --surface:      #FFFFFF;
+    --surface-2:    #FAFAFA;
+    --border:       #EDEAE6;
+    --border-strong:#D6D0C8;
+    --text-primary: #1A1410;
+    --text-secondary:#6B6460;
+    --text-muted:   #A09890;
+    --success:      #2D7D4F;
+    --success-bg:   #EDFAF3;
+    --warning:      #B45309;
+    --warning-bg:   #FEF7EC;
+    --danger:       #C0392B;
+    --danger-bg:    #FEF0EE;
+    --radius-sm:    6px;
+    --radius-md:    10px;
+    --radius-lg:    16px;
+    --radius-xl:    20px;
+    --shadow-card:  0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06);
+    --shadow-modal: 0 24px 64px rgba(0,0,0,.18);
+    --font-display: 'Lora', Georgia, serif;
+    --font-body:    'DM Sans', system-ui, sans-serif;
+  }
+
+  /* ── Stats Cards ── */
+  .mi-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 1024px) { .mi-stats-grid { grid-template-columns: repeat(2,1fr); } }
+  @media (max-width: 600px)  { .mi-stats-grid { grid-template-columns: 1fr 1fr; } }
+
+  .mi-stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px 22px;
+    box-shadow: var(--shadow-card);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: box-shadow .2s, transform .2s;
+  }
+  .mi-stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,.10); }
+
+  .mi-stat-icon {
+    width: 48px; height: 48px;
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .mi-stat-icon.total   { background: #EFF3FF; color: #3B5BDB; }
+  .mi-stat-icon.avail   { background: var(--success-bg); color: var(--success); }
+  .mi-stat-icon.featured{ background: var(--accent-light); color: var(--accent); }
+  .mi-stat-icon.inactive{ background: #F4F4F5; color: #71717A; }
+
+  .mi-stat-label {
+    font-family: var(--font-body);
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .mi-stat-value {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+
+  /* ── Main Table Card ── */
+  .mi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .mi-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 18px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .mi-card-title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    font-style: italic;
+  }
+
+  .mi-card-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  /* ── Search Input ── */
+  .mi-search-wrap {
+    position: relative;
+  }
+  .mi-search-wrap i {
+    position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted); font-size: 13px; pointer-events: none;
+  }
+  .mi-search {
+    font-family: var(--font-body);
+    font-size: 13px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 8px 12px 8px 32px;
+    color: var(--text-primary);
+    outline: none;
+    width: 220px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .mi-search:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(200,75,49,.10);
+    background: var(--surface);
+  }
+
+  /* ── Primary Button ── */
+  .mi-btn-primary {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 18px;
+    font-family: var(--font-body);
+    font-size: 13px; font-weight: 600;
+    background: var(--brand);
+    color: #fff;
+    border: none; border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background .15s, box-shadow .15s, transform .1s;
+    box-shadow: 0 2px 8px rgba(200,75,49,.30);
+    white-space: nowrap;
+  }
+  .mi-btn-primary:hover { background: var(--brand-dark); box-shadow: 0 4px 14px rgba(200,75,49,.38); transform: translateY(-1px); }
+  .mi-btn-primary:active { transform: translateY(0); }
+
+  /* ── Table ── */
+  .mi-table { width: 100%; border-collapse: collapse; font-family: var(--font-body); }
+  .mi-table thead tr {
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .mi-table th {
+    padding: 11px 16px;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    white-space: nowrap;
+    text-align: left;
+  }
+  .mi-table th.right { text-align: right; }
+  .mi-table th.center { text-align: center; }
+
+  .item-row td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    font-size: 13.5px;
+    color: var(--text-primary);
+  }
+  .item-row:last-child td { border-bottom: none; }
+  .item-row { transition: background .12s; }
+  .item-row:hover td { background: #FDF9F8; }
+
+  /* Item thumbnail + name cell */
+  .mi-item-cell { display: flex; align-items: center; gap: 13px; }
+  .mi-thumb-wrap { position: relative; flex-shrink: 0; }
+  .mi-thumb {
+    width: 52px; height: 52px;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+    border: 1.5px solid var(--border);
+    background: var(--surface-2);
+    display: block;
+    transition: transform .2s;
+  }
+  .item-row:hover .mi-thumb { transform: scale(1.06); }
+  .mi-featured-dot {
+    position: absolute; top: -4px; right: -4px;
+    width: 16px; height: 16px;
+    background: var(--accent);
+    border-radius: 50%;
+    border: 2px solid #fff;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 7px;
+  }
+  .mi-item-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+  .mi-item-code {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    font-family: 'Courier New', monospace;
+    letter-spacing: .04em;
+    margin-top: 2px;
+  }
+
+  /* Badges */
+  .mi-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11.5px; font-weight: 600;
+    white-space: nowrap;
+  }
+  .mi-badge.cat-meals     { background: #FFF8ED; color: #9A5B00; }
+  .mi-badge.cat-drinks    { background: #EFF6FF; color: #1D5FA1; }
+  .mi-badge.cat-snacks    { background: #F5F0FF; color: #6230B5; }
+  .mi-badge.cat-desserts  { background: #FFF0F5; color: #AA2860; }
+  .mi-badge.cat-beverages { background: #E6FAFA; color: #0E7C7C; }
+  .mi-badge.cat-default   { background: #F4F4F5; color: #52525B; }
+
+  .mi-badge.status-available  { background: var(--success-bg); color: var(--success); }
+  .mi-badge.status-unavailable{ background: var(--warning-bg); color: var(--warning); }
+  .mi-badge.status-inactive   { background: #F4F4F5; color: #71717A; }
+
+  .mi-price {
+    font-weight: 700; font-size: 14px;
+    color: var(--text-primary);
+    text-align: right;
+  }
+  .mi-property {
+    font-size: 13px; color: var(--text-secondary);
+  }
+  .mi-property-all {
+    font-size: 12px; font-weight: 600;
+    color: var(--brand); background: var(--brand-light);
+    padding: 2px 8px; border-radius: 999px;
+    display: inline-block;
+  }
+
+  /* ── Action Buttons ── */
+  .mi-actions { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
+  .mi-action-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 13px;
+    transition: all .15s;
+  }
+  .mi-action-btn:hover          { background: var(--surface-2); color: var(--text-primary); border-color: var(--border-strong); }
+  .mi-action-btn.toggle-on      { color: var(--success); border-color: #B7E4CC; background: var(--success-bg); }
+  .mi-action-btn.toggle-on:hover{ background: #D5F2E4; }
+  .mi-action-btn.toggle-off:hover{ background: var(--warning-bg); color: var(--warning); border-color: #F9D89A; }
+  .mi-action-btn.edit:hover     { background: #EFF3FF; color: #3B5BDB; border-color: #C5D0FA; }
+  .mi-action-btn.danger:hover   { background: var(--danger-bg); color: var(--danger); border-color: #F5BCBA; }
+
+  /* ── Empty State ── */
+  .mi-empty {
+    text-align: center; padding: 64px 24px;
+  }
+  .mi-empty-icon {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; color: var(--text-muted);
+    margin: 0 auto 20px;
+  }
+  .mi-empty h4 {
+    font-family: var(--font-display);
+    font-size: 18px; font-weight: 600; color: var(--text-primary);
+    margin: 0 0 6px; font-style: italic;
+  }
+  .mi-empty p { font-size: 13.5px; color: var(--text-secondary); margin: 0 0 20px; }
+
+  /* ── Modals ── */
+  .mi-modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(20,14,10,.50);
+    backdrop-filter: blur(3px);
+    z-index: 9000;
+    align-items: center; justify-content: center;
+    padding: 20px;
+    animation: miOverlayIn .18s ease;
+  }
+  .mi-modal-overlay.open { display: flex; }
+  @keyframes miOverlayIn { from { opacity:0; } to { opacity:1; } }
+
+  .mi-modal {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    width: 100%; max-width: 680px;
+    max-height: 90vh; overflow-y: auto;
+    box-shadow: var(--shadow-modal);
+    animation: miModalIn .22s cubic-bezier(.34,1.35,.64,1);
+  }
+  @keyframes miModalIn {
+    from { opacity:0; transform: scale(.94) translateY(10px); }
+    to   { opacity:1; transform: scale(1) translateY(0); }
+  }
+
+  .mi-modal-header {
+    padding: 22px 26px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; background: var(--surface); z-index: 1;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+  .mi-modal-title {
+    font-family: var(--font-display);
+    font-size: 19px; font-weight: 600; font-style: italic;
+    color: var(--text-primary); margin: 0;
+  }
+  .mi-modal-close {
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary); font-size: 15px; cursor: pointer;
+    transition: all .15s;
+  }
+  .mi-modal-close:hover { background: var(--danger-bg); color: var(--danger); border-color: #F5BCBA; }
+
+  .mi-modal-body  { padding: 24px 26px; }
+  .mi-modal-footer{
+    padding: 16px 26px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: flex-end; gap: 10px;
+    position: sticky; bottom: 0; background: var(--surface);
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  }
+
+  /* ── Form Styles ── */
+  .mi-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  @media (max-width: 540px) { .mi-form-grid { grid-template-columns: 1fr; } }
+
+  .mi-form-group { display: flex; flex-direction: column; gap: 6px; }
+  .mi-form-group.full { grid-column: 1 / -1; }
+
+  .mi-label {
+    font-size: 11px; font-weight: 700;
+    letter-spacing: .07em; text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .mi-label .req { color: var(--brand); margin-left: 2px; }
+
+  .mi-input, .mi-select, .mi-textarea {
+    font-family: var(--font-body);
+    font-size: 13.5px; color: var(--text-primary);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 9px 13px;
+    outline: none; width: 100%;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+  }
+  .mi-input:focus, .mi-select:focus, .mi-textarea:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(200,75,49,.10);
+    background: var(--surface);
+  }
+  .mi-textarea { resize: vertical; min-height: 80px; }
+
+  /* Image upload area */
+  .mi-img-upload-area {
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px;
+    border: 1.5px dashed var(--border-strong);
+    border-radius: var(--radius-md);
+    background: var(--surface-2);
+    transition: border-color .15s, background .15s;
+  }
+  .mi-img-upload-area:hover { border-color: var(--brand); background: var(--brand-light); }
+
+  .mi-img-preview {
+    width: 72px; height: 72px;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  .mi-img-upload-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 14px;
+    font-family: var(--font-body);
+    font-size: 12.5px; font-weight: 600;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .mi-img-upload-btn:hover { background: var(--brand); color: #fff; border-color: var(--brand); }
+  .mi-img-hint { font-size: 11.5px; color: var(--text-muted); margin-top: 5px; }
+
+  /* Toggle switch-style selects (Status/Available/Featured row) */
+  .mi-toggle-row { display: flex; gap: 12px; }
+  .mi-toggle-row > div { flex: 1; }
+
+  /* Cancel button */
+  .mi-btn-cancel {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 18px;
+    font-family: var(--font-body); font-size: 13px; font-weight: 600;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .mi-btn-cancel:hover { background: var(--surface-2); color: var(--text-primary); }
+
+  /* Loading skeleton */
+  .mi-loading-row td {
+    padding: 24px 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 13.5px;
+  }
+
+  /* Scrollbar polish */
+  .mi-modal::-webkit-scrollbar { width: 5px; }
+  .mi-modal::-webkit-scrollbar-track { background: transparent; }
+  .mi-modal::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+
+  /* Override Tailwind conflicts from parent theme */
+  .mi-card *, .mi-modal * { box-sizing: border-box; }
+</style>
+
 <script>
   let menuItemsData = [];
   let categoriesData = [];
   let propertiesData = [];
+  let csrfToken = '';
+
+  async function fetchCsrfToken() {
+    try {
+      const res = await fetch('../api/users.php?action=csrf_token');
+      const json = await res.json();
+      if (json.success) csrfToken = json.csrf_token;
+    } catch (e) {
+      console.error('Error fetching CSRF token:', e);
+    }
+  }
 
   async function fetchMenuItems() {
     try {
@@ -34,71 +505,115 @@
 
   function renderStats() {
     const available = menuItemsData.filter(i => i.is_available == 1 && i.is_active == 1).length;
-    const featured = menuItemsData.filter(i => i.is_featured == 1).length;
-    const inactive = menuItemsData.filter(i => i.is_active == 0).length;
-    document.getElementById('statTotal').textContent = menuItemsData.length;
-    document.getElementById('statAvailable').textContent = available;
-    document.getElementById('statFeatured').textContent = featured;
-    document.getElementById('statInactive').textContent = inactive;
+    const featured  = menuItemsData.filter(i => i.is_featured == 1).length;
+    const inactive  = menuItemsData.filter(i => i.is_active == 0).length;
+    const pairs = [['statTotal', menuItemsData.length], ['statAvailable', available], ['statFeatured', featured], ['statInactive', inactive]];
+    pairs.forEach(([id, end]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (end === 0) { el.textContent = '0'; return; }
+      let start = 0, step = Math.max(1, Math.ceil(end / 20));
+      const timer = setInterval(() => { start = Math.min(start + step, end); el.textContent = start; if (start >= end) clearInterval(timer); }, 25);
+    });
   }
 
   function renderTable() {
     const tbody = document.getElementById('itemTableBody');
     if (!menuItemsData.length) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 dark:text-white/60">No menu items found. <a href="javascript:;" onclick="openAddItemModal()" class="text-blue-500 font-semibold">Create your first item</a>.</td></tr>`;
+      tbody.innerHTML = `
+        <tr class="mi-loading-row">
+          <td colspan="6">
+            <div class="mi-empty">
+              <div class="mi-empty-icon"><i class="fas fa-utensils"></i></div>
+              <h4>No menu items yet</h4>
+              <p>Create your first item to start building your menu</p>
+              <button onclick="openAddItemModal()" class="mi-btn-primary">
+                <i class="fas fa-plus"></i> Add First Item
+              </button>
+            </div>
+          </td>
+        </tr>`;
       return;
     }
+
     tbody.innerHTML = menuItemsData.map(item => {
-      let statusClass = '', statusText = '';
+      // Status badge
+      let statusCls, statusTxt;
       if (item.is_active == 0) {
-        statusClass = 'from-slate-500 to-slate-400';
-        statusText = 'Inactive';
+        statusCls = 'status-inactive'; statusTxt = 'Inactive';
       } else if (item.is_available == 0) {
-        statusClass = 'from-orange-500 to-amber-400';
-        statusText = 'Unavailable';
+        statusCls = 'status-unavailable'; statusTxt = 'Unavailable';
       } else {
-        statusClass = 'from-emerald-500 to-teal-400';
-        statusText = 'Available';
+        statusCls = 'status-available'; statusTxt = 'Available';
       }
+
+      // Category badge
+      const catMap = { meals:'cat-meals', drinks:'cat-drinks', snacks:'cat-snacks', desserts:'cat-desserts', beverages:'cat-beverages' };
+      const catCls = catMap[(item.category_name||'').toLowerCase()] || 'cat-default';
+
+      // Image URL - convert absolute paths to relative for admin view
+      let imgUrl = '../../uploads/foods/default-food.png';
+      if (item.image_url) {
+        if (item.image_url.startsWith('http')) {
+          imgUrl = item.image_url;
+        } else if (item.image_url.startsWith('/uploads/foods/')) {
+          // Convert /uploads/foods/ to ../../uploads/foods/
+          imgUrl = '../..' + item.image_url;
+        } else if (item.image_url.startsWith('/')) {
+          imgUrl = item.image_url;
+        } else {
+          imgUrl = '../../uploads/foods/' + item.image_url;
+        }
+      } else if (item.thumbnail_url) {
+        if (item.thumbnail_url.startsWith('http')) {
+          imgUrl = item.thumbnail_url;
+        } else if (item.thumbnail_url.startsWith('/uploads/foods/')) {
+          imgUrl = '../..' + item.thumbnail_url;
+        } else if (item.thumbnail_url.startsWith('/')) {
+          imgUrl = item.thumbnail_url;
+        } else {
+          imgUrl = '../../uploads/foods/' + item.thumbnail_url;
+        }
+      }
+
+      const toggleIcon = item.is_available ? 'fa-toggle-on' : 'fa-toggle-off';
+      const toggleCls  = item.is_available ? 'toggle-on' : 'toggle-off';
+
       return `
       <tr class="item-row">
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <div class="flex px-2 py-1">
-            <div class="inline-flex items-center justify-center mr-4 text-sm text-white transition-all duration-200 ease-in-out h-9 w-9 rounded-xl bg-gradient-to-tl from-green-500 to-emerald-500">
-              <i class="fas fa-hamburger"></i>
+        <td>
+          <div class="mi-item-cell">
+            <div class="mi-thumb-wrap">
+              <img src="${imgUrl}" alt="${item.item_name}" class="mi-thumb"
+                   onerror="if(!this.dataset.fb){this.dataset.fb='1';this.src='../../uploads/foods/default-food.png';}">
+              ${item.is_featured == 1 ? `<span class="mi-featured-dot"><i class="fas fa-star"></i></span>` : ''}
             </div>
-            <div class="flex flex-col justify-center">
-              <h6 class="mb-0 text-sm leading-normal dark:text-white">${item.item_name}</h6>
-              ${item.item_code ? `<span class="text-xs text-slate-400 dark:text-white/60">${item.item_code}</span>` : ''}
-              ${item.is_featured == 1 ? `<span class="text-xs text-amber-500 font-semibold"><i class="fas fa-star mr-1"></i>Featured</span>` : ''}
+            <div>
+              <div class="mi-item-name">${item.item_name}</div>
+              ${item.item_code ? `<div class="mi-item-code">${item.item_code}</div>` : ''}
             </div>
           </div>
         </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${item.category_name}</p>
+        <td><span class="mi-badge ${catCls}">${item.category_name}</span></td>
+        <td>
+          ${item.property_id
+            ? `<span class="mi-property">${item.property_name}</span>`
+            : `<span class="mi-property-all">All Properties</span>`}
         </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${item.property_id ? item.property_name : '<span class="text-blue-500">All Properties</span>'}</p>
-        </td>
-        <td class="p-2 text-right align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-sm font-bold leading-tight dark:text-white">${parseFloat(item.price).toFixed(2)}</p>
-        </td>
-        <td class="p-2 text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <span class="bg-gradient-to-tl ${statusClass} px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">${statusText}</span>
-        </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <div class="flex items-center gap-2">
-            <button onclick="toggleItemAvailable(this)" data-id="${item.item_id}" data-status="${item.is_available}" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-500/20 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Toggle Availability">
-              <i class="fas fa-toggle-on mr-1.5 text-xs"></i><span>${item.is_available ? 'Unavailable' : 'Available'}</span>
+        <td style="text-align:right"><span class="mi-price">₱${parseFloat(item.price).toFixed(2)}</span></td>
+        <td style="text-align:center"><span class="mi-badge ${statusCls}">${statusTxt}</span></td>
+        <td>
+          <div class="mi-actions">
+            <button onclick="toggleItemAvailable(this)" data-id="${item.item_id}" data-status="${item.is_available}"
+                    class="mi-action-btn ${toggleCls}" title="${item.is_available ? 'Mark Unavailable' : 'Mark Available'}">
+              <i class="fas ${toggleIcon}"></i>
             </button>
-            <button onclick="toggleItemFeatured(this)" data-id="${item.item_id}" data-status="${item.is_featured}" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-500/20 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-300 dark:hover:border-amber-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Toggle Featured">
-              <i class="fas fa-star mr-1.5 text-xs"></i><span>${item.is_featured ? 'Unfeature' : 'Feature'}</span>
+            <button onclick="openEditItemModal('${item.item_id}')" class="mi-action-btn edit" title="Edit Item">
+              <i class="fas fa-pen"></i>
             </button>
-            <button onclick="openEditItemModal('${item.item_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-500/20 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-300 dark:hover:border-amber-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Edit Item">
-              <i class="fas fa-edit mr-1.5 text-xs"></i><span>Edit</span>
-            </button>
-            <button onclick="deleteItem(this)" data-id="${item.item_id}" data-name="${item.item_name}" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 bg-white dark:bg-slate-700/50 border border-red-200 dark:border-white/10 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-700 dark:hover:text-red-300 hover:border-red-300 dark:hover:border-red-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Delete Item">
-              <i class="fas fa-trash-alt mr-1.5 text-xs"></i><span>Delete</span>
+            <button onclick="deleteItem(this)" data-id="${item.item_id}" data-name="${item.item_name}"
+                    class="mi-action-btn danger" title="Delete Item">
+              <i class="fas fa-trash-alt"></i>
             </button>
           </div>
         </td>
@@ -114,6 +629,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    fetchCsrfToken();
     fetchMenuItems();
     fetchRelated();
   });
@@ -122,250 +638,250 @@
 <!-- PAGE CONTENT -->
 
       <!-- Stats Cards -->
-      <div class="flex flex-wrap -mx-3 mb-6">
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Total Items</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statTotal">...</h5>
-            </div>
+      <div class="mi-stats-grid">
+        <div class="mi-stat-card">
+          <div class="mi-stat-icon total"><i class="fas fa-list-ul"></i></div>
+          <div>
+            <div class="mi-stat-label">Total Items</div>
+            <div class="mi-stat-value" id="statTotal">—</div>
           </div>
         </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Available</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl text-emerald-500" id="statAvailable">...</h5>
-            </div>
+        <div class="mi-stat-card">
+          <div class="mi-stat-icon avail"><i class="fas fa-check-circle"></i></div>
+          <div>
+            <div class="mi-stat-label">Available</div>
+            <div class="mi-stat-value" id="statAvailable">—</div>
           </div>
         </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Featured</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl text-amber-500" id="statFeatured">...</h5>
-            </div>
+        <div class="mi-stat-card">
+          <div class="mi-stat-icon featured"><i class="fas fa-star"></i></div>
+          <div>
+            <div class="mi-stat-label">Featured</div>
+            <div class="mi-stat-value" id="statFeatured">—</div>
           </div>
         </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Inactive</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl text-slate-500" id="statInactive">...</h5>
-            </div>
+        <div class="mi-stat-card">
+          <div class="mi-stat-icon inactive"><i class="fas fa-ban"></i></div>
+          <div>
+            <div class="mi-stat-label">Inactive</div>
+            <div class="mi-stat-value" id="statInactive">—</div>
           </div>
         </div>
       </div>
 
       <!-- Menu Items Table -->
-      <div class="flex flex-wrap -mx-3">
-        <div class="flex-none w-full max-w-full px-3">
-          <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent flex justify-between items-center">
-              <h6 class="dark:text-white">Menu Items</h6>
-              <button onclick="openAddItemModal()" class="bg-gradient-to-tl from-blue-500 to-violet-500 text-white px-4 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                <i class="fas fa-plus mr-1"></i> New Item
-              </button>
+      <div class="mi-card">
+        <div class="mi-card-header">
+          <h2 class="mi-card-title">Menu Items</h2>
+          <div class="mi-card-actions">
+            <div class="mi-search-wrap">
+              <i class="fas fa-search"></i>
+              <input type="text" id="searchInput" class="mi-search" placeholder="Search items…" oninput="filterTable()">
             </div>
-            <div class="flex-auto px-0 pt-0 pb-2">
-              <div class="p-0 overflow-x-auto">
-                <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500" id="itemTable">
-                  <thead class="align-bottom">
-                    <tr>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Item</th>
-                      <th class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Category</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Property</th>
-                      <th class="px-6 py-3 font-bold text-right uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Price</th>
-                      <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
-                      <th class="px-6 py-3 font-semibold capitalize align-middle bg-transparent border-b border-collapse border-solid shadow-none dark:border-white/40 dark:text-white tracking-none whitespace-nowrap text-slate-400 opacity-70"></th>
-                    </tr>
-                  </thead>
-                  <tbody id="itemTableBody">
-                    <tr><td colspan="6" class="p-4 text-center text-slate-400 dark:text-white/60">Loading...</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <button onclick="openAddItemModal()" class="mi-btn-primary">
+              <i class="fas fa-plus"></i> New Item
+            </button>
           </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="mi-table" id="itemTable">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Category</th>
+                <th>Property</th>
+                <th class="right">Price</th>
+                <th class="center">Status</th>
+                <th class="right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="itemTableBody">
+              <tr class="mi-loading-row">
+                <td colspan="6">
+                  <i class="fas fa-spinner fa-spin" style="margin-right:8px;color:var(--text-muted)"></i>
+                  Loading menu items…
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
       <!-- Add Item Modal -->
-      <div id="addItemModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddItemModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-            <h3 class="text-xl font-bold dark:text-white">Create New Menu Item</h3>
-            <button onclick="closeAddItemModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
+      <div id="addItemModal" class="mi-modal-overlay" style="display:none;" onclick="if(event.target===this)closeAddItemModal()">
+        <div class="mi-modal">
+          <div class="mi-modal-header">
+            <h3 class="mi-modal-title">Create New Menu Item</h3>
+            <button onclick="closeAddItemModal()" class="mi-modal-close"><i class="fas fa-times"></i></button>
           </div>
-          <form id="addItemForm" onsubmit="submitAddItem(event)">
-            <div class="p-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Item Name <span class="text-red-500">*</span></label>
-                  <input type="text" name="item_name" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Burger, Pasta, Salad">
+          <form id="addItemForm" onsubmit="submitAddItem(event)" enctype="multipart/form-data">
+            <div class="mi-modal-body">
+              <div class="mi-form-grid">
+                <div class="mi-form-group">
+                  <label class="mi-label">Item Name <span class="req">*</span></label>
+                  <input type="text" name="item_name" required class="mi-input" placeholder="e.g., Grilled Chicken, Pasta">
                 </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Item Code</label>
-                  <input type="text" name="item_code" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., BRG-001">
+                <div class="mi-form-group">
+                  <label class="mi-label">Item Code</label>
+                  <input type="text" name="item_code" class="mi-input" placeholder="e.g., BRG-001">
                 </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Category <span class="text-red-500">*</span></label>
-                  <select name="category_id" id="addCategory" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <div class="mi-form-group">
+                  <label class="mi-label">Category <span class="req">*</span></label>
+                  <select name="category_id" id="addCategory" required class="mi-select">
                     <option value="">Select Category</option>
                   </select>
                 </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Property</label>
-                  <select name="property_id" id="addProperty" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <div class="mi-form-group">
+                  <label class="mi-label">Property</label>
+                  <select name="property_id" id="addProperty" class="mi-select">
                     <option value="">All Properties (Global)</option>
                   </select>
                 </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Price <span class="text-red-500">*</span></label>
-                  <input type="number" step="0.01" name="price" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0.00">
+                <div class="mi-form-group">
+                  <label class="mi-label">Price <span class="req">*</span></label>
+                  <input type="number" step="0.01" name="price" required class="mi-input" placeholder="0.00">
                 </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Cost Price</label>
-                  <input type="number" step="0.01" name="cost_price" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0.00">
+                <div class="mi-form-group">
+                  <label class="mi-label">Cost Price</label>
+                  <input type="number" step="0.01" name="cost_price" class="mi-input" placeholder="0.00">
                 </div>
-                <div class="md:col-span-2">
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Description</label>
-                  <textarea name="description" rows="3" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Item description..."></textarea>
+                <div class="mi-form-group full">
+                  <label class="mi-label">Description</label>
+                  <textarea name="description" rows="3" class="mi-textarea" placeholder="Brief description of the item…"></textarea>
                 </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Sort Order</label>
-                  <input type="number" name="sort_order" value="0" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </div>
-                <div class="flex items-end gap-4">
-                  <div class="flex-1">
-                    <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Status</label>
-                    <select name="is_active" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="1">Active</option>
-                      <option value="0">Inactive</option>
-                    </select>
+                <div class="mi-form-group full">
+                  <label class="mi-label">Item Image</label>
+                  <div class="mi-img-upload-area">
+                    <img id="addImagePreview" src="../../uploads/foods/default-food.png" class="mi-img-preview">
+                    <div>
+                      <input type="file" name="image_file" id="addImageInput" accept="image/*" style="display:none" onchange="previewAddImage(this)">
+                      <label for="addImageInput" class="mi-img-upload-btn">
+                        <i class="fas fa-camera"></i> Choose Image
+                      </label>
+                      <div class="mi-img-hint">JPG, PNG, or WEBP · max 5 MB</div>
+                    </div>
                   </div>
-                  <div class="flex-1">
-                    <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Available</label>
-                    <select name="is_available" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="1">Yes</option>
-                      <option value="0">No</option>
-                    </select>
-                  </div>
-                  <div class="flex-1">
-                    <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Featured</label>
-                    <select name="is_featured" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="0">No</option>
-                      <option value="1">Yes</option>
-                    </select>
-                  </div>
+                </div>
+                <div class="mi-form-group">
+                  <label class="mi-label">Sort Order</label>
+                  <input type="number" name="sort_order" value="0" class="mi-input">
+                </div>
+                <div class="mi-form-group">
+                  <label class="mi-label">Status</label>
+                  <select name="is_active" class="mi-select">
+                    <option value="1">Active</option>
+                    <option value="0">Inactive</option>
+                  </select>
+                </div>
+                <div class="mi-form-group">
+                  <label class="mi-label">Available</label>
+                  <select name="is_available" class="mi-select">
+                    <option value="1">Yes</option>
+                    <option value="0">No</option>
+                  </select>
+                </div>
+                <div class="mi-form-group">
+                  <label class="mi-label">Featured</label>
+                  <select name="is_featured" class="mi-select">
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                  </select>
                 </div>
               </div>
             </div>
-            <div class="p-6 border-t border-gray-200 dark:border-white/10 flex justify-end gap-3">
-              <button type="button" onclick="closeAddItemModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
-                Cancel
-              </button>
-              <button type="submit" class="px-6 py-2 text-sm font-semibold text-white bg-gradient-to-tl from-blue-500 to-violet-500 rounded-lg hover:from-blue-600 hover:to-violet-600 transition-all duration-200 shadow-md hover:shadow-lg">
-                <i class="fas fa-save mr-2"></i>Create Item
-              </button>
+            <div class="mi-modal-footer">
+              <button type="button" onclick="closeAddItemModal()" class="mi-btn-cancel">Cancel</button>
+              <button type="submit" class="mi-btn-primary"><i class="fas fa-plus"></i> Create Item</button>
             </div>
           </form>
         </div>
       </div>
-
       <!-- Edit Item Modal -->
-      <div id="editItemModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeEditItemModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-            <h3 class="text-xl font-bold dark:text-white">Edit Menu Item</h3>
-            <button onclick="closeEditItemModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
+      <div id="editItemModal" class="mi-modal-overlay" style="display:none;" onclick="if(event.target===this)closeEditItemModal()">
+        <div class="mi-modal">
+          <div class="mi-modal-header">
+            <h3 class="mi-modal-title">Edit Menu Item</h3>
+            <button onclick="closeEditItemModal()" class="mi-modal-close"><i class="fas fa-times"></i></button>
           </div>
-          <form id="editItemForm" onsubmit="submitEditItem(event)">
-            <div class="p-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form id="editItemForm" onsubmit="submitEditItem(event)" enctype="multipart/form-data">
+            <div class="mi-modal-body">
+              <div class="mi-form-grid">
                 <input type="hidden" name="item_id" id="editItemId">
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Item Name <span class="text-red-500">*</span></label>
-                  <input type="text" name="item_name" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Burger, Pasta, Salad">
+                <div class="mi-form-group">
+                  <label class="mi-label">Item Name <span class="req">*</span></label>
+                  <input type="text" name="item_name" required class="mi-input" placeholder="e.g., Grilled Chicken, Pasta">
                 </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Item Code</label>
-                  <input type="text" name="item_code" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., BRG-001">
+                <div class="mi-form-group">
+                  <label class="mi-label">Item Code</label>
+                  <input type="text" name="item_code" class="mi-input" placeholder="e.g., BRG-001">
                 </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Category <span class="text-red-500">*</span></label>
-                  <select name="category_id" id="editCategory" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <div class="mi-form-group">
+                  <label class="mi-label">Category <span class="req">*</span></label>
+                  <select name="category_id" id="editCategory" required class="mi-select">
                     <option value="">Select Category</option>
                   </select>
                 </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Property</label>
-                  <select name="property_id" id="editProperty" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <div class="mi-form-group">
+                  <label class="mi-label">Property</label>
+                  <select name="property_id" id="editProperty" class="mi-select">
                     <option value="">All Properties (Global)</option>
                   </select>
                 </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Price <span class="text-red-500">*</span></label>
-                  <input type="number" step="0.01" name="price" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0.00">
+                <div class="mi-form-group">
+                  <label class="mi-label">Price <span class="req">*</span></label>
+                  <input type="number" step="0.01" name="price" required class="mi-input" placeholder="0.00">
                 </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Cost Price</label>
-                  <input type="number" step="0.01" name="cost_price" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0.00">
+                <div class="mi-form-group">
+                  <label class="mi-label">Cost Price</label>
+                  <input type="number" step="0.01" name="cost_price" class="mi-input" placeholder="0.00">
                 </div>
-                <div class="md:col-span-2">
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Description</label>
-                  <textarea name="description" rows="3" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Item description..."></textarea>
+                <div class="mi-form-group full">
+                  <label class="mi-label">Description</label>
+                  <textarea name="description" rows="3" class="mi-textarea" placeholder="Brief description of the item…"></textarea>
                 </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Sort Order</label>
-                  <input type="number" name="sort_order" value="0" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </div>
-                <div class="flex items-end gap-4">
-                  <div class="flex-1">
-                    <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Status</label>
-                    <select name="is_active" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="1">Active</option>
-                      <option value="0">Inactive</option>
-                    </select>
+                <div class="mi-form-group full">
+                  <label class="mi-label">Item Image</label>
+                  <div class="mi-img-upload-area">
+                    <img id="editImagePreview" src="../../uploads/foods/default-food.png" class="mi-img-preview">
+                    <div>
+                      <input type="file" name="image_file" id="editImageInput" accept="image/*" style="display:none" onchange="previewEditImage(this)">
+                      <label for="editImageInput" class="mi-img-upload-btn">
+                        <i class="fas fa-camera"></i> Change Image
+                      </label>
+                      <div class="mi-img-hint">JPG, PNG, or WEBP · max 5 MB</div>
+                    </div>
                   </div>
-                  <div class="flex-1">
-                    <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Available</label>
-                    <select name="is_available" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="1">Yes</option>
-                      <option value="0">No</option>
-                    </select>
-                  </div>
-                  <div class="flex-1">
-                    <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Featured</label>
-                    <select name="is_featured" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="0">No</option>
-                      <option value="1">Yes</option>
-                    </select>
-                  </div>
+                </div>
+                <div class="mi-form-group">
+                  <label class="mi-label">Sort Order</label>
+                  <input type="number" name="sort_order" value="0" class="mi-input">
+                </div>
+                <div class="mi-form-group">
+                  <label class="mi-label">Status</label>
+                  <select name="is_active" class="mi-select">
+                    <option value="1">Active</option>
+                    <option value="0">Inactive</option>
+                  </select>
+                </div>
+                <div class="mi-form-group">
+                  <label class="mi-label">Available</label>
+                  <select name="is_available" class="mi-select">
+                    <option value="1">Yes</option>
+                    <option value="0">No</option>
+                  </select>
+                </div>
+                <div class="mi-form-group">
+                  <label class="mi-label">Featured</label>
+                  <select name="is_featured" class="mi-select">
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                  </select>
                 </div>
               </div>
             </div>
-            <div class="p-6 border-t border-gray-200 dark:border-white/10 flex justify-end gap-3">
-              <button type="button" onclick="closeEditItemModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
-                Cancel
-              </button>
-              <button type="submit" class="px-6 py-2 text-sm font-semibold text-white bg-gradient-to-tl from-blue-500 to-violet-500 rounded-lg hover:from-blue-600 hover:to-violet-600 transition-all duration-200 shadow-md hover:shadow-lg">
-                <i class="fas fa-save mr-2"></i>Update Item
-              </button>
+            <div class="mi-modal-footer">
+              <button type="button" onclick="closeEditItemModal()" class="mi-btn-cancel">Cancel</button>
+              <button type="submit" class="mi-btn-primary"><i class="fas fa-save"></i> Update Item</button>
             </div>
           </form>
         </div>
@@ -400,8 +916,10 @@
 
   // Add Item Modal
   function openAddItemModal() {
-    document.getElementById('addItemModal').style.display = 'block';
+    const m = document.getElementById('addItemModal');
+    m.style.display = 'flex';
     document.getElementById('addItemForm').reset();
+    document.getElementById('addImagePreview').src = '../../uploads/foods/default-food.png';
   }
 
   function closeAddItemModal() {
@@ -411,19 +929,25 @@
   function submitAddItem(event) {
     event.preventDefault();
     const form = document.getElementById('addItemForm');
-    const payload = {
-      item_name: form.elements['item_name'].value,
-      item_code: form.elements['item_code'].value,
-      category_id: form.elements['category_id'].value,
-      property_id: form.elements['property_id'].value || null,
-      price: form.elements['price'].value,
-      cost_price: form.elements['cost_price'].value,
-      description: form.elements['description'].value,
-      sort_order: form.elements['sort_order'].value,
-      is_active: form.elements['is_active'].value,
-      is_available: form.elements['is_available'].value,
-      is_featured: form.elements['is_featured'].value
-    };
+    const formData = new FormData();
+    formData.append('item_name', form.elements['item_name'].value);
+    formData.append('item_code', form.elements['item_code'].value);
+    formData.append('category_id', form.elements['category_id'].value);
+    formData.append('property_id', form.elements['property_id'].value || '');
+    formData.append('price', form.elements['price'].value);
+    formData.append('cost_price', form.elements['cost_price'].value);
+    formData.append('description', form.elements['description'].value);
+    formData.append('sort_order', form.elements['sort_order'].value);
+    formData.append('is_active', form.elements['is_active'].value);
+    formData.append('is_available', form.elements['is_available'].value);
+    formData.append('is_featured', form.elements['is_featured'].value);
+    formData.append('csrf_token', csrfToken);
+    
+    // Add image file if selected
+    const imageFile = document.getElementById('addImageInput').files[0];
+    if (imageFile) {
+      formData.append('image_file', imageFile);
+    }
 
     Swal.fire({
       title: 'Creating...',
@@ -435,8 +959,7 @@
 
     fetch('../api/menu_items.php?action=create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: formData
       })
       .then(r => r.json())
       .then(data => {
@@ -476,7 +999,17 @@
     form.elements['is_available'].value = item.is_available;
     form.elements['is_featured'].value = item.is_featured;
 
-    document.getElementById('editItemModal').style.display = 'block';
+    // Load item image
+    let imgUrl = '../../uploads/foods/default-food.png';
+    if (item.image_url) {
+      imgUrl = item.image_url.startsWith('http') ? item.image_url : (item.image_url.startsWith('/') ? item.image_url : '../../uploads/foods/' + item.image_url);
+    } else if (item.thumbnail_url) {
+      imgUrl = item.thumbnail_url.startsWith('http') ? item.thumbnail_url : (item.thumbnail_url.startsWith('/') ? item.thumbnail_url : '../../uploads/foods/' + item.thumbnail_url);
+    }
+    document.getElementById('editImagePreview').src = imgUrl;
+    document.getElementById('editImageInput').value = '';
+
+    document.getElementById('editItemModal').style.display = 'flex';
     } catch (e) {
       console.error('Error fetching item for edit:', e);
     }
@@ -489,20 +1022,26 @@
   function submitEditItem(event) {
     event.preventDefault();
     const form = document.getElementById('editItemForm');
-    const payload = {
-      item_id: form.elements['item_id'].value,
-      item_name: form.elements['item_name'].value,
-      item_code: form.elements['item_code'].value,
-      category_id: form.elements['category_id'].value,
-      property_id: form.elements['property_id'].value || null,
-      price: form.elements['price'].value,
-      cost_price: form.elements['cost_price'].value,
-      description: form.elements['description'].value,
-      sort_order: form.elements['sort_order'].value,
-      is_active: form.elements['is_active'].value,
-      is_available: form.elements['is_available'].value,
-      is_featured: form.elements['is_featured'].value
-    };
+    const formData = new FormData();
+    formData.append('item_id', form.elements['item_id'].value);
+    formData.append('item_name', form.elements['item_name'].value);
+    formData.append('item_code', form.elements['item_code'].value);
+    formData.append('category_id', form.elements['category_id'].value);
+    formData.append('property_id', form.elements['property_id'].value || '');
+    formData.append('price', form.elements['price'].value);
+    formData.append('cost_price', form.elements['cost_price'].value);
+    formData.append('description', form.elements['description'].value);
+    formData.append('sort_order', form.elements['sort_order'].value);
+    formData.append('is_active', form.elements['is_active'].value);
+    formData.append('is_available', form.elements['is_available'].value);
+    formData.append('is_featured', form.elements['is_featured'].value);
+    formData.append('csrf_token', csrfToken);
+    
+    // Add image file if selected
+    const imageFile = document.getElementById('editImageInput').files[0];
+    if (imageFile) {
+      formData.append('image_file', imageFile);
+    }
 
     Swal.fire({
       title: 'Updating...',
@@ -514,8 +1053,7 @@
 
     fetch('../api/menu_items.php?action=update', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: formData
       })
       .then(r => r.json())
       .then(data => {
@@ -561,7 +1099,7 @@
         fetch('../api/menu_items.php?action=delete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ item_id: itemId })
+            body: JSON.stringify({ item_id: itemId, csrf_token: csrfToken })
           })
           .then(r => r.json())
           .then(data => {
@@ -598,7 +1136,7 @@
       customClass: { popup: 'swal2-popup-high-z' }
     }).then((result) => {
       if (result.isConfirmed) {
-        const payload = { item_id: itemId, is_available: newStatus };
+        const payload = { item_id: itemId, is_available: newStatus, csrf_token: csrfToken };
         fetch('../api/menu_items.php?action=update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -639,7 +1177,7 @@
       customClass: { popup: 'swal2-popup-high-z' }
     }).then((result) => {
       if (result.isConfirmed) {
-        const payload = { item_id: itemId, is_featured: newStatus };
+        const payload = { item_id: itemId, is_featured: newStatus, csrf_token: csrfToken };
         fetch('../api/menu_items.php?action=update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -707,5 +1245,26 @@
       confirmButtonColor: '#3085d6'
     });
     // TODO: Implement modal to show order history
+  }
+
+  // Image Preview Functions
+  function previewAddImage(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('addImagePreview').src = e.target.result;
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function previewEditImage(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('editImagePreview').src = e.target.result;
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
   }
 </script>

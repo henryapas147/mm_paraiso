@@ -33,7 +33,7 @@ try {
         $properties = $pdo->query("SELECT property_id, property_name FROM properties ORDER BY property_name ASC")->fetchAll(PDO::FETCH_ASSOC);
         $reservations = $pdo->query("SELECT reservation_id, reservation_code, CONCAT(walkin_first_name, ' ', walkin_last_name) as display FROM reservations WHERE reservation_status IN ('confirmed', 'checked_in') ORDER BY reservation_code ASC")->fetchAll(PDO::FETCH_ASSOC);
         $menuItems = $pdo->query("SELECT item_id, item_name, item_code, price FROM menu_items WHERE is_active = 1 AND is_available = 1 ORDER BY item_name ASC")->fetchAll(PDO::FETCH_ASSOC);
-        $paymentMethods = $pdo->query("SELECT method_id, method_name FROM payment_methods WHERE is_active = 1 ORDER BY method_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $paymentMethods = $pdo->query("SELECT method_id, method_label as method_name FROM payment_methods WHERE is_active = 1 ORDER BY method_label ASC")->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => ['properties' => $properties, 'reservations' => $reservations, 'menuItems' => $menuItems, 'paymentMethods' => $paymentMethods]]);
 
       } elseif ($action === 'single' && isset($_GET['id'])) {

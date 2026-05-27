@@ -1,200 +1,766 @@
-<?php if (false) {} ?>
+<?php if (false) {
+} ?>
 <style>
-  .swal2-popup { border-radius: 1rem !important; }
-  .swal2-confirm { background-color: #3085d6 !important; color: white !important; border: none !important; padding: 0.75rem 1.5rem !important; border-radius: 0.5rem !important; font-weight: 600 !important; }
-  .swal2-cancel { background-color: #d33 !important; color: white !important; border: none !important; padding: 0.75rem 1.5rem !important; border-radius: 0.5rem !important; font-weight: 600 !important; }
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --prod-blue: #1A6BBF;
+    --prod-blue-dark: #0F4C8A;
+    --prod-blue-pale: #EBF3FC;
+    --prod-green: #2E7D32;
+    --prod-green-pale: #E8F5E9;
+    --prod-red: #C62828;
+    --prod-red-pale: #FFEBEE;
+    --prod-amber: #E65100;
+    --prod-amber-pale: #FFF3E0;
+    --prod-purple: #6230B5;
+    --prod-purple-pale: #F5F0FF;
+    --prod-radius-sm: 6px;
+    --prod-radius-md: 10px;
+    --prod-radius-lg: 14px;
+    --prod-radius-xl: 20px;
+    --prod-shadow-sm: 0 1px 3px rgba(0, 0, 0, .07), 0 1px 2px rgba(0, 0, 0, .05);
+    --prod-shadow-md: 0 4px 12px rgba(0, 0, 0, .08), 0 2px 4px rgba(0, 0, 0, .05);
+    --prod-shadow-lg: 0 20px 48px rgba(0, 0, 0, .14), 0 8px 16px rgba(0, 0, 0, .07);
+    --prod-font: 'DM Sans', sans-serif;
+    --prod-mono: 'DM Mono', monospace;
+  }
+
+  .stk-page {
+    padding: 28px 28px 40px;
+    max-width: 100%;
+    margin: 0 auto;
+    background: var(--color-background-tertiary, #F4F5F7);
+    min-height: 100%;
+    border-radius: var(--border-radius-xl, 18px);
+    font-family: var(--prod-font);
+  }
+
+  .stk-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .stk-page-eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--prod-blue);
+    margin-bottom: 4px;
+  }
+
+  .stk-page-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    letter-spacing: -.4px;
+    line-height: 1.2;
+  }
+
+  .stk-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .stk-stat-card {
+    background: var(--color-background-primary, #fff);
+    border: 1px solid rgba(0, 0, 0, .07);
+    border-radius: var(--prod-radius-lg);
+    padding: 20px 22px;
+    box-shadow: var(--prod-shadow-sm);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stk-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: var(--prod-radius-lg) var(--prod-radius-lg) 0 0;
+    background: var(--_accent, #CBD5E1);
+  }
+
+  .stk-stat-card.blue {
+    --_accent: var(--prod-blue);
+  }
+
+  .stk-stat-card.red {
+    --_accent: var(--prod-red);
+  }
+
+  .stk-stat-card.orange {
+    --_accent: var(--prod-amber);
+  }
+
+  .stk-stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--prod-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    margin-bottom: 14px;
+    background: var(--prod-blue-pale);
+    color: var(--prod-blue);
+  }
+
+  .stk-stat-card.red .stk-stat-icon {
+    background: var(--prod-red-pale);
+    color: var(--prod-red);
+  }
+
+  .stk-stat-card.orange .stk-stat-icon {
+    background: var(--prod-amber-pale);
+    color: var(--prod-amber);
+  }
+
+  .stk-stat-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    margin-bottom: 6px;
+  }
+
+  .stk-stat-value {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    font-family: var(--prod-mono);
+  }
+
+  .stk-card {
+    background: var(--color-background-primary, #fff);
+    border: 1px solid rgba(0, 0, 0, .07);
+    border-radius: var(--prod-radius-lg);
+    box-shadow: var(--prod-shadow-sm);
+    overflow: hidden;
+  }
+
+  .stk-card-header {
+    padding: 18px 22px;
+    border-bottom: 1px solid rgba(0, 0, 0, .06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .stk-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .stk-search-wrap {
+    position: relative;
+  }
+
+  .stk-search-wrap i {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    pointer-events: none;
+  }
+
+  .stk-search {
+    padding: 8px 14px 8px 34px;
+    font-size: 13px;
+    border: 1px solid rgba(0, 0, 0, .12);
+    border-radius: var(--prod-radius-md);
+    background: var(--color-background-secondary, #F8FAFC);
+    color: var(--color-text-primary);
+    outline: none;
+    width: 230px;
+  }
+
+  .stk-search:focus {
+    border-color: var(--prod-blue);
+    box-shadow: 0 0 0 3px rgba(26, 107, 191, .12);
+  }
+
+  .stk-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: var(--prod-radius-md);
+    border: 1px solid rgba(0, 0, 0, .12);
+    background: var(--color-background-primary, #fff);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: all .15s;
+  }
+
+  .stk-btn:hover {
+    background: var(--color-background-secondary, #F8FAFC);
+  }
+
+  .stk-btn-primary {
+    background: var(--prod-blue);
+    color: #fff;
+    border-color: var(--prod-blue);
+    box-shadow: 0 1px 3px rgba(26, 107, 191, .3);
+  }
+
+  .stk-btn-primary:hover {
+    background: var(--prod-blue-dark);
+  }
+
+  .stk-table-wrap {
+    overflow-x: auto;
+  }
+
+  .stk-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .stk-table thead tr {
+    background: var(--color-background-secondary, #F8FAFC);
+  }
+
+  .stk-table th {
+    padding: 11px 18px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    border-bottom: 1px solid rgba(0, 0, 0, .07);
+  }
+
+  .stk-table td {
+    padding: 13px 18px;
+    vertical-align: middle;
+  }
+
+  .stk-name-cell {
+    display: flex;
+    align-items: center;
+  }
+
+  .stk-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--prod-radius-sm);
+    background: var(--prod-blue-pale);
+    color: var(--prod-blue);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    margin-right: 10px;
+  }
+
+  .stk-name-primary {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+
+  .stk-name-secondary {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+  }
+
+  .stk-badge {
+    display: inline-flex;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .stk-badge.instock {
+    background: var(--prod-green-pale);
+    color: var(--prod-green);
+  }
+
+  .stk-badge.low {
+    background: var(--prod-red-pale);
+    color: var(--prod-red);
+  }
+
+  .stk-badge.zero {
+    background: var(--prod-amber-pale);
+    color: var(--prod-amber);
+  }
+
+  .stk-actions {
+    display: flex;
+    gap: 5px;
+    justify-content: flex-end;
+  }
+
+  .stk-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: var(--prod-radius-sm);
+    border: 1px solid rgba(0, 0, 0, .1);
+    background: transparent;
+    cursor: pointer;
+    transition: all .15s;
+  }
+
+  .stk-action-btn.view:hover {
+    background: var(--prod-blue-pale);
+    color: var(--prod-blue);
+  }
+
+  .stk-action-btn.edit:hover {
+    background: var(--prod-amber-pale);
+    color: var(--prod-amber);
+  }
+
+  .stk-action-btn.danger:hover {
+    background: var(--prod-red-pale);
+    color: var(--prod-red);
+  }
+
+  .stk-empty {
+    padding: 64px;
+    text-align: center;
+    color: var(--color-text-secondary);
+  }
+
+  .stk-empty-icon {
+    font-size: 32px;
+    opacity: .25;
+    margin-bottom: 12px;
+  }
+
+  .stk-pagination-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 22px;
+    border-top: 1px solid rgba(0, 0, 0, .06);
+    background: var(--color-background-primary, #fff);
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .stk-pagination-info {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  .stk-pagination {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .stk-page-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid rgba(0, 0, 0, .12);
+    border-radius: var(--prod-radius-sm);
+    background: var(--color-background-primary, #fff);
+    color: var(--color-text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stk-page-btn:hover:not(:disabled) {
+    background: var(--prod-blue-pale);
+    border-color: var(--prod-blue);
+    color: var(--prod-blue);
+  }
+
+  .stk-page-btn.active {
+    background: var(--prod-blue);
+    border-color: var(--prod-blue);
+    color: #fff;
+  }
+
+  .stk-page-btn:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+  }
+
+  .stk-entries-select {
+    padding: 6px 28px 6px 12px;
+    font-size: 13px;
+    border: 1px solid rgba(0, 0, 0, .12);
+    border-radius: var(--prod-radius-md);
+    background: var(--color-background-secondary, #F8FAFC);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+
+  .stk-entries-select:focus {
+    border-color: var(--prod-blue);
+    box-shadow: 0 0 0 3px rgba(26, 107, 191, .12);
+    outline: none;
+  }
+
+  .stk-entries-label {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-right: 8px;
+  }
+
+  .stk-entries-wrap {
+    display: flex;
+    align-items: center;
+  }
+
+  .stk-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, .5);
+    backdrop-filter: blur(4px);
+    z-index: 9000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .stk-overlay.open {
+    display: flex;
+  }
+
+  .stk-modal {
+    background: var(--color-background-primary, #fff);
+    border-radius: var(--prod-radius-xl);
+    border: 1px solid rgba(0, 0, 0, .08);
+    width: 100%;
+    max-width: 700px;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: var(--prod-shadow-lg);
+  }
+
+  .stk-modal-header {
+    padding: 22px 26px 18px;
+    border-bottom: 1px solid rgba(0, 0, 0, .06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .stk-modal-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  .stk-modal-close {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--color-background-secondary, #F1F5F9);
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stk-modal-close:hover {
+    background: var(--prod-red-pale);
+    color: var(--prod-red);
+  }
+
+  .stk-modal-body {
+    padding: 26px;
+  }
+
+  .stk-modal-footer {
+    padding: 18px 26px;
+    border-top: 1px solid rgba(0, 0, 0, .06);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .stk-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+
+  .stk-form-group.half {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .stk-form-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+  }
+
+  .stk-form-label .req {
+    color: var(--prod-red);
+    margin-left: 2px;
+  }
+
+  .stk-form-input,
+  .stk-form-select,
+  .stk-form-textarea {
+    font-family: var(--prod-font);
+    font-size: 13.5px;
+    color: var(--color-text-primary);
+    background: var(--color-background-secondary, #F8FAFC);
+    border: 1px solid rgba(0, 0, 0, .12);
+    border-radius: var(--prod-radius-md);
+    padding: 9px 13px;
+    outline: none;
+    width: 100%;
+  }
+
+  .stk-form-input:focus,
+  .stk-form-select:focus,
+  .stk-form-textarea:focus {
+    border-color: var(--prod-blue);
+    box-shadow: 0 0 0 3px rgba(26, 107, 191, .12);
+    background: var(--color-background-primary, #fff);
+  }
+
+  @media (max-width: 600px) {
+    .stk-search {
+      width: 160px;
+    }
+
+    .stk-form-group.half {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 
-<!-- PAGE CONTENT -->
+<div class="stk-page">
+  <div class="stk-page-header">
+    <div>
+      <div class="stk-page-eyebrow"><i class="fas fa-boxes-stacked" style="margin-right:5px"></i>Inventory</div>
+      <div class="stk-page-title">Product Stock per Location</div>
+    </div>
+  </div>
 
-      <!-- Stats Cards -->
-      <div class="flex flex-wrap -mx-3 mb-6">
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Total Stock Records</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statTotal">...</h5>
-            </div>
-          </div>
+  <div class="stk-stats-grid">
+    <div class="stk-stat-card blue">
+      <div class="stk-stat-icon"><i class="fas fa-warehouse"></i></div>
+      <div class="stk-stat-label">Total Stock Records</div>
+      <div class="stk-stat-value" id="statTotal">—</div>
+    </div>
+    <div class="stk-stat-card red">
+      <div class="stk-stat-icon"><i class="fas fa-triangle-exclamation"></i></div>
+      <div class="stk-stat-label">Below Reorder Point</div>
+      <div class="stk-stat-value" id="statBelowReorder">—</div>
+    </div>
+    <div class="stk-stat-card orange">
+      <div class="stk-stat-icon"><i class="fas fa-circle-xmark"></i></div>
+      <div class="stk-stat-label">Zero Stock</div>
+      <div class="stk-stat-value" id="statZero">—</div>
+    </div>
+  </div>
+
+  <div class="stk-card">
+    <div class="stk-card-header">
+      <div>
+        <strong>Stock by Location</strong>
+        <span id="tableCount" style="font-size:12px;color:var(--color-text-secondary);margin-left:8px">Loading…</span>
+      </div>
+      <div class="stk-toolbar">
+        <div class="stk-entries-wrap">
+          <span class="stk-entries-label">Show</span>
+          <select class="stk-entries-select" id="entriesPerPage" onchange="changeEntriesPerPage()">
+            <option value="10">10</option>
+            <option value="25" selected>25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+          <span class="stk-entries-label">entries</span>
         </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Below Reorder Point</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl text-red-500" id="statBelowReorder">...</h5>
-            </div>
-          </div>
+        <div class="stk-search-wrap">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchInput" class="stk-search" placeholder="Search stock…" oninput="filterTable()">
         </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Zero Stock</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl text-orange-500" id="statZero">...</h5>
-            </div>
-          </div>
+        <button onclick="openAddStockModal()" class="stk-btn stk-btn-primary">
+          <i class="fas fa-plus"></i> Adjust Stock
+        </button>
+      </div>
+    </div>
+    <div class="stk-table-wrap">
+      <table class="stk-table" id="stockTable">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Property</th>
+            <th>Location</th>
+            <th style="text-align:right">Quantity</th>
+            <th style="text-align:center">Status</th>
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="stockTableBody">
+          <tr>
+            <td colspan="6" class="stk-empty">
+              <div class="stk-empty-icon"><i class="fas fa-spinner fa-spin"></i></div>
+              <div>Loading stock records…</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stk-pagination-wrap" id="paginationWrap" style="display:none">
+      <div class="stk-pagination-info" id="paginationInfo">Showing 1-25 of 100 entries</div>
+      <div class="stk-pagination" id="paginationControls"></div>
+    </div>
+  </div>
+</div>
+
+<!-- View Stock Details Modal -->
+<div class="stk-overlay" id="stockDetailsModal" onclick="if(event.target===this)closeStockDetailsModal()">
+  <div class="stk-modal" role="dialog" aria-modal="true" aria-labelledby="stockModalTitle">
+    <div class="stk-modal-header">
+      <div class="stk-modal-title" id="stockModalTitle">Stock Details</div>
+      <button class="stk-modal-close" onclick="closeStockDetailsModal()" aria-label="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="stk-modal-body" id="stockModalContent"></div>
+  </div>
+</div>
+
+<!-- Add Stock Modal -->
+<div class="stk-overlay" id="addStockModal" onclick="if(event.target===this)closeAddStockModal()">
+  <div class="stk-modal" role="dialog" aria-modal="true">
+    <div class="stk-modal-header">
+      <div class="stk-modal-title">Add Stock Adjustment</div>
+      <button class="stk-modal-close" onclick="closeAddStockModal()" aria-label="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="addStockForm" onsubmit="submitAddStock(event)">
+      <div class="stk-modal-body">
+        <div class="stk-form-group">
+          <label class="stk-form-label">Product <span class="req">*</span></label>
+          <select name="product_id" id="addProductSelect" required class="stk-form-select">
+            <option value="">Select Product</option>
+          </select>
+        </div>
+        <div class="stk-form-group">
+          <label class="stk-form-label">Location <span class="req">*</span></label>
+          <select name="location_id" id="addLocationSelect" required class="stk-form-select">
+            <option value="">Select Location</option>
+          </select>
+        </div>
+        <div class="stk-form-group">
+          <label class="stk-form-label">Adjustment Type <span class="req">*</span></label>
+          <select name="adjustment_type" required class="stk-form-select">
+            <option value="add">Add Stock (+)</option>
+            <option value="deduct">Deduct Stock (-)</option>
+          </select>
+        </div>
+        <div class="stk-form-group">
+          <label class="stk-form-label">Quantity <span class="req">*</span></label>
+          <input type="number" name="quantity" step="0.001" min="0" required class="stk-form-input" placeholder="0.000">
+        </div>
+        <div class="stk-form-group">
+          <label class="stk-form-label">Notes</label>
+          <textarea name="notes" rows="2" class="stk-form-textarea" placeholder="Reason for adjustment..."></textarea>
         </div>
       </div>
+      <div class="stk-modal-footer">
+        <button type="button" class="stk-btn" onclick="closeAddStockModal()"><i class="fas fa-times"></i> Cancel</button>
+        <button type="submit" class="stk-btn stk-btn-primary"><i class="fas fa-save"></i> Save Adjustment</button>
+      </div>
+    </form>
+  </div>
+</div>
 
-      <!-- Stock Table -->
-      <div class="flex flex-wrap -mx-3">
-        <div class="flex-none w-full max-w-full px-3">
-          <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent flex justify-between items-center">
-              <h6 class="dark:text-white">Stock by Location</h6>
-              <button onclick="openAddStockModal()" class="bg-gradient-to-tl from-blue-500 to-violet-500 text-white px-4 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                <i class="fas fa-plus mr-1"></i> Adjust Stock
-              </button>
-            </div>
-            <div class="flex-auto px-0 pt-0 pb-2">
-              <div class="p-0 overflow-x-auto">
-                <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500" id="stockTable">
-                  <thead class="align-bottom">
-                    <tr>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Product</th>
-                      <th class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Property</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Location</th>
-                      <th class="px-6 py-3 font-bold text-right uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Quantity</th>
-                      <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
-                      <th class="px-6 py-3 font-semibold capitalize align-middle bg-transparent border-b border-collapse border-solid shadow-none dark:border-white/40 dark:text-white tracking-none whitespace-nowrap text-slate-400 opacity-70"></th>
-                    </tr>
-                  </thead>
-                  <tbody id="stockTableBody">
-                    <tr><td colspan="6" class="p-4 text-center text-slate-400 dark:text-white/60">Loading...</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+<!-- Edit/Adjust Stock Modal -->
+<div class="stk-overlay" id="editStockModal" onclick="if(event.target===this)closeEditStockModal()">
+  <div class="stk-modal" role="dialog" aria-modal="true">
+    <div class="stk-modal-header">
+      <div class="stk-modal-title">Edit Stock</div>
+      <button class="stk-modal-close" onclick="closeEditStockModal()" aria-label="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="editStockForm" onsubmit="submitEditStock(event)">
+      <div class="stk-modal-body">
+        <input type="hidden" name="stock_loc_id" id="editStockLocId">
+        <div class="stk-form-group">
+          <label class="stk-form-label">Product</label>
+          <input type="text" id="editProductName" readonly class="stk-form-input" style="background:var(--color-background-secondary)">
+        </div>
+        <div class="stk-form-group">
+          <label class="stk-form-label">Location</label>
+          <input type="text" id="editLocationName" readonly class="stk-form-input" style="background:var(--color-background-secondary)">
+        </div>
+        <div class="stk-form-group">
+          <label class="stk-form-label">Current Quantity</label>
+          <input type="text" id="editCurrentQuantity" readonly class="stk-form-input" style="background:var(--color-background-secondary)">
+        </div>
+        <div class="stk-form-group">
+          <label class="stk-form-label">Adjustment Type <span class="req">*</span></label>
+          <select name="adjustment_type" required class="stk-form-select">
+            <option value="add">Add Stock (+)</option>
+            <option value="deduct">Deduct Stock (-)</option>
+          </select>
+        </div>
+        <div class="stk-form-group">
+          <label class="stk-form-label">Quantity <span class="req">*</span></label>
+          <input type="number" name="quantity" step="0.001" min="0" required class="stk-form-input" placeholder="0.000">
+        </div>
+        <div class="stk-form-group">
+          <label class="stk-form-label">Notes</label>
+          <textarea name="notes" rows="2" class="stk-form-textarea" placeholder="Reason for adjustment..."></textarea>
         </div>
       </div>
-
-      <!-- View Stock Details Modal -->
-      <div id="stockDetailsModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeStockDetailsModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-            <h3 class="text-xl font-bold dark:text-white" id="stockModalTitle" style="font-size: 1.25rem; font-weight: bold; margin: 0;">Stock Details</h3>
-            <button onclick="closeStockDetailsModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <div class="p-6" id="stockModalContent" style="padding: 1.5rem;"></div>
-        </div>
+      <div class="stk-modal-footer">
+        <button type="button" class="stk-btn" onclick="closeEditStockModal()"><i class="fas fa-times"></i> Cancel</button>
+        <button type="submit" class="stk-btn stk-btn-primary"><i class="fas fa-save"></i> Save Adjustment</button>
       </div>
-
-      <!-- Add Stock Modal -->
-      <div id="addStockModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddStockModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 600px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-            <h3 class="text-xl font-bold dark:text-white">Add Stock Adjustment</h3>
-            <button onclick="closeAddStockModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <form id="addStockForm" onsubmit="submitAddStock(event)">
-            <div class="p-6">
-              <div class="space-y-4">
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Product <span class="text-red-500">*</span></label>
-                  <select name="product_id" id="addProductSelect" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Select Product</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Location <span class="text-red-500">*</span></label>
-                  <select name="location_id" id="addLocationSelect" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Select Location</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Adjustment Type <span class="text-red-500">*</span></label>
-                  <select name="adjustment_type" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="add">Add Stock (+)</option>
-                    <option value="deduct">Deduct Stock (-)</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Quantity <span class="text-red-500">*</span></label>
-                  <input type="number" name="quantity" step="0.001" min="0" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0.000">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Notes</label>
-                  <textarea name="notes" rows="2" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Reason for adjustment..."></textarea>
-                </div>
-              </div>
-            </div>
-            <div class="p-6 border-t border-gray-200 dark:border-white/10 flex justify-end gap-3">
-              <button type="button" onclick="closeAddStockModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">Cancel</button>
-              <button type="submit" class="px-6 py-2 text-sm font-semibold text-white bg-gradient-to-tl from-blue-500 to-violet-500 rounded-lg hover:from-blue-600 hover:to-violet-600 transition-all duration-200 shadow-md hover:shadow-lg">
-                <i class="fas fa-save mr-2"></i>Save Adjustment
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- Edit/Adjust Stock Modal -->
-      <div id="editStockModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeEditStockModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 600px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-            <h3 class="text-xl font-bold dark:text-white">Edit Stock</h3>
-            <button onclick="closeEditStockModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <form id="editStockForm" onsubmit="submitEditStock(event)">
-            <div class="p-6">
-              <div class="space-y-4">
-                <input type="hidden" name="stock_loc_id" id="editStockLocId">
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Product</label>
-                  <input type="text" id="editProductName" readonly class="w-full px-4 py-2 text-sm border border-gray-200 dark:border-white/20 dark:bg-slate-700/30 dark:text-white rounded-lg bg-gray-50">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Location</label>
-                  <input type="text" id="editLocationName" readonly class="w-full px-4 py-2 text-sm border border-gray-200 dark:border-white/20 dark:bg-slate-700/30 dark:text-white rounded-lg bg-gray-50">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Current Quantity</label>
-                  <input type="text" id="editCurrentQuantity" readonly class="w-full px-4 py-2 text-sm border border-gray-200 dark:border-white/20 dark:bg-slate-700/30 dark:text-white rounded-lg bg-gray-50">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Adjustment Type <span class="text-red-500">*</span></label>
-                  <select name="adjustment_type" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="add">Add Stock (+)</option>
-                    <option value="deduct">Deduct Stock (-)</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Quantity <span class="text-red-500">*</span></label>
-                  <input type="number" name="quantity" step="0.001" min="0" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0.000">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Notes</label>
-                  <textarea name="notes" rows="2" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Reason for adjustment..."></textarea>
-                </div>
-              </div>
-            </div>
-            <div class="p-6 border-t border-gray-200 dark:border-white/10 flex justify-end gap-3">
-              <button type="button" onclick="closeEditStockModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">Cancel</button>
-              <button type="submit" class="px-6 py-2 text-sm font-semibold text-white bg-gradient-to-tl from-blue-500 to-violet-500 rounded-lg hover:from-blue-600 hover:to-violet-600 transition-all duration-200 shadow-md hover:shadow-lg">
-                <i class="fas fa-save mr-2"></i>Save Adjustment
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+    </form>
+  </div>
+</div>
 
 <script>
   let stockData = [];
+  let filteredData = [];
+  let currentPage = 1;
+  let entriesPerPage = 25;
   let productsData = [];
   let locationsData = [];
 
@@ -209,12 +775,14 @@
       const json = await res.json();
       if (json.success) {
         stockData = json.data;
+        filteredData = [...stockData];
+        currentPage = 1;
         renderStats();
         renderTable();
       }
     } catch (e) {
       console.error('Error fetching stock:', e);
-      document.getElementById('stockTableBody').innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Failed to load data.</td></tr>`;
+      document.getElementById('stockTableBody').innerHTML = `<tr><td colspan="6" class="stk-empty"><div class="stk-empty-icon"><i class="fas fa-circle-xmark"></i></div><div>Failed to load data.</div></td></tr>`;
     }
   }
 
@@ -233,72 +801,155 @@
   }
 
   function renderStats() {
+    const total = stockData.length;
     const belowReorder = stockData.filter(s => parseFloat(s.quantity) < parseFloat(s.reorder_point) && parseFloat(s.reorder_point) > 0).length;
     const zeroStock = stockData.filter(s => parseFloat(s.quantity) == 0).length;
-    document.getElementById('statTotal').textContent = stockData.length;
-    document.getElementById('statBelowReorder').textContent = belowReorder;
-    document.getElementById('statZero').textContent = zeroStock;
+
+    const pairs = [
+      ['statTotal', total],
+      ['statBelowReorder', belowReorder],
+      ['statZero', zeroStock]
+    ];
+
+    pairs.forEach(([id, end]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (end === 0) {
+        el.textContent = '0';
+        return;
+      }
+      let start = 0,
+        step = Math.max(1, Math.ceil(end / 20));
+      const timer = setInterval(() => {
+        start = Math.min(start + step, end);
+        el.textContent = start;
+        if (start >= end) clearInterval(timer);
+      }, 25);
+    });
   }
 
   function renderTable() {
     const tbody = document.getElementById('stockTableBody');
-    if (!stockData.length) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 dark:text-white/60">No stock records found.</td></tr>`;
+    const count = document.getElementById('tableCount');
+
+    if (!filteredData.length) {
+      count.textContent = '0 records';
+      document.getElementById('paginationWrap').style.display = 'none';
+      tbody.innerHTML = `<tr><td colspan="6" class="stk-empty"><div class="stk-empty-icon"><i class="fas fa-boxes-stacked"></i></div><div>No stock records found.</div></td></tr>`;
       return;
     }
-    tbody.innerHTML = stockData.map(stock => {
+
+    const totalEntries = filteredData.length;
+    const totalPages = Math.ceil(totalEntries / entriesPerPage);
+    const start = (currentPage - 1) * entriesPerPage;
+    const end = Math.min(start + entriesPerPage, totalEntries);
+    const paginatedData = filteredData.slice(start, end);
+
+    count.textContent = `${totalEntries} record${totalEntries !== 1 ? 's' : ''}`;
+
+    const paginationWrap = document.getElementById('paginationWrap');
+    if (totalEntries > 10) {
+      paginationWrap.style.display = 'flex';
+      renderPagination(totalPages, start, end, totalEntries);
+    } else {
+      paginationWrap.style.display = 'none';
+    }
+
+    tbody.innerHTML = paginatedData.map(stock => {
       const qty = parseFloat(stock.quantity);
       const reorder = parseFloat(stock.reorder_point);
       const locType = (stock.location_type || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-      let statusBadge;
+      let statusClass, statusText;
       if (qty == 0) {
-        statusBadge = `<span class="bg-gradient-to-tl from-orange-500 to-amber-400 px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">Zero</span>`;
+        statusClass = 'zero';
+        statusText = 'Zero';
       } else if (qty < reorder && reorder > 0) {
-        statusBadge = `<span class="bg-gradient-to-tl from-red-500 to-rose-400 px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">Low Stock</span>`;
+        statusClass = 'low';
+        statusText = 'Low Stock';
       } else {
-        statusBadge = `<span class="bg-gradient-to-tl from-emerald-500 to-teal-400 px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">In Stock</span>`;
+        statusClass = 'instock';
+        statusText = 'In Stock';
       }
       return `
       <tr class="stock-row">
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <div class="flex px-2 py-1">
-            <div class="inline-flex items-center justify-center mr-4 text-sm text-white transition-all duration-200 ease-in-out h-9 w-9 rounded-xl bg-gradient-to-tl from-blue-500 to-violet-500">
-              <i class="fas fa-box"></i>
-            </div>
-            <div class="flex flex-col justify-center">
-              <h6 class="mb-0 text-sm leading-normal dark:text-white">${stock.product_name}</h6>
-              <p class="mb-0 text-xs leading-tight dark:text-white dark:opacity-80 text-slate-400">${stock.product_code}</p>
+        <td>
+          <div class="stk-name-cell">
+            <div class="stk-avatar"><i class="fas fa-box"></i></div>
+            <div>
+              <div class="stk-name-primary">${stock.product_name}</div>
+              <div class="stk-name-secondary">${stock.product_code}</div>
             </div>
           </div>
         </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${stock.property_name}</p>
+        <td>
+          <span class="stk-name-primary">${stock.property_name}</span>
         </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${stock.location_name}</p>
-          <p class="mb-0 text-xs leading-tight dark:text-white dark:opacity-60 text-slate-400">${locType}</p>
+        <td>
+          <div class="stk-name-primary">${stock.location_name}</div>
+          <div class="stk-name-secondary">${locType}</div>
         </td>
-        <td class="p-2 text-right align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-sm font-bold leading-tight dark:text-white">${qty.toFixed(3)}</p>
+        <td style="text-align:right">
+          <span class="stk-name-primary" style="font-family:var(--prod-mono)">${qty.toFixed(3)}</span>
         </td>
-        <td class="p-2 text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          ${statusBadge}
+        <td style="text-align:center">
+          <span class="stk-badge ${statusClass}">${statusText}</span>
         </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <div class="flex items-center gap-2">
-            <button onclick="viewStockDetails('${stock.stock_loc_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md" title="View Details">
-              <i class="fas fa-info-circle mr-1.5 text-xs"></i><span>View</span>
-            </button>
-            <button onclick="openEditStockModal('${stock.stock_loc_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-500/20 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-300 dark:hover:border-amber-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Adjust Stock">
-              <i class="fas fa-edit mr-1.5 text-xs"></i><span>Adjust</span>
-            </button>
-            <button onclick="deleteStock(this)" data-id="${stock.stock_loc_id}" data-product="${stock.product_name}" data-location="${stock.location_name}" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 bg-white dark:bg-slate-700/50 border border-red-200 dark:border-white/10 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-700 dark:hover:text-red-300 hover:border-red-300 dark:hover:border-red-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Delete Stock">
-              <i class="fas fa-trash-alt mr-1.5 text-xs"></i><span>Delete</span>
-            </button>
+        <td>
+          <div class="stk-actions">
+            <button onclick="viewStockDetails('${stock.stock_loc_id}')" class="stk-action-btn view"><i class="fas fa-eye"></i> View</button>
+            <button onclick="openEditStockModal('${stock.stock_loc_id}')" class="stk-action-btn edit"><i class="fas fa-pen"></i> Adjust</button>
+            <button onclick="deleteStock(this)" data-id="${stock.stock_loc_id}" data-product="${stock.product_name}" data-location="${stock.location_name}" class="stk-action-btn danger"><i class="fas fa-trash-alt"></i></button>
           </div>
         </td>
       </tr>`;
     }).join('');
+  }
+
+  function changeEntriesPerPage() {
+    entriesPerPage = parseInt(document.getElementById('entriesPerPage').value);
+    currentPage = 1;
+    renderTable();
+  }
+
+  function goToPage(page) {
+    const totalPages = Math.ceil(filteredData.length / entriesPerPage);
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderTable();
+  }
+
+  function renderPagination(totalPages, start, end, total) {
+    const paginationInfo = document.getElementById('paginationInfo');
+    const paginationControls = document.getElementById('paginationControls');
+
+    paginationInfo.textContent = `Showing ${start + 1}-${end} of ${total} entries`;
+
+    let html = '';
+    html += `<button class="stk-page-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>`;
+
+    const maxButtons = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+    let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+    if (endPage - startPage < maxButtons - 1) {
+      startPage = Math.max(1, endPage - maxButtons + 1);
+    }
+
+    if (startPage > 1) {
+      html += `<button class="stk-page-btn" onclick="goToPage(1)">1</button>`;
+      if (startPage > 2) html += `<span style="padding:0 8px;color:var(--color-text-secondary)">…</span>`;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      html += `<button class="stk-page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) html += `<span style="padding:0 8px;color:var(--color-text-secondary)">…</span>`;
+      html += `<button class="stk-page-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+    }
+
+    html += `<button class="stk-page-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
+    paginationControls.innerHTML = html;
   }
 
   function populateDropdowns() {
@@ -310,9 +961,20 @@
 
   function filterTable() {
     const filter = document.getElementById('searchInput').value.toLowerCase();
-    document.querySelectorAll('#stockTable .stock-row').forEach(row => {
-      row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
-    });
+    currentPage = 1;
+
+    if (!filter) {
+      filteredData = [...stockData];
+    } else {
+      filteredData = stockData.filter(s =>
+        s.product_name.toLowerCase().includes(filter) ||
+        s.product_code.toLowerCase().includes(filter) ||
+        s.location_name.toLowerCase().includes(filter) ||
+        s.property_name.toLowerCase().includes(filter)
+      );
+    }
+
+    renderTable();
   }
 
   function viewStockDetails(stockLocId) {
@@ -333,66 +995,52 @@
     }
 
     document.getElementById('stockModalContent').innerHTML = `
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-3">Product Information</h4>
-          <div class="space-y-3">
-            <div><p class="text-xs text-slate-500 dark:text-white/60">Product Name</p><p class="text-sm dark:text-white">${stock.product_name}</p></div>
-            <div><p class="text-xs text-slate-500 dark:text-white/60">Product Code</p><p class="text-sm dark:text-white">${stock.product_code}</p></div>
-            <div><p class="text-xs text-slate-500 dark:text-white/60">Total Stock (All Locations)</p><p class="text-sm dark:text-white">${parseFloat(stock.total_stock).toFixed(3)}</p></div>
-            <div><p class="text-xs text-slate-500 dark:text-white/60">Reorder Point</p><p class="text-sm dark:text-white">${parseFloat(stock.reorder_point).toFixed(3)}</p></div>
-          </div>
-        </div>
-        <div>
-          <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-3">Location Information</h4>
-          <div class="space-y-3">
-            <div><p class="text-xs text-slate-500 dark:text-white/60">Property</p><p class="text-sm dark:text-white">${stock.property_name}</p></div>
-            <div><p class="text-xs text-slate-500 dark:text-white/60">Location</p><p class="text-sm dark:text-white">${stock.location_name}</p></div>
-            <div><p class="text-xs text-slate-500 dark:text-white/60">Location Type</p><p class="text-sm dark:text-white">${(stock.location_type || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</p></div>
-          </div>
-        </div>
-        <div>
-          <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-3">Stock at This Location</h4>
-          <div class="space-y-3">
-            <div><p class="text-xs text-slate-500 dark:text-white/60">Current Quantity</p><p class="text-2xl font-bold dark:text-white">${qty.toFixed(3)}</p></div>
-            <div><p class="text-xs text-slate-500 dark:text-white/60">Status</p>${statusBadge}</div>
-          </div>
-        </div>
-        <div>
-          <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-3">Timestamp</h4>
-          <div class="space-y-3">
-            <div><p class="text-xs text-slate-500 dark:text-white/60">Last Updated</p><p class="text-sm dark:text-white">${stock.updated_at ? new Date(stock.updated_at).toLocaleString() : '-'}</p></div>
-          </div>
-        </div>
-      </div>`;
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--prod-blue);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--prod-blue-pale);"><i class="fas fa-box" style="margin-right:5px;opacity:.6"></i>Product Information</div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Product Name</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${stock.product_name}</div></div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Product Code</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${stock.product_code}</div></div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Total Stock</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;font-family:var(--prod-mono)">${parseFloat(stock.total_stock).toFixed(3)}</div></div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Reorder Point</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;font-family:var(--prod-mono)">${parseFloat(stock.reorder_point).toFixed(3)}</div></div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--prod-blue);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--prod-blue-pale);margin-top:20px;"><i class="fas fa-map-marker-alt" style="margin-right:5px;opacity:.6"></i>Location Information</div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Property</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${stock.property_name}</div></div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Location</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${stock.location_name}</div></div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Location Type</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${(stock.location_type || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</div></div>
+        <div style="font-size:11px;font-weight:700;color:var(--prod-blue);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--prod-blue-pale);margin-top:20px;"><i class="fas fa-warehouse" style="margin-right:5px;opacity:.6"></i>Stock</div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Current Quantity</div><div style="font-size:20px;color:var(--color-text-primary);font-weight:600;text-align:right;font-family:var(--prod-mono)">${qty.toFixed(3)}</div></div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Status</div><div style="text-align:right;">${statusBadge}</div></div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Last Updated</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${stock.updated_at ? new Date(stock.updated_at).toLocaleString() : '—'}</div></div>
+      </div>
+    </div>`;
 
-    const modal = document.getElementById('stockDetailsModal');
-    modal.classList.remove('hidden');
-    modal.style.display = 'block';
+    document.getElementById('stockDetailsModal').classList.add('open');
   }
 
   function closeStockDetailsModal() {
-    const modal = document.getElementById('stockDetailsModal');
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
+    document.getElementById('stockDetailsModal').classList.remove('open');
   }
 
   function openAddStockModal() {
-    const modal = document.getElementById('addStockModal');
-    modal.classList.remove('hidden');
-    modal.style.display = 'block';
+    document.getElementById('addStockModal').classList.add('open');
   }
 
   function closeAddStockModal() {
-    const modal = document.getElementById('addStockModal');
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
+    document.getElementById('addStockModal').classList.remove('open');
     document.getElementById('addStockForm').reset();
   }
 
   function submitAddStock(event) {
     event.preventDefault();
-    Swal.fire({ title: 'Processing...', text: 'Please wait while we process the stock adjustment.', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass: { popup: 'swal2-popup-high-z' } });
+    Swal.fire({
+      title: 'Processing...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+      customClass: {
+        popup: 'swal2-popup-high-z'
+      }
+    });
 
     const form = document.getElementById('addStockForm');
     const payload = {
@@ -404,18 +1052,40 @@
     };
 
     fetch('../api/product_stock_per_location.php?action=create', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
       })
       .then(r => r.json())
       .then(data => {
         closeAddStockModal();
         if (data.success) {
-          Swal.fire({ icon: 'success', title: 'Success!', text: data.message, confirmButtonColor: '#3085d6', customClass: { popup: 'swal2-popup-high-z' } }).then(() => fetchStock());
+          Swal.fire({
+            icon: 'success',
+            title: 'Added!',
+            text: data.message,
+            confirmButtonColor: '#1A6BBF'
+          }).then(() => fetchStock());
         } else {
-          Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: data.message,
+            confirmButtonColor: '#C62828'
+          });
         }
       })
-      .catch(() => { closeAddStockModal(); Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while processing the stock adjustment.', confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } }); });
+      .catch(() => {
+        closeAddStockModal();
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'An error occurred.',
+          confirmButtonColor: '#C62828'
+        });
+      });
   }
 
   function openEditStockModal(stockLocId) {
@@ -425,21 +1095,24 @@
     document.getElementById('editProductName').value = `${stock.product_name} (${stock.product_code})`;
     document.getElementById('editLocationName').value = `${stock.property_name} - ${stock.location_name}`;
     document.getElementById('editCurrentQuantity').value = parseFloat(stock.quantity).toFixed(3);
-    const modal = document.getElementById('editStockModal');
-    modal.classList.remove('hidden');
-    modal.style.display = 'block';
+    document.getElementById('editStockModal').classList.add('open');
   }
 
   function closeEditStockModal() {
-    const modal = document.getElementById('editStockModal');
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
+    document.getElementById('editStockModal').classList.remove('open');
     document.getElementById('editStockForm').reset();
   }
 
   function submitEditStock(event) {
     event.preventDefault();
-    Swal.fire({ title: 'Processing...', text: 'Please wait while we process the stock adjustment.', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass: { popup: 'swal2-popup-high-z' } });
+    Swal.fire({
+      title: 'Processing...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+      customClass: {
+        popup: 'swal2-popup-high-z'
+      }
+    });
 
     const form = document.getElementById('editStockForm');
     const payload = {
@@ -450,18 +1123,40 @@
     };
 
     fetch('../api/product_stock_per_location.php?action=adjust', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
       })
       .then(r => r.json())
       .then(data => {
         closeEditStockModal();
         if (data.success) {
-          Swal.fire({ icon: 'success', title: 'Success!', text: data.message, confirmButtonColor: '#3085d6', customClass: { popup: 'swal2-popup-high-z' } }).then(() => fetchStock());
+          Swal.fire({
+            icon: 'success',
+            title: 'Updated!',
+            text: data.message,
+            confirmButtonColor: '#1A6BBF'
+          }).then(() => fetchStock());
         } else {
-          Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: data.message,
+            confirmButtonColor: '#C62828'
+          });
         }
       })
-      .catch(() => { closeEditStockModal(); Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while processing the stock adjustment.', confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } }); });
+      .catch(() => {
+        closeEditStockModal();
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'An error occurred.',
+          confirmButtonColor: '#C62828'
+        });
+      });
   }
 
   function deleteStock(el) {
@@ -469,30 +1164,60 @@
     const productName = el.dataset.product;
     const locationName = el.dataset.location;
     Swal.fire({
-      title: 'Are you sure?',
-      text: `Are you sure you want to delete the stock record for "${productName}" at "${locationName}"? This action cannot be undone.`,
+      title: 'Delete stock record?',
+      html: `<span style="font-size:14px">You're about to delete stock for <strong>${productName}</strong> at <strong>${locationName}</strong>. This cannot be undone.</span>`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!',
+      confirmButtonColor: '#C62828',
+      cancelButtonColor: '#64748B',
+      confirmButtonText: 'Yes, delete',
       cancelButtonText: 'Cancel',
-      customClass: { popup: 'swal2-popup-high-z' }
+      customClass: {
+        popup: 'swal2-popup-high-z'
+      }
     }).then(result => {
       if (result.isConfirmed) {
-        Swal.fire({ title: 'Deleting...', text: 'Please wait while we delete the stock record.', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass: { popup: 'swal2-popup-high-z' } });
+        Swal.fire({
+          title: 'Deleting...',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading(),
+          customClass: {
+            popup: 'swal2-popup-high-z'
+          }
+        });
         fetch('../api/product_stock_per_location.php?action=delete', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stock_loc_id: stockLocId })
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              stock_loc_id: stockLocId
+            })
           })
           .then(r => r.json())
           .then(data => {
             if (data.success) {
-              Swal.fire({ icon: 'success', title: 'Deleted!', text: data.message, confirmButtonColor: '#3085d6', customClass: { popup: 'swal2-popup-high-z' } }).then(() => fetchStock());
+              Swal.fire({
+                icon: 'success',
+                title: 'Deleted!',
+                text: data.message,
+                confirmButtonColor: '#1A6BBF'
+              }).then(() => fetchStock());
             } else {
-              Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message,
+                confirmButtonColor: '#C62828'
+              });
             }
           })
-          .catch(() => Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while deleting the stock record.', confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } }));
+          .catch(() => Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred.',
+            confirmButtonColor: '#C62828'
+          }));
       }
     });
   }

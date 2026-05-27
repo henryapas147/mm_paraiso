@@ -533,7 +533,8 @@ VALUES
 (NULL, 'security','session_timeout_hours',          'Web session timeout in hours',         '8',    'integer', 0),
 (NULL, 'display', 'resort_name',                    'Resort display name',                  'Balay sa Dagat Resort', 'string', 1),
 (NULL, 'display', 'support_phone',                  'Customer support phone',               '+63822123456', 'string', 1),
-(NULL, 'display', 'support_email',                  'Customer support email',               'info@balaydagat.com', 'string', 1);
+(NULL, 'display', 'support_email',                  'Customer support email',               'info@balaydagat.com', 'string', 1),
+(NULL, 'food_canteen', 'food_tax_rate_percent',          'Food/Canteen Tax Rate (%)',            '12',   'decimal', 1);
 
 -- ============================================================================
 -- 20. BOOKING POLICIES

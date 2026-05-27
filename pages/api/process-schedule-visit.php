@@ -353,6 +353,69 @@ Total: ₱' . number_format($totalAmount, 2);
         $totalAmount
     ]);
 
+    // Create food order if food items were selected
+    $foodOrderId = null;
+    $foodOrderCode = null;
+    if (!empty($_POST['food_items'])) {
+        $foodItems = json_decode($_POST['food_items'], true);
+        if ($foodItems && is_array($foodItems) && count($foodItems) > 0) {
+            // Generate food order number
+            $year = date('Y');
+            $foStmt = $pdo->prepare("SELECT COUNT(*) as count FROM food_orders WHERE YEAR(created_at) = ?");
+            $foStmt->execute([$year]);
+            $foCount = $foStmt->fetch()['count'] + 1;
+            $foodOrderCode = 'FO-' . $year . str_pad($foCount, 6, '0', STR_PAD_LEFT);
+            
+            // Calculate food totals
+            $foodSubtotal = 0;
+            foreach ($foodItems as $item) {
+                $foodSubtotal += $item['price'] * $item['qty'];
+            }
+            $foodTax = $foodSubtotal * 0.12; // 12% tax
+            $foodTotal = $foodSubtotal + $foodTax;
+            
+            // Create food order linked to reservation
+            $foodOrderId = 'fo-' . uniqid();
+            $foStmt = $pdo->prepare("
+                INSERT INTO food_orders (
+                    order_id, property_id, reservation_id, order_number, order_type,
+                    customer_name, order_status, subtotal, tax_amount, total_amount,
+                    payment_status, notes, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, 'room_service', ?, 'pending', ?, ?, ?, 'unpaid', ?, NOW(), NOW())
+            ");
+            $foStmt->execute([
+                $foodOrderId,
+                $_POST['property_id'],
+                $reservationId,
+                $foodOrderCode,
+                $_POST['first_name'] . ' ' . $_POST['last_name'],
+                $foodSubtotal,
+                $foodTax,
+                $foodTotal,
+                'Pre-order for reservation ' . $reservationCode
+            ]);
+            
+            // Insert food order items
+            foreach ($foodItems as $item) {
+                $foiId = 'foi-' . uniqid();
+                $foiStmt = $pdo->prepare("
+                    INSERT INTO food_order_items (
+                        order_item_id, order_id, item_id, item_name, quantity, unit_price, total_price
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                ");
+                $foiStmt->execute([
+                    $foiId,
+                    $foodOrderId,
+                    $item['item_id'],
+                    $item['name'],
+                    $item['qty'],
+                    $item['price'],
+                    $item['price'] * $item['qty']
+                ]);
+            }
+        }
+    }
+
     $pdo->commit();
 
     // Send confirmation email
@@ -384,14 +447,23 @@ Total: ₱' . number_format($totalAmount, 2);
         error_log("Failed to send confirmation email: " . $e->getMessage());
     }
 
-    // Return success response with redirect URL
-    echo json_encode([
+    // Build success response
+    $response = [
         'success' => true,
         'reservation_id' => $reservationId,
         'reservation_code' => $reservationCode,
         'message' => 'Your reservation has been created successfully!',
         'redirect_url' => '../pages/schedule-visit.php'
-    ]);
+    ];
+    
+    // Include food order info if created
+    if ($foodOrderId && $foodOrderCode) {
+        $response['food_order_id'] = $foodOrderId;
+        $response['food_order_code'] = $foodOrderCode;
+        $response['message'] = 'Your reservation and food pre-order have been created successfully!';
+    }
+    
+    echo json_encode($response);
 
 } catch (Exception $e) {
     if ($pdo->inTransaction()) {

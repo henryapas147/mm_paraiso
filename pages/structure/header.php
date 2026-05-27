@@ -29,6 +29,7 @@ $companyName = $companyInfo['company_name'] ?? 'M&M Paraiso';
                         <li><a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : ''; ?>">Home</a></li>
                         <li><a href="properties.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'properties.php' ? 'active' : ''; ?>">Properties</a></li>
                         <li><a href="rooms.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'rooms.php' ? 'active' : ''; ?>">Rooms</a></li>
+                        <li><a href="food-menu.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'food-menu.php' ? 'active' : ''; ?>">Food & Drinks</a></li>
                         <li><a href="contact.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'contact.php' ? 'active' : ''; ?>">Contact Us</a></li>
                         <li><a href="schedule-visit.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'schedule-visit.php' ? 'active' : ''; ?>"><i class="fa fa-calendar"></i> Schedule a visit</a></li>
                         <?php if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true): ?>

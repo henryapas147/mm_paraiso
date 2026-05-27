@@ -1449,6 +1449,40 @@ function createAdminNotification($data)
                       </div>
                     </div>
 
+                    <!-- Food & Beverages Section (Optional) -->
+                    <div class="col-lg-12 mb-4">
+                      <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white border-0" style="cursor: pointer;" onclick="toggleFoodSection()">
+                          <div class="d-flex justify-content-between align-items-center py-2">
+                            <h6 class="mb-0"><i class="fa fa-cutlery me-2" style="color: #f35525;"></i>Food & Beverages <span class="text-muted">(Optional)</span></h6>
+                            <div class="d-flex align-items-center gap-3">
+                              <span id="foodSummary" class="text-muted small" style="display: none;"></span>
+                              <i id="foodToggleIcon" class="fa fa-chevron-down text-muted"></i>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="card-body" id="foodSection" style="display: none;">
+                          <p class="text-muted small mb-3">Pre-order food to be ready for your arrival. You can skip this and order later.</p>
+                          
+                          <!-- Food Menu Container -->
+                          <div id="foodMenuContainer">
+                            <p class="text-muted text-center py-3">Select a property first to view available food items</p>
+                          </div>
+                          
+                          <!-- Food Cart Summary -->
+                          <div id="foodCartSummary" class="mt-3 pt-3 border-top" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center">
+                              <span class="fw-bold">Food Subtotal:</span>
+                              <span id="foodSubtotal" class="fw-bold" style="color: #f35525;">₱0.00</span>
+                            </div>
+                          </div>
+                          
+                          <!-- Hidden input for food items -->
+                          <input type="hidden" name="food_items" id="foodItemsInput" value="">
+                        </div>
+                      </div>
+                    </div>
+
                     <div class="col-lg-12">
                       <button type="submit" id="form-submit" class="btn btn-primary w-100 py-3" style="background: #f35525; border: none; font-weight: 600;">Schedule Visit</button>
                     </div>
@@ -2272,13 +2306,26 @@ function createAdminNotification($data)
           if (result.success) {
             // Reset form
             form.reset();
+            
+            // Reset food cart
+            foodCart = [];
+            updateFoodUI();
+            document.getElementById('foodSection').style.display = 'none';
+            document.getElementById('foodToggleIcon').classList.remove('fa-chevron-up');
+            document.getElementById('foodToggleIcon').classList.add('fa-chevron-down');
 
             // Show success modal
             if (successMessage) {
+              let foodInfo = '';
+              if (result.food_order_code) {
+                foodInfo = `<p class="mb-1"><strong>Food Order:</strong> ${result.food_order_code}</p>`;
+              }
+              
               successMessage.innerHTML = `
                 <div class="alert alert-success mb-3">
                   <h5 class="alert-heading mb-2">Reservation Created!</h5>
                   <p class="mb-1"><strong>Reservation Code:</strong> ${result.reservation_code}</p>
+                  ${foodInfo}
                   <p class="mb-0">${result.message}</p>
                 </div>
                 <p class="text-muted small">A confirmation email has been sent to ${document.getElementById('email')?.value || 'your email'}.</p>
@@ -2655,6 +2702,243 @@ function createAdminNotification($data)
       if (roomCategorySelect?.value) {
         calculateTotalAmount();
       }
+      // Load food menu if property selected
+      loadFoodMenu(propertySelect.value);
+    }
+
+    // ============================================
+    // FOOD & BEVERAGES SECTION
+    // ============================================
+    
+    let foodCart = [];
+    let foodMenuItems = [];
+    let foodCurrentPage = 1;
+    const foodItemsPerPage = 6;
+    
+    function toggleFoodSection() {
+      const section = document.getElementById('foodSection');
+      const icon = document.getElementById('foodToggleIcon');
+      if (section.style.display === 'none') {
+        section.style.display = 'block';
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-up');
+        // Load food if property selected
+        const propertyId = propertySelect?.value;
+        if (propertyId) {
+          loadFoodMenu(propertyId);
+        }
+      } else {
+        section.style.display = 'none';
+        icon.classList.remove('fa-chevron-up');
+        icon.classList.add('fa-chevron-down');
+      }
+    }
+    
+    async function loadFoodMenu(propertyId) {
+      const container = document.getElementById('foodMenuContainer');
+      if (!propertyId) {
+        container.innerHTML = '<p class="text-muted text-center py-3">Select a property first to view available food items</p>';
+        return;
+      }
+      
+      container.innerHTML = '<p class="text-muted text-center py-3"><i class="fa fa-spinner fa-spin"></i> Loading menu...</p>';
+      
+      try {
+        const res = await fetch(`api/food-menu.php?action=menu&property_id=${propertyId}`);
+        const data = await res.json();
+        if (data.success && data.data.length > 0) {
+          foodMenuItems = data.data;
+          renderFoodMenu();
+        } else {
+          container.innerHTML = '<p class="text-muted text-center py-3">No food items available for this property</p>';
+        }
+      } catch (err) {
+        container.innerHTML = '<p class="text-danger text-center py-3">Failed to load food menu</p>';
+      }
+    }
+    
+    function renderFoodMenu() {
+      const container = document.getElementById('foodMenuContainer');
+      const totalItems = foodMenuItems.length;
+      const totalPages = Math.ceil(totalItems / foodItemsPerPage);
+      
+      // Ensure current page is valid
+      if (foodCurrentPage > totalPages) foodCurrentPage = 1;
+      if (foodCurrentPage < 1) foodCurrentPage = 1;
+      
+      // Get items for current page
+      const start = (foodCurrentPage - 1) * foodItemsPerPage;
+      const end = start + foodItemsPerPage;
+      const pageItems = foodMenuItems.slice(start, end);
+      
+      // Build pagination HTML
+      let paginationHtml = '';
+      if (totalPages > 1) {
+        paginationHtml = `
+          <div class="d-flex justify-content-center align-items-center gap-2 mt-3 pt-3 border-top">
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="changeFoodPage(${foodCurrentPage - 1})" ${foodCurrentPage === 1 ? 'disabled' : ''}>
+              <i class="fa fa-chevron-left"></i> Prev
+            </button>
+            <span class="text-muted small">Page ${foodCurrentPage} of ${totalPages} (${totalItems} items)</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="changeFoodPage(${foodCurrentPage + 1})" ${foodCurrentPage === totalPages ? 'disabled' : ''}>
+              Next <i class="fa fa-chevron-right"></i>
+            </button>
+          </div>
+        `;
+      }
+      
+      container.innerHTML = pageItems.map(item => {
+        const existing = foodCart.find(c => c.item_id === item.item_id);
+        const qty = existing ? existing.qty : 0;
+        // Fix image path - use uploads/foods directory
+        let imgUrl = '../uploads/foods/default-food.png';
+        if (item.image_url) {
+          if (item.image_url.startsWith('http')) {
+            imgUrl = item.image_url;
+          } else if (item.image_url.startsWith('/uploads/foods/')) {
+            imgUrl = '..' + item.image_url;
+          } else if (item.image_url.startsWith('/')) {
+            imgUrl = '..' + item.image_url;
+          } else {
+            imgUrl = '../uploads/foods/' + item.image_url;
+          }
+        } else if (item.thumbnail_url) {
+          if (item.thumbnail_url.startsWith('http')) {
+            imgUrl = item.thumbnail_url;
+          } else if (item.thumbnail_url.startsWith('/uploads/foods/')) {
+            imgUrl = '..' + item.thumbnail_url;
+          } else if (item.thumbnail_url.startsWith('/')) {
+            imgUrl = '..' + item.thumbnail_url;
+          } else {
+            imgUrl = '../uploads/foods/' + item.thumbnail_url;
+          }
+        }
+        
+        return `
+        <div class="d-flex align-items-center gap-3 p-2 border-bottom">
+          <img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(item.item_name)}" 
+               style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; flex-shrink: 0;">
+          <div class="flex-grow-1" style="min-width: 0;">
+            <h6 class="mb-1 text-truncate">${escapeHtml(item.item_name)}</h6>
+            <p class="text-muted small mb-0 text-truncate">${escapeHtml(item.description || '')}</p>
+            <div class="d-flex align-items-center justify-content-between mt-1">
+              <span class="text-primary fw-bold">₱${parseFloat(item.price).toFixed(2)}</span>
+              <span class="badge bg-light text-dark" style="font-size: 0.75rem;">${escapeHtml(item.category_name)}</span>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-1" style="flex-shrink: 0;">
+            <button type="button" class="btn btn-sm btn-outline-secondary px-2" onclick="updateFoodQty('${item.item_id}', -1)">-</button>
+            <span id="food-qty-${item.item_id}" class="mx-1" style="min-width: 24px; text-align: center;">${qty}</span>
+            <button type="button" class="btn btn-sm btn-outline-primary px-2" onclick="updateFoodQty('${item.item_id}', 1)">+</button>
+          </div>
+        </div>
+      `}).join('') + paginationHtml;
+    }
+    
+    function changeFoodPage(page) {
+      foodCurrentPage = page;
+      renderFoodMenu();
+    }
+    
+    function updateFoodQty(itemId, delta) {
+      const item = foodMenuItems.find(i => i.item_id === itemId);
+      const existing = foodCart.find(c => c.item_id === itemId);
+      
+      if (existing) {
+        existing.qty += delta;
+        if (existing.qty <= 0) {
+          foodCart = foodCart.filter(c => c.item_id !== itemId);
+        }
+      } else if (delta > 0) {
+        // Fix image path for cart
+        let cartImgUrl = '../uploads/foods/default-food.png';
+        if (item.image_url) {
+          if (item.image_url.startsWith('http')) {
+            cartImgUrl = item.image_url;
+          } else if (item.image_url.startsWith('/uploads/foods/')) {
+            cartImgUrl = '..' + item.image_url;
+          } else if (item.image_url.startsWith('/')) {
+            cartImgUrl = '..' + item.image_url;
+          } else {
+            cartImgUrl = '../uploads/foods/' + item.image_url;
+          }
+        } else if (item.thumbnail_url) {
+          if (item.thumbnail_url.startsWith('http')) {
+            cartImgUrl = item.thumbnail_url;
+          } else if (item.thumbnail_url.startsWith('/uploads/foods/')) {
+            cartImgUrl = '..' + item.thumbnail_url;
+          } else if (item.thumbnail_url.startsWith('/')) {
+            cartImgUrl = '..' + item.thumbnail_url;
+          } else {
+            cartImgUrl = '../uploads/foods/' + item.thumbnail_url;
+          }
+        }
+        
+        foodCart.push({
+          item_id: itemId,
+          name: item.item_name,
+          price: parseFloat(item.price),
+          image: cartImgUrl,
+          qty: 1
+        });
+      }
+      
+      updateFoodUI();
+      // Re-render to show updated quantities on current page
+      renderFoodMenu();
+    }
+    
+    function updateFoodUI() {
+      // Update quantity displays for visible items only
+      foodMenuItems.forEach(item => {
+        const existing = foodCart.find(c => c.item_id === item.item_id);
+        const qtyEl = document.getElementById(`food-qty-${item.item_id}`);
+        if (qtyEl) qtyEl.textContent = existing ? existing.qty : 0;
+      });
+      
+      // Update summary
+      const totalQty = foodCart.reduce((sum, item) => sum + item.qty, 0);
+      const subtotal = foodCart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      
+      const summaryEl = document.getElementById('foodSummary');
+      const cartSummaryEl = document.getElementById('foodCartSummary');
+      const subtotalEl = document.getElementById('foodSubtotal');
+      const inputEl = document.getElementById('foodItemsInput');
+      
+      if (totalQty > 0) {
+        summaryEl.textContent = `${totalQty} item${totalQty > 1 ? 's' : ''} - ₱${subtotal.toFixed(2)}`;
+        summaryEl.style.display = 'inline';
+        cartSummaryEl.style.display = 'block';
+        subtotalEl.textContent = '₱' + subtotal.toFixed(2);
+        inputEl.value = JSON.stringify(foodCart);
+      } else {
+        summaryEl.style.display = 'none';
+        cartSummaryEl.style.display = 'none';
+        inputEl.value = '';
+      }
+    }
+    
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // Listen for property changes to reload food menu
+    if (propertySelect) {
+      propertySelect.addEventListener('change', function() {
+        // Reset pagination and cart when property changes
+        foodCurrentPage = 1;
+        
+        if (this.value) {
+          loadFoodMenu(this.value);
+        } else {
+          document.getElementById('foodMenuContainer').innerHTML = '<p class="text-muted text-center py-3">Select a property first to view available food items</p>';
+          foodCart = [];
+          updateFoodUI();
+        }
+      });
     }
   </script>
 

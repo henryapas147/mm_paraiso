@@ -1087,4 +1087,223 @@ class EmailService
             return [];
         }
     }
+
+    /**
+     * Send food order confirmation email
+     *
+     * @param array $orderData Order data including items, totals, customer info
+     * @return array ['success' => bool, 'message' => string]
+     */
+    public function sendFoodOrderConfirmation($orderData)
+    {
+        try {
+            // Clear previous recipients
+            $this->mailer->clearAddresses();
+
+            // Add recipient
+            $customerEmail = $orderData['customer_email'] ?? '';
+            $customerName = $orderData['customer_name'] ?? 'Guest';
+            
+            if (empty($customerEmail)) {
+                return [
+                    'success' => false,
+                    'message' => 'No customer email provided'
+                ];
+            }
+            
+            $this->mailer->addAddress($customerEmail, $customerName);
+
+            // Get company info
+            $companyInfo = [];
+            if ($this->pdo) {
+                try {
+                    $cs = $this->pdo->query("SELECT company_name, email, phone_number FROM company_information WHERE is_active = 1 LIMIT 1");
+                    $companyInfo = $cs->fetch(\PDO::FETCH_ASSOC) ?: [];
+                } catch (\Exception $e) {
+                    // use defaults
+                }
+            }
+
+            // Format the food order email
+            $formattedMessage = $this->formatFoodOrderTemplate($orderData, $companyInfo);
+
+            // Content
+            $this->mailer->isHTML(true);
+            $this->mailer->Subject = 'Food Order Confirmation - ' . ($orderData['order_number'] ?? 'Order');
+            $this->mailer->Body = $formattedMessage;
+            $this->mailer->AltBody = $this->formatFoodOrderText($orderData, $companyInfo);
+
+            // Send the email
+            $this->mailer->send();
+
+            return [
+                'success' => true,
+                'message' => 'Food order confirmation email sent successfully'
+            ];
+
+        } catch (Exception $e) {
+            error_log('Food order confirmation email failed: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Failed to send food order confirmation: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Format food order email template
+     */
+    private function formatFoodOrderTemplate($orderData, $companyInfo = [])
+    {
+        $year = date('Y');
+        $companyName = htmlspecialchars($companyInfo['company_name'] ?? 'M&M Paraiso Resort');
+        $companyEmail = htmlspecialchars($companyInfo['email'] ?? 'info@mnmparaiso.com');
+        $companyPhone = htmlspecialchars($companyInfo['phone_number'] ?? '010-020-0340');
+        
+        $orderNumber = htmlspecialchars($orderData['order_number'] ?? 'N/A');
+        $customerName = htmlspecialchars($orderData['customer_name'] ?? 'Guest');
+        $orderType = ucfirst(str_replace('_', ' ', $orderData['order_type'] ?? 'dine_in'));
+        $tableInfo = '';
+        $roomInfo = '';
+        
+        if (!empty($orderData['table_number'])) {
+            $tableInfo = '<p><strong>Table:</strong> ' . htmlspecialchars($orderData['table_number']) . '</p>';
+        }
+        if (!empty($orderData['room_number'])) {
+            $roomInfo = '<p><strong>Room:</strong> ' . htmlspecialchars($orderData['room_number']) . '</p>';
+        }
+        
+        $itemsHtml = '';
+        if (!empty($orderData['items']) && is_array($orderData['items'])) {
+            foreach ($orderData['items'] as $item) {
+                $itemsHtml .= '
+                <tr>
+                    <td style="padding:12px;border-bottom:1px solid #e5e7eb;">' . htmlspecialchars($item['item_name'] ?? 'Item') . '</td>
+                    <td style="padding:12px;border-bottom:1px solid #e5e7eb;text-align:center;">' . ($item['quantity'] ?? 1) . '</td>
+                    <td style="padding:12px;border-bottom:1px solid #e5e7eb;text-align:right;">₱' . number_format($item['unit_price'] ?? 0, 2) . '</td>
+                    <td style="padding:12px;border-bottom:1px solid #e5e7eb;text-align:right;">₱' . number_format($item['total_price'] ?? 0, 2) . '</td>
+                </tr>';
+            }
+        }
+        
+        $totalAmount = '₱' . number_format($orderData['total_amount'] ?? 0, 2);
+        $notes = !empty($orderData['notes']) ? '<p><strong>Special Requests:</strong> ' . htmlspecialchars($orderData['notes']) . '</p>' : '';
+
+        return '<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Order Confirmation</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;">
+    <table role="presentation" style="width:100%;border-collapse:collapse;">
+        <tr>
+            <td align="center" style="padding:48px 16px;">
+                <table role="presentation" style="width:100%;max-width:600px;border-collapse:collapse;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background:linear-gradient(135deg,#f97316 0%,#ea580c 100%);padding:32px 48px;text-align:center;">
+                            <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;">🍽️ Food Order Confirmation</h1>
+                            <p style="margin:8px 0 0;color:#fed7aa;font-size:16px;">' . $companyName . '</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding:32px 48px;">
+                            <p style="margin:0 0 20px;font-size:16px;color:#374151;">Hello ' . $customerName . ',</p>
+                            <p style="margin:0 0 24px;font-size:16px;color:#374151;">Thank you for your order! Here are your order details:</p>
+                            
+                            <!-- Order Info -->
+                            <div style="background:#fef3c7;border-radius:8px;padding:20px;margin-bottom:24px;">
+                                <p style="margin:0 0 8px;"><strong>Order Number:</strong> ' . $orderNumber . '</p>
+                                <p style="margin:0 0 8px;"><strong>Order Type:</strong> ' . $orderType . '</p>
+                                ' . $tableInfo . $roomInfo . '
+                                ' . $notes . '
+                            </div>
+                            
+                            <!-- Items Table -->
+                            <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+                                <thead>
+                                    <tr style="background:#f9fafb;">
+                                        <th style="padding:12px;text-align:left;border-bottom:2px solid #e5e7eb;font-size:14px;color:#6b7280;">Item</th>
+                                        <th style="padding:12px;text-align:center;border-bottom:2px solid #e5e7eb;font-size:14px;color:#6b7280;">Qty</th>
+                                        <th style="padding:12px;text-align:right;border-bottom:2px solid #e5e7eb;font-size:14px;color:#6b7280;">Price</th>
+                                        <th style="padding:12px;text-align:right;border-bottom:2px solid #e5e7eb;font-size:14px;color:#6b7280;">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ' . $itemsHtml . '
+                                </tbody>
+                                <tfoot>
+                                    <tr style="background:#f9fafb;font-weight:600;">
+                                        <td colspan="3" style="padding:16px 12px;text-align:right;border-top:2px solid #e5e7eb;">Items Total:</td>
+                                        <td style="padding:16px 12px;text-align:right;border-top:2px solid #e5e7eb;color:#ea580c;font-size:18px;">' . $totalAmount . '</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                            <p style="margin:24px 0 0;font-size:14px;color:#6b7280;">If you have any questions about your order, please contact us at <a href="mailto:' . $companyEmail . '" style="color:#ea580c;text-decoration:none;">' . $companyEmail . '</a> or call ' . $companyPhone . '.</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background:#f9fafb;padding:24px 48px;text-align:center;border-top:1px solid #e5e7eb;">
+                            <p style="margin:0;font-size:14px;color:#9ca3af;">&copy; ' . $year . ' ' . $companyName . '. All rights reserved.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>';
+    }
+
+    /**
+     * Format food order plain text version
+     */
+    private function formatFoodOrderText($orderData, $companyInfo = [])
+    {
+        $companyName = $companyInfo['company_name'] ?? 'M&M Paraiso Resort';
+        $orderNumber = $orderData['order_number'] ?? 'N/A';
+        $customerName = $orderData['customer_name'] ?? 'Guest';
+        $orderType = ucfirst(str_replace('_', ' ', $orderData['order_type'] ?? 'dine_in'));
+        $totalAmount = '₱' . number_format($orderData['total_amount'] ?? 0, 2);
+        
+        $text = "Food Order Confirmation - {$orderNumber}\n\n";
+        $text .= "Hello {$customerName},\n\n";
+        $text .= "Thank you for your order!\n\n";
+        $text .= "Order Details:\n";
+        $text .= "Order Number: {$orderNumber}\n";
+        $text .= "Order Type: {$orderType}\n";
+        
+        if (!empty($orderData['table_number'])) {
+            $text .= "Table: {$orderData['table_number']}\n";
+        }
+        if (!empty($orderData['room_number'])) {
+            $text .= "Room: {$orderData['room_number']}\n";
+        }
+        
+        $text .= "\nItems Ordered:\n";
+        if (!empty($orderData['items']) && is_array($orderData['items'])) {
+            foreach ($orderData['items'] as $item) {
+                $itemName = $item['item_name'] ?? 'Item';
+                $qty = $item['quantity'] ?? 1;
+                $price = '₱' . number_format($item['total_price'] ?? 0, 2);
+                $text .= "- {$itemName} x{$qty} = {$price}\n";
+            }
+        }
+        
+        $text .= "\nItems Total: {$totalAmount}\n\n";
+        
+        if (!empty($orderData['notes'])) {
+            $text .= "Special Requests: {$orderData['notes']}\n\n";
+        }
+        
+        $text .= "{$companyName}";
+        
+        return $text;
+    }
 }

@@ -1,5 +1,541 @@
+<?php if (false) {
+} ?>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --prod-blue: #1A6BBF;
+    --prod-blue-dark: #0F4C8A;
+    --prod-blue-pale: #EBF3FC;
+    --prod-green: #2E7D32;
+    --prod-green-pale: #E8F5E9;
+    --prod-red: #C62828;
+    --prod-red-pale: #FFEBEE;
+    --prod-amber: #E65100;
+    --prod-amber-pale: #FFF3E0;
+    --prod-purple: #6230B5;
+    --prod-purple-pale: #F5F0FF;
+    --prod-radius-sm: 6px;
+    --prod-radius-md: 10px;
+    --prod-radius-lg: 14px;
+    --prod-radius-xl: 20px;
+    --prod-shadow-sm: 0 1px 3px rgba(0, 0, 0, .07), 0 1px 2px rgba(0, 0, 0, .05);
+    --prod-shadow-md: 0 4px 12px rgba(0, 0, 0, .08), 0 2px 4px rgba(0, 0, 0, .05);
+    --prod-shadow-lg: 0 20px 48px rgba(0, 0, 0, .14), 0 8px 16px rgba(0, 0, 0, .07);
+    --prod-font: 'DM Sans', sans-serif;
+    --prod-mono: 'DM Mono', monospace;
+  }
+
+  .txn-page {
+    padding: 28px 28px 40px;
+    max-width: 100%;
+    margin: 0 auto;
+    background: var(--color-background-tertiary, #F4F5F7);
+    min-height: 100%;
+    border-radius: var(--border-radius-xl, 18px);
+    font-family: var(--prod-font);
+  }
+
+  .txn-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .txn-page-eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--prod-blue);
+    margin-bottom: 4px;
+  }
+
+  .txn-page-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    letter-spacing: -.4px;
+    line-height: 1.2;
+  }
+
+  .txn-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .txn-stat-card {
+    background: var(--color-background-primary, #fff);
+    border: 1px solid rgba(0, 0, 0, .07);
+    border-radius: var(--prod-radius-lg);
+    padding: 20px 22px;
+    box-shadow: var(--prod-shadow-sm);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .txn-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: var(--prod-radius-lg) var(--prod-radius-lg) 0 0;
+    background: var(--_accent, #CBD5E1);
+  }
+
+  .txn-stat-card.blue {
+    --_accent: var(--prod-blue);
+  }
+
+  .txn-stat-card.green {
+    --_accent: var(--prod-green);
+  }
+
+  .txn-stat-card.red {
+    --_accent: var(--prod-red);
+  }
+
+  .txn-stat-card.purple {
+    --_accent: var(--prod-purple);
+  }
+
+  .txn-stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--prod-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    margin-bottom: 14px;
+    background: var(--prod-blue-pale);
+    color: var(--prod-blue);
+  }
+
+  .txn-stat-card.green .txn-stat-icon {
+    background: var(--prod-green-pale);
+    color: var(--prod-green);
+  }
+
+  .txn-stat-card.red .txn-stat-icon {
+    background: var(--prod-red-pale);
+    color: var(--prod-red);
+  }
+
+  .txn-stat-card.purple .txn-stat-icon {
+    background: var(--prod-purple-pale);
+    color: var(--prod-purple);
+  }
+
+  .txn-stat-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    margin-bottom: 6px;
+  }
+
+  .txn-stat-value {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    font-family: var(--prod-mono);
+  }
+
+  .txn-card {
+    background: var(--color-background-primary, #fff);
+    border: 1px solid rgba(0, 0, 0, .07);
+    border-radius: var(--prod-radius-lg);
+    box-shadow: var(--prod-shadow-sm);
+    overflow: hidden;
+  }
+
+  .txn-card-header {
+    padding: 18px 22px;
+    border-bottom: 1px solid rgba(0, 0, 0, .06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .txn-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .txn-search-wrap {
+    position: relative;
+  }
+
+  .txn-search-wrap i {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    pointer-events: none;
+  }
+
+  .txn-search {
+    padding: 8px 14px 8px 34px;
+    font-size: 13px;
+    border: 1px solid rgba(0, 0, 0, .12);
+    border-radius: var(--prod-radius-md);
+    background: var(--color-background-secondary, #F8FAFC);
+    color: var(--color-text-primary);
+    outline: none;
+    width: 230px;
+  }
+
+  .txn-search:focus {
+    border-color: var(--prod-blue);
+    box-shadow: 0 0 0 3px rgba(26, 107, 191, .12);
+  }
+
+  .txn-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: var(--prod-radius-md);
+    border: 1px solid rgba(0, 0, 0, .12);
+    background: var(--color-background-primary, #fff);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: all .15s;
+  }
+
+  .txn-btn:hover {
+    background: var(--color-background-secondary, #F8FAFC);
+  }
+
+  .txn-btn-primary {
+    background: var(--prod-blue);
+    color: #fff;
+    border-color: var(--prod-blue);
+    box-shadow: 0 1px 3px rgba(26, 107, 191, .3);
+  }
+
+  .txn-btn-primary:hover {
+    background: var(--prod-blue-dark);
+  }
+
+  .txn-table-wrap {
+    overflow-x: auto;
+  }
+
+  .txn-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .txn-table thead tr {
+    background: var(--color-background-secondary, #F8FAFC);
+  }
+
+  .txn-table th {
+    padding: 11px 18px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    border-bottom: 1px solid rgba(0, 0, 0, .07);
+  }
+
+  .txn-table td {
+    padding: 13px 18px;
+    vertical-align: middle;
+  }
+
+  .txn-name-cell {
+    display: flex;
+    align-items: center;
+  }
+
+  .txn-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--prod-radius-sm);
+    background: var(--prod-blue-pale);
+    color: var(--prod-blue);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    margin-right: 10px;
+  }
+
+  .txn-name-primary {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+
+  .txn-name-secondary {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+  }
+
+  .txn-badge {
+    display: inline-flex;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .txn-badge.in {
+    background: var(--prod-green-pale);
+    color: var(--prod-green);
+  }
+
+  .txn-badge.out {
+    background: var(--prod-red-pale);
+    color: var(--prod-red);
+  }
+
+  .txn-badge.transfer {
+    background: var(--prod-purple-pale);
+    color: var(--prod-purple);
+  }
+
+  .txn-actions {
+    display: flex;
+    gap: 5px;
+    justify-content: flex-end;
+  }
+
+  .txn-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: var(--prod-radius-sm);
+    border: 1px solid rgba(0, 0, 0, .1);
+    background: transparent;
+    cursor: pointer;
+    transition: all .15s;
+  }
+
+  .txn-action-btn.view:hover {
+    background: var(--prod-blue-pale);
+    color: var(--prod-blue);
+  }
+
+  .txn-empty {
+    padding: 64px;
+    text-align: center;
+    color: var(--color-text-secondary);
+  }
+
+  .txn-empty-icon {
+    font-size: 32px;
+    opacity: .25;
+    margin-bottom: 12px;
+  }
+
+  .txn-pagination-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 22px;
+    border-top: 1px solid rgba(0, 0, 0, .06);
+    background: var(--color-background-primary, #fff);
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .txn-pagination-info {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  .txn-pagination {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .txn-page-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid rgba(0, 0, 0, .12);
+    border-radius: var(--prod-radius-sm);
+    background: var(--color-background-primary, #fff);
+    color: var(--color-text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .txn-page-btn:hover:not(:disabled) {
+    background: var(--prod-blue-pale);
+    border-color: var(--prod-blue);
+    color: var(--prod-blue);
+  }
+
+  .txn-page-btn.active {
+    background: var(--prod-blue);
+    border-color: var(--prod-blue);
+    color: #fff;
+  }
+
+  .txn-page-btn:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+  }
+
+  .txn-entries-select {
+    padding: 6px 28px 6px 12px;
+    font-size: 13px;
+    border: 1px solid rgba(0, 0, 0, .12);
+    border-radius: var(--prod-radius-md);
+    background: var(--color-background-secondary, #F8FAFC);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+
+  .txn-entries-select:focus {
+    border-color: var(--prod-blue);
+    box-shadow: 0 0 0 3px rgba(26, 107, 191, .12);
+    outline: none;
+  }
+
+  .txn-entries-label {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-right: 8px;
+  }
+
+  .txn-entries-wrap {
+    display: flex;
+    align-items: center;
+  }
+
+  @media (max-width: 600px) {
+    .txn-search {
+      width: 160px;
+    }
+  }
+</style>
+
+<div class="txn-page">
+  <div class="txn-page-header">
+    <div>
+      <div class="txn-page-eyebrow"><i class="fas fa-exchange-alt" style="margin-right:5px"></i>Inventory</div>
+      <div class="txn-page-title">Stock Transactions</div>
+    </div>
+  </div>
+
+  <div class="txn-stats-grid">
+    <div class="txn-stat-card blue">
+      <div class="txn-stat-icon"><i class="fas fa-exchange-alt"></i></div>
+      <div class="txn-stat-label">Total Transactions</div>
+      <div class="txn-stat-value" id="statTotal">—</div>
+    </div>
+    <div class="txn-stat-card green">
+      <div class="txn-stat-icon"><i class="fas fa-arrow-down"></i></div>
+      <div class="txn-stat-label">Stock In</div>
+      <div class="txn-stat-value" id="statStockIn">—</div>
+    </div>
+    <div class="txn-stat-card red">
+      <div class="txn-stat-icon"><i class="fas fa-arrow-up"></i></div>
+      <div class="txn-stat-label">Stock Out</div>
+      <div class="txn-stat-value" id="statStockOut">—</div>
+    </div>
+    <div class="txn-stat-card purple">
+      <div class="txn-stat-icon"><i class="fas fa-random"></i></div>
+      <div class="txn-stat-label">Transfers</div>
+      <div class="txn-stat-value" id="statTransfers">—</div>
+    </div>
+  </div>
+
+  <div class="txn-card">
+    <div class="txn-card-header">
+      <div>
+        <strong>All Transactions</strong>
+        <span id="tableCount" style="font-size:12px;color:var(--color-text-secondary);margin-left:8px">Loading…</span>
+      </div>
+      <div class="txn-toolbar">
+        <div class="txn-entries-wrap">
+          <span class="txn-entries-label">Show</span>
+          <select class="txn-entries-select" id="entriesPerPage" onchange="changeEntriesPerPage()">
+            <option value="10">10</option>
+            <option value="25" selected>25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+          <span class="txn-entries-label">entries</span>
+        </div>
+        <div class="txn-search-wrap">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchInput" class="txn-search" placeholder="Search transactions…" oninput="filterTable()">
+        </div>
+      </div>
+    </div>
+    <div class="txn-table-wrap">
+      <table class="txn-table" id="transactionsTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Product</th>
+            <th>Location</th>
+            <th style="text-align:right">Quantity</th>
+            <th style="text-align:center">Direction</th>
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="transactionsTableBody">
+          <tr>
+            <td colspan="7" class="txn-empty">
+              <div class="txn-empty-icon"><i class="fas fa-spinner fa-spin"></i></div>
+              <div>Loading transactions…</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="txn-pagination-wrap" id="paginationWrap" style="display:none">
+      <div class="txn-pagination-info" id="paginationInfo">Showing 1-25 of 100 entries</div>
+      <div class="txn-pagination" id="paginationControls"></div>
+    </div>
+  </div>
+</div>
+
 <script>
   let transactionsData = [];
+  let filteredData = [];
+  let currentPage = 1;
+  let entriesPerPage = 25;
   let productsData = [];
   let locationsData = [];
   let uomsData = [];
@@ -10,11 +546,14 @@
       const json = await res.json();
       if (json.success) {
         transactionsData = json.data;
+        filteredData = [...transactionsData];
+        currentPage = 1;
         renderStats();
         renderTable();
       }
     } catch (e) {
       console.error('Error fetching transactions:', e);
+      document.getElementById('transactionsTableBody').innerHTML = `<tr><td colspan="7" class="txn-empty"><div class="txn-empty-icon"><i class="fas fa-circle-xmark"></i></div><div>Failed to load data.</div></td></tr>`;
     }
   }
 
@@ -34,581 +573,270 @@
   }
 
   function renderStats() {
-    const stockIn = transactionsData.filter(t => ['stock_in', 'stock_in_manual', 'adjustment_add'].includes(t.transaction_type));
-    const stockOut = transactionsData.filter(t => ['stock_out_sale', 'stock_out_use', 'stock_out_damage', 'adjustment_deduct'].includes(t.transaction_type));
-    const transfers = transactionsData.filter(t => ['transfer_out', 'transfer_in'].includes(t.transaction_type));
-    document.getElementById('statTotal').textContent = transactionsData.length;
-    document.getElementById('statStockIn').textContent = stockIn.length;
-    document.getElementById('statStockOut').textContent = stockOut.length;
-    document.getElementById('statTransfers').textContent = transfers.length;
+    const total = transactionsData.length;
+    const stockIn = transactionsData.filter(t => ['stock_in', 'stock_in_manual', 'adjustment_add'].includes(t.transaction_type)).length;
+    const stockOut = transactionsData.filter(t => ['stock_out_sale', 'stock_out_use', 'stock_out_damage', 'adjustment_deduct'].includes(t.transaction_type)).length;
+    const transfers = transactionsData.filter(t => ['transfer_out', 'transfer_in'].includes(t.transaction_type)).length;
+
+    const pairs = [
+      ['statTotal', total],
+      ['statStockIn', stockIn],
+      ['statStockOut', stockOut],
+      ['statTransfers', transfers]
+    ];
+
+    pairs.forEach(([id, end]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (end === 0) {
+        el.textContent = '0';
+        return;
+      }
+      let start = 0,
+        step = Math.max(1, Math.ceil(end / 20));
+      const timer = setInterval(() => {
+        start = Math.min(start + step, end);
+        el.textContent = start;
+        if (start >= end) clearInterval(timer);
+      }, 25);
+    });
   }
+
+  const badgeClasses = {
+    'stock_in': 'in',
+    'stock_in_manual': 'in',
+    'adjustment_add': 'in',
+    'stock_out_sale': 'out',
+    'stock_out_use': 'out',
+    'stock_out_damage': 'out',
+    'adjustment_deduct': 'out',
+    'transfer_out': 'transfer',
+    'transfer_in': 'transfer'
+  };
+
+  const directionLabels = {
+    'stock_in': 'In',
+    'stock_in_manual': 'In',
+    'adjustment_add': 'In',
+    'stock_out_sale': 'Out',
+    'stock_out_use': 'Out',
+    'stock_out_damage': 'Out',
+    'adjustment_deduct': 'Out',
+    'transfer_out': 'Transfer',
+    'transfer_in': 'Transfer'
+  };
 
   function renderTable() {
     const tbody = document.getElementById('transactionsTableBody');
-    if (!transactionsData.length) {
-      tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400 dark:text-white/60">No stock transactions found.</td></tr>`;
+    const count = document.getElementById('tableCount');
+
+    if (!filteredData.length) {
+      count.textContent = '0 transactions';
+      document.getElementById('paginationWrap').style.display = 'none';
+      tbody.innerHTML = `<tr><td colspan="7" class="txn-empty"><div class="txn-empty-icon"><i class="fas fa-exchange-alt"></i></div><div>No transactions found</div></td></tr>`;
       return;
     }
-    tbody.innerHTML = transactionsData.map(txn => {
-      const isIn = ['stock_in', 'stock_in_manual', 'adjustment_add'].includes(txn.transaction_type);
-      const qtyClass = isIn ? 'text-emerald-500' : 'text-red-500';
-      const qtyPrefix = isIn ? '+' : '-';
-      const dateStr = txn.transaction_date ? new Date(txn.transaction_date).toLocaleDateString('en-US', {month:'short', day:'2-digit', year:'numeric'}) : '-';
+
+    const totalEntries = filteredData.length;
+    const totalPages = Math.ceil(totalEntries / entriesPerPage);
+    const start = (currentPage - 1) * entriesPerPage;
+    const end = Math.min(start + entriesPerPage, totalEntries);
+    const paginatedData = filteredData.slice(start, end);
+
+    count.textContent = `${totalEntries} transaction${totalEntries !== 1 ? 's' : ''}`;
+
+    const paginationWrap = document.getElementById('paginationWrap');
+    if (totalEntries > 10) {
+      paginationWrap.style.display = 'flex';
+      renderPagination(totalPages, start, end, totalEntries);
+    } else {
+      paginationWrap.style.display = 'none';
+    }
+
+    tbody.innerHTML = paginatedData.map(txn => {
+      const badgeClass = badgeClasses[txn.transaction_type] || 'in';
+      const direction = directionLabels[txn.transaction_type] || 'In';
+      const dateStr = txn.transaction_date ? new Date(txn.transaction_date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric'
+      }) : '—';
+      const typeLabel = txn.transaction_type ? txn.transaction_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '—';
       return `
-      <tr class="transaction-row">
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <div class="flex px-2 py-1">
-            <div class="inline-flex items-center justify-center mr-4 text-sm text-white transition-all duration-200 ease-in-out h-9 w-9 rounded-xl bg-gradient-to-tl from-blue-500 to-violet-500">
-              <i class="fas fa-box"></i>
-            </div>
-            <div class="flex flex-col justify-center">
-              <h6 class="mb-0 text-sm leading-normal dark:text-white">${txn.product_name}</h6>
-              <p class="mb-0 text-xs leading-tight dark:text-white dark:opacity-80 text-slate-400">${txn.product_code}</p>
+      <tr class="txn-row">
+        <td><span class="txn-name-secondary">${dateStr}</span></td>
+        <td><span class="txn-name-primary">${typeLabel}</span></td>
+        <td>
+          <div class="txn-name-cell">
+            <div class="txn-avatar"><i class="fas fa-box"></i></div>
+            <div>
+              <div class="txn-name-primary">${txn.product_name}</div>
             </div>
           </div>
         </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${txn.transaction_type.replace(/_/g, ' ')}</p>
-        </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${txn.location_name || '-'}</p>
-          <p class="mb-0 text-xs leading-tight dark:text-white dark:opacity-60 text-slate-400">${txn.property_name || '-'}</p>
-        </td>
-        <td class="p-2 text-right align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-sm font-bold leading-tight ${qtyClass} dark:text-white">${qtyPrefix}${parseFloat(txn.quantity).toFixed(3)} ${txn.uom_name}</p>
-        </td>
-        <td class="p-2 text-right align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-sm font-bold leading-tight dark:text-white">${parseFloat(txn.stock_after).toFixed(3)}</p>
-        </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${dateStr}</p>
-        </td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-          <div class="flex items-center gap-2">
-            <button onclick="viewTransactionDetails('${txn.txn_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md" title="View Details">
-              <i class="fas fa-info-circle mr-1.5 text-xs"></i><span>View</span>
-            </button>
-            <button onclick="openReverseTransactionModal('${txn.txn_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-orange-600 dark:text-orange-400 bg-white dark:bg-slate-700/50 border border-orange-200 dark:border-white/10 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/20 hover:text-orange-700 dark:hover:text-orange-300 hover:border-orange-300 dark:hover:border-orange-500 transition-all duration-200 shadow-sm hover:shadow-md" title="Reverse Entry">
-              <i class="fas fa-undo mr-1.5 text-xs"></i><span>Reverse</span>
-            </button>
+        <td><span class="txn-name-primary">${txn.location_name}</span></td>
+        <td style="text-align:right"><span class="txn-name-primary" style="font-family:var(--prod-mono)">${parseFloat(txn.quantity).toFixed(3)}</span></td>
+        <td style="text-align:center"><span class="txn-badge ${badgeClass}">${direction}</span></td>
+        <td>
+          <div class="txn-actions">
+            <button onclick="viewTransactionDetails('${txn.transaction_id}')" class="txn-action-btn view"><i class="fas fa-eye"></i> View</button>
           </div>
         </td>
       </tr>`;
     }).join('');
   }
 
+  function changeEntriesPerPage() {
+    entriesPerPage = parseInt(document.getElementById('entriesPerPage').value);
+    currentPage = 1;
+    renderTable();
+  }
+
+  function goToPage(page) {
+    const totalPages = Math.ceil(filteredData.length / entriesPerPage);
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderTable();
+  }
+
+  function renderPagination(totalPages, start, end, total) {
+    const paginationInfo = document.getElementById('paginationInfo');
+    const paginationControls = document.getElementById('paginationControls');
+
+    paginationInfo.textContent = `Showing ${start + 1}-${end} of ${total} entries`;
+
+    let html = '';
+    html += `<button class="txn-page-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>`;
+
+    const maxButtons = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+    let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+    if (endPage - startPage < maxButtons - 1) {
+      startPage = Math.max(1, endPage - maxButtons + 1);
+    }
+
+    if (startPage > 1) {
+      html += `<button class="txn-page-btn" onclick="goToPage(1)">1</button>`;
+      if (startPage > 2) html += `<span style="padding:0 8px;color:var(--color-text-secondary)">…</span>`;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      html += `<button class="txn-page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) html += `<span style="padding:0 8px;color:var(--color-text-secondary)">…</span>`;
+      html += `<button class="txn-page-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+    }
+
+    html += `<button class="txn-page-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
+    paginationControls.innerHTML = html;
+  }
+
+  function filterTable() {
+    const filter = document.getElementById('searchInput').value.toLowerCase();
+    currentPage = 1;
+
+    if (!filter) {
+      filteredData = [...transactionsData];
+    } else {
+      filteredData = transactionsData.filter(t =>
+        t.product_name.toLowerCase().includes(filter) ||
+        t.location_name.toLowerCase().includes(filter) ||
+        t.transaction_type.toLowerCase().includes(filter)
+      );
+    }
+
+    renderTable();
+  }
+
   function populateDropdowns() {
-    const productSel = document.getElementById('txnProductSelect');
-    const locationSel = document.getElementById('txnLocationSelect');
-    const uomSel = document.getElementById('txnUomSelect');
-    productSel.innerHTML = '<option value="">Select Product</option>' + productsData.map(p => `<option value="${p.product_id}">${p.product_name} (${p.product_code})</option>`).join('');
-    locationSel.innerHTML = '<option value="">Select Location</option>' + locationsData.map(l => `<option value="${l.location_id}">${l.property_name} - ${l.location_name}</option>`).join('');
-    uomSel.innerHTML = '<option value="">Select UOM</option>' + uomsData.map(u => `<option value="${u.uom_id}">${u.uom_name} (${u.uom_type})</option>`).join('');
+    const productSelects = document.querySelectorAll('select[name="product_id"]');
+    const locationSelects = document.querySelectorAll('select[name="location_id"]');
+    const prodOptions = '<option value="">Select Product</option>' + productsData.map(p => `<option value="${p.product_id}">${p.product_name}</option>`).join('');
+    const locOptions = '<option value="">Select Location</option>' + locationsData.map(l => `<option value="${l.location_id}">${l.location_name}</option>`).join('');
+    productSelects.forEach(sel => sel.innerHTML = prodOptions);
+    locationSelects.forEach(sel => sel.innerHTML = locOptions);
+  }
+
+  async function viewTransactionDetails(transactionId) {
+    const txn = transactionsData.find(t => String(t.transaction_id) === String(transactionId));
+    if (!txn) return;
+
+    const typeLabel = txn.transaction_type ? txn.transaction_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '—';
+    const dateStr = txn.transaction_date ? new Date(txn.transaction_date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }) : '—';
+
+    let referenceInfo = '';
+    if (txn.reference_type && txn.reference_id) {
+      referenceInfo = `<div style="margin-bottom:12px"><strong style="color:var(--color-text-secondary);font-size:11px;text-transform:uppercase">Reference</strong><div>${txn.reference_type} #${txn.reference_id}</div></div>`;
+    }
+
+    let notesInfo = '';
+    if (txn.notes) {
+      notesInfo = `<div style="margin-bottom:12px"><strong style="color:var(--color-text-secondary);font-size:11px;text-transform:uppercase">Notes</strong><div style="white-space:pre-wrap">${txn.notes}</div></div>`;
+    }
+
+    const modalHtml = `
+      <div id="txnDetailModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;font-family:var(--prod-font)" onclick="if(event.target===this)closeTransactionModal()">
+        <div style="background:var(--color-background-primary,#fff);border-radius:var(--prod-radius-lg);max-width:500px;width:90%;max-height:90vh;overflow:auto;box-shadow:var(--prod-shadow-lg)">
+          <div style="padding:20px 24px;border-bottom:1px solid rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:space-between">
+            <h3 style="margin:0;font-size:18px;font-weight:600">Transaction Details</h3>
+            <button onclick="closeTransactionModal()" style="background:none;border:none;cursor:pointer;padding:4px;font-size:18px;color:var(--color-text-secondary)"><i class="fas fa-times"></i></button>
+          </div>
+          <div style="padding:24px">
+            <div style="margin-bottom:16px">
+              <span class="txn-badge ${badgeClasses[txn.transaction_type] || 'in'}">${directionLabels[txn.transaction_type] || 'In'}</span>
+              <span style="margin-left:8px;font-size:13px;color:var(--color-text-secondary)">${typeLabel}</span>
+            </div>
+            <div style="display:grid;gap:12px;grid-template-columns:1fr 1fr;margin-bottom:16px">
+              <div>
+                <strong style="color:var(--color-text-secondary);font-size:11px;text-transform:uppercase">Date</strong>
+                <div>${dateStr}</div>
+              </div>
+              <div>
+                <strong style="color:var(--color-text-secondary);font-size:11px;text-transform:uppercase">Transaction ID</strong>
+                <div style="font-family:var(--prod-mono);font-size:12px">${txn.transaction_id}</div>
+              </div>
+            </div>
+            <div style="margin-bottom:12px">
+              <strong style="color:var(--color-text-secondary);font-size:11px;text-transform:uppercase">Product</strong>
+              <div>${txn.product_name}</div>
+            </div>
+            <div style="margin-bottom:12px">
+              <strong style="color:var(--color-text-secondary);font-size:11px;text-transform:uppercase">Location</strong>
+              <div>${txn.location_name}</div>
+            </div>
+            <div style="margin-bottom:12px">
+              <strong style="color:var(--color-text-secondary);font-size:11px;text-transform:uppercase">Quantity</strong>
+              <div style="font-family:var(--prod-mono);font-size:18px;font-weight:600">${parseFloat(txn.quantity).toFixed(3)}</div>
+            </div>
+            ${referenceInfo}
+            ${notesInfo}
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeTransactionModal() {
+    const modal = document.getElementById('txnDetailModal');
+    if (modal) {
+      modal.remove();
+      document.body.style.overflow = '';
+    }
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     fetchTransactions();
     fetchRelated();
   });
-</script>
-
-<!-- PAGE CONTENT -->
-
-      <!-- Stats Cards -->
-      <div class="flex flex-wrap -mx-3 mb-6">
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Total Transactions</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statTotal">...</h5>
-            </div>
-          </div>
-        </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Stock In</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl text-emerald-500" id="statStockIn">...</h5>
-            </div>
-          </div>
-        </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Stock Out</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl text-red-500" id="statStockOut">...</h5>
-            </div>
-          </div>
-        </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Transfers</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl text-blue-500" id="statTransfers">...</h5>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Transactions Table -->
-      <div class="flex flex-wrap -mx-3">
-        <div class="flex-none w-full max-w-full px-3">
-          <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent flex justify-between items-center">
-              <h6 class="dark:text-white">Stock Transactions (Last 100)</h6>
-              <button onclick="openAddTransactionModal()" class="bg-gradient-to-tl from-blue-500 to-violet-500 text-white px-4 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                <i class="fas fa-plus mr-1"></i> Manual Entry
-              </button>
-            </div>
-            <div class="flex-auto px-0 pt-0 pb-2">
-              <div class="p-0 overflow-x-auto">
-                <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500" id="transactionsTable">
-                  <thead class="align-bottom">
-                    <tr>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Product</th>
-                      <th class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Type</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Location</th>
-                      <th class="px-6 py-3 font-bold text-right uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Qty</th>
-                      <th class="px-6 py-3 font-bold text-right uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Stock After</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Date</th>
-                      <th class="px-6 py-3 font-semibold capitalize align-middle bg-transparent border-b border-collapse border-solid shadow-none dark:border-white/40 dark:text-white tracking-none whitespace-nowrap text-slate-400 opacity-70"></th>
-                    </tr>
-                  </thead>
-                  <tbody id="transactionsTableBody">
-                    <tr><td colspan="7" class="p-4 text-center text-slate-400 dark:text-white/60">Loading...</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- View Transaction Details Modal -->
-      <div id="transactionDetailsModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeTransactionDetailsModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 900px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-            <h3 class="text-xl font-bold dark:text-white" id="transactionModalTitle">Transaction Details</h3>
-            <button onclick="closeTransactionDetailsModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <div class="p-6" id="transactionModalContent">
-            <!-- Content will be populated by JavaScript -->
-          </div>
-        </div>
-      </div>
-
-      <!-- Add Transaction Modal -->
-      <div id="addTransactionModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddTransactionModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-            <h3 class="text-xl font-bold dark:text-white">Manual Stock Entry</h3>
-            <button onclick="closeAddTransactionModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <form id="addTransactionForm" onsubmit="submitAddTransaction(event)">
-            <div class="p-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Product <span class="text-red-500">*</span></label>
-                  <select name="product_id" id="txnProductSelect" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Select Product</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Location <span class="text-red-500">*</span></label>
-                  <select name="location_id" id="txnLocationSelect" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Select Location</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Transaction Type <span class="text-red-500">*</span></label>
-                  <select name="transaction_type" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="stock_in_manual">Stock In (Manual)</option>
-                    <option value="adjustment_add">Adjustment - Add</option>
-                    <option value="adjustment_deduct">Adjustment - Deduct</option>
-                    <option value="stock_out_damage">Stock Out - Damage</option>
-                    <option value="stock_out_use">Stock Out - Use</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">UOM <span class="text-red-500">*</span></label>
-                  <select name="uom_id" id="txnUomSelect" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Select UOM</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Quantity <span class="text-red-500">*</span></label>
-                  <input type="number" step="0.001" name="quantity" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter quantity">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Transaction Date <span class="text-red-500">*</span></label>
-                  <input type="date" name="transaction_date" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Reference Type</label>
-                  <select name="reference_type" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="MANUAL">Manual Entry</option>
-                    <option value="ADJUSTMENT">Adjustment</option>
-                    <option value="DAMAGE">Damage Report</option>
-                    <option value="OTHER">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Reference ID</label>
-                  <input type="text" name="reference_id" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Reference ID (optional)">
-                </div>
-                <div class="md:col-span-2">
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Notes</label>
-                  <textarea name="notes" rows="2" class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Additional notes..."></textarea>
-                </div>
-              </div>
-            </div>
-            <div class="p-6 border-t border-gray-200 dark:border-white/10 flex justify-end gap-3">
-              <button type="button" onclick="closeAddTransactionModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
-                Cancel
-              </button>
-              <button type="submit" class="px-6 py-2 text-sm font-semibold text-white bg-gradient-to-tl from-blue-500 to-violet-500 rounded-lg hover:from-blue-600 hover:to-violet-600 transition-all duration-200 shadow-md hover:shadow-lg">
-                <i class="fas fa-save mr-2"></i>Save Transaction
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- Reverse Transaction Modal -->
-      <div id="reverseTransactionModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeReverseTransactionModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 95%; max-width: 600px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-            <h3 class="text-xl font-bold dark:text-white">Reverse Stock Transaction</h3>
-            <button onclick="closeReverseTransactionModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <form id="reverseTransactionForm" onsubmit="submitReverseTransaction(event)">
-            <div class="p-6">
-              <div class="space-y-4">
-                <input type="hidden" name="txn_id" id="reverseTxnId">
-                <div class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
-                  <p class="text-sm text-orange-800 dark:text-orange-200">
-                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                    <strong>Warning:</strong> This will create a reverse transaction to undo the selected transaction. The original transaction will remain in the audit trail.
-                  </p>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Original Transaction</label>
-                  <div id="reverseTxnInfo" class="bg-gray-50 dark:bg-slate-700/50 rounded-lg p-3 text-sm dark:text-white">
-                    <!-- Will be populated by JavaScript -->
-                  </div>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-600 dark:text-white mb-2">Reason for Reversal <span class="text-red-500">*</span></label>
-                  <textarea name="notes" rows="3" required class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-white/20 dark:bg-slate-700/50 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Explain why this transaction needs to be reversed..."></textarea>
-                </div>
-              </div>
-            </div>
-            <div class="p-6 border-t border-gray-200 dark:border-white/10 flex justify-end gap-3">
-              <button type="button" onclick="closeReverseTransactionModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
-                Cancel
-              </button>
-              <button type="submit" class="px-6 py-2 text-sm font-semibold text-white bg-gradient-to-tl from-orange-500 to-red-500 rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200 shadow-md hover:shadow-lg">
-                <i class="fas fa-undo mr-2"></i>Reverse Transaction
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-<script>
-  // Filter table function
-  function filterTable() {
-    const input = document.getElementById('searchInput');
-    const filter = input.value.toLowerCase();
-    const table = document.getElementById('transactionsTable');
-    const rows = table.getElementsByClassName('transaction-row');
-
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      const cells = row.getElementsByTagName('td');
-      let found = false;
-
-      for (let j = 0; j < cells.length; j++) {
-        if (cells[j].textContent.toLowerCase().indexOf(filter) > -1) {
-          found = true;
-          break;
-        }
-      }
-
-      row.style.display = found ? '' : 'none';
-    }
-  }
-
-  // View Transaction Details
-  function viewTransactionDetails(txnId) {
-    const txn = transactionsData.find(t => t.txn_id === txnId);
-    if (!txn) return;
-
-    const modal = document.getElementById('transactionDetailsModal');
-    const modalTitle = document.getElementById('transactionModalTitle');
-    const modalContent = document.getElementById('transactionModalContent');
-
-    modalTitle.textContent = `Transaction: ${txn.product_name}`;
-
-    const isStockIn = in_array(txn.transaction_type, ['stock_in', 'stock_in_manual', 'adjustment_add']);
-
-    modalContent.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-3">Product Information</h4>
-            <div class="space-y-3">
-              <div>
-                <p class="text-xs text-slate-500 dark:text-white/60">Product Name</p>
-                <p class="text-sm dark:text-white">${txn.product_name}</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-500 dark:text-white/60">Product Code</p>
-                <p class="text-sm dark:text-white">${txn.product_code}</p>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-3">Location Information</h4>
-            <div class="space-y-3">
-              <div>
-                <p class="text-xs text-slate-500 dark:text-white/60">Property</p>
-                <p class="text-sm dark:text-white">${txn.property_name || '-'}</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-500 dark:text-white/60">Location</p>
-                <p class="text-sm dark:text-white">${txn.location_name || '-'}</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-500 dark:text-white/60">Location Type</p>
-                <p class="text-sm dark:text-white">${txn.location_type ? txn.location_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '-'}</p>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-3">Transaction Details</h4>
-            <div class="space-y-3">
-              <div>
-                <p class="text-xs text-slate-500 dark:text-white/60">Transaction Type</p>
-                <p class="text-sm dark:text-white font-semibold">${txn.transaction_type.replace(/_/g, ' ')}</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-500 dark:text-white/60">Quantity</p>
-                <p class="text-2xl font-bold ${isStockIn ? 'text-emerald-500' : 'text-red-500'} dark:text-white">${isStockIn ? '+' : '-'}${parseFloat(txn.quantity).toFixed(3)} ${txn.uom_name}</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-500 dark:text-white/60">Stock Before</p>
-                <p class="text-sm dark:text-white">${parseFloat(txn.stock_before).toFixed(3)}</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-500 dark:text-white/60">Stock After</p>
-                <p class="text-sm dark:text-white font-bold">${parseFloat(txn.stock_after).toFixed(3)}</p>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-3">Reference & Notes</h4>
-            <div class="space-y-3">
-              <div>
-                <p class="text-xs text-slate-500 dark:text-white/60">Reference Type</p>
-                <p class="text-sm dark:text-white">${txn.reference_type || '-'}</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-500 dark:text-white/60">Reference ID</p>
-                <p class="text-sm dark:text-white">${txn.reference_id || '-'}</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-500 dark:text-white/60">Transaction Date</p>
-                <p class="text-sm dark:text-white">${new Date(txn.transaction_date).toLocaleString()}</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-500 dark:text-white/60">Notes</p>
-                <p class="text-sm dark:text-white">${txn.notes || '-'}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-
-    modal.classList.remove('hidden');
-    modal.style.display = 'block';
-  }
-
-  function closeTransactionDetailsModal() {
-    const modal = document.getElementById('transactionDetailsModal');
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
-  }
-
-  // Add Transaction Modal Functions
-  function openAddTransactionModal() {
-    const modal = document.getElementById('addTransactionModal');
-    modal.classList.remove('hidden');
-    modal.style.display = 'block';
-  }
-
-  function closeAddTransactionModal() {
-    const modal = document.getElementById('addTransactionModal');
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
-    document.getElementById('addTransactionForm').reset();
-  }
-
-  function submitAddTransaction(event) {
-    event.preventDefault();
-
-    Swal.fire({
-      title: 'Processing...',
-      text: 'Please wait while we process the stock transaction.',
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-      customClass: {
-        popup: 'swal2-popup-high-z'
-      }
-    });
-
-    const form = document.getElementById('addTransactionForm');
-    const payload = {
-      product_id: form.elements['product_id'].value,
-      location_id: form.elements['location_id'].value,
-      transaction_type: form.elements['transaction_type'].value,
-      uom_id: form.elements['uom_id'].value,
-      quantity: form.elements['quantity'].value,
-      transaction_date: form.elements['transaction_date'].value,
-      reference_type: form.elements['reference_type'].value,
-      reference_id: form.elements['reference_id'].value,
-      notes: form.elements['notes'].value
-    };
-
-    fetch('../api/stock_transactions.php?action=create', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload)
-      })
-      .then(r => r.json())
-      .then(data => {
-        closeAddTransactionModal();
-        if (data.success) {
-          Swal.fire({ icon: 'success', title: 'Success!', text: data.message, confirmButtonColor: '#3085d6', customClass: { popup: 'swal2-popup-high-z' } })
-            .then(() => fetchTransactions());
-        } else {
-          Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
-        }
-      })
-      .catch(() => {
-        closeAddTransactionModal();
-        Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while processing the stock transaction.', confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
-      });
-  }
-
-  // Reverse Transaction Modal Functions
-  function openReverseTransactionModal(txnId) {
-    const txn = transactionsData.find(t => t.txn_id === txnId);
-    if (!txn) return;
-
-    document.getElementById('reverseTxnId').value = txn.txn_id;
-
-    const modalInfo = document.getElementById('reverseTxnInfo');
-    const isStockIn = in_array(txn.transaction_type, ['stock_in', 'stock_in_manual', 'adjustment_add', 'transfer_in']);
-
-    modalInfo.innerHTML = `
-        <div class="space-y-2">
-          <div><strong>Product:</strong> ${txn.product_name} (${txn.product_code})</div>
-          <div><strong>Type:</strong> ${txn.transaction_type.replace(/_/g, ' ')}</div>
-          <div><strong>Quantity:</strong> ${isStockIn ? '+' : '-'}${parseFloat(txn.quantity).toFixed(3)} ${txn.uom_name}</div>
-          <div><strong>Date:</strong> ${new Date(txn.transaction_date).toLocaleDateString()}</div>
-        </div>
-      `;
-
-    const modal = document.getElementById('reverseTransactionModal');
-    modal.classList.remove('hidden');
-    modal.style.display = 'block';
-  }
-
-  function closeReverseTransactionModal() {
-    const modal = document.getElementById('reverseTransactionModal');
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
-    document.getElementById('reverseTransactionForm').reset();
-  }
-
-  function submitReverseTransaction(event) {
-    event.preventDefault();
-
-    Swal.fire({
-      title: 'Reversing...',
-      text: 'Please wait while we reverse the stock transaction.',
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-      customClass: {
-        popup: 'swal2-popup-high-z'
-      }
-    });
-
-    const txnId = document.getElementById('reverseTxnId').value;
-    const notes = document.getElementById('reverseTransactionForm').elements['notes'].value;
-    const originalTxn = transactionsData.find(t => t.txn_id === txnId);
-    if (!originalTxn) return;
-
-    const reverseType = ['stock_in', 'stock_in_manual', 'adjustment_add', 'transfer_in'].includes(originalTxn.transaction_type) ? 'adjustment_deduct' : 'adjustment_add';
-    const payload = {
-      product_id: originalTxn.product_id,
-      location_id: originalTxn.location_id,
-      uom_id: originalTxn.uom_id,
-      transaction_type: reverseType,
-      quantity: originalTxn.quantity,
-      transaction_date: new Date().toISOString().split('T')[0],
-      reference_type: 'REVERSAL',
-      reference_id: txnId,
-      notes: notes
-    };
-
-    fetch('../api/stock_transactions.php?action=create', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload)
-      })
-      .then(r => r.json())
-      .then(data => {
-        closeReverseTransactionModal();
-        if (data.success) {
-          Swal.fire({ icon: 'success', title: 'Reversed!', text: 'Reverse transaction created.', confirmButtonColor: '#3085d6', customClass: { popup: 'swal2-popup-high-z' } })
-            .then(() => fetchTransactions());
-        } else {
-          Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
-        }
-      })
-      .catch(() => {
-        closeReverseTransactionModal();
-        Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while reversing the stock transaction.', confirmButtonColor: '#d33', customClass: { popup: 'swal2-popup-high-z' } });
-      });
-  }
-
-  // Helper function for in_array
-  function in_array(needle, haystack) {
-    return haystack.indexOf(needle) !== -1;
-  }
 </script>

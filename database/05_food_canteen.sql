@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS menu_item_images (
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS food_orders (
     order_id            CHAR(36)        NOT NULL                              COMMENT 'PK – UUID v4',
-    property_id         CHAR(36)        NOT NULL                              COMMENT 'FK → properties.property_id',
+    property_id         CHAR(36)        NULL                                  COMMENT 'FK → properties.property_id (NULL = takeout without property)',
     reservation_id      CHAR(36)        NULL                                  COMMENT 'FK → reservations.reservation_id (NULL = walk-in customer)',
     order_number        VARCHAR(20)     NOT NULL                              COMMENT 'e.g. FO-20240001',
     order_type          ENUM('dine_in','room_service','takeout')              NOT NULL DEFAULT 'dine_in',
@@ -113,5 +113,58 @@ CREATE TABLE IF NOT EXISTS food_order_items (
     CONSTRAINT fk_foi_item_id FOREIGN KEY (item_id) REFERENCES menu_items(item_id) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Line items per food order';
+
+-- ============================================================================
+-- TABLE: dining_tables
+-- Tables for dine-in orders — admin configured, property-specific
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS dining_tables (
+    table_id        CHAR(36)        NOT NULL                                  COMMENT 'PK – UUID v4',
+    property_id     CHAR(36)        NULL                                      COMMENT 'FK → properties.property_id (NULL = all properties)',
+    table_number    VARCHAR(20)     NOT NULL                                  COMMENT 'e.g. 1, 2, A1, Outdoor-1',
+    table_name      VARCHAR(50)     NULL                                      COMMENT 'e.g. Window Table, Corner Booth',
+    capacity        TINYINT(3)      NOT NULL DEFAULT 4                        COMMENT 'Number of seats',
+    location        VARCHAR(100)    NULL                                      COMMENT 'e.g. Main Hall, Outdoor Patio, 2nd Floor',
+    is_occupied     TINYINT(1)      NOT NULL DEFAULT 0                        COMMENT '1 = currently has diners',
+    is_active       TINYINT(1)      NOT NULL DEFAULT 1,
+    sort_order      SMALLINT        NOT NULL DEFAULT 0,
+    created_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (table_id),
+    UNIQUE KEY uk_property_table (property_id, table_number),
+    KEY idx_property_id (property_id),
+    KEY idx_is_active (is_active),
+    KEY idx_is_occupied (is_occupied)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Dining tables for dine-in orders — managed by admin';
+
+-- ============================================================================
+-- TEMPORARY SEED DATA: dining_tables
+-- Sample tables for testing - run this after creating the table
+-- ============================================================================
+
+-- Insert sample dining tables (replace 'YOUR_PROPERTY_ID' with actual property ID)
+INSERT INTO dining_tables (table_id, property_id, table_number, table_name, capacity, location, is_occupied, is_active, sort_order) VALUES
+('tbl-0001-0000-0000-0000-000000000001', NULL, '1', 'Window Table', 4, 'Main Hall', 0, 1, 1),
+('tbl-0001-0000-0000-0000-000000000002', NULL, '2', 'Corner Booth', 6, 'Main Hall', 0, 1, 2),
+('tbl-0001-0000-0000-0000-000000000003', NULL, '3', 'Family Table', 8, 'Main Hall', 1, 1, 3),
+('tbl-0001-0000-0000-0000-000000000004', NULL, 'A1', 'Outdoor Patio 1', 4, 'Outdoor Patio', 0, 1, 4),
+('tbl-0001-0000-0000-0000-000000000005', NULL, 'A2', 'Outdoor Patio 2', 4, 'Outdoor Patio', 0, 1, 5),
+('tbl-0001-0000-0000-0000-000000000006', NULL, 'B1', 'Bar Table 1', 2, 'Bar Area', 0, 1, 6),
+('tbl-0001-0000-0000-0000-000000000007', NULL, 'B2', 'Bar Table 2', 2, 'Bar Area', 1, 1, 7),
+('tbl-0001-0000-0000-0000-000000000008', NULL, 'V1', 'VIP Room 1', 10, 'VIP Section', 0, 1, 8),
+('tbl-0001-0000-0000-0000-000000000009', NULL, 'V2', 'VIP Room 2', 12, 'VIP Section', 0, 1, 9),
+('tbl-0001-0000-0000-0000-000000000010', NULL, 'P1', 'Poolside 1', 6, 'Pool Area', 0, 1, 10);
+
+-- To add property-specific tables, use the property_id:
+-- INSERT INTO dining_tables (table_id, property_id, table_number, table_name, capacity, location, is_active, sort_order) 
+-- VALUES (UUID(), 'YOUR_PROPERTY_UUID', '1', 'Table 1', 4, 'Main Dining', 1, 1);
+
+-- ============================================================================
+-- ALTER: Allow NULL property_id for takeout orders (existing tables)
+-- ============================================================================
+ALTER TABLE food_orders 
+    MODIFY COLUMN property_id CHAR(36) NULL COMMENT 'FK → properties.property_id (NULL = takeout without property)';
 
 SELECT '05_food_canteen.sql — OK' AS migration_status;
