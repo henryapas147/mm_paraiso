@@ -10,6 +10,278 @@ if (!isset($base_url) || empty($base_url)) {
     $base_url = $script_dir;
 }
 ?>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ── Reports Dashboard Design System ── */
+  .dash-page {
+    --dash-bg-main: #f0f2f8;
+    --dash-bg-card: #ffffff;
+    --dash-text-primary: #1a1f36;
+    --dash-text-secondary: #6b7280;
+    --dash-text-muted: #9ca3af;
+    --dash-border: #e5e7eb;
+    --dash-accent-blue: #4f46e5;
+    --dash-accent-blue-light: #eef2ff;
+    --dash-accent-emerald: #10b981;
+    --dash-accent-rose: #f43f5e;
+    --dash-accent-orange: #f97316;
+    --dash-accent-violet: #8b5cf6;
+    --dash-shadow-sm: 0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .04);
+    --dash-shadow-md: 0 4px 16px rgba(0, 0, 0, .08);
+    --dash-radius: 16px;
+    --dash-radius-sm: 10px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: var(--dash-text-primary);
+  }
+
+  .dash-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* ── STAT CARDS ── */
+  .dash-page .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .dash-page .stat-card {
+    background: var(--dash-bg-card);
+    border-radius: var(--dash-radius);
+    padding: 20px;
+    box-shadow: var(--dash-shadow-sm);
+    border: 1px solid var(--dash-border);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: box-shadow .2s, transform .2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .dash-page .stat-card:hover {
+    box-shadow: var(--dash-shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .dash-page .stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: var(--dash-radius) var(--dash-radius) 0 0;
+  }
+
+  .dash-page .stat-card.green::after {
+    background: linear-gradient(90deg, #10b981, #34d399);
+  }
+
+  .dash-page .stat-card.blue::after {
+    background: linear-gradient(90deg, #4f46e5, #8b5cf6);
+  }
+
+  .dash-page .stat-card.orange::after {
+    background: linear-gradient(90deg, #f97316, #fbbf24);
+  }
+
+  .dash-page .stat-card.rose::after {
+    background: linear-gradient(90deg, #f43f5e, #fb7185);
+  }
+
+  .dash-page .stat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .dash-page .stat-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--dash-text-muted);
+  }
+
+  .dash-page .stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+
+  .dash-page .stat-icon.green {
+    background: linear-gradient(135deg, #10b981, #34d399);
+  }
+
+  .dash-page .stat-icon.blue {
+    background: linear-gradient(135deg, #4f46e5, #8b5cf6);
+  }
+
+  .dash-page .stat-icon.orange {
+    background: linear-gradient(135deg, #f97316, #fbbf24);
+  }
+
+  .dash-page .stat-icon.rose {
+    background: linear-gradient(135deg, #f43f5e, #fb923c);
+  }
+
+  .dash-page .stat-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--dash-text-primary);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .dash-page .stat-sub {
+    font-size: 13px;
+    color: var(--dash-text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .dash-page .stat-sub-label {
+    font-weight: 600;
+  }
+
+  .dash-page .stat-sub-label.emerald {
+    color: var(--dash-accent-emerald);
+  }
+
+  .dash-page .stat-sub-label.blue {
+    color: var(--dash-accent-blue);
+  }
+
+  .dash-page .stat-sub-label.orange {
+    color: var(--dash-accent-orange);
+  }
+
+  .dash-page .stat-sub-label.rose {
+    color: var(--dash-accent-rose);
+  }
+
+  /* ── CARD ── */
+  .dash-page .card {
+    background: var(--dash-bg-card);
+    border: 1px solid var(--dash-border);
+    border-radius: var(--dash-radius);
+    box-shadow: var(--dash-shadow-sm);
+    overflow: hidden;
+  }
+
+  .dash-page .card-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--dash-border);
+  }
+
+  .dash-page .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--dash-text-primary);
+  }
+
+  .dash-page .card-body {
+    padding: 20px;
+  }
+
+  /* ── REPORT LINKS ── */
+  .dash-page .report-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .dash-page .report-link {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border-radius: var(--dash-radius-sm);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid var(--dash-border);
+    background: var(--dash-bg-card);
+  }
+
+  .dash-page .report-link:hover {
+    box-shadow: var(--dash-shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .dash-page .report-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-right: 16px;
+  }
+
+  .dash-page .report-icon.green {
+    background: linear-gradient(135deg, #10b981, #34d399);
+  }
+
+  .dash-page .report-icon.blue {
+    background: linear-gradient(135deg, #4f46e5, #8b5cf6);
+  }
+
+  .dash-page .report-icon.orange {
+    background: linear-gradient(135deg, #f97316, #fbbf24);
+  }
+
+  .dash-page .report-icon.purple {
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  }
+
+  .dash-page .report-icon.rose {
+    background: linear-gradient(135deg, #f43f5e, #fb7185);
+  }
+
+  .dash-page .report-icon.cyan {
+    background: linear-gradient(135deg, #06b6d4, #3b82f6);
+  }
+
+  .dash-page .report-info h6 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--dash-text-primary);
+    margin-bottom: 4px;
+  }
+
+  .dash-page .report-info p {
+    font-size: 12px;
+    color: var(--dash-text-secondary);
+    margin: 0;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1100px) {
+    .dash-page .stat-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .dash-page .report-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .dash-page .stat-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .dash-page .report-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
 <script>
   // Base URL for API calls
   const API_BASE_URL = '<?php echo $base_url; ?>api/reports.php';
@@ -21,7 +293,6 @@ if (!isset($base_url) || empty($base_url)) {
 
   async function loadDashboardStats() {
     try {
-      // Load key metrics
       const [revenue, occupancy, customers, inventory] = await Promise.all([
         fetch(API_BASE_URL + '?action=revenue_summary').then(r => r.json()),
         fetch(API_BASE_URL + '?action=occupancy_summary').then(r => r.json()),
@@ -54,214 +325,142 @@ if (!isset($base_url) || empty($base_url)) {
   }
 </script>
 
-<!-- PAGE CONTENT -->
-<div class="flex flex-wrap -mx-3 mb-6">
-  <!-- Revenue Card -->
-  <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="flex-auto p-4">
-        <div class="flex flex-row -mx-3">
-          <div class="flex-none w-2/3 max-w-full px-3">
-            <div>
-              <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Today's Revenue</p>
-              <h5 class="mb-2 font-bold dark:text-white" id="todayRevenue">$0</h5>
-              <p class="mb-0 dark:text-white dark:opacity-60">
-                <span class="text-sm font-bold leading-normal text-emerald-500">Month: </span>
-                <span id="monthRevenue">$0</span>
-              </p>
-            </div>
-          </div>
-          <div class="px-3 text-right basis-1/3">
-            <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-emerald-500 to-teal-400">
-              <i class="ni leading-none ni-money-coins text-lg relative top-3.5 text-white"></i>
-            </div>
-          </div>
+<div class="dash-page">
+  <div class="dash-content">
+
+    <!-- Stat Cards -->
+    <div class="stat-grid">
+      <div class="stat-card green">
+        <div class="stat-header">
+          <span class="stat-label">Today's Revenue</span>
+          <div class="stat-icon green">💰</div>
+        </div>
+        <div class="stat-value" id="todayRevenue">₱0</div>
+        <div class="stat-sub">
+          <span class="stat-sub-label emerald">Month:</span>
+          <span id="monthRevenue">₱0</span>
+        </div>
+      </div>
+
+      <div class="stat-card blue">
+        <div class="stat-header">
+          <span class="stat-label">Today's Occupancy</span>
+          <div class="stat-icon blue">🏨</div>
+        </div>
+        <div class="stat-value" id="todayOccupancy">0%</div>
+        <div class="stat-sub">
+          <span class="stat-sub-label blue">Month Avg:</span>
+          <span id="monthOccupancy">0%</span>
+        </div>
+      </div>
+
+      <div class="stat-card orange">
+        <div class="stat-header">
+          <span class="stat-label">Total Customers</span>
+          <div class="stat-icon orange">👥</div>
+        </div>
+        <div class="stat-value" id="totalCustomers">0</div>
+        <div class="stat-sub">
+          <span class="stat-sub-label orange">New This Month:</span>
+          <span id="newCustomers">0</span>
+        </div>
+      </div>
+
+      <div class="stat-card rose">
+        <div class="stat-header">
+          <span class="stat-label">Low Stock Items</span>
+          <div class="stat-icon rose">📦</div>
+        </div>
+        <div class="stat-value" id="lowStockItems">0</div>
+        <div class="stat-sub">
+          <span class="stat-sub-label rose">Inventory Value:</span>
+          <span id="inventoryValue">₱0</span>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Occupancy Card -->
-  <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="flex-auto p-4">
-        <div class="flex flex-row -mx-3">
-          <div class="flex-none w-2/3 max-w-full px-3">
-            <div>
-              <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Today's Occupancy</p>
-              <h5 class="mb-2 font-bold dark:text-white" id="todayOccupancy">0%</h5>
-              <p class="mb-0 dark:text-white dark:opacity-60">
-                <span class="text-sm font-bold leading-normal text-blue-500">Month Avg: </span>
-                <span id="monthOccupancy">0%</span>
-              </p>
-            </div>
-          </div>
-          <div class="px-3 text-right basis-1/3">
-            <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-blue-500 to-violet-500">
-              <i class="ni leading-none ni-building text-lg relative top-3.5 text-white"></i>
-            </div>
-          </div>
-        </div>
+    <!-- Available Reports -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Available Reports</div>
       </div>
-    </div>
-  </div>
-
-  <!-- Customers Card -->
-  <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="flex-auto p-4">
-        <div class="flex flex-row -mx-3">
-          <div class="flex-none w-2/3 max-w-full px-3">
-            <div>
-              <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Total Customers</p>
-              <h5 class="mb-2 font-bold dark:text-white" id="totalCustomers">0</h5>
-              <p class="mb-0 dark:text-white dark:opacity-60">
-                <span class="text-sm font-bold leading-normal text-orange-500">New This Month: </span>
-                <span id="newCustomers">0</span>
-              </p>
-            </div>
-          </div>
-          <div class="px-3 text-right basis-1/3">
-            <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-orange-500 to-yellow-500">
-              <i class="ni leading-none ni-users text-lg relative top-3.5 text-white"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Inventory Card -->
-  <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="flex-auto p-4">
-        <div class="flex flex-row -mx-3">
-          <div class="flex-none w-2/3 max-w-full px-3">
-            <div>
-              <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Low Stock Items</p>
-              <h5 class="mb-2 font-bold dark:text-white" id="lowStockItems">0</h5>
-              <p class="mb-0 dark:text-white dark:opacity-60">
-                <span class="text-sm font-bold leading-normal text-red-500">Inventory Value: </span>
-                <span id="inventoryValue">$0</span>
-              </p>
-            </div>
-          </div>
-          <div class="px-3 text-right basis-1/3">
-            <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-red-500 to-orange-500">
-              <i class="ni leading-none ni-box-2 text-lg relative top-3.5 text-white"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Quick Links to Reports -->
-<div class="flex flex-wrap -mx-3">
-  <div class="w-full max-w-full px-3">
-    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="p-4 pb-0 mb-0 rounded-t-2xl">
-        <h6 class="mb-0 dark:text-white">Available Reports</h6>
-      </div>
-      <div class="p-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <!-- Revenue Reports -->
-          <a href="<?php echo $base_url; ?>reports/revenue" class="flex items-center p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-700 dark:to-slate-600 rounded-xl hover:shadow-md transition-all duration-200">
-            <div class="inline-flex items-center justify-center w-12 h-12 mr-4 text-white bg-gradient-to-tl from-emerald-500 to-teal-400 rounded-xl">
-              <i class="ni ni-money-coins text-xl"></i>
-            </div>
-            <div>
-              <h6 class="mb-1 text-sm font-semibold dark:text-white">Revenue Reports</h6>
-              <p class="mb-0 text-xs text-slate-500 dark:text-slate-300">Daily, monthly, yearly revenue analysis</p>
+      <div class="card-body">
+        <div class="report-grid">
+          <a href="<?php echo $base_url; ?>reports/revenue" class="report-link">
+            <div class="report-icon green">💰</div>
+            <div class="report-info">
+              <h6>Revenue Reports</h6>
+              <p>Daily, monthly, yearly revenue analysis</p>
             </div>
           </a>
 
-          <!-- Occupancy Reports -->
-          <a href="<?php echo $base_url; ?>reports/occupancy" class="flex items-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600 rounded-xl hover:shadow-md transition-all duration-200">
-            <div class="inline-flex items-center justify-center w-12 h-12 mr-4 text-white bg-gradient-to-tl from-blue-500 to-violet-500 rounded-xl">
-              <i class="ni ni-building text-xl"></i>
-            </div>
-            <div>
-              <h6 class="mb-1 text-sm font-semibold dark:text-white">Occupancy Reports</h6>
-              <p class="mb-0 text-xs text-slate-500 dark:text-slate-300">Room occupancy & utilization stats</p>
+          <a href="<?php echo $base_url; ?>reports/occupancy" class="report-link">
+            <div class="report-icon blue">🏨</div>
+            <div class="report-info">
+              <h6>Occupancy Reports</h6>
+              <p>Room occupancy & utilization stats</p>
             </div>
           </a>
 
-          <!-- Inventory Reports -->
-          <a href="<?php echo $base_url; ?>reports/inventory" class="flex items-center p-4 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-slate-700 dark:to-slate-600 rounded-xl hover:shadow-md transition-all duration-200">
-            <div class="inline-flex items-center justify-center w-12 h-12 mr-4 text-white bg-gradient-to-tl from-orange-500 to-yellow-500 rounded-xl">
-              <i class="ni ni-box-2 text-xl"></i>
-            </div>
-            <div>
-              <h6 class="mb-1 text-sm font-semibold dark:text-white">Inventory Reports</h6>
-              <p class="mb-0 text-xs text-slate-500 dark:text-slate-300">Stock levels, valuations & movements</p>
+          <a href="<?php echo $base_url; ?>reports/inventory" class="report-link">
+            <div class="report-icon orange">📦</div>
+            <div class="report-info">
+              <h6>Inventory Reports</h6>
+              <p>Stock levels, valuations & movements</p>
             </div>
           </a>
 
-          <!-- Customer Analytics -->
-          <a href="<?php echo $base_url; ?>reports/customers" class="flex items-center p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-700 dark:to-slate-600 rounded-xl hover:shadow-md transition-all duration-200">
-            <div class="inline-flex items-center justify-center w-12 h-12 mr-4 text-white bg-gradient-to-tl from-purple-500 to-pink-500 rounded-xl">
-              <i class="ni ni-chart-pie-35 text-xl"></i>
-            </div>
-            <div>
-              <h6 class="mb-1 text-sm font-semibold dark:text-white">Customer Analytics</h6>
-              <p class="mb-0 text-xs text-slate-500 dark:text-slate-300">Customer behavior & demographics</p>
+          <a href="<?php echo $base_url; ?>reports/customers" class="report-link">
+            <div class="report-icon purple">📊</div>
+            <div class="report-info">
+              <h6>Customer Analytics</h6>
+              <p>Customer behavior & demographics</p>
             </div>
           </a>
 
-          <!-- Food & Canteen -->
-          <a href="<?php echo $base_url; ?>reports/food-canteen" class="flex items-center p-4 bg-gradient-to-br from-red-50 to-rose-50 dark:from-slate-700 dark:to-slate-600 rounded-xl hover:shadow-md transition-all duration-200">
-            <div class="inline-flex items-center justify-center w-12 h-12 mr-4 text-white bg-gradient-to-tl from-red-500 to-rose-400 rounded-xl">
-              <i class="ni ni-basket text-xl"></i>
-            </div>
-            <div>
-              <h6 class="mb-1 text-sm font-semibold dark:text-white">Food & Canteen</h6>
-              <p class="mb-0 text-xs text-slate-500 dark:text-slate-300">Sales reports & menu performance</p>
+          <a href="<?php echo $base_url; ?>reports/food-canteen" class="report-link">
+            <div class="report-icon rose">🍽️</div>
+            <div class="report-info">
+              <h6>Food & Canteen</h6>
+              <p>Sales reports & menu performance</p>
             </div>
           </a>
 
-          <!-- Financial Reports -->
-          <a href="<?php echo $base_url; ?>reports/financial" class="flex items-center p-4 bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 rounded-xl hover:shadow-md transition-all duration-200">
-            <div class="inline-flex items-center justify-center w-12 h-12 mr-4 text-white bg-gradient-to-tl from-cyan-500 to-blue-500 rounded-xl">
-              <i class="ni ni-paper-diploma text-xl"></i>
-            </div>
-            <div>
-              <h6 class="mb-1 text-sm font-semibold dark:text-white">Financial Reports</h6>
-              <p class="mb-0 text-xs text-slate-500 dark:text-slate-300">P&L, balance sheet & cash flow</p>
+          <a href="<?php echo $base_url; ?>reports/financial" class="report-link">
+            <div class="report-icon cyan">📄</div>
+            <div class="report-info">
+              <h6>Financial Reports</h6>
+              <p>P&L, balance sheet & cash flow</p>
             </div>
           </a>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- Recent Activity -->
-<div class="flex flex-wrap -mx-3 mt-6">
-  <div class="w-full max-w-full px-3 lg:w-1/2">
-    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="p-4 pb-0 mb-0 rounded-t-2xl">
-        <h6 class="mb-0 dark:text-white">Recent Reservations</h6>
+    <!-- Recent Activity Row -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Recent Reservations</div>
+        </div>
+        <div class="card-body">
+          <div id="recentReservations">
+            <p style="text-align: center; color: var(--dash-text-muted);">Loading...</p>
+          </div>
+        </div>
       </div>
-      <div class="p-4">
-        <div id="recentReservations">
-          <p class="text-center text-slate-400 dark:text-white/60">Loading...</p>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Top Selling Menu Items</div>
+        </div>
+        <div class="card-body">
+          <div id="topMenuItems">
+            <p style="text-align: center; color: var(--dash-text-muted);">Loading...</p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="w-full max-w-full px-3 lg:w-1/2">
-    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="p-4 pb-0 mb-0 rounded-t-2xl">
-        <h6 class="mb-0 dark:text-white">Top Selling Menu Items</h6>
-      </div>
-      <div class="p-4">
-        <div id="topMenuItems">
-          <p class="text-center text-slate-400 dark:text-white/60">Loading...</p>
-        </div>
-      </div>
-    </div>
   </div>
 </div>

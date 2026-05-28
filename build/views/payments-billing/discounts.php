@@ -185,364 +185,658 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 ?>
 
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
+
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0
+  }
+
+  body {
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background: #f5f5f5;
+    color: #1a1a1a
+  }
+
+  .page {
+    padding: 24px;
+    max-width: 100%;
+    margin: 0 auto
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px
+  }
+
+  .stat-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px
+  }
+
+  .stat-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 8px
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 600;
+    color: #1a1a1a
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap
+  }
+
+  .card-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    font-weight: 600;
+    font-style: italic
+  }
+
+  .btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all .2s
+  }
+
+  .btn-primary {
+    background: #185FA5;
+    color: #fff
+  }
+
+  .btn-primary:hover {
+    background: #145090
+  }
+
+  .btn-secondary {
+    background: #fff;
+    color: #1a1a1a;
+    border: 1px solid #e0e0e0
+  }
+
+  .btn-secondary:hover {
+    background: #f5f5f5
+  }
+
+  .btn-danger {
+    background: #fff;
+    color: #dc2626;
+    border: 1px solid #fecaca
+  }
+
+  .btn-danger:hover {
+    background: #fef2f2
+  }
+
+  .table-wrap {
+    overflow-x: auto
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px
+  }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid #e0e0e0;
+    white-space: nowrap
+  }
+
+  thead th.center {
+    text-align: center
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    transition: background .1s
+  }
+
+  tbody tr:last-child {
+    border-bottom: none
+  }
+
+  tbody tr:hover {
+    background: #f9f9f9
+  }
+
+  td {
+    padding: 11px 16px;
+    vertical-align: middle;
+    white-space: nowrap
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase
+  }
+
+  .status-badge.active {
+    background: #E8F5E9;
+    color: #2E7D32
+  }
+
+  .status-badge.inactive {
+    background: #F5F5F5;
+    color: #666
+  }
+
+  .action-btns {
+    display: flex;
+    gap: 6px
+  }
+
+  .action-btn {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    color: #1a1a1a;
+    transition: all .2s
+  }
+
+  .action-btn:hover {
+    background: #f5f5f5
+  }
+
+  .action-btn.delete:hover {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca
+  }
+
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999
+  }
+
+  .modal {
+    background: #fff;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25)
+  }
+
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between
+  }
+
+  .modal-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 18px;
+    font-weight: 600;
+    font-style: italic
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666
+  }
+
+  .modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1
+  }
+
+  .form-group {
+    margin-bottom: 16px
+  }
+
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1a1a1a;
+    margin-bottom: 6px
+  }
+
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none
+  }
+
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: #185FA5
+  }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 80px
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px
+  }
+
+  .checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px
+  }
+
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px
+  }
+
+  .modal-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px
+  }
+
+  .empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    color: #666
+  }
+
+  .empty-state i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+    color: #ccc
+  }
+
+  .view-row {
+    display: flex;
+    margin-bottom: 12px
+  }
+
+  .view-label {
+    width: 140px;
+    font-size: 13px;
+    color: #666;
+    font-weight: 500
+  }
+
+  .view-value {
+    flex: 1;
+    font-size: 13px;
+    color: #1a1a1a
+  }
+</style>
+
 <!-- PAGE CONTENT -->
-      <!-- Stats Cards -->
-      <div class="flex flex-wrap -mx-3 mb-6">
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Total Discounts</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statTotal">-</h5>
-            </div>
+
+<div class="page">
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Discounts</div>
+      <div class="stat-value" id="statTotal">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Active</div>
+      <div class="stat-value" id="statActive">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Percentage</div>
+      <div class="stat-value" id="statPercentage">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Uses</div>
+      <div class="stat-value" id="statUses">-</div>
+    </div>
+  </div>
+
+  <!-- Discounts Table -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Discounts</div>
+      <button onclick="openAddDiscountModal()" class="btn btn-primary">
+        <i class="fas fa-plus mr-1"></i> Add Discount
+      </button>
+    </div>
+    <div class="table-wrap">
+      <table id="discountsTable">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Value</th>
+            <th>Valid Period</th>
+            <th class="center">Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="discountsTableBody">
+          <tr>
+            <td colspan="7" class="empty-state">
+              <i class="fa-regular fa-clipboard"></i>
+              Loading...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Add Discount Modal -->
+<div id="addDiscountModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add New Discount</div>
+      <button onclick="closeAddDiscountModal()" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="addDiscountForm">
+        <div class="form-group">
+          <label for="discount_code" class="form-label">Discount Code</label>
+          <input type="text" name="discount_code" id="discount_code" required class="form-input" placeholder="e.g., SUMMER2024">
+        </div>
+        <div class="form-group">
+          <label for="discount_name" class="form-label">Discount Name</label>
+          <input type="text" name="discount_name" id="discount_name" required class="form-input" placeholder="e.g., Summer Sale">
+        </div>
+        <div class="form-group">
+          <label for="description" class="form-label">Description</label>
+          <textarea name="description" id="description" rows="2" class="form-textarea"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="discount_type" class="form-label">Discount Type</label>
+          <select name="discount_type" id="discount_type" required class="form-select">
+            <option value="percentage">Percentage</option>
+            <option value="fixed_amount">Fixed Amount</option>
+            <option value="free_night">Free Night</option>
+            <option value="upgrade">Upgrade</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="discount_value" class="form-label">Discount Value</label>
+          <input type="number" name="discount_value" id="discount_value" step="0.01" required class="form-input" placeholder="e.g., 10 for 10%">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="min_nights" class="form-label">Min Nights</label>
+            <input type="number" name="min_nights" id="min_nights" class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="min_booking_amount" class="form-label">Min Booking Amount</label>
+            <input type="number" name="min_booking_amount" id="min_booking_amount" step="0.01" class="form-input">
           </div>
         </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Active</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statActive">-</h5>
-            </div>
+        <div class="form-group">
+          <label for="max_discount_amount" class="form-label">Max Discount Amount</label>
+          <input type="number" name="max_discount_amount" id="max_discount_amount" step="0.01" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Applies To</label>
+          <div class="checkbox-group">
+            <label class="checkbox-item">
+              <input type="checkbox" name="applies_to[]" value="overnight" checked>
+              <span>Overnight</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="applies_to[]" value="hourly" checked>
+              <span>Hourly</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="applies_to[]" value="day_use" checked>
+              <span>Day Use</span>
+            </label>
           </div>
         </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Percentage</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statPercentage">-</h5>
-            </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="usage_limit" class="form-label">Usage Limit</label>
+            <input type="number" name="usage_limit" id="usage_limit" class="form-input" placeholder="Empty for unlimited">
+          </div>
+          <div class="form-group">
+            <label for="per_user_limit" class="form-label">Per User Limit</label>
+            <input type="number" name="per_user_limit" id="per_user_limit" class="form-input">
           </div>
         </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Total Uses</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statUses">-</h5>
-            </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="valid_from" class="form-label">Valid From</label>
+            <input type="date" name="valid_from" id="valid_from" required class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="valid_until" class="form-label">Valid Until</label>
+            <input type="date" name="valid_until" id="valid_until" required class="form-input">
           </div>
         </div>
+        <div class="form-group">
+          <label class="checkbox-item">
+            <input type="checkbox" name="is_active" value="1" checked>
+            <span>Active</span>
+          </label>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" onclick="closeAddDiscountModal()" class="btn btn-secondary">Cancel</button>
+      <button type="button" onclick="submitAddDiscount()" class="btn btn-primary">Add Discount</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Discount Modal -->
+<div id="editDiscountModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Edit Discount</div>
+      <button onclick="closeEditDiscountModal()" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="editDiscountForm">
+        <input type="hidden" id="edit_discount_id">
+        <div class="form-group">
+          <label for="edit_discount_code" class="form-label">Discount Code</label>
+          <input type="text" name="discount_code" id="edit_discount_code" required class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit_discount_name" class="form-label">Discount Name</label>
+          <input type="text" name="discount_name" id="edit_discount_name" required class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit_description" class="form-label">Description</label>
+          <textarea name="description" id="edit_description" rows="2" class="form-textarea"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="edit_discount_type" class="form-label">Discount Type</label>
+          <select name="discount_type" id="edit_discount_type" required class="form-select">
+            <option value="percentage">Percentage</option>
+            <option value="fixed_amount">Fixed Amount</option>
+            <option value="free_night">Free Night</option>
+            <option value="upgrade">Upgrade</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit_discount_value" class="form-label">Discount Value</label>
+          <input type="number" name="discount_value" id="edit_discount_value" step="0.01" required class="form-input">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit_min_nights" class="form-label">Min Nights</label>
+            <input type="number" name="min_nights" id="edit_min_nights" class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="edit_min_booking_amount" class="form-label">Min Booking Amount</label>
+            <input type="number" name="min_booking_amount" id="edit_min_booking_amount" step="0.01" class="form-input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="edit_max_discount_amount" class="form-label">Max Discount Amount</label>
+          <input type="number" name="max_discount_amount" id="edit_max_discount_amount" step="0.01" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Applies To</label>
+          <div class="checkbox-group">
+            <label class="checkbox-item">
+              <input type="checkbox" name="applies_to[]" value="overnight" id="edit_applies_overnight">
+              <span>Overnight</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="applies_to[]" value="hourly" id="edit_applies_hourly">
+              <span>Hourly</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="applies_to[]" value="day_use" id="edit_applies_day_use">
+              <span>Day Use</span>
+            </label>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit_usage_limit" class="form-label">Usage Limit</label>
+            <input type="number" name="usage_limit" id="edit_usage_limit" class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="edit_per_user_limit" class="form-label">Per User Limit</label>
+            <input type="number" name="per_user_limit" id="edit_per_user_limit" class="form-input">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit_valid_from" class="form-label">Valid From</label>
+            <input type="date" name="valid_from" id="edit_valid_from" required class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="edit_valid_until" class="form-label">Valid Until</label>
+            <input type="date" name="valid_until" id="edit_valid_until" required class="form-input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-item">
+            <input type="checkbox" name="is_active" value="1" id="edit_is_active">
+            <span>Active</span>
+          </label>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" onclick="closeEditDiscountModal()" class="btn btn-secondary">Cancel</button>
+      <button type="button" onclick="submitEditDiscount()" class="btn btn-primary">Update Discount</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Discount Modal -->
+<div id="viewDiscountModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Discount Details</div>
+      <button onclick="closeViewDiscountModal()" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="view-row">
+        <div class="view-label">Discount Code</div>
+        <div class="view-value" id="view_discount_code"></div>
       </div>
-
-      <!-- Discounts Table -->
-      <div class="flex flex-wrap -mx-3">
-        <div class="flex-none w-full max-w-full px-3">
-          <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent flex justify-between items-center">
-              <h6 class="dark:text-white">Discounts</h6>
-              <button onclick="openAddDiscountModal()" class="bg-gradient-to-tl from-blue-500 to-violet-500 text-white px-4 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                <i class="fas fa-plus mr-1"></i> Add Discount
-              </button>
-            </div>
-            <div class="flex-auto px-0 pt-0 pb-2">
-              <div class="p-0 overflow-x-auto">
-                <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500" id="discountsTable">
-                  <thead class="align-bottom">
-                    <tr>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Code</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Name</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Type</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Value</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Valid Period</th>
-                      <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
-                      <th class="px-6 py-3 font-semibold capitalize align-middle bg-transparent border-b border-collapse border-solid shadow-none dark:border-white/40 dark:text-white tracking-none whitespace-nowrap text-slate-400 opacity-70"></th>
-                    </tr>
-                  </thead>
-                  <tbody id="discountsTableBody">
-                    <tr><td colspan="7" class="p-4 text-center text-slate-400 dark:text-white/60">Loading...</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="view-row">
+        <div class="view-label">Discount Name</div>
+        <div class="view-value" id="view_discount_name"></div>
       </div>
-
-      <!-- Add Discount Modal -->
-      <div id="addDiscountModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddDiscountModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-lg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; max-width: 600px; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; display: flex; flex-direction: column;">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center flex-shrink-0" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-            <h3 class="text-xl font-bold dark:text-white">Add New Discount</h3>
-            <button onclick="closeAddDiscountModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <div class="p-6 overflow-y-auto" style="padding: 1.5rem; flex: 1;">
-            <form id="addDiscountForm">
-              <div class="space-y-4">
-                <div>
-                  <label for="discount_code" class="block text-sm font-medium text-gray-700">Discount Code</label>
-                  <input type="text" name="discount_code" id="discount_code" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., SUMMER2024">
-                </div>
-                <div>
-                  <label for="discount_name" class="block text-sm font-medium text-gray-700">Discount Name</label>
-                  <input type="text" name="discount_name" id="discount_name" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., Summer Sale">
-                </div>
-                <div>
-                  <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-                  <textarea name="description" id="description" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
-                </div>
-                <div>
-                  <label for="discount_type" class="block text-sm font-medium text-gray-700">Discount Type</label>
-                  <select name="discount_type" id="discount_type" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="percentage">Percentage</option>
-                    <option value="fixed_amount">Fixed Amount</option>
-                    <option value="free_night">Free Night</option>
-                    <option value="upgrade">Upgrade</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="discount_value" class="block text-sm font-medium text-gray-700">Discount Value</label>
-                  <input type="number" name="discount_value" id="discount_value" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., 10 for 10%">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <label for="min_nights" class="block text-sm font-medium text-gray-700">Min Nights</label>
-                    <input type="number" name="min_nights" id="min_nights" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  </div>
-                  <div>
-                    <label for="min_booking_amount" class="block text-sm font-medium text-gray-700">Min Booking Amount</label>
-                    <input type="number" name="min_booking_amount" id="min_booking_amount" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  </div>
-                </div>
-                <div>
-                  <label for="max_discount_amount" class="block text-sm font-medium text-gray-700">Max Discount Amount</label>
-                  <input type="number" name="max_discount_amount" id="max_discount_amount" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700">Applies To</label>
-                  <div class="mt-2 space-y-2">
-                    <label class="flex items-center">
-                      <input type="checkbox" name="applies_to[]" value="overnight" checked class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
-                      <span class="ml-2 text-sm text-gray-700">Overnight</span>
-                    </label>
-                    <label class="flex items-center">
-                      <input type="checkbox" name="applies_to[]" value="hourly" checked class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
-                      <span class="ml-2 text-sm text-gray-700">Hourly</span>
-                    </label>
-                    <label class="flex items-center">
-                      <input type="checkbox" name="applies_to[]" value="day_use" checked class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
-                      <span class="ml-2 text-sm text-gray-700">Day Use</span>
-                    </label>
-                  </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <label for="usage_limit" class="block text-sm font-medium text-gray-700">Usage Limit</label>
-                    <input type="number" name="usage_limit" id="usage_limit" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="Empty for unlimited">
-                  </div>
-                  <div>
-                    <label for="per_user_limit" class="block text-sm font-medium text-gray-700">Per User Limit</label>
-                    <input type="number" name="per_user_limit" id="per_user_limit" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <label for="valid_from" class="block text-sm font-medium text-gray-700">Valid From</label>
-                    <input type="date" name="valid_from" id="valid_from" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  </div>
-                  <div>
-                    <label for="valid_until" class="block text-sm font-medium text-gray-700">Valid Until</label>
-                    <input type="date" name="valid_until" id="valid_until" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  </div>
-                </div>
-                <div>
-                  <label class="flex items-center">
-                    <input type="checkbox" name="is_active" value="1" checked class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
-                    <span class="ml-2 text-sm text-gray-700">Active</span>
-                  </label>
-                </div>
-              </div>
-
-              <!-- Form Actions -->
-              <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-white/10">
-                <button type="button" onclick="closeAddDiscountModal()" class="px-6 py-2 border border-gray-300 dark:border-white/20 rounded-lg text-slate-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-                  Cancel
-                </button>
-                <button type="button" onclick="submitAddDiscount()" class="px-6 py-2 bg-gradient-to-tl from-blue-500 to-violet-500 text-white rounded-lg font-semibold hover:shadow-md transition-all">
-                  Add Discount
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      <div class="view-row">
+        <div class="view-label">Description</div>
+        <div class="view-value" id="view_description"></div>
       </div>
-
-      <!-- Edit Discount Modal -->
-      <div id="editDiscountModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeEditDiscountModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-lg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; max-width: 600px; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; display: flex; flex-direction: column;">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center flex-shrink-0" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-            <h3 class="text-xl font-bold dark:text-white">Edit Discount</h3>
-            <button onclick="closeEditDiscountModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <div class="p-6 overflow-y-auto" style="padding: 1.5rem; flex: 1;">
-            <form id="editDiscountForm">
-              <input type="hidden" id="edit_discount_id">
-              <div class="space-y-4">
-                <div>
-                  <label for="edit_discount_code" class="block text-sm font-medium text-gray-700">Discount Code</label>
-                  <input type="text" name="discount_code" id="edit_discount_code" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="edit_discount_name" class="block text-sm font-medium text-gray-700">Discount Name</label>
-                  <input type="text" name="discount_name" id="edit_discount_name" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="edit_description" class="block text-sm font-medium text-gray-700">Description</label>
-                  <textarea name="description" id="edit_description" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
-                </div>
-                <div>
-                  <label for="edit_discount_type" class="block text-sm font-medium text-gray-700">Discount Type</label>
-                  <select name="discount_type" id="edit_discount_type" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="percentage">Percentage</option>
-                    <option value="fixed_amount">Fixed Amount</option>
-                    <option value="free_night">Free Night</option>
-                    <option value="upgrade">Upgrade</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="edit_discount_value" class="block text-sm font-medium text-gray-700">Discount Value</label>
-                  <input type="number" name="discount_value" id="edit_discount_value" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <label for="edit_min_nights" class="block text-sm font-medium text-gray-700">Min Nights</label>
-                    <input type="number" name="min_nights" id="edit_min_nights" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  </div>
-                  <div>
-                    <label for="edit_min_booking_amount" class="block text-sm font-medium text-gray-700">Min Booking Amount</label>
-                    <input type="number" name="min_booking_amount" id="edit_min_booking_amount" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  </div>
-                </div>
-                <div>
-                  <label for="edit_max_discount_amount" class="block text-sm font-medium text-gray-700">Max Discount Amount</label>
-                  <input type="number" name="max_discount_amount" id="edit_max_discount_amount" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700">Applies To</label>
-                  <div class="mt-2 space-y-2">
-                    <label class="flex items-center">
-                      <input type="checkbox" name="applies_to[]" value="overnight" id="edit_applies_overnight" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
-                      <span class="ml-2 text-sm text-gray-700">Overnight</span>
-                    </label>
-                    <label class="flex items-center">
-                      <input type="checkbox" name="applies_to[]" value="hourly" id="edit_applies_hourly" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
-                      <span class="ml-2 text-sm text-gray-700">Hourly</span>
-                    </label>
-                    <label class="flex items-center">
-                      <input type="checkbox" name="applies_to[]" value="day_use" id="edit_applies_day_use" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
-                      <span class="ml-2 text-sm text-gray-700">Day Use</span>
-                    </label>
-                  </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <label for="edit_usage_limit" class="block text-sm font-medium text-gray-700">Usage Limit</label>
-                    <input type="number" name="usage_limit" id="edit_usage_limit" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  </div>
-                  <div>
-                    <label for="edit_per_user_limit" class="block text-sm font-medium text-gray-700">Per User Limit</label>
-                    <input type="number" name="per_user_limit" id="edit_per_user_limit" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <label for="edit_valid_from" class="block text-sm font-medium text-gray-700">Valid From</label>
-                    <input type="date" name="valid_from" id="edit_valid_from" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  </div>
-                  <div>
-                    <label for="edit_valid_until" class="block text-sm font-medium text-gray-700">Valid Until</label>
-                    <input type="date" name="valid_until" id="edit_valid_until" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  </div>
-                </div>
-                <div>
-                  <label class="flex items-center">
-                    <input type="checkbox" name="is_active" value="1" id="edit_is_active" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
-                    <span class="ml-2 text-sm text-gray-700">Active</span>
-                  </label>
-                </div>
-              </div>
-
-              <!-- Form Actions -->
-              <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-white/10">
-                <button type="button" onclick="closeEditDiscountModal()" class="px-6 py-2 border border-gray-300 dark:border-white/20 rounded-lg text-slate-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-                  Cancel
-                </button>
-                <button type="button" onclick="submitEditDiscount()" class="px-6 py-2 bg-gradient-to-tl from-blue-500 to-violet-500 text-white rounded-lg font-semibold hover:shadow-md transition-all">
-                  Update Discount
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      <div class="view-row">
+        <div class="view-label">Discount Type</div>
+        <div class="view-value" id="view_discount_type"></div>
       </div>
-
-      <!-- View Discount Modal -->
-      <div id="viewDiscountModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeViewDiscountModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-lg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; max-width: 600px; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; display: flex; flex-direction: column;">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center flex-shrink-0" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-            <h3 class="text-xl font-bold dark:text-white">Discount Details</h3>
-            <button onclick="closeViewDiscountModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <div class="p-6 overflow-y-auto" style="padding: 1.5rem; flex: 1;">
-            <div class="space-y-3">
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Discount Code</label>
-                <p id="view_discount_code" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Discount Name</label>
-                <p id="view_discount_name" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Description</label>
-                <p id="view_description" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Discount Type</label>
-                <p id="view_discount_type" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Discount Value</label>
-                <p id="view_discount_value" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Valid Period</label>
-                <p id="view_valid_period" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Applies To</label>
-                <p id="view_applies_to" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Usage Limit</label>
-                <p id="view_usage_limit" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Usage Count</label>
-                <p id="view_usage_count" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Status</label>
-                <p id="view_is_active" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="view-row">
+        <div class="view-label">Discount Value</div>
+        <div class="view-value" id="view_discount_value"></div>
       </div>
+      <div class="view-row">
+        <div class="view-label">Valid Period</div>
+        <div class="view-value" id="view_valid_period"></div>
+      </div>
+      <div class="view-row">
+        <div class="view-label">Applies To</div>
+        <div class="view-value" id="view_applies_to"></div>
+      </div>
+      <div class="view-row">
+        <div class="view-label">Usage Limit</div>
+        <div class="view-value" id="view_usage_limit"></div>
+      </div>
+      <div class="view-row">
+        <div class="view-label">Usage Count</div>
+        <div class="view-value" id="view_usage_count"></div>
+      </div>
+      <div class="view-row">
+        <div class="view-label">Status</div>
+        <div class="view-value" id="view_is_active"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
   let discountsData = [];
@@ -560,11 +854,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         renderTable();
         renderStats();
       } else {
-        document.getElementById('discountsTableBody').innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-400">${result.message}</td></tr>`;
+        document.getElementById('discountsTableBody').innerHTML = `<tr><td colspan="7" class="empty-state"><i>⚠</i>${result.message}</td></tr>`;
       }
     } catch (e) {
       console.error('Error fetching discounts:', e);
-      document.getElementById('discountsTableBody').innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-400">Failed to load data</td></tr>`;
+      document.getElementById('discountsTableBody').innerHTML = `<tr><td colspan="7" class="empty-state"><i>⚠</i>Failed to load data</td></tr>`;
     }
   }
 
@@ -578,7 +872,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
   function renderTable() {
     const tbody = document.getElementById('discountsTableBody');
     if (!discountsData.length) {
-      tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400 dark:text-white/60">No discounts found. <a href="javascript:;" onclick="openAddDiscountModal()" class="text-blue-500 font-semibold">Add your first discount</a>.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><i class="fa-regular fa-clipboard"></i>No discounts found. <a href="javascript:;" onclick="openAddDiscountModal()" style="color:#185FA5;font-weight:500">Add your first discount</a>.</td></tr>`;
       return;
     }
     tbody.innerHTML = discountsData.map(d => {
@@ -586,44 +880,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
       const validFrom = d.valid_from ? new Date(d.valid_from).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-';
       const validUntil = d.valid_until ? new Date(d.valid_until).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-';
       const statusBadge = d.is_active == 1
-        ? `<span class="bg-gradient-to-tl from-emerald-500 to-teal-400 px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">Active</span>`
-        : `<span class="bg-gradient-to-tl from-slate-600 to-slate-400 px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">Inactive</span>`;
+        ? `<span class="status-badge active">Active</span>`
+        : `<span class="status-badge inactive">Inactive</span>`;
       return `
         <tr class="discount-row">
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <div class="flex px-2 py-1">
-              <div class="inline-flex items-center justify-center mr-4 text-sm text-white transition-all duration-200 ease-in-out h-9 w-9 rounded-xl bg-gradient-to-tl from-red-500 to-orange-400">
-                <i class="fas fa-tag"></i>
-              </div>
-              <div class="flex flex-col justify-center">
-                <h6 class="mb-0 text-sm leading-normal dark:text-white">${d.discount_code}</h6>
-              </div>
-            </div>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${d.discount_name}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${d.discount_type.charAt(0).toUpperCase() + d.discount_type.slice(1)}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">${valueStr}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${validFrom} - ${validUntil}</p>
-          </td>
-          <td class="p-2 text-sm leading-normal text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">${statusBadge}</td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <div class="flex items-center gap-2">
-              <button onclick="openViewDiscountModal('${d.discount_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md">
-                <i class="fas fa-info-circle mr-1.5 text-xs"></i><span>View</span>
-              </button>
-              <button onclick="openEditDiscountModal('${d.discount_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-amber-50 hover:text-amber-600 hover:border-amber-300 transition-all duration-200 shadow-sm hover:shadow-md">
-                <i class="fas fa-edit mr-1.5 text-xs"></i><span>Edit</span>
-              </button>
-              <button onclick="confirmDeleteDiscount('${d.discount_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-red-600 bg-white dark:bg-slate-700/50 border border-red-200 dark:border-white/10 rounded-lg hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-all duration-200 shadow-sm hover:shadow-md">
-                <i class="fas fa-trash-alt mr-1.5 text-xs"></i><span>Delete</span>
-              </button>
+          <td>${d.discount_code}</td>
+          <td>${d.discount_name}</td>
+          <td>${d.discount_type.charAt(0).toUpperCase() + d.discount_type.slice(1)}</td>
+          <td>${valueStr}</td>
+          <td>${validFrom} - ${validUntil}</td>
+          <td class="center">${statusBadge}</td>
+          <td>
+            <div class="action-btns">
+              <button onclick="openViewDiscountModal('${d.discount_id}')" class="action-btn">View</button>
+              <button onclick="openEditDiscountModal('${d.discount_id}')" class="action-btn">Edit</button>
+              <button onclick="confirmDeleteDiscount('${d.discount_id}')" class="action-btn delete">Delete</button>
             </div>
           </td>
         </tr>`;
@@ -632,13 +903,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
   function openAddDiscountModal() {
     document.getElementById('addDiscountForm').reset();
-    document.getElementById('addDiscountModal').style.display = 'block';
-    document.getElementById('addDiscountModal').classList.remove('hidden');
+    document.getElementById('addDiscountModal').style.display = 'flex';
   }
 
   function closeAddDiscountModal() {
     document.getElementById('addDiscountModal').style.display = 'none';
-    document.getElementById('addDiscountModal').classList.add('hidden');
   }
 
   async function submitAddDiscount() {
@@ -698,14 +967,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
       document.getElementById('edit_valid_from').value = discount.valid_from;
       document.getElementById('edit_valid_until').value = discount.valid_until;
       document.getElementById('edit_is_active').checked = discount.is_active == 1;
-      document.getElementById('editDiscountModal').style.display = 'block';
-      document.getElementById('editDiscountModal').classList.remove('hidden');
+      document.getElementById('editDiscountModal').style.display = 'flex';
     }
   }
 
   function closeEditDiscountModal() {
     document.getElementById('editDiscountModal').style.display = 'none';
-    document.getElementById('editDiscountModal').classList.add('hidden');
   }
 
   async function submitEditDiscount() {
@@ -758,14 +1025,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
       document.getElementById('view_usage_limit').textContent = discount.usage_limit || 'Unlimited';
       document.getElementById('view_usage_count').textContent = discount.usage_count || 0;
       document.getElementById('view_is_active').textContent = discount.is_active == 1 ? 'Active' : 'Inactive';
-      document.getElementById('viewDiscountModal').style.display = 'block';
-      document.getElementById('viewDiscountModal').classList.remove('hidden');
+      document.getElementById('viewDiscountModal').style.display = 'flex';
     }
   }
 
   function closeViewDiscountModal() {
     document.getElementById('viewDiscountModal').style.display = 'none';
-    document.getElementById('viewDiscountModal').classList.add('hidden');
   }
 
   function confirmDeleteDiscount(discountId) {
@@ -797,10 +1062,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     });
   }
 
-  function filterTable() {
-    const filter = document.getElementById('searchInput').value.toUpperCase();
-    document.querySelectorAll('#discountsTable .discount-row').forEach(row => {
-      row.style.display = row.textContent.toUpperCase().includes(filter) ? '' : 'none';
-    });
-  }
 </script>

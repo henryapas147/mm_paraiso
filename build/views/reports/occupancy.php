@@ -1,4 +1,268 @@
 <?php if (false) {} ?>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ── Occupancy Reports Design System ── */
+  .occ-page {
+    --occ-bg-main: #f0f2f8;
+    --occ-bg-card: #ffffff;
+    --occ-text-primary: #1a1f36;
+    --occ-text-secondary: #6b7280;
+    --occ-text-muted: #9ca3af;
+    --occ-border: #e5e7eb;
+    --occ-accent-blue: #4f46e5;
+    --occ-accent-blue-light: #eef2ff;
+    --occ-accent-emerald: #10b981;
+    --occ-accent-rose: #f43f5e;
+    --occ-accent-orange: #f97316;
+    --occ-accent-violet: #8b5cf6;
+    --occ-shadow-sm: 0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .04);
+    --occ-shadow-md: 0 4px 16px rgba(0, 0, 0, .08);
+    --occ-radius: 16px;
+    --occ-radius-sm: 10px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: var(--occ-text-primary);
+  }
+
+  .occ-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* ── STAT CARDS ── */
+  .occ-page .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .occ-page .stat-card {
+    background: var(--occ-bg-card);
+    border-radius: var(--occ-radius);
+    padding: 20px;
+    box-shadow: var(--occ-shadow-sm);
+    border: 1px solid var(--occ-border);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: box-shadow .2s, transform .2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .occ-page .stat-card:hover {
+    box-shadow: var(--occ-shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .occ-page .stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: var(--occ-radius) var(--occ-radius) 0 0;
+  }
+
+  .occ-page .stat-card.blue::after {
+    background: linear-gradient(90deg, #4f46e5, #8b5cf6);
+  }
+
+  .occ-page .stat-card.rose::after {
+    background: linear-gradient(90deg, #f43f5e, #fb7185);
+  }
+
+  .occ-page .stat-card.green::after {
+    background: linear-gradient(90deg, #10b981, #34d399);
+  }
+
+  .occ-page .stat-card.orange::after {
+    background: linear-gradient(90deg, #f97316, #fbbf24);
+  }
+
+  .occ-page .stat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .occ-page .stat-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--occ-text-muted);
+  }
+
+  .occ-page .stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+
+  .occ-page .stat-icon.blue {
+    background: linear-gradient(135deg, #4f46e5, #8b5cf6);
+  }
+
+  .occ-page .stat-icon.rose {
+    background: linear-gradient(135deg, #f43f5e, #fb923c);
+  }
+
+  .occ-page .stat-icon.green {
+    background: linear-gradient(135deg, #10b981, #34d399);
+  }
+
+  .occ-page .stat-icon.orange {
+    background: linear-gradient(135deg, #f97316, #fbbf24);
+  }
+
+  .occ-page .stat-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--occ-text-primary);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .occ-page .stat-footer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--occ-text-muted);
+  }
+
+  .occ-page .stat-badge {
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .occ-page .stat-badge.up {
+    color: var(--occ-accent-emerald);
+  }
+
+  .occ-page .stat-badge.down {
+    color: var(--occ-accent-rose);
+  }
+
+  /* ── CARD ── */
+  .occ-page .card {
+    background: var(--occ-bg-card);
+    border: 1px solid var(--occ-border);
+    border-radius: var(--occ-radius);
+    box-shadow: var(--occ-shadow-sm);
+    overflow: hidden;
+  }
+
+  .occ-page .card-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--occ-border);
+  }
+
+  .occ-page .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--occ-text-primary);
+  }
+
+  .occ-page .card-body {
+    padding: 20px;
+  }
+
+  /* ── TABLE ── */
+  .occ-page .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .occ-page .data-table th {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--occ-text-muted);
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--occ-border);
+  }
+
+  .occ-page .data-table th.text-right {
+    text-align: right;
+  }
+
+  .occ-page .data-table th.text-center {
+    text-align: center;
+  }
+
+  .occ-page .data-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--occ-border);
+    font-size: 13px;
+    color: var(--occ-text-primary);
+    vertical-align: middle;
+  }
+
+  .occ-page .data-table td.text-right {
+    text-align: right;
+  }
+
+  .occ-page .data-table td.text-center {
+    text-align: center;
+  }
+
+  .occ-page .data-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .occ-page .mono {
+    font-family: 'DM Mono', monospace;
+    font-weight: 600;
+  }
+
+  /* ── BADGES ── */
+  .occ-page .badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .occ-page .badge-high {
+    background: #d1fae5;
+    color: #059669;
+  }
+
+  .occ-page .badge-medium {
+    background: #fef3c7;
+    color: #d97706;
+  }
+
+  .occ-page .badge-low {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1100px) {
+    .occ-page .stat-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .occ-page .stat-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>
+
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     loadOccupancyData();
@@ -35,9 +299,9 @@
     const tbody = document.getElementById('occupancyTableBody');
     tbody.innerHTML = data.map(row => `
       <tr>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40">${new Date(row.date).toLocaleDateString()}</td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 text-center">${row.check_ins || 0}</td>
-        <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 text-center">${row.check_outs || 0}</td>
+        <td>${new Date(row.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
+        <td class="text-center">${row.check_ins || 0}</td>
+        <td class="text-center">${row.check_outs || 0}</td>
       </tr>
     `).join('');
   }
@@ -46,76 +310,124 @@
     const tbody = document.getElementById('roomTypeTableBody');
     tbody.innerHTML = data.map(row => {
       const pct = row.total_rooms > 0 ? Math.round((row.occupied / row.total_rooms) * 100) : 0;
+      const badgeClass = pct > 80 ? 'badge-high' : pct > 50 ? 'badge-medium' : 'badge-low';
       return `
         <tr>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40">${row.category_name}</td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 text-center">${row.total_rooms}</td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 text-center">${row.occupied || 0}</td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 text-center">
-            <span class="px-2 py-1 text-xs rounded-full ${pct > 80 ? 'bg-emerald-100 text-emerald-700' : pct > 50 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}">${pct}%</span>
-          </td>
+          <td>${row.category_name}</td>
+          <td class="text-center">${row.total_rooms}</td>
+          <td class="text-center">${row.occupied || 0}</td>
+          <td class="text-center"><span class="badge ${badgeClass}">${pct}%</span></td>
         </tr>
       `;
     }).join('');
   }
 </script>
 
-<div class="flex flex-wrap -mx-3 mb-6">
-  <div class="w-full max-w-full px-3">
-    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 rounded-2xl">
-      <div class="p-4 pb-0 mb-0 rounded-t-2xl">
-        <h6 class="mb-0 dark:text-white">Occupancy Reports</h6>
-      </div>
-      <div class="p-4">
-        <p class="text-slate-500">Occupancy analytics and room utilization statistics.</p>
-      </div>
-    </div>
-  </div>
-</div>
+<div class="occ-page">
+  <div class="occ-content">
 
-<div class="flex flex-wrap -mx-3">
-  <div class="w-full max-w-full px-3 lg:w-1/2">
-    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 rounded-2xl">
-      <div class="p-4 pb-0 mb-0 rounded-t-2xl">
-        <h6 class="mb-0 dark:text-white">Daily Check-ins/Check-outs</h6>
+    <!-- Stat Cards -->
+    <div class="stat-grid">
+      <div class="stat-card blue">
+        <div class="stat-header">
+          <span class="stat-label">Total Rooms</span>
+          <div class="stat-icon blue">🏨</div>
+        </div>
+        <div class="stat-value">48</div>
+        <div class="stat-footer">
+          <span class="stat-badge up">▲ +4</span>
+          new this month
+        </div>
       </div>
-      <div class="p-0 overflow-x-auto">
-        <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
-          <thead>
-            <tr>
-              <th class="px-6 py-3 font-bold text-left uppercase text-xxs border-b dark:border-slate-600 text-slate-400">Date</th>
-              <th class="px-6 py-3 font-bold text-center uppercase text-xxs border-b dark:border-slate-600 text-slate-400">Check-ins</th>
-              <th class="px-6 py-3 font-bold text-center uppercase text-xxs border-b dark:border-slate-600 text-slate-400">Check-outs</th>
-            </tr>
-          </thead>
-          <tbody id="occupancyTableBody">
-            <tr><td colspan="3" class="p-4 text-center text-slate-400">Loading...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
 
-  <div class="w-full max-w-full px-3 lg:w-1/2">
-    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 rounded-2xl">
-      <div class="p-4 pb-0 mb-0 rounded-t-2xl">
-        <h6 class="mb-0 dark:text-white">Occupancy by Room Type</h6>
+      <div class="stat-card green">
+        <div class="stat-header">
+          <span class="stat-label">Occupied</span>
+          <div class="stat-icon green">✅</div>
+        </div>
+        <div class="stat-value">36</div>
+        <div class="stat-footer">
+          <span class="stat-badge up">▲ +12%</span>
+          currently occupied
+        </div>
       </div>
-      <div class="p-0 overflow-x-auto">
-        <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
-          <thead>
-            <tr>
-              <th class="px-6 py-3 font-bold text-left uppercase text-xxs border-b dark:border-slate-600 text-slate-400">Room Type</th>
-              <th class="px-6 py-3 font-bold text-center uppercase text-xxs border-b dark:border-slate-600 text-slate-400">Total</th>
-              <th class="px-6 py-3 font-bold text-center uppercase text-xxs border-b dark:border-slate-600 text-slate-400">Occupied</th>
-              <th class="px-6 py-3 font-bold text-center uppercase text-xxs border-b dark:border-slate-600 text-slate-400">Rate</th>
-            </tr>
-          </thead>
-          <tbody id="roomTypeTableBody">
-            <tr><td colspan="4" class="p-4 text-center text-slate-400">Loading...</td></tr>
-          </tbody>
-        </table>
+
+      <div class="stat-card orange">
+        <div class="stat-header">
+          <span class="stat-label">Available</span>
+          <div class="stat-icon orange">🔑</div>
+        </div>
+        <div class="stat-value">12</div>
+        <div class="stat-footer">
+          <span class="stat-badge down">▼ -8%</span>
+          ready for booking
+        </div>
+      </div>
+
+      <div class="stat-card rose">
+        <div class="stat-header">
+          <span class="stat-label">Occupancy Rate</span>
+          <div class="stat-icon rose">📊</div>
+        </div>
+        <div class="stat-value">75%</div>
+        <div class="stat-footer">
+          <span class="stat-badge up">▲ +5%</span>
+          overall rate
+        </div>
       </div>
     </div>
+
+    <!-- Row: Daily Check-ins + Room Type Occupancy -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+
+      <!-- Daily Check-ins/Check-outs -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Daily Check-ins/Check-outs</div>
+        </div>
+        <div class="card-body" style="padding: 0; overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th class="text-center">Check-ins</th>
+                <th class="text-center">Check-outs</th>
+              </tr>
+            </thead>
+            <tbody id="occupancyTableBody">
+              <tr>
+                <td colspan="3" style="text-align: center; color: var(--occ-text-muted);">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Occupancy by Room Type -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Occupancy by Room Type</div>
+        </div>
+        <div class="card-body" style="padding: 0; overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Room Type</th>
+                <th class="text-center">Total</th>
+                <th class="text-center">Occupied</th>
+                <th class="text-center">Rate</th>
+              </tr>
+            </thead>
+            <tbody id="roomTypeTableBody">
+              <tr>
+                <td colspan="4" style="text-align: center; color: var(--occ-text-muted);">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
   </div>
 </div>

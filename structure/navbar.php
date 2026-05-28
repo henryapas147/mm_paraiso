@@ -171,7 +171,154 @@ function getBreadcrumbInfo($route)
 
 $breadcrumb = getBreadcrumbInfo($current_route);
 ?>
-<nav class="relative flex flex-wrap items-center justify-between px-0 py-2 mx-6 transition-all ease-in shadow-none duration-250 rounded-2xl lg:flex-nowrap lg:justify-start" navbar-main navbar-scroll="false">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Lora:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+    /* ── Navbar — Design System ── */
+    .navbar-enhanced {
+        --nb-gold: #C9A96E;
+        --nb-gold-dark: #A07840;
+        --nb-gold-light: #E8D5B0;
+        --nb-ink: #1A1410;
+        --nb-ink-soft: #3D3530;
+        --nb-surface: #FFFFFF;
+        --nb-surface-2: #FAFAF8;
+        --nb-border: #EDEAE6;
+        --nb-border-gold: rgba(201, 169, 110, .22);
+        --nb-radius-md: 10px;
+        --nb-radius-lg: 16px;
+        --nb-shadow: 0 1px 3px rgba(0, 0, 0, .05), 0 4px 16px rgba(0, 0, 0, .07);
+        font-family: 'DM Sans', system-ui, sans-serif;
+        color: var(--nb-ink);
+    }
+
+    /* Preserve icon fonts */
+    .navbar-enhanced .ni {
+        font-family: 'NucleoIcons' !important;
+    }
+
+    .navbar-enhanced .fa,
+    .navbar-enhanced .fas,
+    .navbar-enhanced .far,
+    .navbar-enhanced .fab {
+        font-family: 'Font Awesome 6 Free', 'Font Awesome 6 Brands' !important;
+    }
+
+    /* ── Breadcrumb & page title ── */
+    .navbar-enhanced nav nav ol li a {
+        color: rgba(255, 255, 255, .7) !important;
+        transition: color .2s ease;
+    }
+
+    .navbar-enhanced nav nav ol li a:hover {
+        color: var(--nb-gold-light) !important;
+    }
+
+    .navbar-enhanced nav nav h6 {
+        font-family: 'Lora', Georgia, serif !important;
+        font-weight: 500 !important;
+        font-style: italic !important;
+        letter-spacing: .02em !important;
+    }
+
+    /* ── Search input ── */
+    .navbar-enhanced input[type="text"] {
+        border-color: var(--nb-border-gold) !important;
+        border-radius: var(--nb-radius-md) !important;
+        font-size: .85rem !important;
+        color: var(--nb-ink) !important;
+    }
+
+    .navbar-enhanced input[type="text"]:focus {
+        border-color: var(--nb-gold) !important;
+        box-shadow: 0 0 0 3px rgba(201, 169, 110, .15) !important;
+    }
+
+    .navbar-enhanced input[type="text"]::placeholder {
+        color: var(--nb-ink-soft) !important;
+        opacity: .5 !important;
+    }
+
+    /* ── User dropdown ── */
+    .navbar-enhanced [user-dropdown-menu] {
+        border: 1px solid var(--nb-border) !important;
+        border-radius: var(--nb-radius-lg) !important;
+        box-shadow: var(--nb-shadow) !important;
+    }
+
+    .navbar-enhanced [user-dropdown-menu] a h6 {
+        font-family: 'DM Sans', sans-serif !important;
+        font-size: .85rem !important;
+        font-weight: 500 !important;
+        color: var(--nb-ink-soft) !important;
+    }
+
+    .navbar-enhanced [user-dropdown-menu] a:hover h6 {
+        color: var(--nb-gold-dark) !important;
+    }
+
+    .navbar-enhanced [user-dropdown-menu] .border-t {
+        border-color: var(--nb-border) !important;
+    }
+
+    /* ── Notification dropdown ── */
+    .navbar-enhanced [dropdown-menu] {
+        border: 1px solid var(--nb-border) !important;
+        border-radius: var(--nb-radius-lg) !important;
+        box-shadow: var(--nb-shadow) !important;
+    }
+
+    .navbar-enhanced [dropdown-menu] h6 {
+        font-family: 'DM Sans', sans-serif !important;
+        font-size: .7rem !important;
+        font-weight: 600 !important;
+        letter-spacing: .1em !important;
+        text-transform: uppercase !important;
+        color: var(--nb-gold-dark) !important;
+    }
+
+    .navbar-enhanced [dropdown-menu] .border-b,
+    .navbar-enhanced [dropdown-menu] .border-t {
+        border-color: var(--nb-border) !important;
+    }
+
+    .navbar-enhanced [dropdown-menu] a h6 {
+        font-family: 'DM Sans', sans-serif !important;
+        font-size: .85rem !important;
+        font-weight: 500 !important;
+        color: var(--nb-ink-soft) !important;
+    }
+
+    .navbar-enhanced [dropdown-menu] a:hover h6 {
+        color: var(--nb-gold-dark) !important;
+    }
+
+    .navbar-enhanced [dropdown-menu] a.text-blue-500 {
+        color: var(--nb-gold-dark) !important;
+        font-weight: 600 !important;
+    }
+
+    .navbar-enhanced [dropdown-menu] a.text-blue-500:hover {
+        color: var(--nb-gold) !important;
+    }
+
+    /* ── Notification badge ── */
+    .navbar-enhanced #notifBadge {
+        background: linear-gradient(135deg, var(--nb-gold), var(--nb-gold-dark)) !important;
+        border: 2px solid white !important;
+    }
+
+    /* ── Profile photo ── */
+    .navbar-enhanced #navbarProfilePhoto {
+        border: 2px solid var(--nb-gold-light) !important;
+        transition: border-color .2s ease;
+    }
+
+    .navbar-enhanced #navbarProfilePhoto:hover {
+        border-color: var(--nb-gold) !important;
+    }
+</style>
+
+<nav class="navbar-enhanced relative flex flex-wrap items-center justify-between px-0 py-2 mx-6 transition-all ease-in shadow-none duration-250 rounded-2xl lg:flex-nowrap lg:justify-start" navbar-main navbar-scroll="false">
     <div class="flex items-center justify-between w-full px-4 py-1 mx-auto flex-wrap-inherit">
         <nav class="flex-shrink-0 min-w-0">
             <!-- breadcrumb -->

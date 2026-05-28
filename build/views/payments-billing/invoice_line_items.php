@@ -162,276 +162,528 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 ?>
 
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
+
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0
+  }
+
+  body {
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background: #f5f5f5;
+    color: #1a1a1a
+  }
+
+  .page {
+    padding: 24px;
+    max-width: 100%;
+    margin: 0 auto
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px
+  }
+
+  .stat-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px
+  }
+
+  .stat-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 8px
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 600;
+    color: #1a1a1a
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap
+  }
+
+  .card-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    font-weight: 600;
+    font-style: italic
+  }
+
+  .btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all .2s
+  }
+
+  .btn-primary {
+    background: #185FA5;
+    color: #fff
+  }
+
+  .btn-primary:hover {
+    background: #145090
+  }
+
+  .btn-secondary {
+    background: #fff;
+    color: #1a1a1a;
+    border: 1px solid #e0e0e0
+  }
+
+  .btn-secondary:hover {
+    background: #f5f5f5
+  }
+
+  .btn-danger {
+    background: #fff;
+    color: #dc2626;
+    border: 1px solid #fecaca
+  }
+
+  .btn-danger:hover {
+    background: #fef2f2
+  }
+
+  .table-wrap {
+    overflow-x: auto
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px
+  }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid #e0e0e0;
+    white-space: nowrap
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    transition: background .1s
+  }
+
+  tbody tr:last-child {
+    border-bottom: none
+  }
+
+  tbody tr:hover {
+    background: #f9f9f9
+  }
+
+  td {
+    padding: 11px 16px;
+    vertical-align: middle;
+    white-space: nowrap
+  }
+
+  .action-btns {
+    display: flex;
+    gap: 6px
+  }
+
+  .action-btn {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    color: #1a1a1a;
+    transition: all .2s
+  }
+
+  .action-btn:hover {
+    background: #f5f5f5
+  }
+
+  .action-btn.delete:hover {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca
+  }
+
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999
+  }
+
+  .modal {
+    background: #fff;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25)
+  }
+
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between
+  }
+
+  .modal-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 18px;
+    font-weight: 600;
+    font-style: italic
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666
+  }
+
+  .modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1
+  }
+
+  .form-group {
+    margin-bottom: 16px
+  }
+
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1a1a1a;
+    margin-bottom: 6px
+  }
+
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none
+  }
+
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: #185FA5
+  }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 80px
+  }
+
+  .modal-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px
+  }
+
+  .empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    color: #666
+  }
+
+  .empty-state i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+    color: #ccc
+  }
+
+  .view-row {
+    display: flex;
+    margin-bottom: 12px
+  }
+
+  .view-label {
+    width: 140px;
+    font-size: 13px;
+    color: #666;
+    font-weight: 500
+  }
+
+  .view-value {
+    flex: 1;
+    font-size: 13px;
+    color: #1a1a1a
+  }
+</style>
+
 <!-- PAGE CONTENT -->
-      <!-- Stats Cards -->
-      <div class="flex flex-wrap -mx-3 mb-6">
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Total Items</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statTotal">-</h5>
-            </div>
-          </div>
+
+<div class="page">
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Items</div>
+      <div class="stat-value" id="statTotal">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Room Charges</div>
+      <div class="stat-value" id="statRooms">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Services</div>
+      <div class="stat-value" id="statServices">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Value</div>
+      <div class="stat-value" id="statValue">-</div>
+    </div>
+  </div>
+
+  <!-- Line Items Table -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Invoice Line Items</div>
+      <button onclick="openAddLineItemModal()" class="btn btn-primary">
+        <i class="fas fa-plus mr-1"></i> Add Line Item
+      </button>
+    </div>
+    <div class="table-wrap">
+      <table id="lineItemsTable">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Invoice #</th>
+            <th>Type</th>
+            <th>Quantity</th>
+            <th>Unit Price</th>
+            <th>Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="lineItemsTableBody">
+          <tr>
+            <td colspan="7" class="empty-state">
+              <i class="fa-regular fa-clipboard"></i>
+              Loading...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Add Line Item Modal -->
+<div id="addLineItemModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add New Line Item</div>
+      <button onclick="closeAddLineItemModal()" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="addLineItemForm">
+        <div class="form-group">
+          <label for="invoice_id" class="form-label">Invoice</label>
+          <select name="invoice_id" id="invoice_id" required class="form-select">
+            <option value="">Loading...</option>
+          </select>
         </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Room Charges</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statRooms">-</h5>
-            </div>
-          </div>
+        <div class="form-group">
+          <label for="description" class="form-label">Description</label>
+          <input type="text" name="description" id="description" required class="form-input">
         </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Services</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statServices">-</h5>
-            </div>
-          </div>
+        <div class="form-group">
+          <label for="item_type" class="form-label">Item Type</label>
+          <select name="item_type" id="item_type" required class="form-select">
+            <option value="room_charge">Room Charge</option>
+            <option value="extra_guest">Extra Guest</option>
+            <option value="food_order">Food Order</option>
+            <option value="service">Service</option>
+            <option value="discount">Discount</option>
+            <option value="tax">Tax</option>
+            <option value="other">Other</option>
+          </select>
         </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Total Value</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statValue">-</h5>
-            </div>
-          </div>
+        <div class="form-group">
+          <label for="quantity" class="form-label">Quantity</label>
+          <input type="number" name="quantity" id="quantity" step="0.01" required class="form-input" value="1.00">
         </div>
+        <div class="form-group">
+          <label for="unit_price" class="form-label">Unit Price</label>
+          <input type="number" name="unit_price" id="unit_price" step="0.01" required class="form-input" value="0.00">
+        </div>
+        <div class="form-group">
+          <label for="total_price" class="form-label">Total Price</label>
+          <input type="number" name="total_price" id="total_price" step="0.01" required class="form-input" value="0.00">
+        </div>
+        <div class="form-group">
+          <label for="reference_id" class="form-label">Reference ID</label>
+          <input type="text" name="reference_id" id="reference_id" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="sort_order" class="form-label">Sort Order</label>
+          <input type="number" name="sort_order" id="sort_order" class="form-input" value="0">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" onclick="closeAddLineItemModal()" class="btn btn-secondary">Cancel</button>
+      <button type="button" onclick="submitAddLineItem()" class="btn btn-primary">Add Line Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Line Item Modal -->
+<div id="editLineItemModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Edit Line Item</div>
+      <button onclick="closeEditLineItemModal()" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="editLineItemForm">
+        <input type="hidden" id="edit_line_item_id">
+        <div class="form-group">
+          <label for="edit_invoice_id" class="form-label">Invoice</label>
+          <select name="invoice_id" id="edit_invoice_id" required class="form-select">
+            <option value="">Loading...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit_description" class="form-label">Description</label>
+          <input type="text" name="description" id="edit_description" required class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit_item_type" class="form-label">Item Type</label>
+          <select name="item_type" id="edit_item_type" required class="form-select">
+            <option value="room_charge">Room Charge</option>
+            <option value="extra_guest">Extra Guest</option>
+            <option value="food_order">Food Order</option>
+            <option value="service">Service</option>
+            <option value="discount">Discount</option>
+            <option value="tax">Tax</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit_quantity" class="form-label">Quantity</label>
+          <input type="number" name="quantity" id="edit_quantity" step="0.01" required class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit_unit_price" class="form-label">Unit Price</label>
+          <input type="number" name="unit_price" id="edit_unit_price" step="0.01" required class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit_total_price" class="form-label">Total Price</label>
+          <input type="number" name="total_price" id="edit_total_price" step="0.01" required class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit_reference_id" class="form-label">Reference ID</label>
+          <input type="text" name="reference_id" id="edit_reference_id" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit_sort_order" class="form-label">Sort Order</label>
+          <input type="number" name="sort_order" id="edit_sort_order" class="form-input">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" onclick="closeEditLineItemModal()" class="btn btn-secondary">Cancel</button>
+      <button type="button" onclick="submitEditLineItem()" class="btn btn-primary">Update Line Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Line Item Modal -->
+<div id="viewLineItemModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Line Item Details</div>
+      <button onclick="closeViewLineItemModal()" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="view-row">
+        <div class="view-label">Description</div>
+        <div class="view-value" id="view_description"></div>
       </div>
-
-      <!-- Line Items Table -->
-      <div class="flex flex-wrap -mx-3">
-        <div class="flex-none w-full max-w-full px-3">
-          <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent flex justify-between items-center">
-              <h6 class="dark:text-white">Invoice Line Items</h6>
-              <button onclick="openAddLineItemModal()" class="bg-gradient-to-tl from-blue-500 to-violet-500 text-white px-4 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                <i class="fas fa-plus mr-1"></i> Add Line Item
-              </button>
-            </div>
-            <div class="flex-auto px-0 pt-0 pb-2">
-              <div class="p-0 overflow-x-auto">
-                <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500" id="lineItemsTable">
-                  <thead class="align-bottom">
-                    <tr>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Description</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Invoice #</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Type</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Quantity</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Unit Price</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Total</th>
-                      <th class="px-6 py-3 font-semibold capitalize align-middle bg-transparent border-b border-collapse border-solid shadow-none dark:border-white/40 dark:text-white tracking-none whitespace-nowrap text-slate-400 opacity-70"></th>
-                    </tr>
-                  </thead>
-                  <tbody id="lineItemsTableBody">
-                    <tr><td colspan="7" class="p-4 text-center text-slate-400 dark:text-white/60">Loading...</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="view-row">
+        <div class="view-label">Invoice</div>
+        <div class="view-value" id="view_invoice"></div>
       </div>
-
-      <!-- Add Line Item Modal -->
-      <div id="addLineItemModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddLineItemModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-lg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; max-width: 500px; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; display: flex; flex-direction: column;">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center flex-shrink-0" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-            <h3 class="text-xl font-bold dark:text-white">Add New Line Item</h3>
-            <button onclick="closeAddLineItemModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <div class="p-6 overflow-y-auto" style="padding: 1.5rem; flex: 1;">
-            <form id="addLineItemForm">
-              <div class="space-y-4">
-                <div>
-                  <label for="invoice_id" class="block text-sm font-medium text-gray-700">Invoice</label>
-                  <select name="invoice_id" id="invoice_id" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="">Loading...</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-                  <input type="text" name="description" id="description" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="item_type" class="block text-sm font-medium text-gray-700">Item Type</label>
-                  <select name="item_type" id="item_type" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="room_charge">Room Charge</option>
-                    <option value="extra_guest">Extra Guest</option>
-                    <option value="food_order">Food Order</option>
-                    <option value="service">Service</option>
-                    <option value="discount">Discount</option>
-                    <option value="tax">Tax</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
-                  <input type="number" name="quantity" id="quantity" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="1.00">
-                </div>
-                <div>
-                  <label for="unit_price" class="block text-sm font-medium text-gray-700">Unit Price</label>
-                  <input type="number" name="unit_price" id="unit_price" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="0.00">
-                </div>
-                <div>
-                  <label for="total_price" class="block text-sm font-medium text-gray-700">Total Price</label>
-                  <input type="number" name="total_price" id="total_price" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="0.00">
-                </div>
-                <div>
-                  <label for="reference_id" class="block text-sm font-medium text-gray-700">Reference ID</label>
-                  <input type="text" name="reference_id" id="reference_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="sort_order" class="block text-sm font-medium text-gray-700">Sort Order</label>
-                  <input type="number" name="sort_order" id="sort_order" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="0">
-                </div>
-              </div>
-
-              <!-- Form Actions -->
-              <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-white/10">
-                <button type="button" onclick="closeAddLineItemModal()" class="px-6 py-2 border border-gray-300 dark:border-white/20 rounded-lg text-slate-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-                  Cancel
-                </button>
-                <button type="button" onclick="submitAddLineItem()" class="px-6 py-2 bg-gradient-to-tl from-blue-500 to-violet-500 text-white rounded-lg font-semibold hover:shadow-md transition-all">
-                  Add Line Item
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      <div class="view-row">
+        <div class="view-label">Item Type</div>
+        <div class="view-value" id="view_item_type"></div>
       </div>
-
-      <!-- Edit Line Item Modal -->
-      <div id="editLineItemModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeEditLineItemModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-lg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; max-width: 500px; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; display: flex; flex-direction: column;">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center flex-shrink-0" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-            <h3 class="text-xl font-bold dark:text-white">Edit Line Item</h3>
-            <button onclick="closeEditLineItemModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <div class="p-6 overflow-y-auto" style="padding: 1.5rem; flex: 1;">
-            <form id="editLineItemForm">
-              <input type="hidden" id="edit_line_item_id">
-              <div class="space-y-4">
-                <div>
-                  <label for="edit_invoice_id" class="block text-sm font-medium text-gray-700">Invoice</label>
-                  <select name="invoice_id" id="edit_invoice_id" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="">Loading...</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="edit_description" class="block text-sm font-medium text-gray-700">Description</label>
-                  <input type="text" name="description" id="edit_description" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="edit_item_type" class="block text-sm font-medium text-gray-700">Item Type</label>
-                  <select name="item_type" id="edit_item_type" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="room_charge">Room Charge</option>
-                    <option value="extra_guest">Extra Guest</option>
-                    <option value="food_order">Food Order</option>
-                    <option value="service">Service</option>
-                    <option value="discount">Discount</option>
-                    <option value="tax">Tax</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="edit_quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
-                  <input type="number" name="quantity" id="edit_quantity" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="edit_unit_price" class="block text-sm font-medium text-gray-700">Unit Price</label>
-                  <input type="number" name="unit_price" id="edit_unit_price" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="edit_total_price" class="block text-sm font-medium text-gray-700">Total Price</label>
-                  <input type="number" name="total_price" id="edit_total_price" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="edit_reference_id" class="block text-sm font-medium text-gray-700">Reference ID</label>
-                  <input type="text" name="reference_id" id="edit_reference_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="edit_sort_order" class="block text-sm font-medium text-gray-700">Sort Order</label>
-                  <input type="number" name="sort_order" id="edit_sort_order" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-              </div>
-
-              <!-- Form Actions -->
-              <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-white/10">
-                <button type="button" onclick="closeEditLineItemModal()" class="px-6 py-2 border border-gray-300 dark:border-white/20 rounded-lg text-slate-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-                  Cancel
-                </button>
-                <button type="button" onclick="submitEditLineItem()" class="px-6 py-2 bg-gradient-to-tl from-blue-500 to-violet-500 text-white rounded-lg font-semibold hover:shadow-md transition-all">
-                  Update Line Item
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      <div class="view-row">
+        <div class="view-label">Quantity</div>
+        <div class="view-value" id="view_quantity"></div>
       </div>
-
-      <!-- View Line Item Modal -->
-      <div id="viewLineItemModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeViewLineItemModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-lg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; max-width: 500px; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; display: flex; flex-direction: column;">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center flex-shrink-0" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-            <h3 class="text-xl font-bold dark:text-white">Line Item Details</h3>
-            <button onclick="closeViewLineItemModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <div class="p-6 overflow-y-auto" style="padding: 1.5rem; flex: 1;">
-            <div class="space-y-3">
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Description</label>
-                <p id="view_description" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Invoice</label>
-                <p id="view_invoice" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Item Type</label>
-                <p id="view_item_type" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Quantity</label>
-                <p id="view_quantity" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Unit Price</label>
-                <p id="view_unit_price" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Total Price</label>
-                <p id="view_total_price" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Reference ID</label>
-                <p id="view_reference_id" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Sort Order</label>
-                <p id="view_sort_order" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="view-row">
+        <div class="view-label">Unit Price</div>
+        <div class="view-value" id="view_unit_price"></div>
       </div>
+      <div class="view-row">
+        <div class="view-label">Total Price</div>
+        <div class="view-value" id="view_total_price"></div>
+      </div>
+      <div class="view-row">
+        <div class="view-label">Reference ID</div>
+        <div class="view-value" id="view_reference_id"></div>
+      </div>
+      <div class="view-row">
+        <div class="view-label">Sort Order</div>
+        <div class="view-value" id="view_sort_order"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
   let lineItemsData = [];
@@ -451,10 +703,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         renderTable();
         renderStats();
       } else {
-        document.getElementById('lineItemsTableBody').innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-400">${result.message}</td></tr>`;
+        document.getElementById('lineItemsTableBody').innerHTML = `<tr><td colspan="7" class="empty-state"><i>⚠</i>${result.message}</td></tr>`;
       }
     } catch (e) {
-      document.getElementById('lineItemsTableBody').innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-400">Failed to load data</td></tr>`;
+      document.getElementById('lineItemsTableBody').innerHTML = `<tr><td colspan="7" class="empty-state"><i>⚠</i>Failed to load data</td></tr>`;
     }
   }
 
@@ -482,7 +734,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
   function renderTable() {
     const tbody = document.getElementById('lineItemsTableBody');
     if (!lineItemsData.length) {
-      tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400 dark:text-white/60">No line items found. <a href="javascript:;" onclick="openAddLineItemModal()" class="text-blue-500 font-semibold">Add your first line item</a>.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><i class="fa-regular fa-clipboard"></i>No line items found. <a href="javascript:;" onclick="openAddLineItemModal()" style="color:#185FA5;font-weight:500">Add your first line item</a>.</td></tr>`;
       return;
     }
     tbody.innerHTML = lineItemsData.map(item => {
@@ -491,35 +743,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
       const totalPrice = parseFloat(item.line_total || item.total_price || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
       return `
         <tr class="line-item-row">
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">${item.description || '-'}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${item.invoice_number || 'N/A'}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${typeLabel}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">${item.quantity}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">₱${unitPrice}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">₱${totalPrice}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <div class="flex items-center gap-2">
-              <button onclick="openViewLineItemModal('${item.line_item_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md">
-                <i class="fas fa-info-circle mr-1.5 text-xs"></i><span>View</span>
-              </button>
-              <button onclick="openEditLineItemModal('${item.line_item_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-amber-50 hover:text-amber-600 hover:border-amber-300 transition-all duration-200 shadow-sm hover:shadow-md">
-                <i class="fas fa-edit mr-1.5 text-xs"></i><span>Edit</span>
-              </button>
-              <button onclick="confirmDeleteLineItem('${item.line_item_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-red-600 bg-white dark:bg-slate-700/50 border border-red-200 dark:border-white/10 rounded-lg hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-all duration-200 shadow-sm hover:shadow-md">
-                <i class="fas fa-trash-alt mr-1.5 text-xs"></i><span>Delete</span>
-              </button>
+          <td>${item.description || '-'}</td>
+          <td>${item.invoice_number || 'N/A'}</td>
+          <td>${typeLabel}</td>
+          <td>${item.quantity}</td>
+          <td>₱${unitPrice}</td>
+          <td>₱${totalPrice}</td>
+          <td>
+            <div class="action-btns">
+              <button onclick="openViewLineItemModal('${item.line_item_id}')" class="action-btn">View</button>
+              <button onclick="openEditLineItemModal('${item.line_item_id}')" class="action-btn">Edit</button>
+              <button onclick="confirmDeleteLineItem('${item.line_item_id}')" class="action-btn delete">Delete</button>
             </div>
           </td>
         </tr>`;
@@ -528,13 +762,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
   function openAddLineItemModal() {
     document.getElementById('addLineItemForm').reset();
-    document.getElementById('addLineItemModal').style.display = 'block';
-    document.getElementById('addLineItemModal').classList.remove('hidden');
+    document.getElementById('addLineItemModal').style.display = 'flex';
   }
 
   function closeAddLineItemModal() {
     document.getElementById('addLineItemModal').style.display = 'none';
-    document.getElementById('addLineItemModal').classList.add('hidden');
   }
 
   async function submitAddLineItem() {
@@ -575,15 +807,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
       document.getElementById('edit_unit_price').value = item.unit_price;
       document.getElementById('edit_total_price').value = item.line_total || item.total_price;
       document.getElementById('edit_reference_id').value = item.reference_id || '';
-      document.getElementById('edit_sort_order').value = item.sort_order;
-      document.getElementById('editLineItemModal').style.display = 'block';
-      document.getElementById('editLineItemModal').classList.remove('hidden');
+      document.getElementById('edit_sort_order').value = item.sort_order || 0;
+      document.getElementById('editLineItemModal').style.display = 'flex';
     }
   }
 
   function closeEditLineItemModal() {
     document.getElementById('editLineItemModal').style.display = 'none';
-    document.getElementById('editLineItemModal').classList.add('hidden');
   }
 
   async function submitEditLineItem() {
@@ -624,15 +854,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
       document.getElementById('view_unit_price').textContent = '₱' + parseFloat(item.unit_price).toFixed(2);
       document.getElementById('view_total_price').textContent = '₱' + parseFloat(item.line_total || item.total_price || 0).toFixed(2);
       document.getElementById('view_reference_id').textContent = item.reference_id || 'N/A';
-      document.getElementById('view_sort_order').textContent = item.sort_order;
-      document.getElementById('viewLineItemModal').style.display = 'block';
-      document.getElementById('viewLineItemModal').classList.remove('hidden');
+      document.getElementById('view_sort_order').textContent = item.sort_order || 0;
+      document.getElementById('viewLineItemModal').style.display = 'flex';
     }
   }
 
   function closeViewLineItemModal() {
     document.getElementById('viewLineItemModal').style.display = 'none';
-    document.getElementById('viewLineItemModal').classList.add('hidden');
   }
 
   function confirmDeleteLineItem(lineItemId) {
@@ -664,10 +892,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     });
   }
 
-  function filterTable() {
-    const filter = document.getElementById('searchInput').value.toUpperCase();
-    document.querySelectorAll('#lineItemsTable .line-item-row').forEach(row => {
-      row.style.display = row.textContent.toUpperCase().includes(filter) ? '' : 'none';
-    });
-  }
 </script>

@@ -186,361 +186,669 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 ?>
 
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
+
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0
+  }
+
+  body {
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background: #f5f5f5;
+    color: #1a1a1a
+  }
+
+  .page {
+    padding: 24px;
+    max-width: 100%;
+    margin: 0 auto
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px
+  }
+
+  .stat-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px
+  }
+
+  .stat-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 8px
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 600;
+    color: #1a1a1a
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap
+  }
+
+  .card-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    font-weight: 600;
+    font-style: italic
+  }
+
+  .btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all .2s
+  }
+
+  .btn-primary {
+    background: #185FA5;
+    color: #fff
+  }
+
+  .btn-primary:hover {
+    background: #145090
+  }
+
+  .btn-secondary {
+    background: #fff;
+    color: #1a1a1a;
+    border: 1px solid #e0e0e0
+  }
+
+  .btn-secondary:hover {
+    background: #f5f5f5
+  }
+
+  .btn-danger {
+    background: #fff;
+    color: #dc2626;
+    border: 1px solid #fecaca
+  }
+
+  .btn-danger:hover {
+    background: #fef2f2
+  }
+
+  .table-wrap {
+    overflow-x: auto
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px
+  }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid #e0e0e0;
+    white-space: nowrap
+  }
+
+  thead th.center {
+    text-align: center
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    transition: background .1s
+  }
+
+  tbody tr:last-child {
+    border-bottom: none
+  }
+
+  tbody tr:hover {
+    background: #f9f9f9
+  }
+
+  td {
+    padding: 11px 16px;
+    vertical-align: middle;
+    white-space: nowrap
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase
+  }
+
+  .status-badge.paid {
+    background: #E8F5E9;
+    color: #2E7D32
+  }
+
+  .status-badge.partial {
+    background: #E3F2FD;
+    color: #1976D2
+  }
+
+  .status-badge.draft {
+    background: #F5F5F5;
+    color: #666
+  }
+
+  .status-badge.sent {
+    background: #FFF3E0;
+    color: #E65100
+  }
+
+  .status-badge.overdue {
+    background: #FFEBEE;
+    color: #C62828
+  }
+
+  .status-badge.void {
+    background: #ECEFF1;
+    color: #546E7A
+  }
+
+  .action-btns {
+    display: flex;
+    gap: 6px
+  }
+
+  .action-btn {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    color: #1a1a1a;
+    transition: all .2s
+  }
+
+  .action-btn:hover {
+    background: #f5f5f5
+  }
+
+  .action-btn.delete:hover {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca
+  }
+
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999
+  }
+
+  .modal {
+    background: #fff;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25)
+  }
+
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between
+  }
+
+  .modal-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 18px;
+    font-weight: 600;
+    font-style: italic
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666
+  }
+
+  .modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1
+  }
+
+  .form-group {
+    margin-bottom: 16px
+  }
+
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1a1a1a;
+    margin-bottom: 6px
+  }
+
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none
+  }
+
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: #185FA5
+  }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 80px
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px
+  }
+
+  .modal-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px
+  }
+
+  .empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    color: #666
+  }
+
+  .empty-state i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+    color: #ccc
+  }
+
+  .view-row {
+    display: flex;
+    margin-bottom: 12px
+  }
+
+  .view-label {
+    width: 140px;
+    font-size: 13px;
+    color: #666;
+    font-weight: 500
+  }
+
+  .view-value {
+    flex: 1;
+    font-size: 13px;
+    color: #1a1a1a
+  }
+
+  .view-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px
+  }
+
+  .view-grid-item {
+    display: flex
+  }
+
+  .view-grid-item .view-label {
+    width: 100px
+  }
+</style>
+
 <!-- PAGE CONTENT -->
-      <!-- Stats Cards -->
-      <div class="flex flex-wrap -mx-3 mb-6">
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Total Invoices</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statTotal">-</h5>
-            </div>
+
+<div class="page">
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Invoices</div>
+      <div class="stat-value" id="statTotal">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Paid</div>
+      <div class="stat-value" id="statPaid">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Pending</div>
+      <div class="stat-value" id="statPending">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Outstanding</div>
+      <div class="stat-value" id="statOutstanding">-</div>
+    </div>
+  </div>
+
+  <!-- Invoices Table -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Invoices</div>
+      <button onclick="openAddInvoiceModal()" class="btn btn-primary">
+        <i class="fas fa-plus mr-1"></i> Add Invoice
+      </button>
+    </div>
+    <div class="table-wrap">
+      <table id="invoicesTable">
+        <thead>
+          <tr>
+            <th>Invoice #</th>
+            <th>Reservation</th>
+            <th>Type</th>
+            <th>Date</th>
+            <th>Total</th>
+            <th>Balance</th>
+            <th class="center">Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="invoicesTableBody">
+          <tr>
+            <td colspan="8" class="empty-state">
+              <i class="fa-regular fa-clipboard"></i>
+              Loading...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Add Invoice Modal -->
+<div id="addInvoiceModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add New Invoice</div>
+      <button onclick="closeAddInvoiceModal()" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="addInvoiceForm">
+        <div class="form-group">
+          <label for="reservation_id" class="form-label">Reservation ID</label>
+          <input type="text" name="reservation_id" id="reservation_id" required class="form-input" placeholder="UUID">
+        </div>
+        <div class="form-group">
+          <label for="invoice_type" class="form-label">Invoice Type</label>
+          <select name="invoice_type" id="invoice_type" required class="form-select">
+            <option value="official_receipt">Official Receipt</option>
+            <option value="proforma">Proforma</option>
+            <option value="billing_statement">Billing Statement</option>
+            <option value="refund_receipt">Refund Receipt</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="invoice_date" class="form-label">Invoice Date</label>
+          <input type="date" name="invoice_date" id="invoice_date" required class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="due_date" class="form-label">Due Date</label>
+          <input type="date" name="due_date" id="due_date" class="form-input">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="subtotal" class="form-label">Subtotal</label>
+            <input type="number" name="subtotal" id="subtotal" step="0.01" required class="form-input" value="0.00">
+          </div>
+          <div class="form-group">
+            <label for="discount_amount" class="form-label">Discount</label>
+            <input type="number" name="discount_amount" id="discount_amount" step="0.01" class="form-input" value="0.00">
           </div>
         </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Paid</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statPaid">-</h5>
-            </div>
+        <div class="form-group">
+          <label for="tax_amount" class="form-label">Tax Amount</label>
+          <input type="number" name="tax_amount" id="tax_amount" step="0.01" class="form-input" value="0.00">
+        </div>
+        <div class="form-group">
+          <label for="total_amount" class="form-label">Total Amount</label>
+          <input type="number" name="total_amount" id="total_amount" step="0.01" required class="form-input" value="0.00">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="amount_paid" class="form-label">Amount Paid</label>
+            <input type="number" name="amount_paid" id="amount_paid" step="0.01" class="form-input" value="0.00">
+          </div>
+          <div class="form-group">
+            <label for="balance" class="form-label">Balance</label>
+            <input type="number" name="balance" id="balance" step="0.01" class="form-input" value="0.00">
           </div>
         </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Pending</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statPending">-</h5>
-            </div>
+        <div class="form-group">
+          <label for="status" class="form-label">Status</label>
+          <select name="status" id="status" required class="form-select">
+            <option value="draft">Draft</option>
+            <option value="sent">Sent</option>
+            <option value="paid">Paid</option>
+            <option value="partial">Partial</option>
+            <option value="overdue">Overdue</option>
+            <option value="void">Void</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="notes" class="form-label">Notes</label>
+          <textarea name="notes" id="notes" rows="3" class="form-textarea"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" onclick="closeAddInvoiceModal()" class="btn btn-secondary">Cancel</button>
+      <button type="button" onclick="submitAddInvoice()" class="btn btn-primary">Add Invoice</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Invoice Modal -->
+<div id="editInvoiceModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Edit Invoice</div>
+      <button onclick="closeEditInvoiceModal()" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="editInvoiceForm">
+        <input type="hidden" id="edit_invoice_id">
+        <div class="form-group">
+          <label for="edit_reservation_id" class="form-label">Reservation ID</label>
+          <input type="text" name="reservation_id" id="edit_reservation_id" required class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit_invoice_number" class="form-label">Invoice Number</label>
+          <input type="text" name="invoice_number" id="edit_invoice_number" required class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit_invoice_type" class="form-label">Invoice Type</label>
+          <select name="invoice_type" id="edit_invoice_type" required class="form-select">
+            <option value="official_receipt">Official Receipt</option>
+            <option value="proforma">Proforma</option>
+            <option value="billing_statement">Billing Statement</option>
+            <option value="refund_receipt">Refund Receipt</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit_invoice_date" class="form-label">Invoice Date</label>
+          <input type="date" name="invoice_date" id="edit_invoice_date" required class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit_due_date" class="form-label">Due Date</label>
+          <input type="date" name="due_date" id="edit_due_date" class="form-input">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit_subtotal" class="form-label">Subtotal</label>
+            <input type="number" name="subtotal" id="edit_subtotal" step="0.01" required class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="edit_discount_amount" class="form-label">Discount</label>
+            <input type="number" name="discount_amount" id="edit_discount_amount" step="0.01" class="form-input">
           </div>
         </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Total Outstanding</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statOutstanding">-</h5>
-            </div>
+        <div class="form-group">
+          <label for="edit_tax_amount" class="form-label">Tax Amount</label>
+          <input type="number" name="tax_amount" id="edit_tax_amount" step="0.01" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit_total_amount" class="form-label">Total Amount</label>
+          <input type="number" name="total_amount" id="edit_total_amount" step="0.01" required class="form-input">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit_amount_paid" class="form-label">Amount Paid</label>
+            <input type="number" name="amount_paid" id="edit_amount_paid" step="0.01" class="form-input">
           </div>
+          <div class="form-group">
+            <label for="edit_balance" class="form-label">Balance</label>
+            <input type="number" name="balance" id="edit_balance" step="0.01" class="form-input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="edit_status" class="form-label">Status</label>
+          <select name="status" id="edit_status" required class="form-select">
+            <option value="draft">Draft</option>
+            <option value="sent">Sent</option>
+            <option value="paid">Paid</option>
+            <option value="partial">Partial</option>
+            <option value="overdue">Overdue</option>
+            <option value="void">Void</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit_notes" class="form-label">Notes</label>
+          <textarea name="notes" id="edit_notes" rows="3" class="form-textarea"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" onclick="closeEditInvoiceModal()" class="btn btn-secondary">Cancel</button>
+      <button type="button" onclick="submitEditInvoice()" class="btn btn-primary">Update Invoice</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Invoice Modal -->
+<div id="viewInvoiceModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Invoice Details</div>
+      <button onclick="closeViewInvoiceModal()" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="view-row">
+        <div class="view-label">Invoice Number</div>
+        <div class="view-value" id="view_invoice_number"></div>
+      </div>
+      <div class="view-row">
+        <div class="view-label">Reservation</div>
+        <div class="view-value" id="view_reservation_id"></div>
+      </div>
+      <div class="view-row">
+        <div class="view-label">Invoice Type</div>
+        <div class="view-value" id="view_invoice_type"></div>
+      </div>
+      <div class="view-row">
+        <div class="view-label">Invoice Date</div>
+        <div class="view-value" id="view_invoice_date"></div>
+      </div>
+      <div class="view-row">
+        <div class="view-label">Due Date</div>
+        <div class="view-value" id="view_due_date"></div>
+      </div>
+      <div class="view-grid">
+        <div class="view-grid-item">
+          <div class="view-label">Subtotal</div>
+          <div class="view-value" id="view_subtotal"></div>
+        </div>
+        <div class="view-grid-item">
+          <div class="view-label">Discount</div>
+          <div class="view-value" id="view_discount_amount"></div>
         </div>
       </div>
-
-      <!-- Invoices Table -->
-      <div class="flex flex-wrap -mx-3">
-        <div class="flex-none w-full max-w-full px-3">
-          <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent flex justify-between items-center">
-              <h6 class="dark:text-white">Invoices</h6>
-              <button onclick="openAddInvoiceModal()" class="bg-gradient-to-tl from-blue-500 to-violet-500 text-white px-4 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                <i class="fas fa-plus mr-1"></i> Add Invoice
-              </button>
-            </div>
-            <div class="flex-auto px-0 pt-0 pb-2">
-              <div class="p-0 overflow-x-auto">
-                <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500" id="invoicesTable">
-                  <thead class="align-bottom">
-                    <tr>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Invoice #</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Reservation</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Type</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Date</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Total</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Balance</th>
-                      <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
-                      <th class="px-6 py-3 font-semibold capitalize align-middle bg-transparent border-b border-collapse border-solid shadow-none dark:border-white/40 dark:text-white tracking-none whitespace-nowrap text-slate-400 opacity-70"></th>
-                    </tr>
-                  </thead>
-                  <tbody id="invoicesTableBody">
-                    <tr><td colspan="8" class="p-4 text-center text-slate-400 dark:text-white/60">Loading...</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+      <div class="view-row">
+        <div class="view-label">Tax Amount</div>
+        <div class="view-value" id="view_tax_amount"></div>
+      </div>
+      <div class="view-grid">
+        <div class="view-grid-item">
+          <div class="view-label">Total Amount</div>
+          <div class="view-value" id="view_total_amount"></div>
+        </div>
+        <div class="view-grid-item">
+          <div class="view-label">Amount Paid</div>
+          <div class="view-value" id="view_amount_paid"></div>
         </div>
       </div>
-
-      <!-- Add Invoice Modal -->
-      <div id="addInvoiceModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddInvoiceModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-lg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; max-width: 600px; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; display: flex; flex-direction: column;">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center flex-shrink-0" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-            <h3 class="text-xl font-bold dark:text-white">Add New Invoice</h3>
-            <button onclick="closeAddInvoiceModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <div class="p-6 overflow-y-auto" style="padding: 1.5rem; flex: 1;">
-            <form id="addInvoiceForm">
-              <div class="space-y-4">
-                <div>
-                  <label for="reservation_id" class="block text-sm font-medium text-gray-700">Reservation ID</label>
-                  <input type="text" name="reservation_id" id="reservation_id" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="UUID">
-                </div>
-                <div>
-                  <label for="invoice_type" class="block text-sm font-medium text-gray-700">Invoice Type</label>
-                  <select name="invoice_type" id="invoice_type" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="official_receipt">Official Receipt</option>
-                    <option value="proforma">Proforma</option>
-                    <option value="billing_statement">Billing Statement</option>
-                    <option value="refund_receipt">Refund Receipt</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="invoice_date" class="block text-sm font-medium text-gray-700">Invoice Date</label>
-                  <input type="date" name="invoice_date" id="invoice_date" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="due_date" class="block text-sm font-medium text-gray-700">Due Date</label>
-                  <input type="date" name="due_date" id="due_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <label for="subtotal" class="block text-sm font-medium text-gray-700">Subtotal</label>
-                    <input type="number" name="subtotal" id="subtotal" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="0.00">
-                  </div>
-                  <div>
-                    <label for="discount_amount" class="block text-sm font-medium text-gray-700">Discount</label>
-                    <input type="number" name="discount_amount" id="discount_amount" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="0.00">
-                  </div>
-                </div>
-                <div>
-                  <label for="tax_amount" class="block text-sm font-medium text-gray-700">Tax Amount</label>
-                  <input type="number" name="tax_amount" id="tax_amount" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="0.00">
-                </div>
-                <div>
-                  <label for="total_amount" class="block text-sm font-medium text-gray-700">Total Amount</label>
-                  <input type="number" name="total_amount" id="total_amount" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="0.00">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <label for="amount_paid" class="block text-sm font-medium text-gray-700">Amount Paid</label>
-                    <input type="number" name="amount_paid" id="amount_paid" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="0.00">
-                  </div>
-                  <div>
-                    <label for="balance" class="block text-sm font-medium text-gray-700">Balance</label>
-                    <input type="number" name="balance" id="balance" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="0.00">
-                  </div>
-                </div>
-                <div>
-                  <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
-                  <select name="status" id="status" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="draft">Draft</option>
-                    <option value="sent">Sent</option>
-                    <option value="paid">Paid</option>
-                    <option value="partial">Partial</option>
-                    <option value="overdue">Overdue</option>
-                    <option value="void">Void</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
-                  <textarea name="notes" id="notes" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
-                </div>
-              </div>
-
-              <!-- Form Actions -->
-              <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-white/10">
-                <button type="button" onclick="closeAddInvoiceModal()" class="px-6 py-2 border border-gray-300 dark:border-white/20 rounded-lg text-slate-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-                  Cancel
-                </button>
-                <button type="button" onclick="submitAddInvoice()" class="px-6 py-2 bg-gradient-to-tl from-blue-500 to-violet-500 text-white rounded-lg font-semibold hover:shadow-md transition-all">
-                  Add Invoice
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      <div class="view-row">
+        <div class="view-label">Balance</div>
+        <div class="view-value" id="view_balance"></div>
       </div>
-
-      <!-- Edit Invoice Modal -->
-      <div id="editInvoiceModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeEditInvoiceModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-lg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; max-width: 600px; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; display: flex; flex-direction: column;">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center flex-shrink-0" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-            <h3 class="text-xl font-bold dark:text-white">Edit Invoice</h3>
-            <button onclick="closeEditInvoiceModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <div class="p-6 overflow-y-auto" style="padding: 1.5rem; flex: 1;">
-            <form id="editInvoiceForm">
-              <input type="hidden" id="edit_invoice_id">
-              <div class="space-y-4">
-                <div>
-                  <label for="edit_reservation_id" class="block text-sm font-medium text-gray-700">Reservation ID</label>
-                  <input type="text" name="reservation_id" id="edit_reservation_id" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="edit_invoice_number" class="block text-sm font-medium text-gray-700">Invoice Number</label>
-                  <input type="text" name="invoice_number" id="edit_invoice_number" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="edit_invoice_type" class="block text-sm font-medium text-gray-700">Invoice Type</label>
-                  <select name="invoice_type" id="edit_invoice_type" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="official_receipt">Official Receipt</option>
-                    <option value="proforma">Proforma</option>
-                    <option value="billing_statement">Billing Statement</option>
-                    <option value="refund_receipt">Refund Receipt</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="edit_invoice_date" class="block text-sm font-medium text-gray-700">Invoice Date</label>
-                  <input type="date" name="invoice_date" id="edit_invoice_date" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="edit_due_date" class="block text-sm font-medium text-gray-700">Due Date</label>
-                  <input type="date" name="due_date" id="edit_due_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <label for="edit_subtotal" class="block text-sm font-medium text-gray-700">Subtotal</label>
-                    <input type="number" name="subtotal" id="edit_subtotal" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  </div>
-                  <div>
-                    <label for="edit_discount_amount" class="block text-sm font-medium text-gray-700">Discount</label>
-                    <input type="number" name="discount_amount" id="edit_discount_amount" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  </div>
-                </div>
-                <div>
-                  <label for="edit_tax_amount" class="block text-sm font-medium text-gray-700">Tax Amount</label>
-                  <input type="number" name="tax_amount" id="edit_tax_amount" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="edit_total_amount" class="block text-sm font-medium text-gray-700">Total Amount</label>
-                  <input type="number" name="total_amount" id="edit_total_amount" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <label for="edit_amount_paid" class="block text-sm font-medium text-gray-700">Amount Paid</label>
-                    <input type="number" name="amount_paid" id="edit_amount_paid" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  </div>
-                  <div>
-                    <label for="edit_balance" class="block text-sm font-medium text-gray-700">Balance</label>
-                    <input type="number" name="balance" id="edit_balance" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  </div>
-                </div>
-                <div>
-                  <label for="edit_status" class="block text-sm font-medium text-gray-700">Status</label>
-                  <select name="status" id="edit_status" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="draft">Draft</option>
-                    <option value="sent">Sent</option>
-                    <option value="paid">Paid</option>
-                    <option value="partial">Partial</option>
-                    <option value="overdue">Overdue</option>
-                    <option value="void">Void</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="edit_notes" class="block text-sm font-medium text-gray-700">Notes</label>
-                  <textarea name="notes" id="edit_notes" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
-                </div>
-              </div>
-
-              <!-- Form Actions -->
-              <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-white/10">
-                <button type="button" onclick="closeEditInvoiceModal()" class="px-6 py-2 border border-gray-300 dark:border-white/20 rounded-lg text-slate-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-                  Cancel
-                </button>
-                <button type="button" onclick="submitEditInvoice()" class="px-6 py-2 bg-gradient-to-tl from-blue-500 to-violet-500 text-white rounded-lg font-semibold hover:shadow-md transition-all">
-                  Update Invoice
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      <div class="view-row">
+        <div class="view-label">Status</div>
+        <div class="view-value" id="view_status"></div>
       </div>
-
-      <!-- View Invoice Modal -->
-      <div id="viewInvoiceModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeViewInvoiceModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-lg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; max-width: 600px; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; display: flex; flex-direction: column;">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center flex-shrink-0" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-            <h3 class="text-xl font-bold dark:text-white">Invoice Details</h3>
-            <button onclick="closeViewInvoiceModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <div class="p-6 overflow-y-auto" style="padding: 1.5rem; flex: 1;">
-            <div class="space-y-3">
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Invoice Number</label>
-                <p id="view_invoice_number" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Reservation</label>
-                <p id="view_reservation_id" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Invoice Type</label>
-                <p id="view_invoice_type" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Invoice Date</label>
-                <p id="view_invoice_date" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Due Date</label>
-                <p id="view_due_date" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-500">Subtotal</label>
-                  <p id="view_subtotal" class="mt-1 text-sm text-gray-900"></p>
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-500">Discount</label>
-                  <p id="view_discount_amount" class="mt-1 text-sm text-gray-900"></p>
-                </div>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Tax Amount</label>
-                <p id="view_tax_amount" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-500">Total Amount</label>
-                  <p id="view_total_amount" class="mt-1 text-sm text-gray-900"></p>
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-500">Amount Paid</label>
-                  <p id="view_amount_paid" class="mt-1 text-sm text-gray-900"></p>
-                </div>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Balance</label>
-                <p id="view_balance" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Status</label>
-                <p id="view_status" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Notes</label>
-                <p id="view_notes" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="view-row">
+        <div class="view-label">Notes</div>
+        <div class="view-value" id="view_notes"></div>
       </div>
+    </div>
+  </div>
+</div>
 
 <script>
   let invoicesData = [];
-
-  const INVOICE_STATUS_GRADIENT = {
-    'paid':    'from-emerald-500 to-teal-400',
-    'partial': 'from-blue-500 to-indigo-400',
-    'draft':   'from-slate-500 to-slate-400',
-    'sent':    'from-amber-500 to-orange-400',
-    'overdue': 'from-red-500 to-rose-400',
-    'void':    'from-gray-600 to-gray-400',
-  };
 
   document.addEventListener('DOMContentLoaded', function () {
     fetchInvoices();
@@ -555,11 +863,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         renderTable();
         renderStats();
       } else {
-        document.getElementById('invoicesTableBody').innerHTML = `<tr><td colspan="8" class="p-4 text-center text-red-400">${result.message}</td></tr>`;
+        document.getElementById('invoicesTableBody').innerHTML = `<tr><td colspan="8" class="empty-state"><i>⚠</i>${result.message}</td></tr>`;
       }
     } catch (e) {
       console.error('Error fetching invoices:', e);
-      document.getElementById('invoicesTableBody').innerHTML = `<tr><td colspan="8" class="p-4 text-center text-red-400">Failed to load data</td></tr>`;
+      document.getElementById('invoicesTableBody').innerHTML = `<tr><td colspan="8" class="empty-state"><i>⚠</i>Failed to load data</td></tr>`;
     }
   }
 
@@ -574,47 +882,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
   function renderTable() {
     const tbody = document.getElementById('invoicesTableBody');
     if (!invoicesData.length) {
-      tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400 dark:text-white/60">No invoices found. <a href="javascript:;" onclick="openAddInvoiceModal()" class="text-blue-500 font-semibold">Add your first invoice</a>.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><i class="fa-regular fa-clipboard"></i>No invoices found. <a href="javascript:;" onclick="openAddInvoiceModal()" style="color:#185FA5;font-weight:500">Add your first invoice</a>.</td></tr>`;
       return;
     }
     tbody.innerHTML = invoicesData.map(inv => {
-      const gradClass = INVOICE_STATUS_GRADIENT[inv.status] || 'from-blue-500 to-indigo-400';
       const typeLabel = (inv.invoice_type || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
       const dateStr = inv.invoice_date ? new Date(inv.invoice_date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-';
       return `
         <tr class="invoice-row">
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">${inv.invoice_number}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${inv.reservation_id ? inv.reservation_id.substring(0, 8) + '...' : '-'}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${typeLabel}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${dateStr}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">₱${parseFloat(inv.total_amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">₱${parseFloat(inv.balance || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
-          </td>
-          <td class="p-2 text-sm leading-normal text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <span class="bg-gradient-to-tl ${gradClass} px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">${inv.status}</span>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <div class="flex items-center gap-2">
-              <button onclick="openViewInvoiceModal('${inv.invoice_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md">
-                <i class="fas fa-info-circle mr-1.5 text-xs"></i><span>View</span>
-              </button>
-              <button onclick="openEditInvoiceModal('${inv.invoice_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-amber-50 hover:text-amber-600 hover:border-amber-300 transition-all duration-200 shadow-sm hover:shadow-md">
-                <i class="fas fa-edit mr-1.5 text-xs"></i><span>Edit</span>
-              </button>
-              <button onclick="confirmDeleteInvoice('${inv.invoice_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-red-600 bg-white dark:bg-slate-700/50 border border-red-200 dark:border-white/10 rounded-lg hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-all duration-200 shadow-sm hover:shadow-md">
-                <i class="fas fa-trash-alt mr-1.5 text-xs"></i><span>Delete</span>
-              </button>
+          <td>${inv.invoice_number}</td>
+          <td>${inv.reservation_id ? inv.reservation_id.substring(0, 8) + '...' : '-'}</td>
+          <td>${typeLabel}</td>
+          <td>${dateStr}</td>
+          <td>₱${parseFloat(inv.total_amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
+          <td>₱${parseFloat(inv.balance || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
+          <td style="text-align:center"><span class="status-badge ${inv.status || ''}">${inv.status}</span></td>
+          <td>
+            <div class="action-btns">
+              <button onclick="openViewInvoiceModal('${inv.invoice_id}')" class="action-btn">View</button>
+              <button onclick="openEditInvoiceModal('${inv.invoice_id}')" class="action-btn">Edit</button>
+              <button onclick="confirmDeleteInvoice('${inv.invoice_id}')" class="action-btn delete">Delete</button>
             </div>
           </td>
         </tr>`;
@@ -623,13 +910,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
   function openAddInvoiceModal() {
     document.getElementById('addInvoiceForm').reset();
-    document.getElementById('addInvoiceModal').style.display = 'block';
-    document.getElementById('addInvoiceModal').classList.remove('hidden');
+    document.getElementById('addInvoiceModal').style.display = 'flex';
   }
 
   function closeAddInvoiceModal() {
     document.getElementById('addInvoiceModal').style.display = 'none';
-    document.getElementById('addInvoiceModal').classList.add('hidden');
   }
 
   async function submitAddInvoice() {
@@ -681,14 +966,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
       document.getElementById('edit_balance').value = invoice.balance;
       document.getElementById('edit_status').value = invoice.status;
       document.getElementById('edit_notes').value = invoice.notes || '';
-      document.getElementById('editInvoiceModal').style.display = 'block';
-      document.getElementById('editInvoiceModal').classList.remove('hidden');
+      document.getElementById('editInvoiceModal').style.display = 'flex';
     }
   }
 
   function closeEditInvoiceModal() {
     document.getElementById('editInvoiceModal').style.display = 'none';
-    document.getElementById('editInvoiceModal').classList.add('hidden');
   }
 
   async function submitEditInvoice() {
@@ -741,14 +1024,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
       document.getElementById('view_balance').textContent = '₱' + parseFloat(invoice.balance || 0).toFixed(2);
       document.getElementById('view_status').textContent = invoice.status;
       document.getElementById('view_notes').textContent = invoice.notes || 'N/A';
-      document.getElementById('viewInvoiceModal').style.display = 'block';
-      document.getElementById('viewInvoiceModal').classList.remove('hidden');
+      document.getElementById('viewInvoiceModal').style.display = 'flex';
     }
   }
 
   function closeViewInvoiceModal() {
     document.getElementById('viewInvoiceModal').style.display = 'none';
-    document.getElementById('viewInvoiceModal').classList.add('hidden');
   }
 
   function confirmDeleteInvoice(invoiceId) {
@@ -777,13 +1058,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
           Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to delete invoice', confirmButtonColor: '#3085d6' });
         }
       }
-    });
-  }
-
-  function filterTable() {
-    const filter = document.getElementById('searchInput').value.toUpperCase();
-    document.querySelectorAll('#invoicesTable .invoice-row').forEach(row => {
-      row.style.display = row.textContent.toUpperCase().includes(filter) ? '' : 'none';
     });
   }
 </script>

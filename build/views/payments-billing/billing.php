@@ -1,320 +1,626 @@
-<!-- PAGE CONTENT -->
-      <div class="flex flex-wrap -mx-3">
-        <div class="max-w-full px-3 lg:w-2/3 lg:flex-none">
-          <div class="flex flex-wrap -mx-3">
-            <div class="w-full max-w-full px-3 mb-6 xl:mb-0 xl:w-1/2 xl:flex-none">
-              <div class="relative flex flex-col min-w-0 break-words bg-transparent border-0 border-transparent border-solid shadow-xl rounded-2xl bg-clip-border">
-                <div class="relative overflow-hidden rounded-2xl" style="background-image: url('https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/card-visa.jpg')">
-                  <span class="absolute top-0 left-0 w-full h-full bg-center bg-cover bg-gradient-to-tl from-zinc-800 to-zinc-700 dark:bg-gradient-to-tl dark:from-slate-750 dark:to-gray-850 opacity-80"></span>
-                  <div class="relative z-10 flex-auto p-4">
-                    <i class="p-2 text-white fas fa-wifi"></i>
-                    <h5 class="pb-2 mt-6 mb-12 text-white">4562&nbsp;&nbsp;&nbsp;1122&nbsp;&nbsp;&nbsp;4594&nbsp;&nbsp;&nbsp;7852</h5>
-                    <div class="flex">
-                      <div class="flex">
-                        <div class="mr-6">
-                          <p class="mb-0 text-sm leading-normal text-white opacity-80">Card Holder</p>
-                          <h6 class="mb-0 text-white">Jack Peterson</h6>
-                        </div>
-                        <div>
-                          <p class="mb-0 text-sm leading-normal text-white opacity-80">Expires</p>
-                          <h6 class="mb-0 text-white">11/22</h6>
-                        </div>
-                      </div>
-                      <div class="flex items-end justify-end w-1/5 ml-auto">
-                        <img class="w-3/5 mt-2" src="../assets/img/logos/mastercard.png" alt="logo" />
-                      </div>
-                    </div>
-                  </div>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
+
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0
+  }
+
+  body {
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background: #f5f5f5;
+    color: #1a1a1a
+  }
+
+  .page {
+    padding: 24px;
+    max-width: 100%;
+    margin: 0 auto
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px
+  }
+
+  @media (max-width: 1024px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr
+    }
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap
+  }
+
+  .card-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    font-weight: 600;
+    font-style: italic
+  }
+
+  .card-body {
+    padding: 20px
+  }
+
+  .btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all .2s
+  }
+
+  .btn-primary {
+    background: #185FA5;
+    color: #fff
+  }
+
+  .btn-primary:hover {
+    background: #145090
+  }
+
+  .btn-secondary {
+    background: #fff;
+    color: #1a1a1a;
+    border: 1px solid #e0e0e0
+  }
+
+  .btn-secondary:hover {
+    background: #f5f5f5
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: #185FA5;
+    border: 1px solid #185FA5
+  }
+
+  .btn-outline:hover {
+    background: #f0f7ff
+  }
+
+  .credit-card {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 12px;
+    padding: 24px;
+    color: #fff;
+    position: relative;
+    overflow: hidden
+  }
+
+  .credit-card .wifi-icon {
+    font-size: 24px;
+    margin-bottom: 32px
+  }
+
+  .credit-card .card-number {
+    font-size: 22px;
+    letter-spacing: 4px;
+    margin-bottom: 32px
+  }
+
+  .credit-card .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end
+  }
+
+  .credit-card .card-holder, .credit-card .card-expires {
+    font-size: 12px;
+    opacity: 0.8
+  }
+
+  .credit-card .card-holder strong, .credit-card .card-expires strong {
+    font-size: 14px;
+    opacity: 1
+  }
+
+  .mini-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px
+  }
+
+  .mini-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center
+  }
+
+  .mini-card .icon {
+    width: 48px;
+    height: 48px;
+    background: #185FA5;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    color: #fff;
+    font-size: 20px
+  }
+
+  .mini-card h6 {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px
+  }
+
+  .mini-card span {
+    font-size: 12px;
+    color: #666
+  }
+
+  .mini-card .amount {
+    font-size: 18px;
+    font-weight: 600;
+    margin-top: 12px
+  }
+
+  .payment-method-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 8px
+  }
+
+  .payment-method-item img {
+    width: 40px;
+    margin-right: 12px
+  }
+
+  .payment-method-item h6 {
+    font-size: 13px;
+    font-weight: 500
+  }
+
+  .payment-method-item .edit-icon {
+    margin-left: auto;
+    cursor: pointer;
+    color: #666
+  }
+
+  .invoice-list {
+    list-style: none
+  }
+
+  .invoice-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #e0e0e0
+  }
+
+  .invoice-item:last-child {
+    border-bottom: none
+  }
+
+  .invoice-item h6 {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 2px
+  }
+
+  .invoice-item span {
+    font-size: 11px;
+    color: #666
+  }
+
+  .invoice-item .amount {
+    font-size: 13px;
+    font-weight: 500
+  }
+
+  .invoice-item .pdf-btn {
+    margin-left: 12px;
+    padding: 4px 8px;
+    font-size: 11px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer
+  }
+
+  .billing-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 16px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    margin-bottom: 12px
+  }
+
+  .billing-item h6 {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px
+  }
+
+  .billing-item span {
+    font-size: 12px;
+    color: #666;
+    display: block;
+    margin-bottom: 4px
+  }
+
+  .billing-item span strong {
+    color: #1a1a1a;
+    margin-left: 4px
+  }
+
+  .billing-item .actions {
+    display: flex;
+    gap: 8px
+  }
+
+  .billing-item .actions a {
+    padding: 4px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none
+  }
+
+  .billing-item .actions .delete {
+    color: #dc2626
+  }
+
+  .billing-item .actions .edit {
+    color: #1a1a1a
+  }
+
+  .transaction-section {
+    margin-bottom: 16px
+  }
+
+  .transaction-section h6 {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 12px
+  }
+
+  .transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #e0e0e0
+  }
+
+  .transaction-item:last-child {
+    border-bottom: none
+  }
+
+  .transaction-item .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    font-size: 12px
+  }
+
+  .transaction-item .icon.down {
+    background: #FEE2E2;
+    color: #DC2626
+  }
+
+  .transaction-item .icon.up {
+    background: #D1FAE5;
+    color: #059669
+  }
+
+  .transaction-item .icon.pending {
+    background: #F5F5F5;
+    color: #666
+  }
+
+  .transaction-item h6 {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 2px
+  }
+
+  .transaction-item span {
+    font-size: 11px;
+    color: #666
+  }
+
+  .transaction-item .amount {
+    font-size: 13px;
+    font-weight: 600
+  }
+
+  .transaction-item .amount.negative {
+    color: #DC2626
+  }
+
+  .transaction-item .amount.positive {
+    color: #059669
+  }
+
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 7fr 5fr;
+    gap: 24px
+  }
+
+  @media (max-width: 768px) {
+    .bottom-grid {
+      grid-template-columns: 1fr
+    }
+  }
+</style>
+
+<div class="page">
+  <div class="dashboard-grid">
+    <div>
+      <div class="card" style="margin-bottom: 24px">
+        <div class="card-body">
+          <div class="mini-cards">
+            <div class="credit-card">
+              <i class="fas fa-wifi wifi-icon"></i>
+              <div class="card-number">4562  1122  4594  7852</div>
+              <div class="card-footer">
+                <div>
+                  <div class="card-holder">Card Holder</div>
+                  <strong>Jack Peterson</strong>
+                </div>
+                <div>
+                  <div class="card-expires">Expires</div>
+                  <strong>11/22</strong>
                 </div>
               </div>
             </div>
-            <div class="w-full max-w-full px-3 xl:w-1/2 xl:flex-none">
-              <div class="flex flex-wrap -mx-3">
-                <div class="w-full max-w-full px-3 md:w-1/2 md:flex-none">
-                  <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-                    <div class="p-4 mx-6 mb-0 text-center border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-                      <div class="w-16 h-16 text-center bg-center shadow-sm icon bg-gradient-to-tl from-blue-500 to-violet-500 rounded-xl">
-                        <i class="relative text-xl leading-none text-white opacity-100 fas fa-landmark top-31/100"></i>
-                      </div>
-                    </div>
-                    <div class="flex-auto p-4 pt-0 text-center">
-                      <h6 class="mb-0 text-center dark:text-white">Salary</h6>
-                      <span class="text-xs leading-tight dark:text-white dark:opacity-80">Belong Interactive</span>
-                      <hr class="h-px my-4 bg-transparent bg-gradient-to-r from-transparent via-black/40 to-transparent dark:bg-gradient-to-r dark:from-transparent dark:via-white dark:to-transparent" />
-                      <h5 class="mb-0 dark:text-white">+$2000</h5>
-                    </div>
-                  </div>
-                </div>
-                <div class="w-full max-w-full px-3 mt-6 md:mt-0 md:w-1/2 md:flex-none">
-                  <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-                    <div class="p-4 mx-6 mb-0 text-center border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-                      <div class="w-16 h-16 text-center bg-center shadow-sm icon bg-gradient-to-tl from-blue-500 to-violet-500 rounded-xl">
-                        <i class="relative text-xl leading-none text-white opacity-100 fab fa-paypal top-31/100"></i>
-                      </div>
-                    </div>
-                    <div class="flex-auto p-4 pt-0 text-center">
-                      <h6 class="mb-0 text-center dark:text-white">Paypal</h6>
-                      <span class="text-xs leading-tight dark:text-white dark:opacity-80">Freelance Payment</span>
-                      <hr class="h-px my-4 bg-transparent bg-gradient-to-r from-transparent via-black/40 to-transparent dark:bg-gradient-to-r dark:from-transparent dark:via-white dark:to-transparent" />
-                      <h5 class="mb-0 dark:text-white">$455.00</h5>
-                    </div>
-                  </div>
-                </div>
+            <div class="mini-cards">
+              <div class="mini-card">
+                <div class="icon"><i class="fas fa-landmark"></i></div>
+                <h6>Salary</h6>
+                <span>Belong Interactive</span>
+                <div class="amount">+$2000</div>
               </div>
-            </div>
-            <div class="max-w-full px-3 mb-6 lg:mb-0 lg:w-full lg:flex-none">
-              <div class="relative flex flex-col min-w-0 mt-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-                <div class="p-4 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-                  <div class="flex flex-wrap -mx-3">
-                    <div class="flex items-center flex-none w-1/2 max-w-full px-3">
-                      <h6 class="mb-0 dark:text-white">Payment Method</h6>
-                    </div>
-                    <div class="flex-none w-1/2 max-w-full px-3 text-right">
-                      <a class="inline-block px-5 py-2.5 font-bold leading-normal text-center text-white align-middle transition-all bg-transparent rounded-lg cursor-pointer text-sm ease-in shadow-md bg-150 bg-gradient-to-tl from-zinc-800 to-zinc-700 dark:bg-gradient-to-tl dark:from-slate-750 dark:to-gray-850 hover:shadow-xs active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25" href="javascript:;"> <i class="fas fa-plus"> </i>&nbsp;&nbsp;Add New Card</a>
-                    </div>
-                  </div>
-                </div>
-                <div class="flex-auto p-4">
-                  <div class="flex flex-wrap -mx-3">
-                    <div class="max-w-full px-3 mb-6 md:mb-0 md:w-1/2 md:flex-none">
-                      <div class="relative flex flex-row items-center flex-auto min-w-0 p-6 break-words bg-transparent border border-solid shadow-none md-max:overflow-auto rounded-xl border-slate-100 dark:border-slate-700 bg-clip-border">
-                        <img class="mb-0 mr-4 w-1/10" src="../assets/img/logos/mastercard.png" alt="logo" />
-                        <h6 class="mb-0 dark:text-white">****&nbsp;&nbsp;&nbsp;****&nbsp;&nbsp;&nbsp;****&nbsp;&nbsp;&nbsp;7852</h6>
-                        <i class="ml-auto cursor-pointer fas fa-pencil-alt text-slate-700" data-target="tooltip_trigger" data-placement="top"></i>
-                        <div data-target="tooltip" class="hidden px-2 py-1 text-sm text-white bg-black rounded-lg">
-                          Edit Card
-                          <div class="invisible absolute h-2 w-2 bg-inherit before:visible before:absolute before:h-2 before:w-2 before:rotate-45 before:bg-inherit before:content-['']" data-popper-arrow></div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="max-w-full px-3 md:w-1/2 md:flex-none">
-                      <div class="relative flex flex-row items-center flex-auto min-w-0 p-6 break-words bg-transparent border border-solid shadow-none md-max:overflow-auto rounded-xl border-slate-100 dark:border-slate-700 bg-clip-border">
-                        <img class="mb-0 mr-4 w-1/10" src="../assets/img/logos/visa.png" alt="logo" />
-                        <h6 class="mb-0 dark:text-white">****&nbsp;&nbsp;&nbsp;****&nbsp;&nbsp;&nbsp;****&nbsp;&nbsp;&nbsp;5248</h6>
-                        <i class="ml-auto cursor-pointer fas fa-pencil-alt text-slate-700" data-target="tooltip_trigger" data-placement="top"></i>
-                        <div data-target="tooltip" class="hidden px-2 py-1 text-sm text-white bg-black rounded-lg">
-                          Edit Card
-                          <div class="invisible absolute h-2 w-2 bg-inherit before:visible before:absolute before:h-2 before:w-2 before:rotate-45 before:bg-inherit before:content-['']" data-popper-arrow></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <div class="mini-card">
+                <div class="icon"><i class="fab fa-paypal"></i></div>
+                <h6>Paypal</h6>
+                <span>Freelance Payment</span>
+                <div class="amount">$455.00</div>
               </div>
-            </div>
-          </div>
-        </div>
-        <div class="w-full max-w-full px-3 lg:w-1/3 lg:flex-none">
-          <div class="relative flex flex-col h-full min-w-0 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-              <div class="flex flex-wrap -mx-3">
-                <div class="flex items-center flex-none w-1/2 max-w-full px-3">
-                  <h6 class="mb-0 dark:text-white">Invoices</h6>
-                </div>
-                <div class="flex-none w-1/2 max-w-full px-3 text-right">
-                  <button class="inline-block px-8 py-2 mb-0 text-xs font-bold leading-normal text-center text-blue-500 align-middle transition-all ease-in bg-transparent border border-blue-500 border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">View All</button>
-                </div>
-              </div>
-            </div>
-            <div class="flex-auto p-4 pb-0">
-              <ul class="flex flex-col pl-0 mb-0 rounded-lg">
-                <li class="relative flex justify-between px-4 py-2 pl-0 mb-2 border-0 rounded-t-inherit text-inherit rounded-xl">
-                  <div class="flex flex-col">
-                    <h6 class="mb-1 text-sm font-semibold leading-normal dark:text-white text-slate-700">March, 01, 2020</h6>
-                    <span class="text-xs leading-tight dark:text-white dark:opacity-80">#MS-415646</span>
-                  </div>
-                  <div class="flex items-center text-sm leading-normal dark:text-white/80">
-                    $180
-                    <button class="dark:text-white inline-block px-0 py-2.5 mb-0 ml-6 font-bold leading-normal text-center uppercase align-middle transition-all bg-transparent border-0 rounded-lg shadow-none cursor-pointer ease-in bg-150 text-sm active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 text-slate-700"><i class="mr-1 text-lg leading-none fas fa-file-pdf"></i> PDF</button>
-                  </div>
-                </li>
-                <li class="relative flex justify-between px-4 py-2 pl-0 mb-2 border-0 rounded-xl text-inherit">
-                  <div class="flex flex-col">
-                    <h6 class="mb-1 text-sm font-semibold leading-normal dark:text-white text-slate-700">February, 10, 2021</h6>
-                    <span class="text-xs leading-tight dark:text-white dark:opacity-80">#RV-126749</span>
-                  </div>
-                  <div class="flex items-center text-sm leading-normal dark:text-white/80">
-                    $250
-                    <button class="dark:text-white inline-block px-0 py-2.5 mb-0 ml-6 font-bold leading-normal text-center uppercase align-middle transition-all bg-transparent border-0 rounded-lg shadow-none cursor-pointer ease-in bg-150 text-sm active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 text-slate-700"><i class="mr-1 text-lg leading-none fas fa-file-pdf"></i> PDF</button>
-                  </div>
-                </li>
-                <li class="relative flex justify-between px-4 py-2 pl-0 mb-2 border-0 rounded-xl text-inherit">
-                  <div class="flex flex-col">
-                    <h6 class="mb-1 text-sm font-semibold leading-normal dark:text-white text-slate-700">April, 05, 2020</h6>
-                    <span class="text-xs leading-tight dark:text-white dark:opacity-80">#FB-212562</span>
-                  </div>
-                  <div class="flex items-center text-sm leading-normal dark:text-white/80">
-                    $560
-                    <button class="dark:text-white inline-block px-0 py-2.5 mb-0 ml-6 font-bold leading-normal text-center uppercase align-middle transition-all bg-transparent border-0 rounded-lg shadow-none cursor-pointer ease-in bg-150 text-sm active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 text-slate-700"><i class="mr-1 text-lg leading-none fas fa-file-pdf"></i> PDF</button>
-                  </div>
-                </li>
-                <li class="relative flex justify-between px-4 py-2 pl-0 mb-2 border-0 rounded-xl text-inherit">
-                  <div class="flex flex-col">
-                    <h6 class="mb-1 text-sm font-semibold leading-normal dark:text-white text-slate-700">June, 25, 2019</h6>
-                    <span class="text-xs leading-tight dark:text-white dark:opacity-80">#QW-103578</span>
-                  </div>
-                  <div class="flex items-center text-sm leading-normal dark:text-white/80">
-                    $120
-                    <button class="dark:text-white inline-block px-0 py-2.5 mb-0 ml-6 font-bold leading-normal text-center uppercase align-middle transition-all bg-transparent border-0 rounded-lg shadow-none cursor-pointer ease-in bg-150 text-sm active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 text-slate-700"><i class="mr-1 text-lg leading-none fas fa-file-pdf"></i> PDF</button>
-                  </div>
-                </li>
-                <li class="relative flex justify-between px-4 py-2 pl-0 border-0 rounded-b-inherit rounded-xl text-inherit">
-                  <div class="flex flex-col">
-                    <h6 class="mb-1 text-sm font-semibold leading-normal dark:text-white text-slate-700">March, 01, 2019</h6>
-                    <span class="text-xs leading-tight dark:text-white dark:opacity-80">#AR-803481</span>
-                  </div>
-                  <div class="flex items-center text-sm leading-normal dark:text-white/80">
-                    $300
-                    <button class="dark:text-white inline-block px-0 py-2.5 mb-0 ml-6 font-bold leading-normal text-center uppercase align-middle transition-all bg-transparent border-0 rounded-lg shadow-none cursor-pointer ease-in bg-150 text-sm active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 text-slate-700"><i class="mr-1 text-lg leading-none fas fa-file-pdf"></i> PDF</button>
-                  </div>
-                </li>
-              </ul>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="flex flex-wrap -mx-3">
-        <div class="w-full max-w-full px-3 mt-6 md:w-7/12 md:flex-none">
-          <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-6 px-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 dark:text-white">Billing Information</h6>
-            </div>
-            <div class="flex-auto p-4 pt-6">
-              <ul class="flex flex-col pl-0 mb-0 rounded-lg">
-                <li class="relative flex p-6 mb-2 border-0 rounded-t-inherit rounded-xl bg-gray-50 dark:bg-slate-850">
-                  <div class="flex flex-col">
-                    <h6 class="mb-4 text-sm leading-normal dark:text-white">Oliver Liam</h6>
-                    <span class="mb-2 text-xs leading-tight dark:text-white/80">Company Name: <span class="font-semibold text-slate-700 dark:text-white sm:ml-2">Viking Burrito</span></span>
-                    <span class="mb-2 text-xs leading-tight dark:text-white/80">Email Address: <span class="font-semibold text-slate-700 dark:text-white sm:ml-2">oliver@burrito.com</span></span>
-                    <span class="text-xs leading-tight dark:text-white/80">VAT Number: <span class="font-semibold text-slate-700 dark:text-white sm:ml-2">FRB1235476</span></span>
-                  </div>
-                  <div class="ml-auto text-right">
-                    <a class="relative z-10 inline-block px-4 py-2.5 mb-0 font-bold text-center text-transparent align-middle transition-all border-0 rounded-lg shadow-none cursor-pointer leading-normal text-sm ease-in bg-150 bg-gradient-to-tl from-red-600 to-orange-600 hover:-translate-y-px active:opacity-85 bg-x-25 bg-clip-text" href="javascript:;"><i class="mr-2 far fa-trash-alt bg-150 bg-gradient-to-tl from-red-600 to-orange-600 bg-x-25 bg-clip-text"></i>Delete</a>
-                    <a class="inline-block dark:text-white px-4 py-2.5 mb-0 font-bold text-center align-middle transition-all bg-transparent border-0 rounded-lg shadow-none cursor-pointer leading-normal text-sm ease-in bg-150 hover:-translate-y-px active:opacity-85 bg-x-25 text-slate-700" href="javascript:;"><i class="mr-2 fas fa-pencil-alt text-slate-700" aria-hidden="true"></i>Edit</a>
-                  </div>
-                </li>
-                <li class="relative flex p-6 mt-4 mb-2 border-0 rounded-xl bg-gray-50 dark:bg-slate-850">
-                  <div class="flex flex-col">
-                    <h6 class="mb-4 text-sm leading-normal dark:text-white">Lucas Harper</h6>
-                    <span class="mb-2 text-xs leading-tight dark:text-white/80">Company Name: <span class="font-semibold text-slate-700 dark:text-white sm:ml-2">Stone Tech Zone</span></span>
-                    <span class="mb-2 text-xs leading-tight dark:text-white/80">Email Address: <span class="font-semibold text-slate-700 dark:text-white sm:ml-2">lucas@stone-tech.com</span></span>
-                    <span class="text-xs leading-tight dark:text-white/80">VAT Number: <span class="font-semibold text-slate-700 dark:text-white sm:ml-2">FRB1235476</span></span>
-                  </div>
-                  <div class="ml-auto text-right">
-                    <a class="relative z-10 inline-block px-4 py-2.5 mb-0 font-bold text-center text-transparent align-middle transition-all border-0 rounded-lg shadow-none cursor-pointer leading-normal text-sm ease-in bg-150 bg-gradient-to-tl from-red-600 to-orange-600 hover:-translate-y-px active:opacity-85 bg-x-25 bg-clip-text" href="javascript:;"><i class="mr-2 far fa-trash-alt bg-150 bg-gradient-to-tl from-red-600 to-orange-600 bg-x-25 bg-clip-text"></i>Delete</a>
-                    <a class="inline-block dark:text-white px-4 py-2.5 mb-0 font-bold text-center align-middle transition-all bg-transparent border-0 rounded-lg shadow-none cursor-pointer leading-normal text-sm ease-in bg-150 hover:-translate-y-px active:opacity-85 bg-x-25 text-slate-700" href="javascript:;"><i class="mr-2 fas fa-pencil-alt text-slate-700" aria-hidden="true"></i>Edit</a>
-                  </div>
-                </li>
-                <li class="relative flex p-6 mt-4 mb-2 border-0 rounded-b-inherit rounded-xl bg-gray-50 dark:bg-slate-850">
-                  <div class="flex flex-col">
-                    <h6 class="mb-4 text-sm leading-normal dark:text-white">Ethan James</h6>
-                    <span class="mb-2 text-xs leading-tight dark:text-white/80">Company Name: <span class="font-semibold text-slate-700 dark:text-white sm:ml-2">Fiber Notion</span></span>
-                    <span class="mb-2 text-xs leading-tight dark:text-white/80">Email Address: <span class="font-semibold text-slate-700 dark:text-white sm:ml-2">ethan@fiber.com</span></span>
-                    <span class="text-xs leading-tight dark:text-white/80">VAT Number: <span class="font-semibold text-slate-700 dark:text-white sm:ml-2">FRB1235476</span></span>
-                  </div>
-                  <div class="ml-auto text-right">
-                    <a class="relative z-10 inline-block px-4 py-2.5 mb-0 font-bold text-center text-transparent align-middle transition-all border-0 rounded-lg shadow-none cursor-pointer leading-normal text-sm ease-in bg-150 bg-gradient-to-tl from-red-600 to-orange-600 hover:-translate-y-px active:opacity-85 bg-x-25 bg-clip-text" href="javascript:;"><i class="mr-2 far fa-trash-alt bg-150 bg-gradient-to-tl from-red-600 to-orange-600 bg-x-25 bg-clip-text"></i>Delete</a>
-                    <a class="inline-block dark:text-white px-4 py-2.5 mb-0 font-bold text-center align-middle transition-all bg-transparent border-0 rounded-lg shadow-none cursor-pointer leading-normal text-sm ease-in bg-150 hover:-translate-y-px active:opacity-85 bg-x-25 text-slate-700" href="javascript:;"><i class="mr-2 fas fa-pencil-alt text-slate-700" aria-hidden="true"></i>Edit</a>
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Payment Method</div>
+          <button class="btn btn-primary"><i class="fas fa-plus mr-1"></i> Add New Card</button>
         </div>
-        <div class="w-full max-w-full px-3 mt-6 md:w-5/12 md:flex-none">
-          <div class="relative flex flex-col h-full min-w-0 mb-6 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-6 px-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <div class="flex flex-wrap -mx-3">
-                <div class="max-w-full px-3 md:w-1/2 md:flex-none">
-                  <h6 class="mb-0 dark:text-white">Your Transactions</h6>
-                </div>
-                <div class="flex items-center justify-end max-w-full px-3 dark:text-white/80 md:w-1/2 md:flex-none">
-                  <i class="mr-2 far fa-calendar-alt"></i>
-                  <small>23 - 30 March 2020</small>
-                </div>
-              </div>
-            </div>
-            <div class="flex-auto p-4 pt-6">
-              <h6 class="mb-4 text-xs font-bold leading-tight uppercase dark:text-white text-slate-500">Newest</h6>
-              <ul class="flex flex-col pl-0 mb-0 rounded-lg">
-                <li class="relative flex justify-between px-4 py-2 pl-0 mb-2 border-0 rounded-t-inherit text-inherit rounded-xl">
-                  <div class="flex items-center">
-                    <button class="leading-pro ease-in text-xs bg-150 w-6.5 h-6.5 p-1.2 rounded-3.5xl tracking-tight-rem bg-x-25 mr-4 mb-0 flex cursor-pointer items-center justify-center border border-solid border-red-600 border-transparent bg-transparent text-center align-middle font-bold uppercase text-red-600 transition-all hover:opacity-75"><i class="fas fa-arrow-down text-3xs"></i></button>
-                    <div class="flex flex-col">
-                      <h6 class="mb-1 text-sm leading-normal dark:text-white text-slate-700">Netflix</h6>
-                      <span class="text-xs leading-tight dark:text-white/80">27 March 2020, at 12:30 PM</span>
-                    </div>
-                  </div>
-                  <div class="flex flex-col items-center justify-center">
-                    <p class="relative z-10 inline-block m-0 text-sm font-semibold leading-normal text-transparent bg-gradient-to-tl from-red-600 to-orange-600 bg-clip-text">- $ 2,500</p>
-                  </div>
-                </li>
-                <li class="relative flex justify-between px-4 py-2 pl-0 mb-2 border-0 border-t-0 rounded-b-inherit text-inherit rounded-xl">
-                  <div class="flex items-center">
-                    <button class="leading-pro ease-in text-xs bg-150 w-6.5 h-6.5 p-1.2 rounded-3.5xl tracking-tight-rem bg-x-25 mr-4 mb-0 flex cursor-pointer items-center justify-center border border-solid border-emerald-500 border-transparent bg-transparent text-center align-middle font-bold uppercase text-emerald-500 transition-all hover:opacity-75"><i class="fas fa-arrow-up text-3xs"></i></button>
-                    <div class="flex flex-col">
-                      <h6 class="mb-1 text-sm leading-normal dark:text-white text-slate-700">Apple</h6>
-                      <span class="text-xs leading-tight dark:text-white/80">27 March 2020, at 04:30 AM</span>
-                    </div>
-                  </div>
-                  <div class="flex flex-col items-center justify-center">
-                    <p class="relative z-10 inline-block m-0 text-sm font-semibold leading-normal text-transparent bg-gradient-to-tl from-green-600 to-lime-400 bg-clip-text">+ $ 2,000</p>
-                  </div>
-                </li>
-              </ul>
-              <h6 class="my-4 text-xs font-bold leading-tight uppercase dark:text-white text-slate-500">Yesterday</h6>
-              <ul class="flex flex-col pl-0 mb-0 rounded-lg">
-                <li class="relative flex justify-between px-4 py-2 pl-0 mb-2 border-0 rounded-t-inherit text-inherit rounded-xl">
-                  <div class="flex items-center">
-                    <button class="leading-pro ease-in text-xs bg-150 w-6.5 h-6.5 p-1.2 rounded-3.5xl tracking-tight-rem bg-x-25 mr-4 mb-0 flex cursor-pointer items-center justify-center border border-solid border-emerald-500 border-transparent bg-transparent text-center align-middle font-bold uppercase text-emerald-500 transition-all hover:opacity-75"><i class="fas fa-arrow-up text-3xs"></i></button>
-                    <div class="flex flex-col">
-                      <h6 class="mb-1 text-sm leading-normal dark:text-white text-slate-700">Stripe</h6>
-                      <span class="text-xs leading-tight dark:text-white/80">26 March 2020, at 13:45 PM</span>
-                    </div>
-                  </div>
-                  <div class="flex flex-col items-center justify-center">
-                    <p class="relative z-10 inline-block m-0 text-sm font-semibold leading-normal text-transparent bg-gradient-to-tl from-green-600 to-lime-400 bg-clip-text">+ $ 750</p>
-                  </div>
-                </li>
-                <li class="relative flex justify-between px-4 py-2 pl-0 mb-2 border-0 border-t-0 text-inherit rounded-xl">
-                  <div class="flex items-center">
-                    <button class="leading-pro ease-in text-xs bg-150 w-6.5 h-6.5 p-1.2 rounded-3.5xl tracking-tight-rem bg-x-25 mr-4 mb-0 flex cursor-pointer items-center justify-center border border-solid border-emerald-500 border-transparent bg-transparent text-center align-middle font-bold uppercase text-emerald-500 transition-all hover:opacity-75"><i class="fas fa-arrow-up text-3xs"></i></button>
-                    <div class="flex flex-col">
-                      <h6 class="mb-1 text-sm leading-normal dark:text-white text-slate-700">HubSpot</h6>
-                      <span class="text-xs leading-tight dark:text-white/80">26 March 2020, at 12:30 PM</span>
-                    </div>
-                  </div>
-                  <div class="flex flex-col items-center justify-center">
-                    <p class="relative z-10 inline-block m-0 text-sm font-semibold leading-normal text-transparent bg-gradient-to-tl from-green-600 to-lime-400 bg-clip-text">+ $ 1,000</p>
-                  </div>
-                </li>
-                <li class="relative flex justify-between px-4 py-2 pl-0 mb-2 border-0 border-t-0 text-inherit rounded-xl">
-                  <div class="flex items-center">
-                    <button class="leading-pro ease-in text-xs bg-150 w-6.5 h-6.5 p-1.2 rounded-3.5xl tracking-tight-rem bg-x-25 mr-4 mb-0 flex cursor-pointer items-center justify-center border border-solid border-emerald-500 border-transparent bg-transparent text-center align-middle font-bold uppercase text-emerald-500 transition-all hover:opacity-75"><i class="fas fa-arrow-up text-3xs"></i></button>
-                    <div class="flex flex-col">
-                      <h6 class="mb-1 text-sm leading-normal dark:text-white text-slate-700">Creative Tim</h6>
-                      <span class="text-xs leading-tight dark:text-white/80">26 March 2020, at 08:30 AM</span>
-                    </div>
-                  </div>
-                  <div class="flex flex-col items-center justify-center">
-                    <p class="relative z-10 items-center inline-block m-0 text-sm font-semibold leading-normal text-transparent bg-gradient-to-tl from-green-600 to-lime-400 bg-clip-text">+ $ 2,500</p>
-                  </div>
-                </li>
-                <li class="relative flex justify-between px-4 py-2 pl-0 mb-2 border-0 border-t-0 rounded-b-inherit text-inherit rounded-xl">
-                  <div class="flex items-center">
-                    <button class="leading-pro ease-in text-xs bg-150 w-6.5 h-6.5 p-1.2 rounded-3.5xl tracking-tight-rem bg-x-25 mr-4 mb-0 flex cursor-pointer items-center justify-center border border-solid border-slate-700 border-transparent bg-transparent text-center align-middle font-bold uppercase text-slate-700 transition-all hover:opacity-75"><i class="fas fa-exclamation text-3xs"></i></button>
-                    <div class="flex flex-col">
-                      <h6 class="mb-1 text-sm leading-normal dark:text-white text-slate-700">Webflow</h6>
-                      <span class="text-xs leading-tight dark:text-white/80">26 March 2020, at 05:00 AM</span>
-                    </div>
-                  </div>
-                  <div class="flex flex-col items-center justify-center">
-                    <p class="flex items-center m-0 text-sm font-semibold leading-normal text-slate-700">Pending</p>
-                  </div>
-                </li>
-              </ul>
-            </div>
+        <div class="card-body">
+          <div class="payment-method-item">
+            <img src="../assets/img/logos/mastercard.png" alt="Mastercard" />
+            <h6>****  ****  ****  7852</h6>
+            <i class="fas fa-pencil-alt edit-icon"></i>
+          </div>
+          <div class="payment-method-item">
+            <img src="../assets/img/logos/visa.png" alt="Visa" />
+            <h6>****  ****  ****  5248</h6>
+            <i class="fas fa-pencil-alt edit-icon"></i>
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Invoices</div>
+        <button class="btn btn-outline">View All</button>
+      </div>
+      <div class="card-body">
+        <ul class="invoice-list">
+          <li class="invoice-item">
+            <div>
+              <h6>March, 01, 2020</h6>
+              <span>#MS-415646</span>
+            </div>
+            <div>
+              <span class="amount">$180</span>
+              <button class="pdf-btn"><i class="fas fa-file-pdf"></i> PDF</button>
+            </div>
+          </li>
+          <li class="invoice-item">
+            <div>
+              <h6>February, 10, 2021</h6>
+              <span>#RV-126749</span>
+            </div>
+            <div>
+              <span class="amount">$250</span>
+              <button class="pdf-btn"><i class="fas fa-file-pdf"></i> PDF</button>
+            </div>
+          </li>
+          <li class="invoice-item">
+            <div>
+              <h6>April, 05, 2020</h6>
+              <span>#FB-212562</span>
+            </div>
+            <div>
+              <span class="amount">$560</span>
+              <button class="pdf-btn"><i class="fas fa-file-pdf"></i> PDF</button>
+            </div>
+          </li>
+          <li class="invoice-item">
+            <div>
+              <h6>June, 25, 2019</h6>
+              <span>#QW-103578</span>
+            </div>
+            <div>
+              <span class="amount">$120</span>
+              <button class="pdf-btn"><i class="fas fa-file-pdf"></i> PDF</button>
+            </div>
+          </li>
+          <li class="invoice-item">
+            <div>
+              <h6>March, 01, 2019</h6>
+              <span>#AR-803481</span>
+            </div>
+            <div>
+              <span class="amount">$300</span>
+              <button class="pdf-btn"><i class="fas fa-file-pdf"></i> PDF</button>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-grid">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Billing Information</div>
+      </div>
+      <div class="card-body">
+        <div class="billing-item">
+          <div>
+            <h6>Oliver Liam</h6>
+            <span>Company Name: <strong>Viking Burrito</strong></span>
+            <span>Email Address: <strong>oliver@burrito.com</strong></span>
+            <span>VAT Number: <strong>FRB1235476</strong></span>
+          </div>
+          <div class="actions">
+            <a class="delete"><i class="far fa-trash-alt"></i> Delete</a>
+            <a class="edit"><i class="fas fa-pencil-alt"></i> Edit</a>
+          </div>
+        </div>
+        <div class="billing-item">
+          <div>
+            <h6>Lucas Harper</h6>
+            <span>Company Name: <strong>Stone Tech Zone</strong></span>
+            <span>Email Address: <strong>lucas@stone-tech.com</strong></span>
+            <span>VAT Number: <strong>FRB1235476</strong></span>
+          </div>
+          <div class="actions">
+            <a class="delete"><i class="far fa-trash-alt"></i> Delete</a>
+            <a class="edit"><i class="fas fa-pencil-alt"></i> Edit</a>
+          </div>
+        </div>
+        <div class="billing-item">
+          <div>
+            <h6>Ethan James</h6>
+            <span>Company Name: <strong>Fiber Notion</strong></span>
+            <span>Email Address: <strong>ethan@fiber.com</strong></span>
+            <span>VAT Number: <strong>FRB1235476</strong></span>
+          </div>
+          <div class="actions">
+            <a class="delete"><i class="far fa-trash-alt"></i> Delete</a>
+            <a class="edit"><i class="fas fa-pencil-alt"></i> Edit</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Your Transactions</div>
+        <div style="font-size: 12px; color: #666">
+          <i class="far fa-calendar-alt mr-1"></i> 23 - 30 March 2020
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="transaction-section">
+          <h6>Newest</h6>
+          <div class="transaction-item">
+            <div style="display: flex; align-items: center">
+              <div class="icon down"><i class="fas fa-arrow-down"></i></div>
+              <div>
+                <h6>Netflix</h6>
+                <span>27 March 2020, at 12:30 PM</span>
+              </div>
+            </div>
+            <span class="amount negative">- $2,500</span>
+          </div>
+          <div class="transaction-item">
+            <div style="display: flex; align-items: center">
+              <div class="icon up"><i class="fas fa-arrow-up"></i></div>
+              <div>
+                <h6>Apple</h6>
+                <span>27 March 2020, at 04:30 AM</span>
+              </div>
+            </div>
+            <span class="amount positive">+ $2,000</span>
+          </div>
+        </div>
+        <div class="transaction-section">
+          <h6>Yesterday</h6>
+          <div class="transaction-item">
+            <div style="display: flex; align-items: center">
+              <div class="icon up"><i class="fas fa-arrow-up"></i></div>
+              <div>
+                <h6>Stripe</h6>
+                <span>26 March 2020, at 13:45 PM</span>
+              </div>
+            </div>
+            <span class="amount positive">+ $750</span>
+          </div>
+          <div class="transaction-item">
+            <div style="display: flex; align-items: center">
+              <div class="icon up"><i class="fas fa-arrow-up"></i></div>
+              <div>
+                <h6>HubSpot</h6>
+                <span>26 March 2020, at 12:30 PM</span>
+              </div>
+            </div>
+            <span class="amount positive">+ $1,000</span>
+          </div>
+          <div class="transaction-item">
+            <div style="display: flex; align-items: center">
+              <div class="icon up"><i class="fas fa-arrow-up"></i></div>
+              <div>
+                <h6>Creative Tim</h6>
+                <span>26 March 2020, at 08:30 AM</span>
+              </div>
+            </div>
+            <span class="amount positive">+ $2,500</span>
+          </div>
+          <div class="transaction-item">
+            <div style="display: flex; align-items: center">
+              <div class="icon pending"><i class="fas fa-exclamation"></i></div>
+              <div>
+                <h6>Webflow</h6>
+                <span>26 March 2020, at 05:00 AM</span>
+              </div>
+            </div>
+            <span style="font-size: 13px; font-weight: 500; color: #666">Pending</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -79,8 +79,308 @@ $settings_pages = ['settings/system-settings', 'settings/company', 'settings/pri
 $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', 'reports/customers', 'reports/food-canteen', 'reports/financial'];
 ?>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+
 <style>
-    /* Sidebar collapse styles */
+    /* ── Typography ─────────────────────────────────────── */
+    #adminSidebar,
+    #adminSidebar * {
+        font-family: 'DM Sans', system-ui, sans-serif;
+    }
+
+    /* Preserve Nucleo Icons font - must come after the global override */
+    #adminSidebar .ni {
+        font-family: 'NucleoIcons' !important;
+    }
+
+    /* Preserve Font Awesome icons font - must come after the global override */
+    #adminSidebar .fas,
+    #adminSidebar .far,
+    #adminSidebar .fab,
+    #adminSidebar .fa-solid,
+    #adminSidebar .fa-regular,
+    #adminSidebar .fa-brands,
+    #adminSidebar [class*="fa-"] {
+        font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", "FontAwesome" !important;
+    }
+
+    #adminSidebar .fas,
+    #adminSidebar .fa-solid {
+        font-weight: 900 !important;
+    }
+
+    #adminSidebar .far,
+    #adminSidebar .fa-regular {
+        font-weight: 400 !important;
+    }
+
+    #adminSidebar .fab,
+    #adminSidebar .fa-brands {
+        font-family: "Font Awesome 6 Brands" !important;
+        font-weight: 400 !important;
+    }
+
+    #adminSidebar .sidebar-brand-name {
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    #adminSidebar .sidebar-section-title {
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        font-size: 0.625rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    /* ── Sidebar base ───────────────────────────────────── */
+    #adminSidebar {
+        background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%) !important;
+        border-right: 1px solid rgba(99, 102, 241, 0.08);
+        box-shadow: 4px 0 24px rgba(99, 102, 241, 0.06), 0 4px 16px rgba(0,0,0,0.04) !important;
+    }
+
+    .dark #adminSidebar {
+        background: linear-gradient(180deg, #1e2235 0%, #181c2e 100%) !important;
+        border-right: 1px solid rgba(99, 102, 241, 0.12);
+        box-shadow: 4px 0 24px rgba(0,0,0,0.3) !important;
+    }
+
+    /* ── Brand header ───────────────────────────────────── */
+    #adminSidebar .h-19 {
+        background: linear-gradient(135deg, #eef2ff 0%, #f0f9ff 100%);
+        border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+        padding-bottom: 0.25rem;
+    }
+
+    .dark #adminSidebar .h-19 {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(6, 182, 212, 0.06) 100%);
+        border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    /* ── Nav items ──────────────────────────────────────── */
+    #adminSidebar a.ease-nav-brand,
+    #adminSidebar button.ease-nav-brand {
+        font-size: 0.8125rem;
+        font-weight: 500;
+        letter-spacing: 0.005em;
+        color: #4b5563;
+        border-radius: 10px !important;
+        transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dark #adminSidebar a.ease-nav-brand,
+    .dark #adminSidebar button.ease-nav-brand {
+        color: rgba(255,255,255,0.82);
+    }
+
+    #adminSidebar a.ease-nav-brand:hover,
+    #adminSidebar button.ease-nav-brand:hover {
+        background: rgba(99, 102, 241, 0.07) !important;
+        color: #4f46e5 !important;
+        transform: translateX(2px);
+    }
+
+    .dark #adminSidebar a.ease-nav-brand:hover,
+    .dark #adminSidebar button.ease-nav-brand:hover {
+        background: rgba(99, 102, 241, 0.15) !important;
+        color: #a5b4fc !important;
+    }
+
+    /* ── Active state ───────────────────────────────────── */
+    #adminSidebar [data-active="true"],
+    #adminSidebar .bg-blue-500\/13 {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%) !important;
+        color: #4338ca !important;
+        font-weight: 600 !important;
+        box-shadow: inset 3px 0 0 #6366f1, 0 2px 8px rgba(99, 102, 241, 0.12);
+        border-radius: 10px !important;
+    }
+
+    .dark #adminSidebar [data-active="true"],
+    .dark #adminSidebar .bg-blue-500\/13 {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.12) 100%) !important;
+        color: #a5b4fc !important;
+        box-shadow: inset 3px 0 0 #818cf8, 0 2px 8px rgba(99, 102, 241, 0.2);
+    }
+
+    /* ── Icon containers ────────────────────────────────── */
+    #adminSidebar .h-8.w-8 {
+        background: rgba(255,255,255,0.9);
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+        transition: all 0.18s ease;
+    }
+
+    .dark #adminSidebar .h-8.w-8 {
+        background: rgba(255,255,255,0.06);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.06);
+    }
+
+    #adminSidebar a.ease-nav-brand:hover .h-8.w-8,
+    #adminSidebar button.ease-nav-brand:hover .h-8.w-8 {
+        background: rgba(255,255,255,1);
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15), 0 0 0 1px rgba(99, 102, 241, 0.1);
+        transform: scale(1.05);
+    }
+
+    /* ── Dropdown sub-items ─────────────────────────────── */
+    #adminSidebar .pl-2 a {
+        padding-left: 0.875rem !important;
+        padding-top: 0.45rem !important;
+        padding-bottom: 0.45rem !important;
+        font-size: 0.78rem;
+        font-weight: 450;
+        color: #6b7280;
+        border-radius: 8px !important;
+        transition: all 0.15s ease;
+    }
+
+    .dark #adminSidebar .pl-2 a {
+        color: rgba(255,255,255,0.55);
+    }
+
+    #adminSidebar .pl-2 a:hover {
+        color: #4f46e5 !important;
+        background: rgba(99, 102, 241, 0.07) !important;
+        transform: translateX(2px);
+    }
+
+    .dark #adminSidebar .pl-2 a:hover {
+        color: #a5b4fc !important;
+    }
+
+    /* Sub-item dot - explicit styles for reliability */
+    #adminSidebar .sidebar-dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #94a3b8;
+        flex-shrink: 0;
+        transition: all 0.15s ease;
+    }
+
+    #adminSidebar .pl-2 a:hover .sidebar-dot,
+    #adminSidebar .pl-2 a[class*="font-semibold"] .sidebar-dot {
+        background-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    .dark #adminSidebar .sidebar-dot {
+        background-color: #64748b;
+    }
+
+    .dark #adminSidebar .pl-2 a:hover .sidebar-dot,
+    .dark #adminSidebar .pl-2 a[class*="font-semibold"] .sidebar-dot {
+        background-color: #818cf8;
+    }
+
+    /* ── Chevron ────────────────────────────────────────── */
+    #adminSidebar .fa-chevron-down {
+        color: #9ca3af;
+        font-size: 0.65rem !important;
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s ease;
+    }
+
+    #adminSidebar button.ease-nav-brand:hover .fa-chevron-down {
+        color: #6366f1;
+    }
+
+    /* ── Collapse button ────────────────────────────────── */
+    #sidebarCollapseBtn {
+        background: rgba(255,255,255,0.95) !important;
+        border: 1px solid rgba(99, 102, 241, 0.15) !important;
+        border-radius: 0 0 0 10px !important;
+        color: #6b7280 !important;
+        transition: all 0.18s ease !important;
+        box-shadow: -2px 2px 8px rgba(99, 102, 241, 0.1) !important;
+    }
+
+    #sidebarCollapseBtn:hover {
+        background: #eef2ff !important;
+        color: #4f46e5 !important;
+        border-color: rgba(99, 102, 241, 0.3) !important;
+    }
+
+    .dark #sidebarCollapseBtn {
+        background: rgba(30, 34, 53, 0.95) !important;
+        border-color: rgba(99, 102, 241, 0.2) !important;
+        color: rgba(255,255,255,0.6) !important;
+    }
+
+    /* ── Help card ──────────────────────────────────────── */
+    #adminSidebar .sidebar-help-section > div {
+        background: linear-gradient(135deg, #eef2ff 0%, #f0f9ff 100%);
+        border: 1px solid rgba(99, 102, 241, 0.15);
+        border-radius: 14px !important;
+        padding: 0.75rem;
+    }
+
+    .dark #adminSidebar .sidebar-help-section > div {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(6, 182, 212, 0.06) 100%);
+        border-color: rgba(99, 102, 241, 0.2);
+    }
+
+    #adminSidebar .sidebar-help-section h6 {
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        font-weight: 700;
+        font-size: 0.8125rem;
+        letter-spacing: -0.01em;
+    }
+
+    #adminSidebar .sidebar-help-section p {
+        font-size: 0.7rem;
+        color: #6b7280;
+        font-weight: 400;
+    }
+
+    /* ── Help buttons ───────────────────────────────────── */
+    #adminSidebar a[href*="creative-tim"] {
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+        font-size: 0.7rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.04em !important;
+        text-transform: uppercase !important;
+        border-radius: 9px !important;
+        transition: all 0.18s cubic-bezier(0.4,0,0.2,1) !important;
+    }
+
+    /* ── Divider ────────────────────────────────────────── */
+    #adminSidebar hr {
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.2), transparent) !important;
+        margin: 0 0.5rem;
+    }
+
+    /* ── Section padding ────────────────────────────────── */
+    #adminSidebar .flex.flex-col.mb-0 {
+        padding: 0.5rem 0.75rem 0.5rem;
+        gap: 1px;
+    }
+
+    /* ── Scrollbar ──────────────────────────────────────── */
+    #adminSidebar::-webkit-scrollbar {
+        width: 3px;
+    }
+    #adminSidebar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    #adminSidebar::-webkit-scrollbar-thumb {
+        background: rgba(99, 102, 241, 0.2);
+        border-radius: 10px;
+    }
+    #adminSidebar::-webkit-scrollbar-thumb:hover {
+        background: rgba(99, 102, 241, 0.4);
+    }
+
+    /* ── Collapse styles ────────────────────────────────── */
     @media (min-width: 1280px) {
         aside.sidebar-collapsed {
             max-width: 4.5rem !important;
@@ -122,11 +422,13 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
         align-items: center !important;
     }
 
+    /* ── Mobile overlay ─────────────────────────────────── */
     #sidebarOverlay {
         display: none;
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(15, 20, 50, 0.55);
+        backdrop-filter: blur(2px);
         z-index: 989;
         cursor: pointer;
     }
@@ -145,7 +447,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
         <a class="block px-8 py-6 m-0 text-sm whitespace-nowrap dark:text-white text-slate-700" target="_blank">
             <img src="<?php echo $assets_path ?? './assets'; ?>/img/logo.png" class="inline h-full max-w-full transition-all duration-200 dark:hidden ease-nav-brand max-h-8" alt="main_logo" />
             <img src="<?php echo $assets_path ?? './assets'; ?>/img/logo.png" class="hidden h-full max-w-full transition-all duration-200 dark:inline ease-nav-brand max-h-8" alt="main_logo" />
-            <span class="ml-1 font-semibold transition-all duration-200 ease-nav-brand sidebar-label">Paraiso Dashboard </span>
+            <span class="ml-1 transition-all duration-200 ease-nav-brand sidebar-label sidebar-brand-name">Paraiso Dashboard</span>
         </a>
     </div>
 
@@ -183,7 +485,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('properties.properties.view')): ?>
                                 <a href="<?php echo $base_url; ?>properties-rooms/properties" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('properties-rooms/properties', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Properties</span>
                                 </a>
@@ -191,7 +493,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('properties.rooms.view')): ?>
                                 <a href="<?php echo $base_url; ?>properties-rooms/rooms" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('properties-rooms/rooms', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Rooms</span>
                                 </a>
@@ -199,7 +501,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('properties.room_categories.view')): ?>
                                 <a href="<?php echo $base_url; ?>properties-rooms/room-categories" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('properties-rooms/room-categories', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Room Categories</span>
                                 </a>
@@ -207,7 +509,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('properties.amenities.view')): ?>
                                 <a href="<?php echo $base_url; ?>properties-rooms/amenities" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('properties-rooms/amenities', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Amenities</span>
                                 </a>
@@ -215,7 +517,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('properties.room_blocks.view')): ?>
                                 <a href="<?php echo $base_url; ?>properties-rooms/room-blocks" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('properties-rooms/room-blocks', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Room Blocks</span>
                                 </a>
@@ -244,7 +546,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('inventory.products.view')): ?>
                                 <a href="<?php echo $base_url; ?>inventory/product" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('inventory/product', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Products</span>
                                 </a>
@@ -252,7 +554,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('inventory.categories.view')): ?>
                                 <a href="<?php echo $base_url; ?>inventory/inventory-categories" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('inventory/inventory-categories', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Categories</span>
                                 </a>
@@ -260,7 +562,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('inventory.units.view')): ?>
                                 <a href="<?php echo $base_url; ?>inventory/units-of-measure" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('inventory/units-of-measure', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Units of Measure</span>
                                 </a>
@@ -268,7 +570,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('inventory.locations.view')): ?>
                                 <a href="<?php echo $base_url; ?>inventory/inventory-locations" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('inventory/inventory-locations', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Locations</span>
                                 </a>
@@ -276,7 +578,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('inventory.suppliers.view')): ?>
                                 <a href="<?php echo $base_url; ?>inventory/suppliers" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('inventory/suppliers', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Suppliers</span>
                                 </a>
@@ -284,7 +586,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('inventory.stock_location.view')): ?>
                                 <a href="<?php echo $base_url; ?>inventory/product-stock-per-location" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('inventory/product-stock-per-location', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Stock by Location</span>
                                 </a>
@@ -292,7 +594,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('inventory.purchase_orders.view')): ?>
                                 <a href="<?php echo $base_url; ?>inventory/purchase-orders" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('inventory/purchase-orders', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Purchase Orders</span>
                                 </a>
@@ -300,7 +602,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('inventory.stock_transactions.view')): ?>
                                 <a href="<?php echo $base_url; ?>inventory/stock-transactions" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('inventory/stock-transactions', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Stock Transactions</span>
                                 </a>
@@ -308,7 +610,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('inventory.stock_transfers.view')): ?>
                                 <a href="<?php echo $base_url; ?>inventory/stock-transfers" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('inventory/stock-transfers', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Stock Transfers</span>
                                 </a>
@@ -316,7 +618,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('inventory.sales.view')): ?>
                                 <a href="<?php echo $base_url; ?>inventory/inventory-sales" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('inventory/inventory-sales', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Inventory Sales</span>
                                 </a>
@@ -345,7 +647,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('food_canteen.categories.view')): ?>
                                 <a href="<?php echo $base_url; ?>food-canteen/food-categories" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('food-canteen/food-categories', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Food Categories</span>
                                 </a>
@@ -353,7 +655,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('food_canteen.menu_items.view')): ?>
                                 <a href="<?php echo $base_url; ?>food-canteen/menu-items" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('food-canteen/menu-items', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Menu Items</span>
                                 </a>
@@ -361,7 +663,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('food_canteen.orders.view')): ?>
                                 <a href="<?php echo $base_url; ?>food-canteen/food-orders" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('food-canteen/food-orders', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Food Orders</span>
                                 </a>
@@ -390,7 +692,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('reservations.reservations.view')): ?>
                                 <a href="<?php echo $base_url; ?>reservations/reservations" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('reservations/reservations', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Reservations</span>
                                 </a>
@@ -398,7 +700,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('reservations.rooms.view')): ?>
                                 <a href="<?php echo $base_url; ?>reservations/reservation-rooms" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('reservations/reservation-rooms', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Reservation Rooms</span>
                                 </a>
@@ -406,7 +708,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('reservations.guests.view')): ?>
                                 <a href="<?php echo $base_url; ?>reservations/reservation-guests" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('reservations/reservation-guests', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Reservation Guests</span>
                                 </a>
@@ -414,7 +716,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('reservations.requirement_types.view')): ?>
                                 <a href="<?php echo $base_url; ?>reservations/reservation-requirement-types" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('reservations/reservation-requirement-types', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Requirement Types</span>
                                 </a>
@@ -422,7 +724,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('reservations.requirements.view')): ?>
                                 <a href="<?php echo $base_url; ?>reservations/reservation-requirements" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('reservations/reservation-requirements', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Requirements</span>
                                 </a>
@@ -430,7 +732,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('reservations.check_in_logs.view')): ?>
                                 <a href="<?php echo $base_url; ?>reservations/check-in-logs" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('reservations/check-in-logs', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Check-in Logs</span>
                                 </a>
@@ -438,7 +740,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('reservations.entrance_logs.view')): ?>
                                 <a href="<?php echo $base_url; ?>reservations/entrance-logs" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('reservations/entrance-logs', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Entrance Logs</span>
                                 </a>
@@ -467,7 +769,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('payments.payment_methods.view')): ?>
                                 <a href="<?php echo $base_url; ?>payments-billing/payment-methods" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('payments-billing/payment-methods', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Payment Methods</span>
                                 </a>
@@ -475,7 +777,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('payments.payments.view')): ?>
                                 <a href="<?php echo $base_url; ?>payments-billing/payments" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('payments-billing/payments', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Payments</span>
                                 </a>
@@ -483,7 +785,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('payments.invoices.view')): ?>
                                 <a href="<?php echo $base_url; ?>payments-billing/invoices" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('payments-billing/invoices', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Invoices</span>
                                 </a>
@@ -491,7 +793,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('payments.invoice_line_items.view')): ?>
                                 <a href="<?php echo $base_url; ?>payments-billing/invoice-line-items" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('payments-billing/invoice-line-items', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Invoice Line Items</span>
                                 </a>
@@ -499,7 +801,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('payments.discounts.view')): ?>
                                 <a href="<?php echo $base_url; ?>payments-billing/discounts" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('payments-billing/discounts', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Discounts</span>
                                 </a>
@@ -507,7 +809,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('payments.discount_usages.view')): ?>
                                 <a href="<?php echo $base_url; ?>payments-billing/discount-usages" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('payments-billing/discount-usages', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Discount Usages</span>
                                 </a>
@@ -515,7 +817,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('payments.extra_charges.view')): ?>
                                 <a href="<?php echo $base_url; ?>payments-billing/extra-charges" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('payments-billing/extra-charges', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Extra Charges</span>
                                 </a>
@@ -523,7 +825,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('payments.billing.view')): ?>
                                 <a href="<?php echo $base_url; ?>payments-billing/billing" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('payments-billing/billing', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Billing</span>
                                 </a>
@@ -552,7 +854,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('settings.system.view')): ?>
                                 <a href="<?php echo $base_url; ?>settings/system-settings" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('settings/system-settings', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">System Settings</span>
                                 </a>
@@ -560,7 +862,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('settings.pricing_rules.view')): ?>
                                 <a href="<?php echo $base_url; ?>settings/pricing-rules" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('settings/pricing-rules', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Pricing Rules</span>
                                 </a>
@@ -568,7 +870,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('settings.seasonal_rates.view')): ?>
                                 <a href="<?php echo $base_url; ?>settings/seasonal-rates" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('settings/seasonal-rates', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Seasonal Rates</span>
                                 </a>
@@ -576,7 +878,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('settings.booking_policies.view')): ?>
                                 <a href="<?php echo $base_url; ?>settings/booking-policies" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('settings/booking-policies', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Booking Policies</span>
                                 </a>
@@ -584,7 +886,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('settings.promotions.view')): ?>
                                 <a href="<?php echo $base_url; ?>settings/promotions" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('settings/promotions', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Promotions</span>
                                 </a>
@@ -592,7 +894,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('settings.promotion_images.view')): ?>
                                 <a href="<?php echo $base_url; ?>settings/promotion-images" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('settings/promotion-images', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Promotion Images</span>
                                 </a>
@@ -600,7 +902,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('settings.notifications.view')): ?>
                                 <a href="<?php echo $base_url; ?>settings/notifications" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('settings/notifications', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Notifications</span>
                                 </a>
@@ -608,7 +910,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('settings.notification_recipients.view')): ?>
                                 <a href="<?php echo $base_url; ?>settings/notification-recipients" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('settings/notification-recipients', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Notification Recipients</span>
                                 </a>
@@ -616,7 +918,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('settings.rbac.view')): ?>
                                 <a href="<?php echo $base_url; ?>settings/rbac-settings" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('settings/rbac-settings', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">RBAC Settings</span>
                                 </a>
@@ -624,7 +926,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('settings.company.view')): ?>
                                 <a href="<?php echo $base_url; ?>settings/company" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('settings/company', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Company Settings</span>
                                 </a>
@@ -653,7 +955,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('reports.dashboard.view')): ?>
                                 <a href="<?php echo $base_url; ?>reports" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('reports', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Reports Dashboard</span>
                                 </a>
@@ -661,7 +963,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('reports.revenue.view')): ?>
                                 <a href="<?php echo $base_url; ?>reports/revenue" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('reports/revenue', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Revenue Reports</span>
                                 </a>
@@ -669,7 +971,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('reports.occupancy.view')): ?>
                                 <a href="<?php echo $base_url; ?>reports/occupancy" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('reports/occupancy', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Occupancy Reports</span>
                                 </a>
@@ -677,7 +979,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('reports.inventory.view')): ?>
                                 <a href="<?php echo $base_url; ?>reports/inventory" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('reports/inventory', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Inventory Reports</span>
                                 </a>
@@ -685,7 +987,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('reports.customers.view')): ?>
                                 <a href="<?php echo $base_url; ?>reports/customers" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('reports/customers', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Customer Reports</span>
                                 </a>
@@ -693,7 +995,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('reports.food_canteen.view')): ?>
                                 <a href="<?php echo $base_url; ?>reports/food-canteen" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('reports/food-canteen', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Food Canteen Reports</span>
                                 </a>
@@ -701,7 +1003,7 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                             <?php if (canShowSubPage('reports.financial.view')): ?>
                                 <a href="<?php echo $base_url; ?>reports/financial" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('reports/financial', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Financial Reports</span>
                                 </a>

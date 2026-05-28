@@ -36,8 +36,25 @@ foreach ($required as $field) {
 }
 
 // property_id is required for dine_in and room_service, optional for takeout
+// For room_service, property_id can be derived from the room_id
 $orderType = $data['order_type'] ?? '';
-if (empty($data['property_id']) && in_array($orderType, ['dine_in', 'room_service'])) {
+$propertyId = $data['property_id'] ?? null;
+
+// If room_service with room_id provided, fetch property_id from room
+if ($orderType === 'room_service' && empty($propertyId) && !empty($data['room_id'])) {
+    try {
+        $stmt = $pdo->prepare("SELECT property_id FROM rooms WHERE room_id = ?");
+        $stmt->execute([$data['room_id']]);
+        $roomPropertyId = $stmt->fetchColumn();
+        if ($roomPropertyId) {
+            $propertyId = $roomPropertyId;
+        }
+    } catch (Exception $e) {
+        error_log("Error fetching property from room: " . $e->getMessage());
+    }
+}
+
+if (empty($propertyId) && in_array($orderType, ['dine_in', 'room_service'])) {
     http_response_code(400);
     echo json_encode(['success' => false, 'error' => 'Property is required for dine-in and room service orders']);
     exit;
@@ -93,7 +110,7 @@ try {
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
         $orderId,
-        $data['property_id'] ?? null, // NULL for takeout if not provided
+        $propertyId, // Use resolved property_id (from request or room lookup)
         $orderNumber,
         $data['order_type'],
         $data['table_number'] ?? null,

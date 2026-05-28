@@ -18,12 +18,14 @@ try {
             r.check_out_date,
             rm.room_number,
             rm.room_name,
-            p.property_name
+            p.property_name,
+            CONCAT(up.first_name, ' ', up.last_name) as processed_by_name
           FROM check_in_logs cil
           INNER JOIN reservations r ON cil.reservation_id = r.reservation_id
           LEFT JOIN reservation_rooms rr ON cil.res_room_id = rr.res_room_id
           LEFT JOIN rooms rm ON rr.room_id = rm.room_id
           LEFT JOIN properties p ON r.property_id = p.property_id
+          LEFT JOIN user_profiles up ON cil.processed_by = up.user_id
           ORDER BY cil.event_at DESC
         ");
         $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);

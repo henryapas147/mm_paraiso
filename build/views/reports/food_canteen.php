@@ -1,4 +1,92 @@
 <?php if (false) {} ?>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+    /* ── Food Canteen Reports Design System ── */
+    .food-page {
+        --food-bg-main: #f0f2f8;
+        --food-bg-card: #ffffff;
+        --food-text-primary: #1a1f36;
+        --food-text-secondary: #6b7280;
+        --food-text-muted: #9ca3af;
+        --food-border: #e5e7eb;
+        --food-accent-blue: #4f46e5;
+        --food-accent-blue-light: #eef2ff;
+        --food-accent-emerald: #10b981;
+        --food-accent-rose: #f43f5e;
+        --food-accent-orange: #f97316;
+        --food-shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+        --food-shadow-md: 0 4px 16px rgba(0,0,0,.08);
+        --food-radius: 16px;
+        --food-radius-sm: 10px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: var(--food-text-primary);
+    }
+
+    .food-content { display: flex; flex-direction: column; gap: 24px; }
+
+    /* ── STAT CARD ── */
+    .food-page .stat-card {
+        background: var(--food-bg-card);
+        border-radius: var(--food-radius);
+        padding: 20px;
+        box-shadow: var(--food-shadow-sm);
+        border: 1px solid var(--food-border);
+        display: flex; align-items: center; gap: 16px;
+    }
+    .food-page .stat-icon {
+        width: 48px; height: 48px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 22px;
+        background: linear-gradient(135deg, #f43f5e, #fb7185);
+    }
+    .food-page .stat-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--food-text-muted); }
+    .food-page .stat-value { font-size: 24px; font-weight: 800; color: var(--food-text-primary); font-family: 'DM Mono', monospace; }
+
+    /* ── CARD ── */
+    .food-page .card {
+        background: var(--food-bg-card);
+        border: 1px solid var(--food-border);
+        border-radius: var(--food-radius);
+        box-shadow: var(--food-shadow-sm);
+        overflow: hidden;
+    }
+    .food-page .card-header {
+        padding: 18px 20px 14px;
+        border-bottom: 1px solid var(--food-border);
+    }
+    .food-page .card-title { font-size: 15px; font-weight: 700; color: var(--food-text-primary); }
+    .food-page .card-body { padding: 20px; }
+
+    /* ── TABLE ── */
+    .food-page .data-table { width: 100%; border-collapse: collapse; }
+    .food-page .data-table th {
+        font-size: 11px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .08em;
+        color: var(--food-text-muted);
+        text-align: left; padding: 12px 16px;
+        border-bottom: 1px solid var(--food-border);
+    }
+    .food-page .data-table th.text-right { text-align: right; }
+    .food-page .data-table th.text-center { text-align: center; }
+    .food-page .data-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--food-border);
+        font-size: 13px; color: var(--food-text-primary);
+        vertical-align: middle;
+    }
+    .food-page .data-table td.text-right { text-align: right; }
+    .food-page .data-table td.text-center { text-align: center; }
+    .food-page .data-table tr:last-child td { border-bottom: none; }
+    .food-page .mono { font-family: 'DM Mono', monospace; font-weight: 600; }
+    .food-page .text-emerald { color: var(--food-accent-emerald); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+        .food-page .stat-card { flex-direction: column; text-align: center; }
+    }
+</style>
+
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     loadFoodSales();
@@ -14,9 +102,9 @@
         const tbody = document.getElementById('salesTableBody');
         tbody.innerHTML = json.data.map(row => `
           <tr>
-            <td class="p-2 align-middle bg-transparent border-b dark:border-white/40">${new Date(row.date).toLocaleDateString()}</td>
-            <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 text-right font-semibold text-emerald-500">₱${parseFloat(row.sales).toLocaleString()}</td>
-            <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 text-center">${row.orders}</td>
+            <td>${new Date(row.date).toLocaleDateString()}</td>
+            <td class="text-right mono text-emerald">₱${parseFloat(row.sales).toLocaleString()}</td>
+            <td class="text-center">${row.orders}</td>
           </tr>
         `).join('');
         
@@ -37,11 +125,11 @@
         const tbody = document.getElementById('topItemsTableBody');
         tbody.innerHTML = json.data.map((row, index) => `
           <tr>
-            <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 text-center">${index + 1}</td>
-            <td class="p-2 align-middle bg-transparent border-b dark:border-white/40">${row.item_name}</td>
-            <td class="p-2 align-middle bg-transparent border-b dark:border-white/40">${row.category_name}</td>
-            <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 text-center">${row.total_sold}</td>
-            <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 text-right">₱${parseFloat(row.revenue).toLocaleString()}</td>
+            <td class="text-center">${index + 1}</td>
+            <td>${row.item_name}</td>
+            <td>${row.category_name}</td>
+            <td class="text-center">${row.total_sold}</td>
+            <td class="text-right mono">₱${parseFloat(row.revenue).toLocaleString()}</td>
           </tr>
         `).join('');
       }
@@ -51,70 +139,66 @@
   }
 </script>
 
-<div class="flex flex-wrap -mx-3 mb-6">
-  <div class="w-full max-w-full px-3 sm:w-1/2 lg:w-1/4">
-    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 rounded-2xl">
-      <div class="flex-auto p-4">
-        <div class="flex flex-row -mx-3">
-          <div class="flex-none w-2/3 max-w-full px-3">
-            <p class="mb-0 text-sm font-semibold uppercase dark:text-white/60">30-Day Sales</p>
-            <h5 class="mb-2 font-bold dark:text-white" id="totalSales">$0.00</h5>
-          </div>
-          <div class="px-3 text-right basis-1/3">
-            <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-red-500 to-rose-400">
-              <i class="ni ni-basket text-lg relative top-3.5 text-white"></i>
-            </div>
-          </div>
-        </div>
-      </div>
+<div class="food-page">
+<div class="food-content">
+
+  <!-- Stat Card -->
+  <div class="stat-card">
+    <div class="stat-icon">🛒</div>
+    <div>
+      <div class="stat-label">30-Day Sales</div>
+      <div class="stat-value" id="totalSales">₱0.00</div>
     </div>
   </div>
-</div>
 
-<div class="flex flex-wrap -mx-3">
-  <div class="w-full max-w-full px-3 lg:w-1/2">
-    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 rounded-2xl">
-      <div class="p-4 pb-0 mb-0 rounded-t-2xl">
-        <h6 class="mb-0 dark:text-white">Daily Food Sales (Last 30 Days)</h6>
+  <!-- Row: Sales Table + Top Items -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+
+    <!-- Daily Sales Table -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Daily Food Sales (Last 30 Days)</div>
       </div>
-      <div class="p-0 overflow-x-auto">
-        <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
+      <div class="card-body" style="padding: 0; overflow-x: auto;">
+        <table class="data-table">
           <thead>
             <tr>
-              <th class="px-6 py-3 font-bold text-left uppercase text-xxs border-b dark:border-slate-600 text-slate-400">Date</th>
-              <th class="px-6 py-3 font-bold text-right uppercase text-xxs border-b dark:border-slate-600 text-slate-400">Sales</th>
-              <th class="px-6 py-3 font-bold text-center uppercase text-xxs border-b dark:border-slate-600 text-slate-400">Orders</th>
+              <th>Date</th>
+              <th class="text-right">Sales</th>
+              <th class="text-center">Orders</th>
             </tr>
           </thead>
           <tbody id="salesTableBody">
-            <tr><td colspan="3" class="p-4 text-center text-slate-400">Loading...</td></tr>
+            <tr><td colspan="3" style="text-align: center; color: var(--food-text-muted);">Loading...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
-  </div>
 
-  <div class="w-full max-w-full px-3 lg:w-1/2">
-    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 rounded-2xl">
-      <div class="p-4 pb-0 mb-0 rounded-t-2xl">
-        <h6 class="mb-0 dark:text-white">Top 10 Menu Items</h6>
+    <!-- Top Menu Items Table -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Top 10 Menu Items</div>
       </div>
-      <div class="p-0 overflow-x-auto">
-        <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
+      <div class="card-body" style="padding: 0; overflow-x: auto;">
+        <table class="data-table">
           <thead>
             <tr>
-              <th class="px-6 py-3 font-bold text-center uppercase text-xxs border-b dark:border-slate-600 text-slate-400">#</th>
-              <th class="px-6 py-3 font-bold text-left uppercase text-xxs border-b dark:border-slate-600 text-slate-400">Item</th>
-              <th class="px-6 py-3 font-bold text-left uppercase text-xxs border-b dark:border-slate-600 text-slate-400">Category</th>
-              <th class="px-6 py-3 font-bold text-center uppercase text-xxs border-b dark:border-slate-600 text-slate-400">Sold</th>
-              <th class="px-6 py-3 font-bold text-right uppercase text-xxs border-b dark:border-slate-600 text-slate-400">Revenue</th>
+              <th class="text-center">#</th>
+              <th>Item</th>
+              <th>Category</th>
+              <th class="text-center">Sold</th>
+              <th class="text-right">Revenue</th>
             </tr>
           </thead>
           <tbody id="topItemsTableBody">
-            <tr><td colspan="5" class="p-4 text-center text-slate-400">Loading...</td></tr>
+            <tr><td colspan="5" style="text-align: center; color: var(--food-text-muted);">Loading...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
+
   </div>
+
+</div>
 </div>

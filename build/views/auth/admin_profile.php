@@ -27,7 +27,120 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
 $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
 ?>
 
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Lora:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+/* ── Admin Profile — Design System ── */
+.ap-page {
+  --ap-gold:        #C9A96E;
+  --ap-gold-dark:   #A07840;
+  --ap-gold-light:  #E8D5B0;
+  --ap-ink:         #1A1410;
+  --ap-ink-soft:    #3D3530;
+  --ap-surface:     #FFFFFF;
+  --ap-surface-2:   #FAFAF8;
+  --ap-border:      #EDEAE6;
+  --ap-border-gold: rgba(201,169,110,.22);
+  --ap-radius-md:   10px;
+  --ap-radius-lg:   16px;
+  --ap-radius-xl:   20px;
+  --ap-shadow:      0 1px 3px rgba(0,0,0,.05),0 4px 16px rgba(0,0,0,.07);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  color: var(--ap-ink);
+}
+
+/* Preserve icon fonts */
+.ap-page .ni { font-family: 'NucleoIcons' !important; }
+.ap-page .fa,.ap-page .fas,.ap-page .far,.ap-page .fab { font-family: 'Font Awesome 6 Free','Font Awesome 6 Brands' !important; }
+
+/* ── Header card ── */
+.ap-page > .relative.flex.flex-col.flex-auto {
+  background: var(--ap-surface) !important;
+  border: 1px solid var(--ap-border-gold) !important;
+  border-radius: var(--ap-radius-xl) !important;
+  box-shadow: var(--ap-shadow) !important;
+}
+
+/* Display name */
+.ap-page #profileDisplayName {
+  font-family: 'Lora', Georgia, serif !important;
+  font-size: 1.4rem !important;
+  font-weight: 500 !important;
+  font-style: italic !important;
+  color: var(--ap-ink) !important;
+}
+
+/* Role label */
+.ap-page #profileRoleLabel {
+  font-size: 0.68rem !important;
+  font-weight: 600 !important;
+  letter-spacing: .14em !important;
+  text-transform: uppercase !important;
+  color: var(--ap-gold) !important;
+  opacity: 1 !important;
+}
+
+/* ── Form card ── */
+.ap-page .shadow-xl {
+  box-shadow: var(--ap-shadow) !important;
+  border: 1px solid var(--ap-border) !important;
+  border-radius: var(--ap-radius-xl) !important;
+}
+
+/* Card header title */
+.ap-page .border-black\/12\.5 > .flex > p.mb-0 {
+  font-family: 'Lora', Georgia, serif !important;
+  font-size: .95rem !important;
+  font-weight: 500 !important;
+  font-style: italic !important;
+  color: var(--ap-ink) !important;
+  opacity: 1 !important;
+}
+
+/* Section labels */
+.ap-page p.leading-normal.uppercase {
+  font-size: .65rem !important;
+  font-weight: 600 !important;
+  letter-spacing: .18em !important;
+  color: var(--ap-gold) !important;
+}
+
+/* Form labels */
+.ap-page label.inline-block.font-bold {
+  font-size: .7rem !important;
+  font-weight: 600 !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+  color: var(--ap-ink-soft) !important;
+}
+
+/* Inputs */
+.ap-page input.rounded-lg:not([type=checkbox]):not([type=radio]):not([type=file]),
+.ap-page select.rounded-lg {
+  font-size: .85rem !important;
+  border-color: var(--ap-border) !important;
+  border-radius: var(--ap-radius-md) !important;
+  color: var(--ap-ink) !important;
+}
+.ap-page input.rounded-lg:focus, .ap-page select.rounded-lg:focus {
+  border-color: var(--ap-gold) !important;
+  box-shadow: 0 0 0 3px rgba(201,169,110,.15) !important;
+}
+
+/* Save button */
+.ap-page button[type="submit"] {
+  background: linear-gradient(135deg, var(--ap-gold), var(--ap-gold-dark)) !important;
+  border-radius: var(--ap-radius-md) !important;
+  font-size: .82rem !important;
+  font-weight: 600 !important;
+  letter-spacing: .06em !important;
+  box-shadow: 0 2px 8px rgba(201,169,110,.35) !important;
+  border: none !important;
+}
+.ap-page button[type="submit"]:hover { opacity: .9 !important; }
+</style>
+
 <!-- PAGE CONTENT -->
+<div class="ap-page">
 <div class="relative flex flex-col flex-auto min-w-0 p-4 overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
   <div class="flex flex-wrap -mx-3">
     <div class="flex-none w-auto max-w-full px-3">
@@ -179,6 +292,7 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
     </div>
   </div>
 </div>
+</div><!-- /ap-page -->
 
 <!-- Profile Photo Upload Script -->
 <script>

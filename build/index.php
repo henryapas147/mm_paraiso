@@ -123,6 +123,7 @@ $router->add('customers/list', ['controller' => 'CustomerController', 'action' =
 // Customer Portal (customer-facing)
 $router->add('customer/dashboard', ['controller' => 'CustomerController', 'action' => 'dashboard']);
 $router->add('customer/reservations', ['controller' => 'CustomerController', 'action' => 'reservations']);
+$router->add('customer/food-orders', ['controller' => 'CustomerController', 'action' => 'foodOrders']);
 $router->add('customer/payments', ['controller' => 'CustomerController', 'action' => 'payments']);
 $router->add('customer/profile', ['controller' => 'CustomerProfileController', 'action' => 'index']);
 

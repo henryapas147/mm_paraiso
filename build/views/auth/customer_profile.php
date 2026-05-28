@@ -27,1080 +27,1342 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
 $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
 ?>
 
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Lora:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+  /* ── Customer Profile — Design System ── */
+  .cp-page {
+    --cp-gold: #C9A96E;
+    --cp-gold-dark: #A07840;
+    --cp-gold-light: #E8D5B0;
+    --cp-ink: #1A1410;
+    --cp-ink-soft: #3D3530;
+    --cp-surface: #FFFFFF;
+    --cp-surface-2: #FAFAF8;
+    --cp-border: #EDEAE6;
+    --cp-border-gold: rgba(201, 169, 110, .22);
+    --cp-radius-md: 10px;
+    --cp-radius-lg: 16px;
+    --cp-radius-xl: 20px;
+    --cp-shadow: 0 1px 3px rgba(0, 0, 0, .05), 0 4px 16px rgba(0, 0, 0, .07);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    color: var(--cp-ink);
+  }
+
+  /* Preserve icon fonts */
+  .cp-page .ni {
+    font-family: 'NucleoIcons' !important;
+  }
+
+  .cp-page .fa,
+  .cp-page .fas,
+  .cp-page .far,
+  .cp-page .fab {
+    font-family: 'Font Awesome 6 Free', 'Font Awesome 6 Brands' !important;
+  }
+
+  /* ── Header card ── */
+  .cp-page>.relative.flex.flex-col.flex-auto {
+    background: var(--cp-surface) !important;
+    border: 1px solid var(--cp-border-gold) !important;
+    border-radius: var(--cp-radius-xl) !important;
+    box-shadow: var(--cp-shadow) !important;
+  }
+
+  /* Display name */
+  .cp-page #profileDisplayName {
+    font-family: 'Lora', Georgia, serif !important;
+    font-size: 1.4rem !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    color: var(--cp-ink) !important;
+  }
+
+  /* Role label */
+  .cp-page #profileRoleLabel {
+    font-size: 0.68rem !important;
+    font-weight: 600 !important;
+    letter-spacing: .14em !important;
+    text-transform: uppercase !important;
+    color: var(--cp-gold) !important;
+    opacity: 1 !important;
+  }
+
+  /* ── Tab nav ── */
+  .cp-page ul[role="tablist"] {
+    background: var(--cp-surface-2) !important;
+    border: 1px solid var(--cp-border) !important;
+    border-radius: var(--cp-radius-lg) !important;
+  }
+
+  .cp-page ul[role="tablist"] a {
+    font-size: .8rem !important;
+    font-weight: 500 !important;
+    color: var(--cp-ink-soft) !important;
+    border-radius: var(--cp-radius-md) !important;
+  }
+
+  .cp-page ul[role="tablist"] a.active {
+    background: var(--cp-surface) !important;
+    color: var(--cp-gold-dark) !important;
+    font-weight: 600 !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .08) !important;
+  }
+
+  /* ── Tab content cards ── */
+  .cp-page .shadow-xl {
+    box-shadow: var(--cp-shadow) !important;
+    border: 1px solid var(--cp-border) !important;
+    border-radius: var(--cp-radius-xl) !important;
+  }
+
+  /* Card section titles */
+  .cp-page .border-black\/12\.5>.flex>p.mb-0 {
+    font-family: 'Lora', Georgia, serif !important;
+    font-size: .95rem !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    color: var(--cp-ink) !important;
+    opacity: 1 !important;
+  }
+
+  .cp-page h5 {
+    font-family: 'Lora', Georgia, serif !important;
+    color: var(--cp-ink) !important;
+  }
+
+  /* ── Quick Actions strip ── */
+  .cp-page .bg-gray-50.rounded-xl {
+    background: var(--cp-surface-2) !important;
+    border: 1px solid var(--cp-border) !important;
+  }
+
+  .cp-page .bg-gray-50.rounded-xl h5 {
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: .72rem !important;
+    font-style: normal !important;
+    letter-spacing: .1em !important;
+    text-transform: uppercase !important;
+    color: var(--cp-gold-dark) !important;
+  }
+
+  .cp-page .flex.gap-3>button {
+    border: 1px solid var(--cp-border) !important;
+    box-shadow: none !important;
+    border-radius: var(--cp-radius-md) !important;
+  }
+
+  .cp-page .flex.gap-3>button:hover {
+    border-color: var(--cp-gold-light) !important;
+    background: #FFFDF9 !important;
+  }
+
+  .cp-page .flex.gap-3>button>p {
+    font-size: .72rem !important;
+    font-weight: 500 !important;
+    color: var(--cp-ink-soft) !important;
+    margin-top: 4px !important;
+  }
+
+  /* ── Settings / messages bg strips ── */
+  .cp-page .bg-gray-50.dark\:bg-slate-800 {
+    background: var(--cp-surface-2) !important;
+    border: 1px solid var(--cp-border) !important;
+    border-radius: var(--cp-radius-lg) !important;
+  }
+
+  .cp-page .settings-section>h5 {
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: .65rem !important;
+    font-style: normal !important;
+    font-weight: 600 !important;
+    letter-spacing: .18em !important;
+    text-transform: uppercase !important;
+    color: var(--cp-gold-dark) !important;
+  }
+
+  /* ── Form ── */
+  .cp-page p.leading-normal.uppercase {
+    font-size: .65rem !important;
+    font-weight: 600 !important;
+    letter-spacing: .18em !important;
+    color: var(--cp-gold) !important;
+  }
+
+  .cp-page label.inline-block.font-bold {
+    font-size: .7rem !important;
+    font-weight: 600 !important;
+    letter-spacing: .06em !important;
+    text-transform: uppercase !important;
+    color: var(--cp-ink-soft) !important;
+  }
+
+  .cp-page input.rounded-lg:not([type=checkbox]):not([type=radio]):not([type=file]),
+  .cp-page select.rounded-lg {
+    font-size: .85rem !important;
+    border-color: var(--cp-border) !important;
+    border-radius: var(--cp-radius-md) !important;
+    color: var(--cp-ink) !important;
+  }
+
+  .cp-page input.rounded-lg:focus,
+  .cp-page select.rounded-lg:focus {
+    border-color: var(--cp-gold) !important;
+    box-shadow: 0 0 0 3px rgba(201, 169, 110, .15) !important;
+  }
+
+  .cp-page button[type="submit"] {
+    background: linear-gradient(135deg, var(--cp-gold), var(--cp-gold-dark)) !important;
+    border-radius: var(--cp-radius-md) !important;
+    font-size: .8rem !important;
+    font-weight: 600 !important;
+    letter-spacing: .06em !important;
+    box-shadow: 0 2px 8px rgba(201, 169, 110, .35) !important;
+  }
+
+  /* ── Settings action buttons ── */
+  .cp-page .bg-indigo-600,
+  .cp-page .bg-emerald-600,
+  .cp-page .bg-pink-600 {
+    background: linear-gradient(135deg, var(--cp-gold), var(--cp-gold-dark)) !important;
+    border-radius: var(--cp-radius-md) !important;
+  }
+
+  .cp-page .bg-blue-500.text-white.px-3 {
+    background: linear-gradient(135deg, var(--cp-gold), var(--cp-gold-dark)) !important;
+    border-radius: var(--cp-radius-md) !important;
+  }
+
+  /* ── Profile sidebar ── */
+  .cp-page .rounded-circle {
+    border: 3px solid var(--cp-gold-light) !important;
+  }
+
+  .cp-page .bg-cyan-500 {
+    background: var(--cp-ink) !important;
+    border-radius: var(--cp-radius-md) !important;
+  }
+
+  .cp-page .bg-slate-700 {
+    background: var(--cp-ink-soft) !important;
+    border-radius: var(--cp-radius-md) !important;
+  }
+
+  /* ── Stat counts ── */
+  .cp-page #upcomingBookingsCount,
+  .cp-page #totalReservationsCount,
+  .cp-page #totalPaymentsCount {
+    font-family: 'Lora', Georgia, serif !important;
+  }
+
+  /* ── Nav filter buttons ── */
+  .cp-page .settings-nav-btn,
+  .cp-page .message-filter-btn {
+    border-radius: var(--cp-radius-md) !important;
+  }
+
+  .cp-page .settings-nav-btn.active,
+  .cp-page .message-filter-btn.active {
+    color: var(--cp-gold-dark) !important;
+  }
+
+  .cp-page .activity-tab-btn.active {
+    color: var(--cp-gold-dark) !important;
+    border-color: var(--cp-gold-dark) !important;
+  }
+
+  /* ── Messages ── */
+  .cp-page .message-item {
+    background: var(--cp-surface-2) !important;
+    border-radius: var(--cp-radius-lg) !important;
+  }
+
+  /* ── Profile sidebar stats ── */
+  .cp-page .grid.text-center span.font-bold {
+    font-family: 'Lora', Georgia, serif !important;
+  }
+
+  /* ── Inner white cards (payment methods etc.) ── */
+  .cp-page .bg-white.dark\:bg-slate-700.rounded-lg {
+    border: 1px solid var(--cp-border) !important;
+  }
+</style>
+
 <!-- PAGE CONTENT -->
 <!-- PAGE CONTENT -->
-<div class="relative flex flex-col flex-auto min-w-0 p-4 mx-6 overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
-  <div class="flex flex-wrap -mx-3">
-    <div class="flex-none w-auto max-w-full px-3">
-      <div class="relative inline-flex items-center justify-center text-white transition-all duration-200 ease-in-out text-base h-19 w-19 rounded-xl">
-        <img id="profilePhoto" src="<?php echo htmlspecialchars($profilePhotoUrl); ?>" alt="profile_image" class="w-full h-full object-cover shadow-2xl rounded-xl" />
+<div class="cp-page">
+  <div class="relative flex flex-col flex-auto min-w-0 p-4 mx-6 overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
+    <div class="flex flex-wrap -mx-3">
+      <div class="flex-none w-auto max-w-full px-3">
+        <div class="relative inline-flex items-center justify-center text-white transition-all duration-200 ease-in-out text-base h-19 w-19 rounded-xl">
+          <img id="profilePhoto" src="<?php echo htmlspecialchars($profilePhotoUrl); ?>" alt="profile_image" class="w-full h-full object-cover shadow-2xl rounded-xl" />
+        </div>
       </div>
-    </div>
-    <div class="flex-none w-auto max-w-full px-3 my-auto">
-      <div class="h-full">
-        <h5 id="profileDisplayName" class="mb-1 dark:text-white"><?php echo htmlspecialchars($profile['display_name'] ?? ($profile ? ($profile['first_name'] . ' ' . $profile['last_name']) : 'User')); ?></h5>
-        <p id="profileRoleLabel" class="mb-0 font-semibold leading-normal dark:text-white dark:opacity-60 text-sm"><?php echo htmlspecialchars($user['role_label'] ?? 'User'); ?></p>
+      <div class="flex-none w-auto max-w-full px-3 my-auto">
+        <div class="h-full">
+          <h5 id="profileDisplayName" class="mb-1 dark:text-white"><?php echo htmlspecialchars($profile['display_name'] ?? ($profile ? ($profile['first_name'] . ' ' . $profile['last_name']) : 'User')); ?></h5>
+          <p id="profileRoleLabel" class="mb-0 font-semibold leading-normal dark:text-white dark:opacity-60 text-sm"><?php echo htmlspecialchars($user['role_label'] ?? 'User'); ?></p>
+        </div>
       </div>
-    </div>
-    <div class="w-full max-w-full px-3 mx-auto mt-4 sm:my-auto sm:mr-0 md:w-1/2 md:flex-none lg:w-4/12">
-      <div class="relative right-0">
-        <ul class="relative flex flex-wrap p-1 list-none bg-gray-50 rounded-xl" role="tablist">
-          <li class="z-30 flex-auto text-center">
-            <a class="z-30 flex items-center justify-center w-full px-0 py-1 mb-0 transition-all ease-in-out border-0 rounded-lg bg-inherit text-slate-700" href="javascript:;" role="tab" data-tab="app" aria-selected="false">
-              <i class="ni ni-app"></i>
-              <span class="ml-2">App</span>
-            </a>
-          </li>
-          <li class="z-30 flex-auto text-center">
-            <a class="z-30 flex items-center justify-center w-full px-0 py-1 mb-0 transition-all ease-in-out border-0 rounded-lg bg-inherit text-slate-700" href="javascript:;" role="tab" data-tab="messages" aria-selected="false">
-              <i class="ni ni-email-83"></i>
-              <span class="ml-2">Messages</span>
-            </a>
-          </li>
-          <li class="z-30 flex-auto text-center">
-            <a class="z-30 flex items-center justify-center w-full px-0 py-1 mb-0 transition-all ease-in-out border-0 rounded-lg bg-inherit text-slate-700" href="javascript:;" role="tab" data-tab="settings" aria-selected="false">
-              <i class="ni ni-settings-gear-65"></i>
-              <span class="ml-2">Settings</span>
-            </a>
-          </li>
-          <li class="z-30 flex-auto text-center">
-            <a class="z-30 flex items-center justify-center w-full px-0 py-1 mb-0 transition-all ease-in-out border-0 rounded-lg bg-inherit text-slate-700" href="javascript:;" role="tab" data-tab="profile" aria-selected="false">
-              <i class="ni ni-single-02"></i>
-              <span class="ml-2">Profile</span>
-            </a>
-          </li>
-        </ul>
+      <div class="w-full max-w-full px-3 mx-auto mt-4 sm:my-auto sm:mr-0 md:w-1/2 md:flex-none lg:w-4/12">
+        <div class="relative right-0">
+          <ul class="relative flex flex-wrap p-1 list-none bg-gray-50 rounded-xl" role="tablist">
+            <li class="z-30 flex-auto text-center">
+              <a class="z-30 flex items-center justify-center w-full px-0 py-1 mb-0 transition-all ease-in-out border-0 rounded-lg bg-inherit text-slate-700" href="javascript:;" role="tab" data-tab="app" aria-selected="false">
+                <i class="ni ni-app"></i>
+                <span class="ml-2">App</span>
+              </a>
+            </li>
+            <li class="z-30 flex-auto text-center">
+              <a class="z-30 flex items-center justify-center w-full px-0 py-1 mb-0 transition-all ease-in-out border-0 rounded-lg bg-inherit text-slate-700" href="javascript:;" role="tab" data-tab="messages" aria-selected="false">
+                <i class="ni ni-email-83"></i>
+                <span class="ml-2">Messages</span>
+              </a>
+            </li>
+            <li class="z-30 flex-auto text-center">
+              <a class="z-30 flex items-center justify-center w-full px-0 py-1 mb-0 transition-all ease-in-out border-0 rounded-lg bg-inherit text-slate-700" href="javascript:;" role="tab" data-tab="settings" aria-selected="false">
+                <i class="ni ni-settings-gear-65"></i>
+                <span class="ml-2">Settings</span>
+              </a>
+            </li>
+            <li class="z-30 flex-auto text-center">
+              <a class="z-30 flex items-center justify-center w-full px-0 py-1 mb-0 transition-all ease-in-out border-0 rounded-lg bg-inherit text-slate-700" href="javascript:;" role="tab" data-tab="profile" aria-selected="false">
+                <i class="ni ni-single-02"></i>
+                <span class="ml-2">Profile</span>
+              </a>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<div class="w-full p-6 mx-auto">
-  <?php if ($message): ?>
-    <style>
-      .swal2-confirm {
-        background-color: #1d4ed8 !important;
-        color: white !important;
-        border: none !important;
-        padding: 8px 16px !important;
-        font-size: 14px !important;
-        border-radius: 6px !important;
-      }
+  <div class="w-full p-6 mx-auto">
+    <?php if ($message): ?>
+      <style>
+        .swal2-confirm {
+          background-color: #1d4ed8 !important;
+          color: white !important;
+          border: none !important;
+          padding: 8px 16px !important;
+          font-size: 14px !important;
+          border-radius: 6px !important;
+        }
 
-      .swal2-popup.swal2-modal {
-        border-radius: 12px !important;
-      }
-    </style>
-    <script>
-      <?php if ($messageType === 'success'): ?>
-        Swal.fire({
-          icon: 'success',
-          title: 'Success',
-          text: '<?php echo addslashes($message); ?>',
-          confirmButtonText: 'OK',
-          customClass: {
-            confirmButton: 'swal2-confirm'
-          }
-        });
-      <?php else: ?>
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: '<?php echo addslashes($message); ?>',
-          confirmButtonText: 'OK',
-          customClass: {
-            confirmButton: 'swal2-confirm'
-          }
-        });
-        document.querySelector('.swal2-confirm').style.backgroundColor = '#dc2626';
-      <?php endif; ?>
-    </script>
-  <?php endif; ?>
+        .swal2-popup.swal2-modal {
+          border-radius: 12px !important;
+        }
+      </style>
+      <script>
+        <?php if ($messageType === 'success'): ?>
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: '<?php echo addslashes($message); ?>',
+            confirmButtonText: 'OK',
+            customClass: {
+              confirmButton: 'swal2-confirm'
+            }
+          });
+        <?php else: ?>
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: '<?php echo addslashes($message); ?>',
+            confirmButtonText: 'OK',
+            customClass: {
+              confirmButton: 'swal2-confirm'
+            }
+          });
+          document.querySelector('.swal2-confirm').style.backgroundColor = '#dc2626';
+        <?php endif; ?>
+      </script>
+    <?php endif; ?>
 
-  <!-- Tab Content -->
-  <div class="tab-content">
-    <!-- App Tab -->
-    <div id="app-tab" class="tab-pane hidden">
-      <div class="flex flex-wrap -mx-3">
-        <!-- Main Content Area -->
-        <div class="w-full max-w-full px-3 shrink-0 md:w-8/12 md:flex-0">
-          <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-6 pb-0">
-              <div class="flex items-center">
-                <p class="mb-0 dark:text-white/80">Dashboard Summary</p>
-              </div>
-            </div>
-            <div class="flex-auto p-6">
-              <!-- Quick Actions -->
-              <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-5 mb-6">
-                <h5 class="mb-4 dark:text-white font-semibold text-sm">Quick Actions</h5>
-                <div class="flex gap-3">
-                  <button class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
-                    <i class="ni ni-bold-right text-xl text-indigo-600 mb-1"></i>
-                    <p class="text-xs dark:text-white">Book New</p>
-                  </button>
-                  <button class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
-                    <i class="ni ni-calendar-grid-58 text-xl text-emerald-600 mb-1"></i>
-                    <p class="text-xs dark:text-white">Calendar</p>
-                  </button>
-                  <button class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
-                    <i class="ni ni-credit-card text-xl text-purple-600 mb-1"></i>
-                    <p class="text-xs dark:text-white">Payments</p>
-                  </button>
-                  <button class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
-                    <i class="ni ni-favourite-28 text-xl text-pink-600 mb-1"></i>
-                    <p class="text-xs dark:text-white">Favorites</p>
-                  </button>
-                  <button class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
-                    <i class="ni ni-support-16 text-xl text-cyan-600 mb-1"></i>
-                    <p class="text-xs dark:text-white">Support</p>
-                  </button>
+    <!-- Tab Content -->
+    <div class="tab-content">
+      <!-- App Tab -->
+      <div id="app-tab" class="tab-pane hidden">
+        <div class="flex flex-wrap -mx-3">
+          <!-- Main Content Area -->
+          <div class="w-full max-w-full px-3 shrink-0 md:w-8/12 md:flex-0">
+            <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+              <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-6 pb-0">
+                <div class="flex items-center">
+                  <p class="mb-0 dark:text-white/80">Dashboard Summary</p>
                 </div>
               </div>
+              <div class="flex-auto p-6">
+                <!-- Quick Actions -->
+                <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-5 mb-6">
+                  <h5 class="mb-4 dark:text-white font-semibold text-sm">Quick Actions</h5>
+                  <div class="flex gap-3">
+                    <button class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
+                      <i class="ni ni-bold-right text-xl text-indigo-600 mb-1"></i>
+                      <p class="text-xs dark:text-white">Book New</p>
+                    </button>
+                    <button class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
+                      <i class="ni ni-calendar-grid-58 text-xl text-emerald-600 mb-1"></i>
+                      <p class="text-xs dark:text-white">Calendar</p>
+                    </button>
+                    <button class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
+                      <i class="ni ni-credit-card text-xl text-purple-600 mb-1"></i>
+                      <p class="text-xs dark:text-white">Payments</p>
+                    </button>
+                    <button class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
+                      <i class="ni ni-favourite-28 text-xl text-pink-600 mb-1"></i>
+                      <p class="text-xs dark:text-white">Favorites</p>
+                    </button>
+                    <button class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
+                      <i class="ni ni-support-16 text-xl text-cyan-600 mb-1"></i>
+                      <p class="text-xs dark:text-white">Support</p>
+                    </button>
+                  </div>
+                </div>
 
-              <!-- Stats Cards -->
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 0.75rem; padding: 1.25rem; color: white; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
-                  <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div>
-                      <p style="font-size: 0.75rem; opacity: 0.8; margin: 0;">Upcoming Bookings</p>
-                      <p style="font-size: 1.5rem; font-weight: 700; margin: 0.25rem 0;" id="upcomingBookingsCount">0</p>
-                      <p style="font-size: 0.75rem; opacity: 0.7; margin: 0;">Next reservations</p>
-                    </div>
-                    <i class="ni ni-calendar-grid-58" style="font-size: 2rem; opacity: 0.5;"></i>
-                  </div>
-                </div>
-                <div style="background: linear-gradient(135deg, #10b981, #059669); border-radius: 0.75rem; padding: 1.25rem; color: white; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
-                  <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div>
-                      <p style="font-size: 0.75rem; opacity: 0.8; margin: 0;">Total Reservations</p>
-                      <p style="font-size: 1.5rem; font-weight: 700; margin: 0.25rem 0;" id="totalReservationsCount">0</p>
-                      <p style="font-size: 0.75rem; opacity: 0.7; margin: 0;">All time bookings</p>
-                    </div>
-                    <i class="ni ni-bag-17" style="font-size: 2rem; opacity: 0.5;"></i>
-                  </div>
-                </div>
-                <div style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-radius: 0.75rem; padding: 1.25rem; color: white; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
-                  <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div>
-                      <p style="font-size: 0.75rem; opacity: 0.8; margin: 0;">Total Payments</p>
-                      <p style="font-size: 1.5rem; font-weight: 700; margin: 0.25rem 0;" id="totalPaymentsCount">₱0</p>
-                      <p style="font-size: 0.75rem; opacity: 0.7; margin: 0;">All time payments</p>
-                    </div>
-                    <i class="ni ni-money-coins" style="font-size: 2rem; opacity: 0.5;"></i>
-                  </div>
-                </div>
-                <div style="background: linear-gradient(135deg, #f97316, #ea580c); border-radius: 0.75rem; padding: 1.25rem; color: white; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
-                  <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div>
-                      <p style="font-size: 0.75rem; opacity: 0.8; margin: 0;">Loyalty Points</p>
-                      <p style="font-size: 1.5rem; font-weight: 700; margin: 0.25rem 0;">1,250</p>
-                      <p style="font-size: 0.75rem; opacity: 0.7; margin: 0;">Gold Member</p>
-                    </div>
-                    <i class="ni ni-star-round" style="font-size: 2rem; opacity: 0.5;"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sidebar - Activity Card -->
-        <div class="w-full max-w-full px-3 mt-6 shrink-0 md:w-4/12 md:flex-0 md:mt-0">
-          <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-4 pb-0">
-              <div class="flex gap-2">
-                <button class="activity-tab-btn active flex-1 px-4 py-2 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600" data-activity-tab="checkins">
-                  <i class="ni ni-calendar-grid-58 mr-1"></i>Check-ins
-                </button>
-                <button class="activity-tab-btn flex-1 px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" data-activity-tab="activity">
-                  <i class="ni ni-bell-55 mr-1"></i>Activity
-                </button>
-              </div>
-            </div>
-
-            <div class="flex-auto p-6">
-              <!-- Upcoming Check-ins Content -->
-              <div id="checkins-content" class="activity-content">
-                <div class="flex items-center justify-between mb-4">
-                  <h5 class="dark:text-white font-semibold text-sm">Upcoming Check-ins</h5>
-                  <a href="#" class="text-xs text-indigo-600 hover:text-indigo-700">View All</a>
-                </div>
-                <div class="space-y-3">
-                  <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
-                    <div class="bg-blue-100 text-blue-600 rounded-lg p-2 flex-shrink-0">
-                      <i class="ni ni-building text-lg"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium dark:text-white truncate">Paradise Resort</p>
-                      <p class="text-xs text-gray-500">May 15, 2024 • 3 nights</p>
-                    </div>
-                    <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Confirmed</span>
-                  </div>
-                  <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
-                    <div class="bg-purple-100 text-purple-600 rounded-lg p-2 flex-shrink-0">
-                      <i class="ni ni-building text-lg"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium dark:text-white truncate">Beachside Villa</p>
-                      <p class="text-xs text-gray-500">Jun 20, 2024 • 5 nights</p>
-                    </div>
-                    <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">Pending</span>
-                  </div>
-                  <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
-                    <div class="bg-emerald-100 text-emerald-600 rounded-lg p-2 flex-shrink-0">
-                      <i class="ni ni-building text-lg"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium dark:text-white truncate">Mountain Retreat</p>
-                      <p class="text-xs text-gray-500">Jul 10, 2024 • 2 nights</p>
-                    </div>
-                    <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Confirmed</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Recent Activity Content -->
-              <div id="activity-content" class="activity-content hidden">
-                <div class="flex items-center justify-between mb-4">
-                  <h5 class="dark:text-white font-semibold text-sm">Recent Activity</h5>
-                  <a href="#" class="text-xs text-indigo-600 hover:text-indigo-700">View All</a>
-                </div>
-                <div class="space-y-3">
-                  <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
-                    <div class="bg-green-100 text-green-600 rounded-full p-2 flex-shrink-0">
-                      <i class="ni ni-check-bold text-sm"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium dark:text-white">Payment received</p>
-                      <p class="text-xs text-gray-500 mt-0.5">₱5,000 for booking #BK-2024-001</p>
-                      <p class="text-xs text-gray-400 mt-1">2 hours ago</p>
+                <!-- Stats Cards -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                  <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 0.75rem; padding: 1.25rem; color: white; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                      <div>
+                        <p style="font-size: 0.75rem; opacity: 0.8; margin: 0;">Upcoming Bookings</p>
+                        <p style="font-size: 1.5rem; font-weight: 700; margin: 0.25rem 0;" id="upcomingBookingsCount">0</p>
+                        <p style="font-size: 0.75rem; opacity: 0.7; margin: 0;">Next reservations</p>
+                      </div>
+                      <i class="ni ni-calendar-grid-58" style="font-size: 2rem; opacity: 0.5;"></i>
                     </div>
                   </div>
-                  <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
-                    <div class="bg-blue-100 text-blue-600 rounded-full p-2 flex-shrink-0">
-                      <i class="ni ni-calendar-check text-sm"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium dark:text-white">Booking confirmed</p>
-                      <p class="text-xs text-gray-500 mt-0.5">Paradise Resort reservation</p>
-                      <p class="text-xs text-gray-400 mt-1">5 hours ago</p>
-                    </div>
-                  </div>
-                  <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
-                    <div class="bg-purple-100 text-purple-600 rounded-full p-2 flex-shrink-0">
-                      <i class="ni ni-single-02 text-sm"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium dark:text-white">Profile updated</p>
-                      <p class="text-xs text-gray-500 mt-0.5">Profile photo changed</p>
-                      <p class="text-xs text-gray-400 mt-1">1 day ago</p>
+                  <div style="background: linear-gradient(135deg, #10b981, #059669); border-radius: 0.75rem; padding: 1.25rem; color: white; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                      <div>
+                        <p style="font-size: 0.75rem; opacity: 0.8; margin: 0;">Total Reservations</p>
+                        <p style="font-size: 1.5rem; font-weight: 700; margin: 0.25rem 0;" id="totalReservationsCount">0</p>
+                        <p style="font-size: 0.75rem; opacity: 0.7; margin: 0;">All time bookings</p>
+                      </div>
+                      <i class="ni ni-bag-17" style="font-size: 2rem; opacity: 0.5;"></i>
                     </div>
                   </div>
-                  <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
-                    <div class="bg-orange-100 text-orange-600 rounded-full p-2 flex-shrink-0">
-                      <i class="ni ni-gift text-sm"></i>
+                  <div style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-radius: 0.75rem; padding: 1.25rem; color: white; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                      <div>
+                        <p style="font-size: 0.75rem; opacity: 0.8; margin: 0;">Total Payments</p>
+                        <p style="font-size: 1.5rem; font-weight: 700; margin: 0.25rem 0;" id="totalPaymentsCount">₱0</p>
+                        <p style="font-size: 0.75rem; opacity: 0.7; margin: 0;">All time payments</p>
+                      </div>
+                      <i class="ni ni-money-coins" style="font-size: 2rem; opacity: 0.5;"></i>
                     </div>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium dark:text-white">Points earned</p>
-                      <p class="text-xs text-gray-500 mt-0.5">+100 loyalty points</p>
-                      <p class="text-xs text-gray-400 mt-1">3 days ago</p>
+                  </div>
+                  <div style="background: linear-gradient(135deg, #f97316, #ea580c); border-radius: 0.75rem; padding: 1.25rem; color: white; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                      <div>
+                        <p style="font-size: 0.75rem; opacity: 0.8; margin: 0;">Loyalty Points</p>
+                        <p style="font-size: 1.5rem; font-weight: 700; margin: 0.25rem 0;">1,250</p>
+                        <p style="font-size: 0.75rem; opacity: 0.7; margin: 0;">Gold Member</p>
+                      </div>
+                      <i class="ni ni-star-round" style="font-size: 2rem; opacity: 0.5;"></i>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Messages Tab -->
-    <div id="messages-tab" class="tab-pane hidden">
-      <div class="flex flex-wrap -mx-3">
-        <div class="w-full max-w-full px-3 shrink-0">
-          <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-6 pb-0">
-              <div class="flex items-center justify-between">
-                <p class="mb-0 dark:text-white/80">Messages</p>
+          <!-- Sidebar - Activity Card -->
+          <div class="w-full max-w-full px-3 mt-6 shrink-0 md:w-4/12 md:flex-0 md:mt-0">
+            <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+              <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-4 pb-0">
                 <div class="flex gap-2">
-                  <button class="text-xs bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg transition-colors" onclick="markAllAsRead()">Mark All Read</button>
-                </div>
-              </div>
-            </div>
-            <div class="flex-auto p-6">
-              <!-- Message Categories -->
-              <div class="flex gap-2 mb-6 flex-wrap">
-                <button class="message-filter-btn active px-4 py-2 text-sm font-semibold rounded-lg text-indigo-600" data-filter="all">All</button>
-                <button class="message-filter-btn px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700" data-filter="system">System</button>
-                <button class="message-filter-btn px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700" data-filter="support">Support</button>
-                <button class="message-filter-btn px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700" data-filter="promotional">Promotional</button>
-              </div>
-
-              <!-- Messages List -->
-              <div id="messagesList" class="space-y-4">
-                <!-- System Notifications -->
-                <div class="message-item bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border-l-4 border-blue-500 cursor-pointer hover:shadow-md transition-shadow" data-type="system" data-read="false">
-                  <div class="flex items-start justify-between">
-                    <div class="flex items-start gap-4">
-                      <div class="bg-blue-100 text-blue-600 rounded-full p-3 flex-shrink-0">
-                        <i class="ni ni-bell-55 text-lg"></i>
-                      </div>
-                      <div>
-                        <div class="flex items-center gap-4 mb-1">
-                          <span class="font-semibold text-sm dark:text-white">Booking Confirmation</span>
-                          <span class="bg-blue-500 text-white text-xs px-2.5 py-0.5 rounded-full" style="margin-left: 10px;">System</span>
-                        </div>
-                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Your booking #BK-2024-001 has been confirmed. Check-in: May 15, 2024</p>
-                        <p class="text-xs text-gray-400">2 hours ago</p>
-                      </div>
-                    </div>
-                    <div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                  </div>
-                </div>
-
-                <div class="message-item bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border-l-4 border-green-500 cursor-pointer hover:shadow-md transition-shadow" data-type="system" data-read="false">
-                  <div class="flex items-start justify-between">
-                    <div class="flex items-start gap-4">
-                      <div class="bg-green-100 text-green-600 rounded-full p-3 flex-shrink-0">
-                        <i class="ni ni-credit-card text-lg"></i>
-                      </div>
-                      <div>
-                        <div class="flex items-center gap-4 mb-1">
-                          <span class="font-semibold text-sm dark:text-white">Payment Receipt</span>
-                          <span class="bg-blue-500 text-white text-xs px-2.5 py-0.5 rounded-full" style="margin-left: 10px;">System</span>
-                        </div>
-                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Payment of ₱5,000 received for booking #BK-2024-001</p>
-                        <p class="text-xs text-gray-400">5 hours ago</p>
-                      </div>
-                    </div>
-                    <div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                  </div>
-                </div>
-
-                <!-- Support Messages -->
-                <div class="message-item bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border-l-4 border-purple-500 cursor-pointer hover:shadow-md transition-shadow" data-type="support" data-read="false">
-                  <div class="flex items-start justify-between">
-                    <div class="flex items-start gap-4">
-                      <div class="bg-purple-100 text-purple-600 rounded-full p-3 flex-shrink-0">
-                        <i class="ni ni-support-16 text-lg"></i>
-                      </div>
-                      <div>
-                        <div class="flex items-center gap-4 mb-1">
-                          <span class="font-semibold text-sm dark:text-white">Support: Room Upgrade Request</span>
-                          <span class="bg-purple-500 text-white text-xs px-2.5 py-0.5 rounded-full" style="margin-left: 10px;">Support</span>
-                        </div>
-                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Admin: We've processed your room upgrade request to Deluxe Suite...</p>
-                        <p class="text-xs text-gray-400">1 day ago</p>
-                      </div>
-                    </div>
-                    <div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                  </div>
-                </div>
-
-                <!-- Promotional Updates -->
-                <div class="message-item bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border-l-4 border-pink-500 cursor-pointer hover:shadow-md transition-shadow" data-type="promotional" data-read="true">
-                  <div class="flex items-start justify-between">
-                    <div class="flex items-start gap-4">
-                      <div class="bg-pink-100 text-pink-600 rounded-full p-3 flex-shrink-0">
-                        <i class="ni ni-tag text-lg"></i>
-                      </div>
-                      <div>
-                        <div class="flex items-center gap-4 mb-1">
-                          <span class="font-semibold text-sm dark:text-white">Special Offer: 20% Off Summer Bookings</span>
-                          <span class="bg-pink-500 text-white text-xs px-2.5 py-0.5 rounded-full" style="margin-left: 10px;">Promo</span>
-                        </div>
-                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Book now and get 20% off on all summer reservations!</p>
-                        <p class="text-xs text-gray-400">2 days ago</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="message-item bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border-l-4 border-orange-500 cursor-pointer hover:shadow-md transition-shadow" data-type="promotional" data-read="true">
-                  <div class="flex items-start justify-between">
-                    <div class="flex items-start gap-4">
-                      <div class="bg-orange-100 text-orange-600 rounded-full p-3 flex-shrink-0">
-                        <i class="ni ni-gift text-lg"></i>
-                      </div>
-                      <div>
-                        <div class="flex items-center gap-4 mb-1">
-                          <span class="font-semibold text-sm dark:text-white">Loyalty Reward: Free Spa Treatment</span>
-                          <span class="bg-pink-500 text-white text-xs px-2.5 py-0.5 rounded-full" style="margin-left: 10px;">Promo</span>
-                        </div>
-                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">As a valued guest, enjoy a complimentary spa treatment on your next visit!</p>
-                        <p class="text-xs text-gray-400">3 days ago</p>
-                      </div>
-                    </div>
-                  </div>
+                  <button class="activity-tab-btn active flex-1 px-4 py-2 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600" data-activity-tab="checkins">
+                    <i class="ni ni-calendar-grid-58 mr-1"></i>Check-ins
+                  </button>
+                  <button class="activity-tab-btn flex-1 px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" data-activity-tab="activity">
+                    <i class="ni ni-bell-55 mr-1"></i>Activity
+                  </button>
                 </div>
               </div>
 
-              <!-- Empty State -->
-              <div id="emptyMessages" class="hidden text-center py-12">
-                <i class="ni ni-email-83 text-6xl text-gray-300 mb-4"></i>
-                <p class="text-gray-500">No messages found</p>
+              <div class="flex-auto p-6">
+                <!-- Upcoming Check-ins Content -->
+                <div id="checkins-content" class="activity-content">
+                  <div class="flex items-center justify-between mb-4">
+                    <h5 class="dark:text-white font-semibold text-sm">Upcoming Check-ins</h5>
+                    <a href="#" class="text-xs text-indigo-600 hover:text-indigo-700">View All</a>
+                  </div>
+                  <div class="space-y-3">
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
+                      <div class="bg-blue-100 text-blue-600 rounded-lg p-2 flex-shrink-0">
+                        <i class="ni ni-building text-lg"></i>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium dark:text-white truncate">Paradise Resort</p>
+                        <p class="text-xs text-gray-500">May 15, 2024 • 3 nights</p>
+                      </div>
+                      <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Confirmed</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
+                      <div class="bg-purple-100 text-purple-600 rounded-lg p-2 flex-shrink-0">
+                        <i class="ni ni-building text-lg"></i>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium dark:text-white truncate">Beachside Villa</p>
+                        <p class="text-xs text-gray-500">Jun 20, 2024 • 5 nights</p>
+                      </div>
+                      <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">Pending</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
+                      <div class="bg-emerald-100 text-emerald-600 rounded-lg p-2 flex-shrink-0">
+                        <i class="ni ni-building text-lg"></i>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium dark:text-white truncate">Mountain Retreat</p>
+                        <p class="text-xs text-gray-500">Jul 10, 2024 • 2 nights</p>
+                      </div>
+                      <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Confirmed</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Recent Activity Content -->
+                <div id="activity-content" class="activity-content hidden">
+                  <div class="flex items-center justify-between mb-4">
+                    <h5 class="dark:text-white font-semibold text-sm">Recent Activity</h5>
+                    <a href="#" class="text-xs text-indigo-600 hover:text-indigo-700">View All</a>
+                  </div>
+                  <div class="space-y-3">
+                    <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
+                      <div class="bg-green-100 text-green-600 rounded-full p-2 flex-shrink-0">
+                        <i class="ni ni-check-bold text-sm"></i>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium dark:text-white">Payment received</p>
+                        <p class="text-xs text-gray-500 mt-0.5">₱5,000 for booking #BK-2024-001</p>
+                        <p class="text-xs text-gray-400 mt-1">2 hours ago</p>
+                      </div>
+                    </div>
+                    <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
+                      <div class="bg-blue-100 text-blue-600 rounded-full p-2 flex-shrink-0">
+                        <i class="ni ni-calendar-check text-sm"></i>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium dark:text-white">Booking confirmed</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Paradise Resort reservation</p>
+                        <p class="text-xs text-gray-400 mt-1">5 hours ago</p>
+                      </div>
+                    </div>
+                    <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
+                      <div class="bg-purple-100 text-purple-600 rounded-full p-2 flex-shrink-0">
+                        <i class="ni ni-single-02 text-sm"></i>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium dark:text-white">Profile updated</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Profile photo changed</p>
+                        <p class="text-xs text-gray-400 mt-1">1 day ago</p>
+                      </div>
+                    </div>
+                    <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
+                      <div class="bg-orange-100 text-orange-600 rounded-full p-2 flex-shrink-0">
+                        <i class="ni ni-gift text-sm"></i>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium dark:text-white">Points earned</p>
+                        <p class="text-xs text-gray-500 mt-0.5">+100 loyalty points</p>
+                        <p class="text-xs text-gray-400 mt-1">3 days ago</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Settings Tab -->
-    <div id="settings-tab" class="tab-pane hidden">
-      <div class="flex flex-wrap -mx-3">
-        <div class="w-full max-w-full px-3 shrink-0">
-          <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-6 pb-0">
-              <div class="flex items-center">
-                <p class="mb-0 dark:text-white/80">Settings</p>
+      <!-- Messages Tab -->
+      <div id="messages-tab" class="tab-pane hidden">
+        <div class="flex flex-wrap -mx-3">
+          <div class="w-full max-w-full px-3 shrink-0">
+            <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+              <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-6 pb-0">
+                <div class="flex items-center justify-between">
+                  <p class="mb-0 dark:text-white/80">Messages</p>
+                  <div class="flex gap-2">
+                    <button class="text-xs bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg transition-colors" onclick="markAllAsRead()">Mark All Read</button>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="flex-auto p-6">
-              <!-- Settings Navigation -->
-              <div class="flex gap-2 mb-6 flex-wrap">
-                <button class="settings-nav-btn active px-4 py-2 text-sm font-semibold rounded-lg text-indigo-600" data-section="account">Account</button>
-                <button class="settings-nav-btn px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700" data-section="privacy">Privacy</button>
-                <button class="settings-nav-btn px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700" data-section="security">Security</button>
-                <button class="settings-nav-btn px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700" data-section="payment">Payment</button>
-                <button class="settings-nav-btn px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700" data-section="preferences">Preferences</button>
-              </div>
-
-              <!-- Settings Sections -->
-              <div id="settingsSections">
-                <!-- Account Settings -->
-                <div class="settings-section" data-section="account">
-                  <h5 class="mb-4 text-sm font-semibold dark:text-white">Account Settings</h5>
-
-                  <!-- Change Password -->
-                  <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-4">
-                    <div class="flex items-center justify-between mb-3">
-                      <div class="flex items-center gap-3">
-                        <div class="bg-indigo-100 text-indigo-600 rounded-full p-2.5">
-                          <i class="ni ni-lock-circle-open text-lg"></i>
-                        </div>
-                        <div style="margin-left: 10px;">
-                          <p class="font-semibold text-sm dark:text-white">Change Password</p>
-                          <p class="text-xs text-gray-500">Update your password regularly</p>
-                        </div>
-                      </div>
-                      <button class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-colors" onclick="showChangePasswordModal()">Change</button>
-                    </div>
-                  </div>
-
-                  <!-- Email Preferences -->
-                  <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-4">
-                    <div class="flex items-center gap-3 mb-4">
-                      <div class="bg-blue-100 text-blue-600 rounded-full p-2.5">
-                        <i class="ni ni-email-83 text-lg"></i>
-                      </div>
-                      <div style="margin-left: 10px;">
-                        <p class="font-semibold text-sm dark:text-white">Email Preferences</p>
-                        <p class="text-xs text-gray-500">Manage your email notifications</p>
-                      </div>
-                    </div>
-                    <div class="space-y-3 mb-4">
-                      <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" checked>
-                        <span class="text-sm dark:text-white" style="margin-left: 10px;">Booking confirmations</span>
-                      </label>
-                      <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" checked>
-                        <span class="text-sm dark:text-white" style="margin-left: 10px;">Payment receipts</span>
-                      </label>
-                      <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded">
-                        <span class="text-sm dark:text-white" style="margin-left: 10px;">Promotional emails</span>
-                      </label>
-                    </div>
-                    <div class="border-t border-gray-200 dark:border-slate-600 pt-4">
-                      <p class="text-xs font-semibold text-gray-500 mb-3">Email Notification Frequency</p>
-                      <div class="space-y-2">
-                        <label class="flex items-center gap-3 cursor-pointer">
-                          <input type="radio" name="emailFreq" class="w-4 h-4 text-indigo-600">
-                          <span class="text-sm dark:text-white" style="margin-left: 10px;">Immediate</span>
-                        </label>
-                        <label class="flex items-center gap-3 cursor-pointer">
-                          <input type="radio" name="emailFreq" class="w-4 h-4 text-indigo-600" checked>
-                          <span class="text-sm dark:text-white" style="margin-left: 10px;">Daily digest</span>
-                        </label>
-                        <label class="flex items-center gap-3 cursor-pointer">
-                          <input type="radio" name="emailFreq" class="w-4 h-4 text-indigo-600">
-                          <span class="text-sm dark:text-white" style="margin-left: 10px;">Weekly summary</span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Notification Settings -->
-                  <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
-                    <div class="flex items-center gap-3 mb-4">
-                      <div class="bg-green-100 text-green-600 rounded-full p-2.5">
-                        <i class="ni ni-bell-55 text-lg"></i>
-                      </div>
-                      <div style="margin-left: 10px;">
-                        <p class="font-semibold text-sm dark:text-white">Notification Settings</p>
-                        <p class="text-xs text-gray-500">Choose how you receive notifications</p>
-                      </div>
-                    </div>
-                    <div class="space-y-3">
-                      <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" checked>
-                        <span class="text-sm dark:text-white" style="margin-left: 10px;">Push notifications</span>
-                      </label>
-                      <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" checked>
-                        <span class="text-sm dark:text-white" style="margin-left: 10px;">SMS notifications</span>
-                      </label>
-                      <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" checked>
-                        <span class="text-sm dark:text-white" style="margin-left: 10px;">In-app notifications</span>
-                      </label>
-                    </div>
-                  </div>
+              <div class="flex-auto p-6">
+                <!-- Message Categories -->
+                <div class="flex gap-2 mb-6 flex-wrap">
+                  <button class="message-filter-btn active px-4 py-2 text-sm font-semibold rounded-lg text-indigo-600" data-filter="all">All</button>
+                  <button class="message-filter-btn px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700" data-filter="system">System</button>
+                  <button class="message-filter-btn px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700" data-filter="support">Support</button>
+                  <button class="message-filter-btn px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700" data-filter="promotional">Promotional</button>
                 </div>
 
-                <!-- Privacy Settings -->
-                <div class="settings-section hidden" data-section="privacy">
-                  <h5 class="mb-4 text-sm font-semibold dark:text-white">Privacy Settings</h5>
-
-                  <!-- Profile Visibility -->
-                  <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-4">
-                    <div class="flex items-center gap-3 mb-4">
-                      <div class="bg-purple-100 text-purple-600 rounded-full p-2.5">
-                        <i class="ni ni-single-02 text-lg"></i>
-                      </div>
-                      <div style="margin-left: 10px;">
-                        <p class="font-semibold text-sm dark:text-white">Profile Visibility</p>
-                        <p class="text-xs text-gray-500">Control who can see your profile</p>
-                      </div>
-                    </div>
-                    <select class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-slate-700 dark:text-white dark:border-slate-600">
-                      <option>Public</option>
-                      <option>Friends Only</option>
-                      <option>Private</option>
-                    </select>
-                  </div>
-
-                  <!-- Data Sharing Preferences -->
-                  <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
-                    <div class="flex items-center gap-3 mb-4">
-                      <div class="bg-orange-100 text-orange-600 rounded-full p-2.5">
-                        <i class="ni ni-world text-lg"></i>
-                      </div>
-                      <div style="margin-left: 10px;">
-                        <p class="font-semibold text-sm dark:text-white">Data Sharing Preferences</p>
-                        <p class="text-xs text-gray-500">Manage your data sharing settings</p>
-                      </div>
-                    </div>
-                    <div class="space-y-3">
-                      <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded">
-                        <span class="text-sm dark:text-white" style="margin-left: 10px;">Share data with resort partners</span>
-                      </label>
-                      <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" checked>
-                        <span class="text-sm dark:text-white" style="margin-left: 10px;">Allow analytics tracking</span>
-                      </label>
-                      <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded">
-                        <span class="text-sm dark:text-white" style="margin-left: 10px;">Personalized recommendations</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Security Settings -->
-                <div class="settings-section hidden" data-section="security">
-                  <h5 class="mb-4 text-sm font-semibold dark:text-white">Security</h5>
-
-                  <!-- Two-Factor Authentication -->
-                  <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-4">
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center gap-3 mb-4">
-                      <div class="bg-red-100 text-red-600 rounded-full p-2.5">
-                        <i class="ni ni-key-25 text-lg"></i>
-                      </div>
-                      <div style="margin-left: 10px;">
-                        <p class="font-semibold text-sm dark:text-white">Two-Factor Authentication</p>
-                        <p class="text-xs text-gray-500">Add an extra layer of security</p>
-                      </div>
-                    </div>
-                      <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" class="sr-only peer">
-                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
-                      </label>
-                    </div>
-                  </div>
-
-                  <!-- Login History -->
-                  <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-4">
-                    <div class="flex items-center gap-3 mb-4">
-                      <div class="bg-cyan-100 text-cyan-600 rounded-full p-2.5">
-                        <i class="ni ni-time-alarm text-lg"></i>
-                      </div>
-                      <div style="margin-left: 10px;">
-                        <p class="font-semibold text-sm dark:text-white">Login History</p>
-                        <p class="text-xs text-gray-500">Recent login activity</p>
-                      </div>
-                    </div>
-                    <div class="space-y-3">
-                      <div class="flex justify-between text-sm">
-                        <span class="dark:text-white">Windows 11 - Chrome</span>
-                        <span class="text-gray-500">Today, 2:30 PM</span>
-                      </div>
-                      <div class="flex justify-between text-sm">
-                        <span class="dark:text-white">iPhone 15 - Safari</span>
-                        <span class="text-gray-500">Yesterday, 9:15 AM</span>
-                      </div>
-                      <div class="flex justify-between text-sm">
-                        <span class="dark:text-white">MacBook Pro - Chrome</span>
-                        <span class="text-gray-500">May 10, 2024, 4:45 PM</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Active Sessions -->
-                  <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
-                    <div class="flex items-center gap-3 mb-4">
-                      <div class="bg-yellow-100 text-yellow-600 rounded-full p-2.5">
-                        <i class="ni ni-laptop text-lg"></i>
-                      </div>
-                      <div style="margin-left: 10px;">
-                        <p class="font-semibold text-sm dark:text-white">Active Sessions</p>
-                        <p class="text-xs text-gray-500">Manage your active devices</p>
-                      </div>
-                    </div>
-                    <div class="space-y-3">
-                      <div class="flex justify-between items-center">
+                <!-- Messages List -->
+                <div id="messagesList" class="space-y-4">
+                  <!-- System Notifications -->
+                  <div class="message-item bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border-l-4 border-blue-500 cursor-pointer hover:shadow-md transition-shadow" data-type="system" data-read="false">
+                    <div class="flex items-start justify-between">
+                      <div class="flex items-start gap-4">
+                        <div class="bg-blue-100 text-blue-600 rounded-full p-3 flex-shrink-0">
+                          <i class="ni ni-bell-55 text-lg"></i>
+                        </div>
                         <div>
-                          <p class="text-sm dark:text-white">Windows 11 - Chrome</p>
-                          <p class="text-xs text-gray-500">Current session</p>
+                          <div class="flex items-center gap-4 mb-1">
+                            <span class="font-semibold text-sm dark:text-white">Booking Confirmation</span>
+                            <span class="bg-blue-500 text-white text-xs px-2.5 py-0.5 rounded-full" style="margin-left: 10px;">System</span>
+                          </div>
+                          <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Your booking #BK-2024-001 has been confirmed. Check-in: May 15, 2024</p>
+                          <p class="text-xs text-gray-400">2 hours ago</p>
                         </div>
-                        <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Active</span>
                       </div>
-                      <div class="flex justify-between items-center">
-                        <div>
-                          <p class="text-sm dark:text-white">iPhone 15 - Safari</p>
-                          <p class="text-xs text-gray-500">Last active 1 hour ago</p>
-                        </div>
-                        <button class="text-xs text-red-600 hover:text-red-700">Revoke</button>
-                      </div>
+                      <div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
                     </div>
                   </div>
-                </div>
 
-                <!-- Payment Settings -->
-                <div class="settings-section hidden" data-section="payment">
-                  <h5 class="mb-4 text-sm font-semibold dark:text-white">Payment Settings</h5>
-
-                  <!-- Payment Methods -->
-                  <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-4">
-                    <div class="flex items-center justify-between mb-4">
-                      <div class="flex items-center gap-3">
-                        <div class="bg-emerald-100 text-emerald-600 rounded-full p-2.5">
+                  <div class="message-item bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border-l-4 border-green-500 cursor-pointer hover:shadow-md transition-shadow" data-type="system" data-read="false">
+                    <div class="flex items-start justify-between">
+                      <div class="flex items-start gap-4">
+                        <div class="bg-green-100 text-green-600 rounded-full p-3 flex-shrink-0">
                           <i class="ni ni-credit-card text-lg"></i>
                         </div>
-                        <div style="margin-left: 10px;">
-                          <p class="font-semibold text-sm dark:text-white">Payment Methods</p>
-                          <p class="text-xs text-gray-500">Manage your payment options</p>
+                        <div>
+                          <div class="flex items-center gap-4 mb-1">
+                            <span class="font-semibold text-sm dark:text-white">Payment Receipt</span>
+                            <span class="bg-blue-500 text-white text-xs px-2.5 py-0.5 rounded-full" style="margin-left: 10px;">System</span>
+                          </div>
+                          <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Payment of ₱5,000 received for booking #BK-2024-001</p>
+                          <p class="text-xs text-gray-400">5 hours ago</p>
                         </div>
                       </div>
-                      <button class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition-colors">Add New</button>
+                      <div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
                     </div>
-                    <div class="space-y-3">
-                      <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-700 rounded-lg">
-                        <div class="flex items-center gap-3">
-                          <i class="ni ni-credit-card text-2xl text-blue-600"></i>
-                          <div style="margin-left: 10px;">
-                            <p class="text-sm font-medium dark:text-white">•••• •••• •••• 4242</p>
-                            <p class="text-xs text-gray-500">Expires 12/25</p>
-                          </div>
+                  </div>
+
+                  <!-- Support Messages -->
+                  <div class="message-item bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border-l-4 border-purple-500 cursor-pointer hover:shadow-md transition-shadow" data-type="support" data-read="false">
+                    <div class="flex items-start justify-between">
+                      <div class="flex items-start gap-4">
+                        <div class="bg-purple-100 text-purple-600 rounded-full p-3 flex-shrink-0">
+                          <i class="ni ni-support-16 text-lg"></i>
                         </div>
-                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Default</span>
+                        <div>
+                          <div class="flex items-center gap-4 mb-1">
+                            <span class="font-semibold text-sm dark:text-white">Support: Room Upgrade Request</span>
+                            <span class="bg-purple-500 text-white text-xs px-2.5 py-0.5 rounded-full" style="margin-left: 10px;">Support</span>
+                          </div>
+                          <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Admin: We've processed your room upgrade request to Deluxe Suite...</p>
+                          <p class="text-xs text-gray-400">1 day ago</p>
+                        </div>
                       </div>
-                      <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-700 rounded-lg">
-                        <div class="flex items-center gap-3">
-                          <i class="ni ni-credit-card text-2xl text-purple-600"></i>
-                          <div style="margin-left: 10px;">
-                            <p class="text-sm font-medium dark:text-white">•••• •••• •••• 8888</p>
-                            <p class="text-xs text-gray-500">Expires 08/26</p>
-                          </div>
+                      <div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                    </div>
+                  </div>
+
+                  <!-- Promotional Updates -->
+                  <div class="message-item bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border-l-4 border-pink-500 cursor-pointer hover:shadow-md transition-shadow" data-type="promotional" data-read="true">
+                    <div class="flex items-start justify-between">
+                      <div class="flex items-start gap-4">
+                        <div class="bg-pink-100 text-pink-600 rounded-full p-3 flex-shrink-0">
+                          <i class="ni ni-tag text-lg"></i>
                         </div>
-                        <button class="text-xs text-red-600 hover:text-red-700">Remove</button>
+                        <div>
+                          <div class="flex items-center gap-4 mb-1">
+                            <span class="font-semibold text-sm dark:text-white">Special Offer: 20% Off Summer Bookings</span>
+                            <span class="bg-pink-500 text-white text-xs px-2.5 py-0.5 rounded-full" style="margin-left: 10px;">Promo</span>
+                          </div>
+                          <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Book now and get 20% off on all summer reservations!</p>
+                          <p class="text-xs text-gray-400">2 days ago</p>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <!-- Billing Address -->
-                  <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
-                    <div class="flex items-center justify-between mb-4">
-                      <div class="flex items-center gap-3">
-                        <div class="bg-pink-100 text-pink-600 rounded-full p-2.5">
-                          <i class="ni ni-pin-3 text-lg"></i>
+                  <div class="message-item bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border-l-4 border-orange-500 cursor-pointer hover:shadow-md transition-shadow" data-type="promotional" data-read="true">
+                    <div class="flex items-start justify-between">
+                      <div class="flex items-start gap-4">
+                        <div class="bg-orange-100 text-orange-600 rounded-full p-3 flex-shrink-0">
+                          <i class="ni ni-gift text-lg"></i>
                         </div>
-                        <div style="margin-left: 10px;">
-                          <p class="font-semibold text-sm dark:text-white">Billing Address</p>
-                          <p class="text-xs text-gray-500">Update your billing information</p>
+                        <div>
+                          <div class="flex items-center gap-4 mb-1">
+                            <span class="font-semibold text-sm dark:text-white">Loyalty Reward: Free Spa Treatment</span>
+                            <span class="bg-pink-500 text-white text-xs px-2.5 py-0.5 rounded-full" style="margin-left: 10px;">Promo</span>
+                          </div>
+                          <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">As a valued guest, enjoy a complimentary spa treatment on your next visit!</p>
+                          <p class="text-xs text-gray-400">3 days ago</p>
                         </div>
                       </div>
-                      <button class="text-xs bg-pink-600 hover:bg-pink-700 text-white px-3 py-1.5 rounded-lg transition-colors">Edit</button>
-                    </div>
-                    <div class="text-sm dark:text-white">
-                      <p>John Doe</p>
-                      <p>123 Main Street</p>
-                      <p>Metro Manila, Philippines 1000</p>
                     </div>
                   </div>
                 </div>
 
-                <!-- Preferences -->
-                <div class="settings-section hidden" data-section="preferences">
-                  <h5 class="mb-4 text-sm font-semibold dark:text-white">Preferences</h5>
-
-                  <!-- Language -->
-                  <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-4">
-                    <div class="flex items-center gap-3 mb-3">
-                      <div class="bg-teal-100 text-teal-600 rounded-full p-2.5">
-                        <i class="ni ni-world text-lg"></i>
-                      </div>
-                      <div style="margin-left: 10px;">
-                        <p class="font-semibold text-sm dark:text-white">Language</p>
-                        <p class="text-xs text-gray-500">Select your preferred language</p>
-                      </div>
-                    </div>
-                    <select class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-slate-700 dark:text-white dark:border-slate-600">
-                      <option>English</option>
-                      <option>Filipino</option>
-                      <option>Spanish</option>
-                    </select>
-                  </div>
-
-                  <!-- Timezone -->
-                  <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-4">
-                    <div class="flex items-center gap-3 mb-3">
-                      <div class="bg-amber-100 text-amber-600 rounded-full p-2.5">
-                        <i class="ni ni-time-alarm text-lg"></i>
-                      </div>
-                      <div style="margin-left: 10px;">
-                        <p class="font-semibold text-sm dark:text-white">Timezone</p>
-                        <p class="text-xs text-gray-500">Set your timezone</p>
-                      </div>
-                    </div>
-                    <select class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-slate-700 dark:text-white dark:border-slate-600">
-                      <option>UTC+8 (Philippines)</option>
-                      <option>UTC+0 (GMT)</option>
-                      <option>UTC-5 (Eastern Time)</option>
-                    </select>
-                  </div>
-
-                  <!-- Currency -->
-                  <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-4">
-                    <div class="flex items-center gap-3 mb-3">
-                      <div class="bg-lime-100 text-lime-600 rounded-full p-2.5">
-                        <i class="ni ni-money-coins text-lg"></i>
-                      </div>
-                      <div style="margin-left: 10px;">
-                        <p class="font-semibold text-sm dark:text-white">Currency</p>
-                        <p class="text-xs text-gray-500">Choose your preferred currency</p>
-                      </div>
-                    </div>
-                    <select class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-slate-700 dark:text-white dark:border-slate-600">
-                      <option>₱ Philippine Peso (PHP)</option>
-                      <option>$ US Dollar (USD)</option>
-                      <option>€ Euro (EUR)</option>
-                    </select>
-                  </div>
-
+                <!-- Empty State -->
+                <div id="emptyMessages" class="hidden text-center py-12">
+                  <i class="ni ni-email-83 text-6xl text-gray-300 mb-4"></i>
+                  <p class="text-gray-500">No messages found</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Profile Tab -->
-    <div id="profile-tab" class="tab-pane hidden">
-      <div class="flex flex-wrap -mx-3">
-        <div class="w-full max-w-full px-3 shrink-0 md:w-8/12 md:flex-0">
-          <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-6 pb-0">
-              <div class="flex items-center">
-                <p class="mb-0 dark:text-white/80">Edit Profile</p>
+      <!-- Settings Tab -->
+      <div id="settings-tab" class="tab-pane hidden">
+        <div class="flex flex-wrap -mx-3">
+          <div class="w-full max-w-full px-3 shrink-0">
+            <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+              <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-6 pb-0">
+                <div class="flex items-center">
+                  <p class="mb-0 dark:text-white/80">Settings</p>
+                </div>
+              </div>
+              <div class="flex-auto p-6">
+                <!-- Settings Navigation -->
+                <div class="flex gap-2 mb-6 flex-wrap">
+                  <button class="settings-nav-btn active px-4 py-2 text-sm font-semibold rounded-lg text-indigo-600" data-section="account">Account</button>
+                  <button class="settings-nav-btn px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700" data-section="privacy">Privacy</button>
+                  <button class="settings-nav-btn px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700" data-section="security">Security</button>
+                  <button class="settings-nav-btn px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700" data-section="payment">Payment</button>
+                  <button class="settings-nav-btn px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700" data-section="preferences">Preferences</button>
+                </div>
+
+                <!-- Settings Sections -->
+                <div id="settingsSections">
+                  <!-- Account Settings -->
+                  <div class="settings-section" data-section="account">
+                    <h5 class="mb-4 text-sm font-semibold dark:text-white">Account Settings</h5>
+
+                    <!-- Change Password -->
+                    <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-4">
+                      <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                          <div class="bg-indigo-100 text-indigo-600 rounded-full p-2.5">
+                            <i class="ni ni-lock-circle-open text-lg"></i>
+                          </div>
+                          <div style="margin-left: 10px;">
+                            <p class="font-semibold text-sm dark:text-white">Change Password</p>
+                            <p class="text-xs text-gray-500">Update your password regularly</p>
+                          </div>
+                        </div>
+                        <button class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-colors" onclick="showChangePasswordModal()">Change</button>
+                      </div>
+                    </div>
+
+                    <!-- Email Preferences -->
+                    <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-4">
+                      <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-blue-100 text-blue-600 rounded-full p-2.5">
+                          <i class="ni ni-email-83 text-lg"></i>
+                        </div>
+                        <div style="margin-left: 10px;">
+                          <p class="font-semibold text-sm dark:text-white">Email Preferences</p>
+                          <p class="text-xs text-gray-500">Manage your email notifications</p>
+                        </div>
+                      </div>
+                      <div class="space-y-3 mb-4">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" checked>
+                          <span class="text-sm dark:text-white" style="margin-left: 10px;">Booking confirmations</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" checked>
+                          <span class="text-sm dark:text-white" style="margin-left: 10px;">Payment receipts</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded">
+                          <span class="text-sm dark:text-white" style="margin-left: 10px;">Promotional emails</span>
+                        </label>
+                      </div>
+                      <div class="border-t border-gray-200 dark:border-slate-600 pt-4">
+                        <p class="text-xs font-semibold text-gray-500 mb-3">Email Notification Frequency</p>
+                        <div class="space-y-2">
+                          <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="radio" name="emailFreq" class="w-4 h-4 text-indigo-600">
+                            <span class="text-sm dark:text-white" style="margin-left: 10px;">Immediate</span>
+                          </label>
+                          <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="radio" name="emailFreq" class="w-4 h-4 text-indigo-600" checked>
+                            <span class="text-sm dark:text-white" style="margin-left: 10px;">Daily digest</span>
+                          </label>
+                          <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="radio" name="emailFreq" class="w-4 h-4 text-indigo-600">
+                            <span class="text-sm dark:text-white" style="margin-left: 10px;">Weekly summary</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Notification Settings -->
+                    <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
+                      <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-green-100 text-green-600 rounded-full p-2.5">
+                          <i class="ni ni-bell-55 text-lg"></i>
+                        </div>
+                        <div style="margin-left: 10px;">
+                          <p class="font-semibold text-sm dark:text-white">Notification Settings</p>
+                          <p class="text-xs text-gray-500">Choose how you receive notifications</p>
+                        </div>
+                      </div>
+                      <div class="space-y-3">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" checked>
+                          <span class="text-sm dark:text-white" style="margin-left: 10px;">Push notifications</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" checked>
+                          <span class="text-sm dark:text-white" style="margin-left: 10px;">SMS notifications</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" checked>
+                          <span class="text-sm dark:text-white" style="margin-left: 10px;">In-app notifications</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Privacy Settings -->
+                  <div class="settings-section hidden" data-section="privacy">
+                    <h5 class="mb-4 text-sm font-semibold dark:text-white">Privacy Settings</h5>
+
+                    <!-- Profile Visibility -->
+                    <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-4">
+                      <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-purple-100 text-purple-600 rounded-full p-2.5">
+                          <i class="ni ni-single-02 text-lg"></i>
+                        </div>
+                        <div style="margin-left: 10px;">
+                          <p class="font-semibold text-sm dark:text-white">Profile Visibility</p>
+                          <p class="text-xs text-gray-500">Control who can see your profile</p>
+                        </div>
+                      </div>
+                      <select class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-slate-700 dark:text-white dark:border-slate-600">
+                        <option>Public</option>
+                        <option>Friends Only</option>
+                        <option>Private</option>
+                      </select>
+                    </div>
+
+                    <!-- Data Sharing Preferences -->
+                    <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
+                      <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-orange-100 text-orange-600 rounded-full p-2.5">
+                          <i class="ni ni-world text-lg"></i>
+                        </div>
+                        <div style="margin-left: 10px;">
+                          <p class="font-semibold text-sm dark:text-white">Data Sharing Preferences</p>
+                          <p class="text-xs text-gray-500">Manage your data sharing settings</p>
+                        </div>
+                      </div>
+                      <div class="space-y-3">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded">
+                          <span class="text-sm dark:text-white" style="margin-left: 10px;">Share data with resort partners</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" checked>
+                          <span class="text-sm dark:text-white" style="margin-left: 10px;">Allow analytics tracking</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded">
+                          <span class="text-sm dark:text-white" style="margin-left: 10px;">Personalized recommendations</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Security Settings -->
+                  <div class="settings-section hidden" data-section="security">
+                    <h5 class="mb-4 text-sm font-semibold dark:text-white">Security</h5>
+
+                    <!-- Two-Factor Authentication -->
+                    <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-4">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3 mb-4">
+                          <div class="bg-red-100 text-red-600 rounded-full p-2.5">
+                            <i class="ni ni-key-25 text-lg"></i>
+                          </div>
+                          <div style="margin-left: 10px;">
+                            <p class="font-semibold text-sm dark:text-white">Two-Factor Authentication</p>
+                            <p class="text-xs text-gray-500">Add an extra layer of security</p>
+                          </div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" class="sr-only peer">
+                          <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                        </label>
+                      </div>
+                    </div>
+
+                    <!-- Login History -->
+                    <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-4">
+                      <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-cyan-100 text-cyan-600 rounded-full p-2.5">
+                          <i class="ni ni-time-alarm text-lg"></i>
+                        </div>
+                        <div style="margin-left: 10px;">
+                          <p class="font-semibold text-sm dark:text-white">Login History</p>
+                          <p class="text-xs text-gray-500">Recent login activity</p>
+                        </div>
+                      </div>
+                      <div class="space-y-3">
+                        <div class="flex justify-between text-sm">
+                          <span class="dark:text-white">Windows 11 - Chrome</span>
+                          <span class="text-gray-500">Today, 2:30 PM</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                          <span class="dark:text-white">iPhone 15 - Safari</span>
+                          <span class="text-gray-500">Yesterday, 9:15 AM</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                          <span class="dark:text-white">MacBook Pro - Chrome</span>
+                          <span class="text-gray-500">May 10, 2024, 4:45 PM</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Active Sessions -->
+                    <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
+                      <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-yellow-100 text-yellow-600 rounded-full p-2.5">
+                          <i class="ni ni-laptop text-lg"></i>
+                        </div>
+                        <div style="margin-left: 10px;">
+                          <p class="font-semibold text-sm dark:text-white">Active Sessions</p>
+                          <p class="text-xs text-gray-500">Manage your active devices</p>
+                        </div>
+                      </div>
+                      <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                          <div>
+                            <p class="text-sm dark:text-white">Windows 11 - Chrome</p>
+                            <p class="text-xs text-gray-500">Current session</p>
+                          </div>
+                          <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Active</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                          <div>
+                            <p class="text-sm dark:text-white">iPhone 15 - Safari</p>
+                            <p class="text-xs text-gray-500">Last active 1 hour ago</p>
+                          </div>
+                          <button class="text-xs text-red-600 hover:text-red-700">Revoke</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Payment Settings -->
+                  <div class="settings-section hidden" data-section="payment">
+                    <h5 class="mb-4 text-sm font-semibold dark:text-white">Payment Settings</h5>
+
+                    <!-- Payment Methods -->
+                    <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-4">
+                      <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                          <div class="bg-emerald-100 text-emerald-600 rounded-full p-2.5">
+                            <i class="ni ni-credit-card text-lg"></i>
+                          </div>
+                          <div style="margin-left: 10px;">
+                            <p class="font-semibold text-sm dark:text-white">Payment Methods</p>
+                            <p class="text-xs text-gray-500">Manage your payment options</p>
+                          </div>
+                        </div>
+                        <button class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition-colors">Add New</button>
+                      </div>
+                      <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-700 rounded-lg">
+                          <div class="flex items-center gap-3">
+                            <i class="ni ni-credit-card text-2xl text-blue-600"></i>
+                            <div style="margin-left: 10px;">
+                              <p class="text-sm font-medium dark:text-white">•••• •••• •••• 4242</p>
+                              <p class="text-xs text-gray-500">Expires 12/25</p>
+                            </div>
+                          </div>
+                          <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Default</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-700 rounded-lg">
+                          <div class="flex items-center gap-3">
+                            <i class="ni ni-credit-card text-2xl text-purple-600"></i>
+                            <div style="margin-left: 10px;">
+                              <p class="text-sm font-medium dark:text-white">•••• •••• •••• 8888</p>
+                              <p class="text-xs text-gray-500">Expires 08/26</p>
+                            </div>
+                          </div>
+                          <button class="text-xs text-red-600 hover:text-red-700">Remove</button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Billing Address -->
+                    <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
+                      <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                          <div class="bg-pink-100 text-pink-600 rounded-full p-2.5">
+                            <i class="ni ni-pin-3 text-lg"></i>
+                          </div>
+                          <div style="margin-left: 10px;">
+                            <p class="font-semibold text-sm dark:text-white">Billing Address</p>
+                            <p class="text-xs text-gray-500">Update your billing information</p>
+                          </div>
+                        </div>
+                        <button class="text-xs bg-pink-600 hover:bg-pink-700 text-white px-3 py-1.5 rounded-lg transition-colors">Edit</button>
+                      </div>
+                      <div class="text-sm dark:text-white">
+                        <p>John Doe</p>
+                        <p>123 Main Street</p>
+                        <p>Metro Manila, Philippines 1000</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Preferences -->
+                  <div class="settings-section hidden" data-section="preferences">
+                    <h5 class="mb-4 text-sm font-semibold dark:text-white">Preferences</h5>
+
+                    <!-- Language -->
+                    <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-4">
+                      <div class="flex items-center gap-3 mb-3">
+                        <div class="bg-teal-100 text-teal-600 rounded-full p-2.5">
+                          <i class="ni ni-world text-lg"></i>
+                        </div>
+                        <div style="margin-left: 10px;">
+                          <p class="font-semibold text-sm dark:text-white">Language</p>
+                          <p class="text-xs text-gray-500">Select your preferred language</p>
+                        </div>
+                      </div>
+                      <select class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-slate-700 dark:text-white dark:border-slate-600">
+                        <option>English</option>
+                        <option>Filipino</option>
+                        <option>Spanish</option>
+                      </select>
+                    </div>
+
+                    <!-- Timezone -->
+                    <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-4">
+                      <div class="flex items-center gap-3 mb-3">
+                        <div class="bg-amber-100 text-amber-600 rounded-full p-2.5">
+                          <i class="ni ni-time-alarm text-lg"></i>
+                        </div>
+                        <div style="margin-left: 10px;">
+                          <p class="font-semibold text-sm dark:text-white">Timezone</p>
+                          <p class="text-xs text-gray-500">Set your timezone</p>
+                        </div>
+                      </div>
+                      <select class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-slate-700 dark:text-white dark:border-slate-600">
+                        <option>UTC+8 (Philippines)</option>
+                        <option>UTC+0 (GMT)</option>
+                        <option>UTC-5 (Eastern Time)</option>
+                      </select>
+                    </div>
+
+                    <!-- Currency -->
+                    <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-4">
+                      <div class="flex items-center gap-3 mb-3">
+                        <div class="bg-lime-100 text-lime-600 rounded-full p-2.5">
+                          <i class="ni ni-money-coins text-lg"></i>
+                        </div>
+                        <div style="margin-left: 10px;">
+                          <p class="font-semibold text-sm dark:text-white">Currency</p>
+                          <p class="text-xs text-gray-500">Choose your preferred currency</p>
+                        </div>
+                      </div>
+                      <select class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-slate-700 dark:text-white dark:border-slate-600">
+                        <option>₱ Philippine Peso (PHP)</option>
+                        <option>$ US Dollar (USD)</option>
+                        <option>€ Euro (EUR)</option>
+                      </select>
+                    </div>
+
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="flex-auto p-6">
-              <form id="profileForm" method="POST" action="">
-                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
-                <input type="hidden" name="update_profile" value="1">
-                <p class="leading-normal uppercase dark:text-white dark:opacity-60 text-sm">User Information</p>
-                <div class="flex flex-wrap -mx-3">
-                  <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
-                    <div class="mb-4">
-                      <label for="username" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Username</label>
-                      <input type="text" id="username" name="username" value="<?php echo htmlspecialchars(explode('@', $user['email'])[0] ?? ''); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" readonly />
-                    </div>
-                  </div>
-                  <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
-                    <div class="mb-4">
-                      <label for="email" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Email address</label>
-                      <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" readonly />
-                    </div>
-                  </div>
-                  <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
-                    <div class="mb-4">
-                      <label for="first_name" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">First name</label>
-                      <input type="text" id="first_name" name="first_name" value="<?php echo htmlspecialchars($profile['first_name'] ?? ''); ?>" data-orig-value="<?php echo htmlspecialchars($profile['first_name'] ?? ''); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" required />
-                    </div>
-                  </div>
-                  <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
-                    <div class="mb-4">
-                      <label for="last_name" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Last name</label>
-                      <input type="text" id="last_name" name="last_name" value="<?php echo htmlspecialchars($profile['last_name'] ?? ''); ?>" data-orig-value="<?php echo htmlspecialchars($profile['last_name'] ?? ''); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" required />
-                    </div>
-                  </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Tab -->
+      <div id="profile-tab" class="tab-pane hidden">
+        <div class="flex flex-wrap -mx-3">
+          <div class="w-full max-w-full px-3 shrink-0 md:w-8/12 md:flex-0">
+            <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+              <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-6 pb-0">
+                <div class="flex items-center">
+                  <p class="mb-0 dark:text-white/80">Edit Profile</p>
                 </div>
-                <hr class="h-px mx-0 my-4 bg-transparent border-0 opacity-25 bg-gradient-to-r from-transparent via-black/40 to-transparent dark:bg-gradient-to-r dark:from-transparent dark:via-white dark:to-transparent " />
+              </div>
+              <div class="flex-auto p-6">
+                <form id="profileForm" method="POST" action="">
+                  <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
+                  <input type="hidden" name="update_profile" value="1">
+                  <p class="leading-normal uppercase dark:text-white dark:opacity-60 text-sm">User Information</p>
+                  <div class="flex flex-wrap -mx-3">
+                    <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
+                      <div class="mb-4">
+                        <label for="username" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Username</label>
+                        <input type="text" id="username" name="username" value="<?php echo htmlspecialchars(explode('@', $user['email'])[0] ?? ''); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" readonly />
+                      </div>
+                    </div>
+                    <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
+                      <div class="mb-4">
+                        <label for="email" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Email address</label>
+                        <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" readonly />
+                      </div>
+                    </div>
+                    <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
+                      <div class="mb-4">
+                        <label for="first_name" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">First name</label>
+                        <input type="text" id="first_name" name="first_name" value="<?php echo htmlspecialchars($profile['first_name'] ?? ''); ?>" data-orig-value="<?php echo htmlspecialchars($profile['first_name'] ?? ''); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" required />
+                      </div>
+                    </div>
+                    <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
+                      <div class="mb-4">
+                        <label for="last_name" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Last name</label>
+                        <input type="text" id="last_name" name="last_name" value="<?php echo htmlspecialchars($profile['last_name'] ?? ''); ?>" data-orig-value="<?php echo htmlspecialchars($profile['last_name'] ?? ''); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" required />
+                      </div>
+                    </div>
+                  </div>
+                  <hr class="h-px mx-0 my-4 bg-transparent border-0 opacity-25 bg-gradient-to-r from-transparent via-black/40 to-transparent dark:bg-gradient-to-r dark:from-transparent dark:via-white dark:to-transparent " />
 
-                <p class="leading-normal uppercase dark:text-white dark:opacity-60 text-sm">Contact Information</p>
-                <div class="flex flex-wrap -mx-3">
-                  <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
-                    <div class="mb-4">
-                      <label for="region_code_display" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Region</label>
-                      <input type="text" id="region_code_display" list="region_list" value="<?php echo htmlspecialchars($profile['region_name'] ?? ''); ?>" data-code="<?php echo htmlspecialchars($profile['region_code'] ?? ''); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" onchange="onRegionChange('profile')" />
-                      <input type="hidden" id="region_code" name="region_code" value="<?php echo htmlspecialchars($profile['region_code'] ?? ''); ?>" />
-                      <datalist id="region_list"></datalist>
+                  <p class="leading-normal uppercase dark:text-white dark:opacity-60 text-sm">Contact Information</p>
+                  <div class="flex flex-wrap -mx-3">
+                    <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
+                      <div class="mb-4">
+                        <label for="region_code_display" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Region</label>
+                        <input type="text" id="region_code_display" list="region_list" value="<?php echo htmlspecialchars($profile['region_name'] ?? ''); ?>" data-code="<?php echo htmlspecialchars($profile['region_code'] ?? ''); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" onchange="onRegionChange('profile')" />
+                        <input type="hidden" id="region_code" name="region_code" value="<?php echo htmlspecialchars($profile['region_code'] ?? ''); ?>" />
+                        <datalist id="region_list"></datalist>
+                      </div>
+                    </div>
+                    <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
+                      <div class="mb-4">
+                        <label for="province_code_display" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Province</label>
+                        <input type="text" id="province_code_display" list="province_list" value="<?php echo htmlspecialchars($profile['province_name'] ?? ''); ?>" data-code="<?php echo htmlspecialchars($profile['province_code'] ?? ''); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" onchange="onProvinceChange('profile')" />
+                        <input type="hidden" id="province_code" name="province_code" value="<?php echo htmlspecialchars($profile['province_code'] ?? ''); ?>" />
+                        <datalist id="province_list"></datalist>
+                      </div>
+                    </div>
+                    <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
+                      <div class="mb-4">
+                        <label for="city_municipality_code_display" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">City/Municipality</label>
+                        <input type="text" id="city_municipality_code_display" list="city_list" value="<?php echo htmlspecialchars($profile['city_municipality_name'] ?? ''); ?>" data-code="<?php echo htmlspecialchars($profile['city_municipality_code'] ?? ''); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" onchange="onCityChange('profile')" />
+                        <input type="hidden" id="city_municipality_code" name="city_municipality_code" value="<?php echo htmlspecialchars($profile['city_municipality_code'] ?? ''); ?>" />
+                        <datalist id="city_list"></datalist>
+                      </div>
+                    </div>
+                    <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
+                      <div class="mb-4">
+                        <label for="barangay_code_display" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Barangay</label>
+                        <input type="text" id="barangay_code_display" list="barangay_list" value="<?php echo htmlspecialchars($profile['barangay_name'] ?? ''); ?>" data-code="<?php echo htmlspecialchars($profile['barangay_code'] ?? ''); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" oninput="onBarangayInput('profile')" />
+                        <input type="hidden" id="barangay_code" name="barangay_code" value="<?php echo htmlspecialchars($profile['barangay_code'] ?? ''); ?>" />
+                        <datalist id="barangay_list"></datalist>
+                      </div>
+                    </div>
+                    <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
+                      <div class="mb-4">
+                        <label for="address_line1" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Address Line 1</label>
+                        <input type="text" id="address_line1" name="address_line1" value="<?php echo htmlspecialchars($profile['address_line1'] ?? ''); ?>" placeholder="House/Unit number, Street name" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" />
+                      </div>
+                    </div>
+                    <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
+                      <div class="mb-4">
+                        <label for="address_line2" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Address Line 2</label>
+                        <input type="text" id="address_line2" name="address_line2" value="<?php echo htmlspecialchars($profile['address_line2'] ?? ''); ?>" placeholder="Building, Subdivision..." class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" />
+                      </div>
+                    </div>
+                    <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
+                      <div class="mb-4">
+                        <label for="postal_code" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Postal Code</label>
+                        <input type="text" id="postal_code" name="postal_code" value="<?php echo htmlspecialchars($profile['postal_code'] ?? ''); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" />
+                      </div>
+                    </div>
+                    <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
+                      <div class="mb-4">
+                        <label for="country" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Country</label>
+                        <input type="text" id="country" name="country" value="<?php echo htmlspecialchars($profile['country'] ?? 'Philippines'); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" />
+                      </div>
                     </div>
                   </div>
-                  <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
-                    <div class="mb-4">
-                      <label for="province_code_display" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Province</label>
-                      <input type="text" id="province_code_display" list="province_list" value="<?php echo htmlspecialchars($profile['province_name'] ?? ''); ?>" data-code="<?php echo htmlspecialchars($profile['province_code'] ?? ''); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" onchange="onProvinceChange('profile')" />
-                      <input type="hidden" id="province_code" name="province_code" value="<?php echo htmlspecialchars($profile['province_code'] ?? ''); ?>" />
-                      <datalist id="province_list"></datalist>
-                    </div>
-                  </div>
-                  <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
-                    <div class="mb-4">
-                      <label for="city_municipality_code_display" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">City/Municipality</label>
-                      <input type="text" id="city_municipality_code_display" list="city_list" value="<?php echo htmlspecialchars($profile['city_municipality_name'] ?? ''); ?>" data-code="<?php echo htmlspecialchars($profile['city_municipality_code'] ?? ''); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" onchange="onCityChange('profile')" />
-                      <input type="hidden" id="city_municipality_code" name="city_municipality_code" value="<?php echo htmlspecialchars($profile['city_municipality_code'] ?? ''); ?>" />
-                      <datalist id="city_list"></datalist>
-                    </div>
-                  </div>
-                  <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
-                    <div class="mb-4">
-                      <label for="barangay_code_display" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Barangay</label>
-                      <input type="text" id="barangay_code_display" list="barangay_list" value="<?php echo htmlspecialchars($profile['barangay_name'] ?? ''); ?>" data-code="<?php echo htmlspecialchars($profile['barangay_code'] ?? ''); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" oninput="onBarangayInput('profile')" />
-                      <input type="hidden" id="barangay_code" name="barangay_code" value="<?php echo htmlspecialchars($profile['barangay_code'] ?? ''); ?>" />
-                      <datalist id="barangay_list"></datalist>
-                    </div>
-                  </div>
-                  <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
-                    <div class="mb-4">
-                      <label for="address_line1" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Address Line 1</label>
-                      <input type="text" id="address_line1" name="address_line1" value="<?php echo htmlspecialchars($profile['address_line1'] ?? ''); ?>" placeholder="House/Unit number, Street name" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" />
-                    </div>
-                  </div>
-                  <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
-                    <div class="mb-4">
-                      <label for="address_line2" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Address Line 2</label>
-                      <input type="text" id="address_line2" name="address_line2" value="<?php echo htmlspecialchars($profile['address_line2'] ?? ''); ?>" placeholder="Building, Subdivision..." class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" />
-                    </div>
-                  </div>
-                  <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
-                    <div class="mb-4">
-                      <label for="postal_code" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Postal Code</label>
-                      <input type="text" id="postal_code" name="postal_code" value="<?php echo htmlspecialchars($profile['postal_code'] ?? ''); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" />
-                    </div>
-                  </div>
-                  <div class="w-full max-w-full px-3 shrink-0 md:w-6/12 md:flex-0">
-                    <div class="mb-4">
-                      <label for="country" class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">Country</label>
-                      <input type="text" id="country" name="country" value="<?php echo htmlspecialchars($profile['country'] ?? 'Philippines'); ?>" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" />
-                    </div>
-                  </div>
-                </div>
 
-                <div class="mt-4 text-right">
-                  <button type="submit" class="inline-block px-8 py-2 mb-4 font-bold leading-normal text-center text-white align-middle transition-all ease-in bg-blue-500 border-0 rounded-lg shadow-md cursor-pointer text-xs tracking-tight-rem hover:shadow-xs hover:-translate-y-px active:opacity-85">Save Changes</button>
-                </div>
-              </form>
+                  <div class="mt-4 text-right">
+                    <button type="submit" class="inline-block px-8 py-2 mb-4 font-bold leading-normal text-center text-white align-middle transition-all ease-in bg-blue-500 border-0 rounded-lg shadow-md cursor-pointer text-xs tracking-tight-rem hover:shadow-xs hover:-translate-y-px active:opacity-85">Save Changes</button>
+                  </div>
+                </form>
 
-              <script>
-                // Handle profile form submission via AJAX
-                document.getElementById('profileForm').addEventListener('submit', function(e) {
-                  e.preventDefault();
+                <script>
+                  // Handle profile form submission via AJAX
+                  document.getElementById('profileForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
 
-                  const formData = new FormData(this);
-                  formData.append('action', 'update_profile');
+                    const formData = new FormData(this);
+                    formData.append('action', 'update_profile');
 
-                  // Replace geography names with codes from data-code attributes
-                  const regionInput = document.getElementById('region_code');
-                  const provinceInput = document.getElementById('province_code');
-                  const cityInput = document.getElementById('city_municipality_code');
-                  const barangayInput = document.getElementById('barangay_code');
+                    // Replace geography names with codes from data-code attributes
+                    const regionInput = document.getElementById('region_code');
+                    const provinceInput = document.getElementById('province_code');
+                    const cityInput = document.getElementById('city_municipality_code');
+                    const barangayInput = document.getElementById('barangay_code');
 
-                  if (regionInput && regionInput.dataset.code) {
-                    formData.set('region_code', regionInput.dataset.code);
-                  }
-                  if (provinceInput && provinceInput.dataset.code) {
-                    formData.set('province_code', provinceInput.dataset.code);
-                  }
-                  if (cityInput && cityInput.dataset.code) {
-                    formData.set('city_municipality_code', cityInput.dataset.code);
-                  }
-                  if (barangayInput && barangayInput.dataset.code) {
-                    formData.set('barangay_code', barangayInput.dataset.code);
-                  }
+                    if (regionInput && regionInput.dataset.code) {
+                      formData.set('region_code', regionInput.dataset.code);
+                    }
+                    if (provinceInput && provinceInput.dataset.code) {
+                      formData.set('province_code', provinceInput.dataset.code);
+                    }
+                    if (cityInput && cityInput.dataset.code) {
+                      formData.set('city_municipality_code', cityInput.dataset.code);
+                    }
+                    if (barangayInput && barangayInput.dataset.code) {
+                      formData.set('barangay_code', barangayInput.dataset.code);
+                    }
 
-                  fetch('../api/profile.php', {
-                      method: 'POST',
-                      body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                      if (data.success) {
-                        Swal.fire({
-                          icon: 'success',
-                          title: 'Success',
-                          text: data.message,
-                          confirmButtonText: 'OK',
-                          customClass: {
-                            confirmButton: 'swal2-confirm'
-                          }
-                        });
-                        // Refresh profile data
-                        fetchProfileData();
-                      } else {
+                    fetch('../api/profile.php', {
+                        method: 'POST',
+                        body: formData
+                      })
+                      .then(response => response.json())
+                      .then(data => {
+                        if (data.success) {
+                          Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: data.message,
+                            confirmButtonText: 'OK',
+                            customClass: {
+                              confirmButton: 'swal2-confirm'
+                            }
+                          });
+                          // Refresh profile data
+                          fetchProfileData();
+                        } else {
+                          Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message,
+                            confirmButtonText: 'OK',
+                            customClass: {
+                              confirmButton: 'swal2-confirm'
+                            }
+                          });
+                          document.querySelector('.swal2-confirm').style.backgroundColor = '#dc2626';
+                        }
+                      })
+                      .catch(err => {
                         Swal.fire({
                           icon: 'error',
                           title: 'Error',
-                          text: data.message,
+                          text: 'Network error occurred',
                           confirmButtonText: 'OK',
                           customClass: {
                             confirmButton: 'swal2-confirm'
                           }
                         });
-                        document.querySelector('.swal2-confirm').style.backgroundColor = '#dc2626';
-                      }
-                    })
-                    .catch(err => {
-                      Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Network error occurred',
-                        confirmButtonText: 'OK',
-                        customClass: {
-                          confirmButton: 'swal2-confirm'
-                        }
                       });
-                    });
-                });
-              </script>
+                  });
+                </script>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Sidebar - Profile tab only -->
-        <div class="w-full max-w-full px-3 mt-6 shrink-0 md:w-4/12 md:flex-0 md:mt-0">
-          <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="relative overflow-visible">
-              <img id="coverPhoto" class="w-full rounded-t-2xl object-cover h-48" src="<?php echo $assets_path; ?>/img/bg-profile.jpg" alt="profile cover image">
-              <div class="absolute top-3 right-3 z-10">
-                <button type="button" class="bg-indigo-600 text-white rounded-lg px-4 py-2 cursor-pointer shadow-md hover:bg-indigo-700 transition-colors text-xs font-semibold flex items-center gap-2 whitespace-nowrap" onclick="document.getElementById('coverPhotoInput').click()">
-                  <span>Edit Cover Photo</span>
-                </button>
-                <input type="file" id="coverPhotoInput" accept="image/*" class="hidden" onchange="handleCoverPhotoUpload(this)">
-              </div>
-            </div>
-            <div class="flex flex-wrap justify-center -mx-3">
-              <div class="w-4/12 max-w-full px-3 flex-0 ">
-                <div class="mb-6 -mt-6 lg:mb-0 lg:-mt-16">
-                  <div class="relative">
-                    <img id="profilePhotoSidebar" class="h-auto max-w-full border-2 border-white border-solid rounded-circle cursor-pointer hover:opacity-80 transition-opacity"
-                      src="<?php echo htmlspecialchars($profilePhotoUrl); ?>" alt="profile image"
-                      onclick="document.getElementById('profilePhotoInput').click()">
-                    <div class="absolute bottom-0 right-0 bg-indigo-600 text-white rounded-full p-1.5 cursor-pointer shadow-md flex items-center justify-center"
-                      onclick="document.getElementById('profilePhotoInput').click()">
-                      <span class="text-lg">📷</span>
-                    </div>
-                    <input type="file" id="profilePhotoInput" accept="image/*" class="hidden" onchange="handleProfilePhotoUpload(this)">
-                  </div>
+          <!-- Sidebar - Profile tab only -->
+          <div class="w-full max-w-full px-3 mt-6 shrink-0 md:w-4/12 md:flex-0 md:mt-0">
+            <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+              <div class="relative overflow-visible">
+                <img id="coverPhoto" class="w-full rounded-t-2xl object-cover h-48" src="<?php echo $assets_path; ?>/img/bg-profile.jpg" alt="profile cover image">
+                <div class="absolute top-3 right-3 z-10">
+                  <button type="button" class="bg-indigo-600 text-white rounded-lg px-4 py-2 cursor-pointer shadow-md hover:bg-indigo-700 transition-colors text-xs font-semibold flex items-center gap-2 whitespace-nowrap" onclick="document.getElementById('coverPhotoInput').click()">
+                    <span>Edit Cover Photo</span>
+                  </button>
+                  <input type="file" id="coverPhotoInput" accept="image/*" class="hidden" onchange="handleCoverPhotoUpload(this)">
                 </div>
               </div>
-            </div>
-            <div class="border-black/12.5 rounded-t-2xl p-6 text-center pt-0 pb-6 lg:pt-2 lg:pb-4">
-              <div class="flex justify-between">
-                <button type="button" class="hidden px-8 py-2 font-bold leading-normal text-center text-white align-middle transition-all ease-in border-0 rounded-lg shadow-md cursor-pointer text-xs bg-cyan-500 lg:block tracking-tight-rem hover:shadow-xs hover:-translate-y-px active:opacity-85">Connect</button>
-                <button type="button" class="block px-8 py-2 font-bold leading-normal text-center text-white align-middle transition-all ease-in border-0 rounded-lg shadow-md cursor-pointer text-xs bg-cyan-500 lg:hidden tracking-tight-rem hover:shadow-xs hover:-translate-y-px active:opacity-85">
-                  <i class="ni ni-collection text-2.8"></i>
-                </button>
-                <button type="button" class="hidden px-8 py-2 font-bold leading-normal text-center text-white align-middle transition-all ease-in border-0 rounded-lg shadow-md cursor-pointer text-xs bg-slate-700 lg:block tracking-tight-rem hover:shadow-xs hover:-translate-y-px active:opacity-85">Message</button>
-                <button type="button" class="block px-8 py-2 font-bold leading-normal text-center text-white align-middle transition-all ease-in border-0 rounded-lg shadow-md cursor-pointer text-xs bg-slate-700 lg:hidden tracking-tight-rem hover:shadow-xs hover:-translate-y-px active:opacity-85">
-                  <i class="ni ni-email-83 text-2.8"></i>
-                </button>
-              </div>
-            </div>
-
-            <div class="flex-auto p-6 pt-0">
-              <div class="flex flex-wrap -mx-3">
-                <div class="w-full max-w-full px-3 flex-1-0">
-                  <div class="flex justify-center">
-                    <div class="grid text-center">
-                      <span class="font-bold dark:text-white text-lg">0</span>
-                      <span class="leading-normal dark:text-white text-sm opacity-80">Friends</span>
-                    </div>
-                    <div class="grid mx-6 text-center">
-                      <span class="font-bold dark:text-white text-lg">0</span>
-                      <span class="leading-normal dark:text-white text-sm opacity-80">Photos</span>
-                    </div>
-                    <div class="grid text-center">
-                      <span class="font-bold dark:text-white text-lg">0</span>
-                      <span class="leading-normal dark:text-white text-sm opacity-80">Comments</span>
+              <div class="flex flex-wrap justify-center -mx-3">
+                <div class="w-4/12 max-w-full px-3 flex-0 ">
+                  <div class="mb-6 -mt-6 lg:mb-0 lg:-mt-16">
+                    <div class="relative">
+                      <img id="profilePhotoSidebar" class="h-auto max-w-full border-2 border-white border-solid rounded-circle cursor-pointer hover:opacity-80 transition-opacity"
+                        src="<?php echo htmlspecialchars($profilePhotoUrl); ?>" alt="profile image"
+                        onclick="document.getElementById('profilePhotoInput').click()">
+                      <div class="absolute bottom-0 right-0 bg-indigo-600 text-white rounded-full p-1.5 cursor-pointer shadow-md flex items-center justify-center"
+                        onclick="document.getElementById('profilePhotoInput').click()">
+                        <span class="text-lg">📷</span>
+                      </div>
+                      <input type="file" id="profilePhotoInput" accept="image/*" class="hidden" onchange="handleProfilePhotoUpload(this)">
                     </div>
                   </div>
                 </div>
               </div>
-              <div class="mt-6 text-center">
-                <h5 class="dark:text-white ">
-                  <?php echo htmlspecialchars(($profile['first_name'] ?? '') . ' ' . ($profile['last_name'] ?? '') ?: 'User'); ?>
-                  <?php if ($profile && $profile['date_of_birth']): ?>
-                    <span class="font-light">, <?php echo floor((time() - strtotime($profile['date_of_birth'])) / 31557600); ?></span>
-                  <?php endif; ?>
-                </h5>
-                <div class="mb-2 font-semibold leading-relaxed text-base dark:text-white/80 text-slate-700">
-                  <i class="mr-2 dark:text-white ni ni-pin-3"></i>
-                  <span id="sidebarAddress">
-                    <?php
-                    $addressParts = [
-                      $profile['barangay_name'] ?? '',
-                      $profile['city_municipality_name'] ?? '',
-                      $profile['province_name'] ?? '',
-                      $profile['region_name'] ?? '',
-                      $profile['country'] ?? ''
-                    ];
-                    echo htmlspecialchars(implode(', ', array_filter($addressParts)));
-                    ?>
-                  </span>
+              <div class="border-black/12.5 rounded-t-2xl p-6 text-center pt-0 pb-6 lg:pt-2 lg:pb-4">
+                <div class="flex justify-between">
+                  <button type="button" class="hidden px-8 py-2 font-bold leading-normal text-center text-white align-middle transition-all ease-in border-0 rounded-lg shadow-md cursor-pointer text-xs bg-cyan-500 lg:block tracking-tight-rem hover:shadow-xs hover:-translate-y-px active:opacity-85">Connect</button>
+                  <button type="button" class="block px-8 py-2 font-bold leading-normal text-center text-white align-middle transition-all ease-in border-0 rounded-lg shadow-md cursor-pointer text-xs bg-cyan-500 lg:hidden tracking-tight-rem hover:shadow-xs hover:-translate-y-px active:opacity-85">
+                    <i class="ni ni-collection text-2.8"></i>
+                  </button>
+                  <button type="button" class="hidden px-8 py-2 font-bold leading-normal text-center text-white align-middle transition-all ease-in border-0 rounded-lg shadow-md cursor-pointer text-xs bg-slate-700 lg:block tracking-tight-rem hover:shadow-xs hover:-translate-y-px active:opacity-85">Message</button>
+                  <button type="button" class="block px-8 py-2 font-bold leading-normal text-center text-white align-middle transition-all ease-in border-0 rounded-lg shadow-md cursor-pointer text-xs bg-slate-700 lg:hidden tracking-tight-rem hover:shadow-xs hover:-translate-y-px active:opacity-85">
+                    <i class="ni ni-email-83 text-2.8"></i>
+                  </button>
                 </div>
-                <div class="mt-6 mb-2 font-semibold leading-relaxed text-base dark:text-white/80 text-slate-700">
-                  <i class="mr-2 dark:text-white ni ni-briefcase-24"></i>
-                  <?php echo htmlspecialchars($user['role_label'] ?? 'User'); ?>
+              </div>
+
+              <div class="flex-auto p-6 pt-0">
+                <div class="flex flex-wrap -mx-3">
+                  <div class="w-full max-w-full px-3 flex-1-0">
+                    <div class="flex justify-center">
+                      <div class="grid text-center">
+                        <span class="font-bold dark:text-white text-lg">0</span>
+                        <span class="leading-normal dark:text-white text-sm opacity-80">Friends</span>
+                      </div>
+                      <div class="grid mx-6 text-center">
+                        <span class="font-bold dark:text-white text-lg">0</span>
+                        <span class="leading-normal dark:text-white text-sm opacity-80">Photos</span>
+                      </div>
+                      <div class="grid text-center">
+                        <span class="font-bold dark:text-white text-lg">0</span>
+                        <span class="leading-normal dark:text-white text-sm opacity-80">Comments</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class="dark:text-white/80">
-                  <i class="mr-2 dark:text-white ni ni-hat-3"></i>
-                  <?php echo htmlspecialchars($profile['nationality'] ?? 'Not specified'); ?>
+                <div class="mt-6 text-center">
+                  <h5 class="dark:text-white ">
+                    <?php echo htmlspecialchars(($profile['first_name'] ?? '') . ' ' . ($profile['last_name'] ?? '') ?: 'User'); ?>
+                    <?php if ($profile && $profile['date_of_birth']): ?>
+                      <span class="font-light">, <?php echo floor((time() - strtotime($profile['date_of_birth'])) / 31557600); ?></span>
+                    <?php endif; ?>
+                  </h5>
+                  <div class="mb-2 font-semibold leading-relaxed text-base dark:text-white/80 text-slate-700">
+                    <i class="mr-2 dark:text-white ni ni-pin-3"></i>
+                    <span id="sidebarAddress">
+                      <?php
+                      $addressParts = [
+                        $profile['barangay_name'] ?? '',
+                        $profile['city_municipality_name'] ?? '',
+                        $profile['province_name'] ?? '',
+                        $profile['region_name'] ?? '',
+                        $profile['country'] ?? ''
+                      ];
+                      echo htmlspecialchars(implode(', ', array_filter($addressParts)));
+                      ?>
+                    </span>
+                  </div>
+                  <div class="mt-6 mb-2 font-semibold leading-relaxed text-base dark:text-white/80 text-slate-700">
+                    <i class="mr-2 dark:text-white ni ni-briefcase-24"></i>
+                    <?php echo htmlspecialchars($user['role_label'] ?? 'User'); ?>
+                  </div>
+                  <div class="dark:text-white/80">
+                    <i class="mr-2 dark:text-white ni ni-hat-3"></i>
+                    <?php echo htmlspecialchars($profile['nationality'] ?? 'Not specified'); ?>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div> <!-- End Profile Tab -->
+        </div> <!-- End Profile Tab -->
 
-    </div> <!-- End Tab Content -->
+      </div> <!-- End Tab Content -->
+    </div><!-- /cp-page -->
 
     <!-- Profile Photo Upload Script -->
     <script>
@@ -1728,7 +1990,7 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
       document.addEventListener('DOMContentLoaded', function() {
         const tabLinks = document.querySelectorAll('[data-tab]');
         let statsLoaded = false;
-        
+
         // Listen for tab clicks
         tabLinks.forEach(link => {
           link.addEventListener('click', function(e) {
@@ -1741,7 +2003,7 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
             }
           });
         });
-        
+
         // Also fetch on initial load if app tab is active
         const savedTab = localStorage.getItem('selectedProfileTab');
         if (!savedTab || savedTab === 'app') {

@@ -34,7 +34,65 @@ try {
         $reservations = $pdo->query("SELECT reservation_id, reservation_code, CONCAT(walkin_first_name, ' ', walkin_last_name) as display FROM reservations WHERE reservation_status IN ('confirmed', 'checked_in') ORDER BY reservation_code ASC")->fetchAll(PDO::FETCH_ASSOC);
         $menuItems = $pdo->query("SELECT item_id, item_name, item_code, price FROM menu_items WHERE is_active = 1 AND is_available = 1 ORDER BY item_name ASC")->fetchAll(PDO::FETCH_ASSOC);
         $paymentMethods = $pdo->query("SELECT method_id, method_label as method_name FROM payment_methods WHERE is_active = 1 ORDER BY method_label ASC")->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode(['success' => true, 'data' => ['properties' => $properties, 'reservations' => $reservations, 'menuItems' => $menuItems, 'paymentMethods' => $paymentMethods]]);
+        $diningTables = $pdo->query("SELECT table_id, property_id, table_number, table_name, capacity, location, is_occupied FROM dining_tables WHERE is_active = 1 ORDER BY table_number ASC")->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(['success' => true, 'data' => ['properties' => $properties, 'reservations' => $reservations, 'menuItems' => $menuItems, 'paymentMethods' => $paymentMethods, 'diningTables' => $diningTables]]);
+
+      } elseif ($action === 'my_orders') {
+        // Get current user's customer info
+        $userId = $_SESSION['user_id'] ?? null;
+        $customerName = '';
+
+        if ($userId) {
+          $stmt = $pdo->prepare("SELECT first_name, last_name FROM user_profiles WHERE user_id = ?");
+          $stmt->execute([$userId]);
+          $profile = $stmt->fetch(PDO::FETCH_ASSOC);
+          if ($profile) {
+            $customerName = trim($profile['first_name'] . ' ' . $profile['last_name']);
+          }
+        }
+
+        // Get orders linked to customer's reservations or by customer name
+        // Note: rooms are linked via reservation_rooms table
+        $stmt = $pdo->prepare("
+          SELECT DISTINCT fo.*, p.property_name, r.reservation_code,
+                 rr.room_id, rm.room_number, rm.room_name
+          FROM food_orders fo
+          LEFT JOIN properties p ON fo.property_id = p.property_id
+          LEFT JOIN reservations r ON fo.reservation_id = r.reservation_id
+          LEFT JOIN reservation_rooms rr ON r.reservation_id = rr.reservation_id
+          LEFT JOIN rooms rm ON rr.room_id = rm.room_id
+          WHERE (r.customer_user_id = :user_id 
+             OR fo.customer_name = :customer_name
+             OR fo.order_id IN (
+                 SELECT DISTINCT order_id FROM food_orders 
+                 WHERE reservation_id IN (
+                     SELECT reservation_id FROM reservations WHERE customer_user_id = :user_id2
+                 )
+             ))
+          ORDER BY fo.created_at DESC
+          LIMIT 100
+        ");
+        $stmt->execute([
+          ':user_id' => $userId,
+          ':customer_name' => $customerName,
+          ':user_id2' => $userId
+        ]);
+        $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Fetch items for each order
+        foreach ($orders as &$order) {
+          $stmt = $pdo->prepare("
+            SELECT foi.*, mi.item_name, mi.item_code
+            FROM food_order_items foi
+            INNER JOIN menu_items mi ON foi.item_id = mi.item_id
+            WHERE foi.order_id = ?
+          ");
+          $stmt->execute([$order['order_id']]);
+          $order['items'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        unset($order);
+
+        echo json_encode(['success' => true, 'data' => $orders]);
 
       } elseif ($action === 'single' && isset($_GET['id'])) {
         $stmt = $pdo->prepare("SELECT fo.*, p.property_name, r.reservation_id as res_reservation_id, r.reservation_code FROM food_orders fo INNER JOIN properties p ON fo.property_id = p.property_id LEFT JOIN reservations r ON fo.reservation_id = r.reservation_id WHERE fo.order_id = ?");

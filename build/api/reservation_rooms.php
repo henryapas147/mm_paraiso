@@ -51,6 +51,15 @@ try {
       $data = json_decode(file_get_contents('php://input'), true);
 
       if ($action === 'create') {
+        // Fetch room base price if not provided
+        $pricePerNight = $data['price_per_night'] ?? null;
+        if ($pricePerNight === null || $pricePerNight == 0) {
+          $stmt = $pdo->prepare("SELECT base_price FROM rooms WHERE room_id = ?");
+          $stmt->execute([$data['room_id']]);
+          $room = $stmt->fetch(PDO::FETCH_ASSOC);
+          $pricePerNight = $room['base_price'] ?? 0;
+        }
+
         $stmt = $pdo->prepare("
           INSERT INTO reservation_rooms (
             res_room_id, reservation_id, room_id, category_id,
@@ -64,7 +73,7 @@ try {
           $data['room_id'],
           $data['category_id'],
           $data['booking_type'],
-          $data['price_per_night'],
+          $pricePerNight,
           $data['num_nights'] ?? null,
           $data['num_hours'] ?? null,
           $data['room_total'],

@@ -151,6 +151,21 @@ try {
         ':balance_amount' => $balanceAmount
     ]);
 
+    // Add primary guest to reservation_guests table
+    $guestId = 'guest-' . uniqid();
+    $guestStmt = $pdo->prepare("
+        INSERT INTO reservation_guests (
+            res_guest_id, reservation_id, guest_type, first_name, last_name,
+            age, gender, nationality, id_type, id_number, created_at, updated_at
+        ) VALUES (?, ?, 'primary', ?, ?, NULL, NULL, NULL, NULL, NULL, NOW(), NOW())
+    ");
+    $guestStmt->execute([
+        $guestId,
+        $reservationId,
+        $_POST['first_name'],
+        $_POST['last_name']
+    ]);
+
     // Get payment account ID if method is not cash
     $accountId = null;
     if ($paymentMethod['method_type'] !== 'cash') {

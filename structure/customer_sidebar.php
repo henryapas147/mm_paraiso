@@ -33,7 +33,200 @@ function customerActiveClass($route, $current_url)
 }
 ?>
 
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+
 <style>
+    /* ── Typography ─────────────────────────────────────── */
+    #customerSidebar,
+    #customerSidebar * {
+        font-family: 'DM Sans', system-ui, sans-serif;
+    }
+
+    /* Preserve Nucleo Icons font */
+    #customerSidebar .ni {
+        font-family: 'NucleoIcons' !important;
+    }
+
+    /* Preserve Font Awesome icons font */
+    #customerSidebar .fas,
+    #customerSidebar .far,
+    #customerSidebar .fab,
+    #customerSidebar .fa-solid,
+    #customerSidebar .fa-regular,
+    #customerSidebar .fa-brands,
+    #customerSidebar [class*="fa-"] {
+        font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", "FontAwesome" !important;
+    }
+
+    #customerSidebar .fas,
+    #customerSidebar .fa-solid {
+        font-weight: 900 !important;
+    }
+
+    #customerSidebar .far,
+    #customerSidebar .fa-regular {
+        font-weight: 400 !important;
+    }
+
+    #customerSidebar .fab,
+    #customerSidebar .fa-brands {
+        font-family: "Font Awesome 6 Brands" !important;
+        font-weight: 400 !important;
+    }
+
+    #customerSidebar .sidebar-brand-name {
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    /* ── Sidebar base ───────────────────────────────────── */
+    #customerSidebar {
+        background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%) !important;
+        border-right: 1px solid rgba(99, 102, 241, 0.08);
+        box-shadow: 4px 0 24px rgba(99, 102, 241, 0.06), 0 4px 16px rgba(0,0,0,0.04) !important;
+    }
+
+    .dark #customerSidebar {
+        background: linear-gradient(180deg, #1e2235 0%, #181c2e 100%) !important;
+        border-right: 1px solid rgba(99, 102, 241, 0.12);
+        box-shadow: 4px 0 24px rgba(0,0,0,0.3) !important;
+    }
+
+    /* ── Brand header ───────────────────────────────────── */
+    #customerSidebar .h-19 {
+        background: linear-gradient(135deg, #eef2ff 0%, #f0f9ff 100%);
+        border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+        padding-bottom: 0.25rem;
+    }
+
+    .dark #customerSidebar .h-19 {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(6, 182, 212, 0.06) 100%);
+        border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    /* ── Nav items ──────────────────────────────────────── */
+    #customerSidebar a.ease-nav-brand {
+        font-size: 0.8125rem;
+        font-weight: 500;
+        letter-spacing: 0.005em;
+        color: #4b5563;
+        border-radius: 10px !important;
+        transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dark #customerSidebar a.ease-nav-brand {
+        color: rgba(255,255,255,0.82);
+    }
+
+    #customerSidebar a.ease-nav-brand:hover {
+        background: rgba(99, 102, 241, 0.07) !important;
+        color: #4f46e5 !important;
+        transform: translateX(2px);
+    }
+
+    .dark #customerSidebar a.ease-nav-brand:hover {
+        background: rgba(99, 102, 241, 0.15) !important;
+        color: #a5b4fc !important;
+    }
+
+    /* ── Active state ───────────────────────────────────── */
+    #customerSidebar [data-active="true"],
+    #customerSidebar .bg-blue-500\/13 {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%) !important;
+        color: #4338ca !important;
+        font-weight: 600 !important;
+        box-shadow: inset 3px 0 0 #6366f1, 0 2px 8px rgba(99, 102, 241, 0.12);
+        border-radius: 10px !important;
+    }
+
+    .dark #customerSidebar [data-active="true"],
+    .dark #customerSidebar .bg-blue-500\/13 {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.12) 100%) !important;
+        color: #a5b4fc !important;
+        box-shadow: inset 3px 0 0 #818cf8, 0 2px 8px rgba(99, 102, 241, 0.2);
+    }
+
+    /* ── Icon containers ────────────────────────────────── */
+    #customerSidebar .h-8.w-8 {
+        background: rgba(255,255,255,0.9);
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+        transition: all 0.18s ease;
+    }
+
+    .dark #customerSidebar .h-8.w-8 {
+        background: rgba(255,255,255,0.06);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.06);
+    }
+
+    #customerSidebar a.ease-nav-brand:hover .h-8.w-8 {
+        background: rgba(255,255,255,1);
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15), 0 0 0 1px rgba(99, 102, 241, 0.1);
+        transform: scale(1.05);
+    }
+
+    /* ── Chevron ────────────────────────────────────────── */
+    #customerSidebar .fa-chevron-left {
+        color: #9ca3af;
+        font-size: 0.65rem !important;
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s ease;
+    }
+
+    #customerSidebar button:hover .fa-chevron-left {
+        color: #6366f1;
+    }
+
+    /* ── Collapse button ────────────────────────────────── */
+    #sidebarCollapseBtn {
+        background: rgba(255,255,255,0.95) !important;
+        border: 1px solid rgba(99, 102, 241, 0.15) !important;
+        border-radius: 0 0 0 10px !important;
+        color: #6b7280 !important;
+        transition: all 0.18s ease !important;
+        box-shadow: -2px 2px 8px rgba(99, 102, 241, 0.1) !important;
+    }
+
+    #sidebarCollapseBtn:hover {
+        background: #eef2ff !important;
+        color: #4f46e5 !important;
+        border-color: rgba(99, 102, 241, 0.3) !important;
+    }
+
+    .dark #sidebarCollapseBtn {
+        background: rgba(30, 34, 53, 0.95) !important;
+        border-color: rgba(99, 102, 241, 0.2) !important;
+        color: rgba(255,255,255,0.6) !important;
+    }
+
+    /* ── Divider ────────────────────────────────────────── */
+    #customerSidebar hr {
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.2), transparent) !important;
+        margin: 0 0.5rem;
+    }
+
+    /* ── Scrollbar ──────────────────────────────────────── */
+    #customerSidebar::-webkit-scrollbar {
+        width: 3px;
+    }
+    #customerSidebar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    #customerSidebar::-webkit-scrollbar-thumb {
+        background: rgba(99, 102, 241, 0.2);
+        border-radius: 10px;
+    }
+    #customerSidebar::-webkit-scrollbar-thumb:hover {
+        background: rgba(99, 102, 241, 0.4);
+    }
+
     /* Customer sidebar collapse styles */
     @media (min-width: 1280px) {
         aside.sidebar-collapsed {
@@ -69,11 +262,13 @@ function customerActiveClass($route, $current_url)
         align-items: center !important;
     }
 
+    /* ── Mobile overlay ─────────────────────────────────── */
     #sidebarOverlay {
         display: none;
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(15, 20, 50, 0.55);
+        backdrop-filter: blur(2px);
         z-index: 989;
         cursor: pointer;
     }
@@ -90,9 +285,9 @@ function customerActiveClass($route, $current_url)
             <i id="sidebarCollapseIcon" class="fas fa-chevron-left text-xs transition-transform duration-300"></i>
         </button>
         <a class="block px-8 py-6 m-0 text-sm whitespace-nowrap dark:text-white text-slate-700" href="<?php echo $base_url; ?>customer/dashboard">
-            <img src="<?php echo $assets_path ?? './assets'; ?>/img/logo-ct-dark.png" class="inline h-full max-w-full transition-all duration-200 dark:hidden ease-nav-brand max-h-8" alt="main_logo" />
-            <img src="<?php echo $assets_path ?? './assets'; ?>/img/logo-ct.png" class="hidden h-full max-w-full transition-all duration-200 dark:inline ease-nav-brand max-h-8" alt="main_logo" />
-            <span class="ml-1 font-semibold transition-all duration-200 ease-nav-brand sidebar-label">My Portal</span>
+            <img src="<?php echo $assets_path ?? './assets'; ?>/img/logo.png" class="inline h-full max-w-full transition-all duration-200 dark:hidden ease-nav-brand max-h-8" alt="main_logo" />
+            <img src="<?php echo $assets_path ?? './assets'; ?>/img/logo.png" class="hidden h-full max-w-full transition-all duration-200 dark:inline ease-nav-brand max-h-8" alt="main_logo" />
+            <span class="ml-1 transition-all duration-200 ease-nav-brand sidebar-label sidebar-brand-name">My Portal</span>
         </a>
     </div>
 
@@ -118,6 +313,16 @@ function customerActiveClass($route, $current_url)
                         <i class="text-sm leading-normal text-emerald-500 ni ni-calendar-grid-58"></i>
                     </span>
                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">My Reservations</span>
+                </a>
+            </li>
+
+            <li class="mt-0.5 w-full">
+                <?php $food_class = customerIsActive('customer/food-orders', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700 rounded-lg' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg'; ?>
+                <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors <?php echo $food_class; ?>" href="<?php echo $base_url; ?>customer/food-orders">
+                    <span class="flex-shrink-0 flex h-8 w-8 items-center justify-center mr-2">
+                        <i class="text-sm leading-normal text-amber-500 ni ni-cart"></i>
+                    </span>
+                    <span class="duration-300 opacity-100 pointer-events-none ease truncate">Food Orders</span>
                 </a>
             </li>
 

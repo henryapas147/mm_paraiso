@@ -1,33 +1,240 @@
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
+
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0
+  }
+
+  body {
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background: #f5f5f5;
+    color: #1a1a1a
+  }
+
+  .page {
+    padding: 24px;
+    max-width: 100%;
+    margin: 0 auto
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap
+  }
+
+  .card-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    font-weight: 600;
+    font-style: italic
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap
+  }
+
+  .search-wrap {
+    position: relative
+  }
+
+  .search-wrap i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 15px;
+    pointer-events: none
+  }
+
+  .search-input {
+    padding: 7px 12px 7px 34px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    color: #1a1a1a;
+    outline: none;
+    width: 220px;
+    min-width: 160px
+  }
+
+  .search-input:focus {
+    border-color: #185FA5
+  }
+
+  .table-wrap {
+    overflow-x: auto
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px
+  }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid #e0e0e0;
+    white-space: nowrap
+  }
+
+  thead th.center {
+    text-align: center
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    transition: background .1s
+  }
+
+  tbody tr:last-child {
+    border-bottom: none
+  }
+
+  tbody tr:hover {
+    background: #f9f9f9
+  }
+
+  td {
+    padding: 11px 16px;
+    vertical-align: middle;
+    white-space: nowrap
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: capitalize
+  }
+
+  .badge.adult {
+    background: #E3F2FD;
+    color: #1565C0
+  }
+
+  .badge.child {
+    background: #E8F5E9;
+    color: #2E7D32
+  }
+
+  .badge.senior {
+    background: #FFF3E0;
+    color: #E65100
+  }
+
+  .badge.infant {
+    background: #FCE4EC;
+    color: #C2185B
+  }
+
+  .badge.visitor {
+    background: #F3E5F5;
+    color: #7B1FA2
+  }
+
+  .badge.staff {
+    background: #F5F5F5;
+    color: #666
+  }
+
+  .badge.delivery {
+    background: #E0F7FA;
+    color: #00838F
+  }
+
+  .badge.vendor {
+    background: #E8EAF6;
+    color: #3949AB
+  }
+
+  .badge.entry {
+    background: #E8F5E9;
+    color: #2E7D32
+  }
+
+  .badge.exit {
+    background: #FFEBEE;
+    color: #C62828
+  }
+
+  .empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    color: #666
+  }
+
+  .empty-state i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+    color: #ccc
+  }
+</style>
+
 <!-- PAGE CONTENT -->
 
-<div class="flex flex-wrap -mx-3">
-  <div class="flex-none w-full max-w-full px-3">
-    <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-        <h6 class="dark:text-white">Entrance/Exit Logs</h6>
-      </div>
-      <div class="flex-auto px-0 pt-0 pb-2">
-        <div class="p-0 overflow-x-auto">
-          <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500" id="entranceLogsTable">
-            <thead class="align-bottom">
-              <tr>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Property</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Reservation</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Visitor Name</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Visitor Type</th>
-                <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Entry Type</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Event At</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">ID Presented</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Logged By</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Notes</th>
-              </tr>
-            </thead>
-            <tbody id="entranceLogsTableBody">
-              <tr><td colspan="9" class="p-4 text-center text-slate-400 dark:text-white/60">Loading...</td></tr>
-            </tbody>
-          </table>
+<div class="page">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Entrance/Exit Logs</div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search logs..." onkeyup="filterTable()">
         </div>
       </div>
+    </div>
+    <div class="table-wrap">
+      <table id="entranceLogsTable">
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Reservation</th>
+            <th>Visitor Name</th>
+            <th>Visitor Type</th>
+            <th class="center">Entry Type</th>
+            <th>Event At</th>
+            <th>ID Presented</th>
+            <th>Logged By</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="entranceLogsTableBody">
+          <tr>
+            <td colspan="9" class="empty-state">
+              <i class="fa-regular fa-clipboard"></i>
+              Loading...
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -47,11 +254,11 @@
         entranceLogsData = result.data;
         renderEntranceLogsTable();
       } else {
-        document.getElementById('entranceLogsTableBody').innerHTML = `<tr><td colspan="9" class="p-4 text-center text-red-400">${result.message}</td></tr>`;
+        document.getElementById('entranceLogsTableBody').innerHTML = `<tr><td colspan="9" class="empty-state"><i>⚠</i>${result.message}</td></tr>`;
       }
     } catch (error) {
       console.error('Error fetching entrance logs:', error);
-      document.getElementById('entranceLogsTableBody').innerHTML = `<tr><td colspan="9" class="p-4 text-center text-red-400">Failed to load data</td></tr>`;
+      document.getElementById('entranceLogsTableBody').innerHTML = `<tr><td colspan="9" class="empty-state"><i>⚠</i>Failed to load data</td></tr>`;
     }
   }
 
@@ -67,57 +274,26 @@
     if (!tbody) return;
 
     if (entranceLogsData.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-slate-400 dark:text-white/60">No entrance logs found</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" class="empty-state"><i class="fa-regular fa-clipboard"></i>No entrance logs found</td></tr>`;
       return;
     }
 
-    const typeMap = {
-      'adult': 'bg-blue-100 text-blue-600',
-      'child': 'bg-green-100 text-green-600',
-      'senior': 'bg-orange-100 text-orange-600',
-      'infant': 'bg-pink-100 text-pink-600',
-      'visitor': 'bg-purple-100 text-purple-600',
-      'staff': 'bg-gray-100 text-gray-600',
-      'delivery': 'bg-cyan-100 text-cyan-600',
-      'vendor': 'bg-indigo-100 text-indigo-600'
-    };
-
     tbody.innerHTML = entranceLogsData.map(log => {
-      const typeCls = typeMap[log.visitor_type] || 'bg-gray-100 text-gray-600';
-      const entryCls = log.entry_type === 'entry' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600';
       const entryLabel = log.entry_type === 'entry' ? 'Entry' : 'Exit';
       const visitorName = log.visitor_name || (log.first_name ? `${log.first_name} ${log.last_name}` : '-');
-      const reservation = log.reservation_code || '<span class="text-slate-400">Walk-in</span>';
+      const reservation = log.reservation_code || '<span style="color:#999">Walk-in</span>';
       const loggedBy = log.logged_by ? 'Staff ID: ' + log.logged_by.substring(0, 8) : '-';
       return `
         <tr class="entrance-row">
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 font-semibold leading-tight dark:text-white text-xs">${log.property_name || '-'}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 font-semibold leading-tight dark:text-white text-xs">${reservation}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 font-semibold leading-tight dark:text-white text-xs">${visitorName}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <span class="text-xs font-semibold ${typeCls} px-2 py-1 rounded capitalize">${log.visitor_type || '-'}</span>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap text-center">
-            <span class="text-xs font-semibold ${entryCls} px-2 py-1 rounded">${entryLabel}</span>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 text-xs leading-tight dark:text-white">${formatDateTime(log.event_at)}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 text-xs leading-tight dark:text-white">${log.id_presented || '-'}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 text-xs leading-tight dark:text-white">${loggedBy}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 text-xs leading-tight dark:text-white">${log.notes || '-'}</p>
-          </td>
+          <td>${log.property_name || '-'}</td>
+          <td>${reservation}</td>
+          <td><strong>${visitorName}</strong></td>
+          <td><span class="badge ${log.visitor_type || ''}">${log.visitor_type || '-'}</span></td>
+          <td style="text-align:center"><span class="badge ${log.entry_type || ''}">${entryLabel}</span></td>
+          <td>${formatDateTime(log.event_at)}</td>
+          <td>${log.id_presented || '-'}</td>
+          <td>${loggedBy}</td>
+          <td>${log.notes || '-'}</td>
         </tr>
       `;
     }).join('');

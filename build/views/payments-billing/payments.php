@@ -1,318 +1,601 @@
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
+
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0
+  }
+
+  body {
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background: #f5f5f5;
+    color: #1a1a1a
+  }
+
+  .page {
+    padding: 24px;
+    max-width: 100%;
+    margin: 0 auto
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px
+  }
+
+  .stat-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px
+  }
+
+  .stat-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 8px
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 600;
+    color: #1a1a1a
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap
+  }
+
+  .card-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    font-weight: 600;
+    font-style: italic
+  }
+
+  .btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all .2s
+  }
+
+  .btn-primary {
+    background: #185FA5;
+    color: #fff
+  }
+
+  .btn-primary:hover {
+    background: #145090
+  }
+
+  .btn-secondary {
+    background: #fff;
+    color: #1a1a1a;
+    border: 1px solid #e0e0e0
+  }
+
+  .btn-secondary:hover {
+    background: #f5f5f5
+  }
+
+  .btn-danger {
+    background: #fff;
+    color: #dc2626;
+    border: 1px solid #fecaca
+  }
+
+  .btn-danger:hover {
+    background: #fef2f2
+  }
+
+  .table-wrap {
+    overflow-x: auto
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px
+  }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid #e0e0e0;
+    white-space: nowrap
+  }
+
+  thead th.center {
+    text-align: center
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    transition: background .1s
+  }
+
+  tbody tr:last-child {
+    border-bottom: none
+  }
+
+  tbody tr:hover {
+    background: #f9f9f9
+  }
+
+  td {
+    padding: 11px 16px;
+    vertical-align: middle;
+    white-space: nowrap
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase
+  }
+
+  .status-badge.confirmed {
+    background: #E8F5E9;
+    color: #2E7D32
+  }
+
+  .status-badge.pending {
+    background: #FFF3E0;
+    color: #E65100
+  }
+
+  .status-badge.rejected {
+    background: #FFEBEE;
+    color: #C62828
+  }
+
+  .status-badge.refunded {
+    background: #F5F5F5;
+    color: #666
+  }
+
+  .status-badge.voided {
+    background: #ECEFF1;
+    color: #546E7A
+  }
+
+  .action-btns {
+    display: flex;
+    gap: 6px
+  }
+
+  .action-btn {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    color: #1a1a1a;
+    transition: all .2s
+  }
+
+  .action-btn:hover {
+    background: #f5f5f5
+  }
+
+  .action-btn.delete:hover {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca
+  }
+
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999
+  }
+
+  .modal {
+    background: #fff;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25)
+  }
+
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between
+  }
+
+  .modal-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 18px;
+    font-weight: 600;
+    font-style: italic
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666
+  }
+
+  .modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1
+  }
+
+  .form-group {
+    margin-bottom: 16px
+  }
+
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1a1a1a;
+    margin-bottom: 6px
+  }
+
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none
+  }
+
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: #185FA5
+  }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 80px
+  }
+
+  .modal-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px
+  }
+
+  .empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    color: #666
+  }
+
+  .empty-state i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+    color: #ccc
+  }
+
+  .view-row {
+    display: flex;
+    margin-bottom: 12px
+  }
+
+  .view-label {
+    width: 140px;
+    font-size: 13px;
+    color: #666;
+    font-weight: 500
+  }
+
+  .view-value {
+    flex: 1;
+    font-size: 13px;
+    color: #1a1a1a
+  }
+</style>
+
 <!-- PAGE CONTENT -->
-      <!-- Stats Cards -->
-      <div class="flex flex-wrap -mx-3 mb-6">
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Total Payments</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statTotal">-</h5>
-            </div>
-          </div>
+
+<div class="page">
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Payments</div>
+      <div class="stat-value" id="statTotal">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Confirmed</div>
+      <div class="stat-value" id="statConfirmed">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Pending</div>
+      <div class="stat-value" id="statPending">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Amount</div>
+      <div class="stat-value" id="statAmount">-</div>
+    </div>
+  </div>
+
+  <!-- Payments Table -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Payments</div>
+      <button onclick="openAddPaymentModal()" class="btn btn-primary">
+        <i class="fas fa-plus mr-1"></i> Add Payment
+      </button>
+    </div>
+    <div class="table-wrap">
+      <table id="paymentsTable">
+        <thead>
+          <tr>
+            <th>Payment ID</th>
+            <th>Reservation</th>
+            <th>Method</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th class="center">Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="paymentsTableBody">
+          <tr>
+            <td colspan="8" class="empty-state">
+              <i class="fa-regular fa-clipboard"></i>
+              Loading...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Add Payment Modal -->
+<div id="addPaymentModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add New Payment</div>
+      <button onclick="closeAddPaymentModal()" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="addPaymentForm">
+        <div class="form-group">
+          <label for="reservation_id" class="form-label">Reservation ID</label>
+          <input type="text" name="reservation_id" id="reservation_id" required class="form-input" placeholder="UUID">
         </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Confirmed</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statConfirmed">-</h5>
-            </div>
-          </div>
+        <div class="form-group">
+          <label for="method_id" class="form-label">Payment Method</label>
+          <select name="method_id" id="method_id" required class="form-select">
+            <option value="">Loading...</option>
+          </select>
         </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Pending</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statPending">-</h5>
-            </div>
-          </div>
+        <div class="form-group">
+          <label for="transaction_type" class="form-label">Transaction Type</label>
+          <select name="transaction_type" id="transaction_type" required class="form-select">
+            <option value="payment">Payment</option>
+            <option value="partial_payment">Partial Payment</option>
+            <option value="refund">Refund</option>
+            <option value="adjustment">Adjustment</option>
+            <option value="void">Void</option>
+          </select>
         </div>
-        <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-          <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
-              <h6 class="mb-0 font-bold dark:text-white">Total Amount</h6>
-            </div>
-            <div class="p-4 flex-auto">
-              <h5 class="font-bold text-3xl dark:text-white" id="statAmount">-</h5>
-            </div>
-          </div>
+        <div class="form-group">
+          <label for="amount" class="form-label">Amount</label>
+          <input type="number" name="amount" id="amount" step="0.01" required class="form-input" placeholder="0.00">
         </div>
+        <div class="form-group">
+          <label for="reference_number" class="form-label">Reference Number</label>
+          <input type="text" name="reference_number" id="reference_number" class="form-input" placeholder="GCash ref #, bank ref #, etc.">
+        </div>
+        <div class="form-group">
+          <label for="proof_image_url" class="form-label">Proof Image URL</label>
+          <input type="text" name="proof_image_url" id="proof_image_url" class="form-input" placeholder="https://...">
+        </div>
+        <div class="form-group">
+          <label for="payment_status" class="form-label">Payment Status</label>
+          <select name="payment_status" id="payment_status" required class="form-select">
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="rejected">Rejected</option>
+            <option value="refunded">Refunded</option>
+            <option value="voided">Voided</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="payment_date" class="form-label">Payment Date</label>
+          <input type="date" name="payment_date" id="payment_date" required class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="payment_time" class="form-label">Payment Time</label>
+          <input type="time" name="payment_time" id="payment_time" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="notes" class="form-label">Notes</label>
+          <textarea name="notes" id="notes" rows="3" class="form-textarea"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" onclick="closeAddPaymentModal()" class="btn btn-secondary">Cancel</button>
+      <button type="button" onclick="submitAddPayment()" class="btn btn-primary">Add Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Payment Modal -->
+<div id="editPaymentModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Edit Payment</div>
+      <button onclick="closeEditPaymentModal()" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="editPaymentForm">
+        <input type="hidden" id="edit_payment_id">
+        <div class="form-group">
+          <label for="edit_reservation_id" class="form-label">Reservation ID</label>
+          <input type="text" name="reservation_id" id="edit_reservation_id" required class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit_method_id" class="form-label">Payment Method</label>
+          <select name="method_id" id="edit_method_id" required class="form-select">
+            <option value="">Loading...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit_transaction_type" class="form-label">Transaction Type</label>
+          <select name="transaction_type" id="edit_transaction_type" required class="form-select">
+            <option value="payment">Payment</option>
+            <option value="partial_payment">Partial Payment</option>
+            <option value="refund">Refund</option>
+            <option value="adjustment">Adjustment</option>
+            <option value="void">Void</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit_amount" class="form-label">Amount</label>
+          <input type="number" name="amount" id="edit_amount" step="0.01" required class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit_reference_number" class="form-label">Reference Number</label>
+          <input type="text" name="reference_number" id="edit_reference_number" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit_proof_image_url" class="form-label">Proof Image URL</label>
+          <input type="text" name="proof_image_url" id="edit_proof_image_url" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit_payment_status" class="form-label">Payment Status</label>
+          <select name="payment_status" id="edit_payment_status" required class="form-select">
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="rejected">Rejected</option>
+            <option value="refunded">Refunded</option>
+            <option value="voided">Voided</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit_payment_date" class="form-label">Payment Date</label>
+          <input type="date" name="payment_date" id="edit_payment_date" required class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit_payment_time" class="form-label">Payment Time</label>
+          <input type="time" name="payment_time" id="edit_payment_time" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit_notes" class="form-label">Notes</label>
+          <textarea name="notes" id="edit_notes" rows="3" class="form-textarea"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" onclick="closeEditPaymentModal()" class="btn btn-secondary">Cancel</button>
+      <button type="button" onclick="submitEditPayment()" class="btn btn-primary">Update Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Payment Modal -->
+<div id="viewPaymentModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Payment Details</div>
+      <button onclick="closeViewPaymentModal()" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="view-row">
+        <div class="view-label">Payment ID</div>
+        <div class="view-value" id="view_payment_id"></div>
       </div>
-
-      <!-- Payments Table -->
-      <div class="flex flex-wrap -mx-3">
-        <div class="flex-none w-full max-w-full px-3">
-          <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent flex justify-between items-center">
-              <h6 class="dark:text-white">Payments</h6>
-              <button onclick="openAddPaymentModal()" class="bg-gradient-to-tl from-blue-500 to-violet-500 text-white px-4 py-2 rounded-lg text-xs font-semibold uppercase shadow-md hover:shadow-xs transition-all">
-                <i class="fas fa-plus mr-1"></i> Add Payment
-              </button>
-            </div>
-            <div class="flex-auto px-0 pt-0 pb-2">
-              <div class="p-0 overflow-x-auto">
-                <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500" id="paymentsTable">
-                  <thead class="align-bottom">
-                    <tr>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Payment ID</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Reservation</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Method</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Type</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Amount</th>
-                      <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Date</th>
-                      <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
-                      <th class="px-6 py-3 font-semibold capitalize align-middle bg-transparent border-b border-collapse border-solid shadow-none dark:border-white/40 dark:text-white tracking-none whitespace-nowrap text-slate-400 opacity-70"></th>
-                    </tr>
-                  </thead>
-                  <tbody id="paymentsTableBody">
-                    <tr><td colspan="8" class="p-4 text-center text-slate-400 dark:text-white/60">Loading...</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="view-row">
+        <div class="view-label">Reservation</div>
+        <div class="view-value" id="view_reservation_id"></div>
       </div>
-
-      <!-- Add Payment Modal -->
-      <div id="addPaymentModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddPaymentModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-lg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; max-width: 600px; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; display: flex; flex-direction: column;">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center flex-shrink-0" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-            <h3 class="text-xl font-bold dark:text-white">Add New Payment</h3>
-            <button onclick="closeAddPaymentModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <div class="p-6 overflow-y-auto" style="padding: 1.5rem; flex: 1;">
-            <form id="addPaymentForm">
-              <div class="space-y-4">
-                <div>
-                  <label for="reservation_id" class="block text-sm font-medium text-gray-700">Reservation ID</label>
-                  <input type="text" name="reservation_id" id="reservation_id" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="UUID">
-                </div>
-                <div>
-                  <label for="method_id" class="block text-sm font-medium text-gray-700">Payment Method</label>
-                  <select name="method_id" id="method_id" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="">Loading...</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="transaction_type" class="block text-sm font-medium text-gray-700">Transaction Type</label>
-                  <select name="transaction_type" id="transaction_type" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="payment">Payment</option>
-                    <option value="partial_payment">Partial Payment</option>
-                    <option value="refund">Refund</option>
-                    <option value="adjustment">Adjustment</option>
-                    <option value="void">Void</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="amount" class="block text-sm font-medium text-gray-700">Amount</label>
-                  <input type="number" name="amount" id="amount" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="0.00">
-                </div>
-                <div>
-                  <label for="reference_number" class="block text-sm font-medium text-gray-700">Reference Number</label>
-                  <input type="text" name="reference_number" id="reference_number" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="GCash ref #, bank ref #, etc.">
-                </div>
-                <div>
-                  <label for="proof_image_url" class="block text-sm font-medium text-gray-700">Proof Image URL</label>
-                  <input type="text" name="proof_image_url" id="proof_image_url" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="https://...">
-                </div>
-                <div>
-                  <label for="payment_status" class="block text-sm font-medium text-gray-700">Payment Status</label>
-                  <select name="payment_status" id="payment_status" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="refunded">Refunded</option>
-                    <option value="voided">Voided</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="payment_date" class="block text-sm font-medium text-gray-700">Payment Date</label>
-                  <input type="date" name="payment_date" id="payment_date" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="payment_time" class="block text-sm font-medium text-gray-700">Payment Time</label>
-                  <input type="time" name="payment_time" id="payment_time" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
-                  <textarea name="notes" id="notes" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
-                </div>
-              </div>
-
-              <!-- Form Actions -->
-              <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-white/10">
-                <button type="button" onclick="closeAddPaymentModal()" class="px-6 py-2 border border-gray-300 dark:border-white/20 rounded-lg text-slate-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-                  Cancel
-                </button>
-                <button type="button" onclick="submitAddPayment()" class="px-6 py-2 bg-gradient-to-tl from-blue-500 to-violet-500 text-white rounded-lg font-semibold hover:shadow-md transition-all">
-                  Add Payment
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      <div class="view-row">
+        <div class="view-label">Payment Method</div>
+        <div class="view-value" id="view_method"></div>
       </div>
-
-      <!-- Edit Payment Modal -->
-      <div id="editPaymentModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeEditPaymentModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-lg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; max-width: 600px; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; display: flex; flex-direction: column;">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center flex-shrink-0" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-            <h3 class="text-xl font-bold dark:text-white">Edit Payment</h3>
-            <button onclick="closeEditPaymentModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <div class="p-6 overflow-y-auto" style="padding: 1.5rem; flex: 1;">
-            <form id="editPaymentForm">
-              <input type="hidden" id="edit_payment_id">
-              <div class="space-y-4">
-                <div>
-                  <label for="edit_reservation_id" class="block text-sm font-medium text-gray-700">Reservation ID</label>
-                  <input type="text" name="reservation_id" id="edit_reservation_id" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="edit_method_id" class="block text-sm font-medium text-gray-700">Payment Method</label>
-                  <select name="method_id" id="edit_method_id" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="">Loading...</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="edit_transaction_type" class="block text-sm font-medium text-gray-700">Transaction Type</label>
-                  <select name="transaction_type" id="edit_transaction_type" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="payment">Payment</option>
-                    <option value="partial_payment">Partial Payment</option>
-                    <option value="refund">Refund</option>
-                    <option value="adjustment">Adjustment</option>
-                    <option value="void">Void</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="edit_amount" class="block text-sm font-medium text-gray-700">Amount</label>
-                  <input type="number" name="amount" id="edit_amount" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="edit_reference_number" class="block text-sm font-medium text-gray-700">Reference Number</label>
-                  <input type="text" name="reference_number" id="edit_reference_number" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="edit_proof_image_url" class="block text-sm font-medium text-gray-700">Proof Image URL</label>
-                  <input type="text" name="proof_image_url" id="edit_proof_image_url" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="edit_payment_status" class="block text-sm font-medium text-gray-700">Payment Status</label>
-                  <select name="payment_status" id="edit_payment_status" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="refunded">Refunded</option>
-                    <option value="voided">Voided</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="edit_payment_date" class="block text-sm font-medium text-gray-700">Payment Date</label>
-                  <input type="date" name="payment_date" id="edit_payment_date" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="edit_payment_time" class="block text-sm font-medium text-gray-700">Payment Time</label>
-                  <input type="time" name="payment_time" id="edit_payment_time" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                <div>
-                  <label for="edit_notes" class="block text-sm font-medium text-gray-700">Notes</label>
-                  <textarea name="notes" id="edit_notes" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
-                </div>
-              </div>
-
-              <!-- Form Actions -->
-              <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-white/10">
-                <button type="button" onclick="closeEditPaymentModal()" class="px-6 py-2 border border-gray-300 dark:border-white/20 rounded-lg text-slate-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-                  Cancel
-                </button>
-                <button type="button" onclick="submitEditPayment()" class="px-6 py-2 bg-gradient-to-tl from-blue-500 to-violet-500 text-white rounded-lg font-semibold hover:shadow-md transition-all">
-                  Update Payment
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      <div class="view-row">
+        <div class="view-label">Transaction Type</div>
+        <div class="view-value" id="view_transaction_type"></div>
       </div>
-
-      <!-- View Payment Modal -->
-      <div id="viewPaymentModal" class="fixed inset-0 z-50 hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeViewPaymentModal()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-lg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; max-width: 600px; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; display: flex; flex-direction: column;">
-          <div class="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center flex-shrink-0" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-            <h3 class="text-xl font-bold dark:text-white">Payment Details</h3>
-            <button onclick="closeViewPaymentModal()" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" style="background: none; border: none; cursor: pointer; font-size: 1.25rem;">
-              <i class="fas fa-times text-xl">×</i>
-            </button>
-          </div>
-          <div class="p-6 overflow-y-auto" style="padding: 1.5rem; flex: 1;">
-            <div class="space-y-3">
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Payment ID</label>
-                <p id="view_payment_id" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Reservation</label>
-                <p id="view_reservation_id" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Payment Method</label>
-                <p id="view_method" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Transaction Type</label>
-                <p id="view_transaction_type" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Amount</label>
-                <p id="view_amount" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Reference Number</label>
-                <p id="view_reference_number" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Payment Date</label>
-                <p id="view_payment_date" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Payment Time</label>
-                <p id="view_payment_time" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Status</label>
-                <p id="view_payment_status" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500">Notes</label>
-                <p id="view_notes" class="mt-1 text-sm text-gray-900"></p>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="view-row">
+        <div class="view-label">Amount</div>
+        <div class="view-value" id="view_amount"></div>
       </div>
+      <div class="view-row">
+        <div class="view-label">Reference Number</div>
+        <div class="view-value" id="view_reference_number"></div>
+      </div>
+      <div class="view-row">
+        <div class="view-label">Payment Date</div>
+        <div class="view-value" id="view_payment_date"></div>
+      </div>
+      <div class="view-row">
+        <div class="view-label">Payment Time</div>
+        <div class="view-value" id="view_payment_time"></div>
+      </div>
+      <div class="view-row">
+        <div class="view-label">Status</div>
+        <div class="view-value" id="view_payment_status"></div>
+      </div>
+      <div class="view-row">
+        <div class="view-label">Notes</div>
+        <div class="view-value" id="view_notes"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
   let paymentsData = [];
   let paymentMethodsData = [];
-
-  const STATUS_GRADIENT = {
-    'confirmed': 'from-emerald-500 to-teal-400',
-    'pending':   'from-amber-500 to-orange-400',
-    'rejected':  'from-red-500 to-rose-400',
-    'refunded':  'from-slate-500 to-slate-400',
-    'voided':    'from-gray-600 to-gray-400',
-  };
 
   document.addEventListener('DOMContentLoaded', function () {
     fetchPaymentsData();
@@ -328,11 +611,11 @@
         renderPaymentsTable();
         renderStats();
       } else {
-        document.getElementById('paymentsTableBody').innerHTML = `<tr><td colspan="8" class="p-4 text-center text-red-400">${result.message}</td></tr>`;
+        document.getElementById('paymentsTableBody').innerHTML = `<tr><td colspan="8" class="empty-state"><i>⚠</i>${result.message}</td></tr>`;
       }
     } catch (e) {
       console.error('Error fetching payments:', e);
-      document.getElementById('paymentsTableBody').innerHTML = `<tr><td colspan="8" class="p-4 text-center text-red-400">Failed to load data</td></tr>`;
+      document.getElementById('paymentsTableBody').innerHTML = `<tr><td colspan="8" class="empty-state"><i>⚠</i>Failed to load data</td></tr>`;
     }
   }
 
@@ -369,47 +652,26 @@
     const tbody = document.getElementById('paymentsTableBody');
     if (!tbody) return;
     if (paymentsData.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400 dark:text-white/60">No payments found. <a href="javascript:;" onclick="openAddPaymentModal()" class="text-blue-500 font-semibold">Add your first payment</a>.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><i class="fa-regular fa-clipboard"></i>No payments found. <a href="javascript:;" onclick="openAddPaymentModal()" style="color:#185FA5;font-weight:500">Add your first payment</a>.</td></tr>`;
       return;
     }
     tbody.innerHTML = paymentsData.map(p => {
-      const gradClass = STATUS_GRADIENT[p.payment_status] || 'from-blue-500 to-indigo-400';
       const dateStr = p.payment_date ? new Date(p.payment_date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-';
       const txType = (p.transaction_type || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
       return `
         <tr class="payment-row">
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">${p.payment_id.substring(0, 8)}...</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${p.reservation_id ? p.reservation_id.substring(0, 8) + '...' : '-'}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${p.method_label || 'N/A'}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${txType}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white">₱${parseFloat(p.amount).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">${dateStr}</p>
-          </td>
-          <td class="p-2 text-sm leading-normal text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <span class="bg-gradient-to-tl ${gradClass} px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">${p.payment_status}</span>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-            <div class="flex items-center gap-2">
-              <button onclick="openViewPaymentModal('${p.payment_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md">
-                <i class="fas fa-info-circle mr-1.5 text-xs"></i><span>View</span>
-              </button>
-              <button onclick="openEditPaymentModal('${p.payment_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-amber-50 hover:text-amber-600 hover:border-amber-300 transition-all duration-200 shadow-sm hover:shadow-md">
-                <i class="fas fa-edit mr-1.5 text-xs"></i><span>Edit</span>
-              </button>
-              <button onclick="confirmDeletePayment('${p.payment_id}')" class="group relative inline-flex items-center px-3 py-1.5 text-xs font-semibold text-red-600 bg-white dark:bg-slate-700/50 border border-red-200 dark:border-white/10 rounded-lg hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-all duration-200 shadow-sm hover:shadow-md">
-                <i class="fas fa-trash-alt mr-1.5 text-xs"></i><span>Delete</span>
-              </button>
+          <td>${p.payment_id.substring(0, 8)}...</td>
+          <td>${p.reservation_id ? p.reservation_id.substring(0, 8) + '...' : '-'}</td>
+          <td>${p.method_label || 'N/A'}</td>
+          <td>${txType}</td>
+          <td>₱${parseFloat(p.amount).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
+          <td>${dateStr}</td>
+          <td style="text-align:center"><span class="status-badge ${p.payment_status || ''}">${p.payment_status}</span></td>
+          <td>
+            <div class="action-btns">
+              <button onclick="openViewPaymentModal('${p.payment_id}')" class="action-btn">View</button>
+              <button onclick="openEditPaymentModal('${p.payment_id}')" class="action-btn">Edit</button>
+              <button onclick="confirmDeletePayment('${p.payment_id}')" class="action-btn delete">Delete</button>
             </div>
           </td>
         </tr>`;
@@ -418,13 +680,11 @@
 
   function openAddPaymentModal() {
     document.getElementById('addPaymentForm').reset();
-    document.getElementById('addPaymentModal').style.display = 'block';
-    document.getElementById('addPaymentModal').classList.remove('hidden');
+    document.getElementById('addPaymentModal').style.display = 'flex';
   }
 
   function closeAddPaymentModal() {
     document.getElementById('addPaymentModal').style.display = 'none';
-    document.getElementById('addPaymentModal').classList.add('hidden');
   }
 
   async function submitAddPayment() {
@@ -472,14 +732,12 @@
       document.getElementById('edit_payment_date').value = payment.payment_date;
       document.getElementById('edit_payment_time').value = payment.payment_time || '';
       document.getElementById('edit_notes').value = payment.notes || '';
-      document.getElementById('editPaymentModal').style.display = 'block';
-      document.getElementById('editPaymentModal').classList.remove('hidden');
+      document.getElementById('editPaymentModal').style.display = 'flex';
     }
   }
 
   function closeEditPaymentModal() {
     document.getElementById('editPaymentModal').style.display = 'none';
-    document.getElementById('editPaymentModal').classList.add('hidden');
   }
 
   async function submitEditPayment() {
@@ -526,14 +784,12 @@
       document.getElementById('view_payment_time').textContent = payment.payment_time || 'N/A';
       document.getElementById('view_payment_status').textContent = payment.payment_status;
       document.getElementById('view_notes').textContent = payment.notes || 'N/A';
-      document.getElementById('viewPaymentModal').style.display = 'block';
-      document.getElementById('viewPaymentModal').classList.remove('hidden');
+      document.getElementById('viewPaymentModal').style.display = 'flex';
     }
   }
 
   function closeViewPaymentModal() {
     document.getElementById('viewPaymentModal').style.display = 'none';
-    document.getElementById('viewPaymentModal').classList.add('hidden');
   }
 
   function confirmDeletePayment(paymentId) {
@@ -562,13 +818,6 @@
           Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to delete payment', confirmButtonColor: '#3085d6' });
         }
       }
-    });
-  }
-
-  function filterTable() {
-    const filter = document.getElementById('searchInput').value.toUpperCase();
-    document.querySelectorAll('#paymentsTable .payment-row').forEach(row => {
-      row.style.display = row.textContent.toUpperCase().includes(filter) ? '' : 'none';
     });
   }
 </script>

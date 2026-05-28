@@ -1,31 +1,214 @@
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
+
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0
+  }
+
+  body {
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background: #f5f5f5;
+    color: #1a1a1a
+  }
+
+  .page {
+    padding: 24px;
+    max-width: 100%;
+    margin: 0 auto
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap
+  }
+
+  .card-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    font-weight: 600;
+    font-style: italic
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap
+  }
+
+  .search-wrap {
+    position: relative
+  }
+
+  .search-wrap i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 15px;
+    pointer-events: none
+  }
+
+  .search-input {
+    padding: 7px 12px 7px 34px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    color: #1a1a1a;
+    outline: none;
+    width: 220px;
+    min-width: 160px
+  }
+
+  .search-input:focus {
+    border-color: #185FA5
+  }
+
+  .table-wrap {
+    overflow-x: auto
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px
+  }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid #e0e0e0;
+    white-space: nowrap
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    transition: background .1s
+  }
+
+  tbody tr:last-child {
+    border-bottom: none
+  }
+
+  tbody tr:hover {
+    background: #f9f9f9
+  }
+
+  td {
+    padding: 11px 16px;
+    vertical-align: middle;
+    white-space: nowrap
+  }
+
+  .event-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: capitalize
+  }
+
+  .event-badge.check_in {
+    background: #E8F5E9;
+    color: #2E7D32
+  }
+
+  .event-badge.check_out {
+    background: #E3F2FD;
+    color: #1565C0
+  }
+
+  .event-badge.early_check_in {
+    background: #F3E5F5;
+    color: #7B1FA2
+  }
+
+  .event-badge.late_check_out {
+    background: #FFF3E0;
+    color: #E65100
+  }
+
+  .event-badge.room_transfer {
+    background: #E0F7FA;
+    color: #00838F
+  }
+
+  .event-badge.extension {
+    background: #FCE4EC;
+    color: #C2185B
+  }
+
+  .empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    color: #666
+  }
+
+  .empty-state i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+    color: #ccc
+  }
+</style>
+
 <!-- PAGE CONTENT -->
 
-<div class="flex flex-wrap -mx-3">
-  <div class="flex-none w-full max-w-full px-3">
-    <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-        <h6 class="dark:text-white">Check-in/Check-out Logs</h6>
-      </div>
-      <div class="flex-auto px-0 pt-0 pb-2">
-        <div class="p-0 overflow-x-auto">
-          <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500" id="checkInLogsTable">
-            <thead class="align-bottom">
-              <tr>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Reservation</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Property</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Room</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Event Type</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Event At</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Processed By</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Notes</th>
-              </tr>
-            </thead>
-            <tbody id="checkInLogsTableBody">
-              <tr><td colspan="7" class="p-4 text-center text-slate-400 dark:text-white/60">Loading...</td></tr>
-            </tbody>
-          </table>
+<div class="page">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Check-in/Check-out Logs</div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search logs..." onkeyup="filterTable()">
         </div>
       </div>
+    </div>
+    <div class="table-wrap">
+      <table id="checkInLogsTable">
+        <thead>
+          <tr>
+            <th>Reservation</th>
+            <th>Property</th>
+            <th>Room</th>
+            <th>Event Type</th>
+            <th>Event At</th>
+            <th>Processed By</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="checkInLogsTableBody">
+          <tr>
+            <td colspan="7" class="empty-state">
+              <i class="fa-regular fa-clipboard"></i>
+              Loading...
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -45,11 +228,11 @@
         checkInLogsData = result.data;
         renderCheckInLogsTable();
       } else {
-        document.getElementById('checkInLogsTableBody').innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-400">${result.message}</td></tr>`;
+        document.getElementById('checkInLogsTableBody').innerHTML = `<tr><td colspan="7" class="empty-state"><i>⚠</i>${result.message}</td></tr>`;
       }
     } catch (error) {
       console.error('Error fetching check-in logs:', error);
-      document.getElementById('checkInLogsTableBody').innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-400">Failed to load data</td></tr>`;
+      document.getElementById('checkInLogsTableBody').innerHTML = `<tr><td colspan="7" class="empty-state"><i>⚠</i>Failed to load data</td></tr>`;
     }
   }
 
@@ -65,46 +248,22 @@
     if (!tbody) return;
 
     if (checkInLogsData.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400 dark:text-white/60">No check-in logs found</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><i class="fa-regular fa-clipboard"></i>No check-in logs found</td></tr>`;
       return;
     }
 
-    const eventMap = {
-      'check_in': 'bg-green-100 text-green-600',
-      'check_out': 'bg-blue-100 text-blue-600',
-      'early_check_in': 'bg-purple-100 text-purple-600',
-      'late_check_out': 'bg-orange-100 text-orange-600',
-      'room_transfer': 'bg-cyan-100 text-cyan-600',
-      'extension': 'bg-pink-100 text-pink-600'
-    };
-
     tbody.innerHTML = checkInLogsData.map(log => {
-      const eventCls = eventMap[log.event_type] || 'bg-gray-100 text-gray-600';
       const room = log.room_number ? `${log.room_number}${log.room_name ? ' - ' + log.room_name : ''}` : '-';
-      const processedBy = log.processed_by ? 'Staff ID: ' + log.processed_by.substring(0, 8) : '-';
+      const processedBy = log.processed_by_name || (log.processed_by ? 'Staff ID: ' + log.processed_by.substring(0, 8) : '-');
       return `
         <tr class="checkin-row">
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 font-semibold leading-tight dark:text-white text-xs">${log.reservation_code || '-'}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 font-semibold leading-tight dark:text-white text-xs">${log.property_name || '-'}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 text-xs leading-tight dark:text-white">${room}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <span class="text-xs font-semibold ${eventCls} px-2 py-1 rounded capitalize">${(log.event_type || '-').replace(/_/g, ' ')}</span>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 text-xs leading-tight dark:text-white">${formatDateTime(log.event_at)}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 text-xs leading-tight dark:text-white">${processedBy}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 text-xs leading-tight dark:text-white">${log.notes || '-'}</p>
-          </td>
+          <td><strong>${log.reservation_code || '-'}</strong></td>
+          <td>${log.property_name || '-'}</td>
+          <td>${room}</td>
+          <td><span class="event-badge ${log.event_type || ''}">${(log.event_type || '-').replace(/_/g, ' ')}</span></td>
+          <td>${formatDateTime(log.event_at)}</td>
+          <td>${processedBy}</td>
+          <td>${log.notes || '-'}</td>
         </tr>
       `;
     }).join('');

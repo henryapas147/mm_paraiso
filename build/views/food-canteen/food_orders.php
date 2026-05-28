@@ -430,6 +430,7 @@
   let reservationsData = [];
   let menuItemsData = [];
   let paymentMethodsData = [];
+  let diningTablesData = [];
   let csrfToken = '';
 
   async function fetchCsrfToken() {
@@ -463,6 +464,7 @@
         reservationsData = json.data.reservations;
         menuItemsData = json.data.menuItems;
         paymentMethodsData = json.data.paymentMethods;
+        diningTablesData = json.data.diningTables || [];
         populateDropdowns();
       }
     } catch (e) { console.error('Error fetching related data:', e); }
@@ -579,10 +581,12 @@
     const resOpts  = '<option value="">Walk-in / Select Reservation</option>' + reservationsData.map(r => `<option value="${r.reservation_id}">${r.display}</option>`).join('');
     const itemOpts = menuItemsData.map(m => `<option value="${m.item_id}" data-price="${m.price}">${m.item_name} — ${m.item_code} — ₱${parseFloat(m.price).toFixed(2)}</option>`).join('');
     const payOpts  = '<option value="">Select Payment Method</option>' + paymentMethodsData.map(p => `<option value="${p.method_id}">${p.method_name}</option>`).join('');
+    const tableOpts = '<option value="">Select Table</option>' + diningTablesData.map(t => `<option value="${t.table_id}" data-number="${t.table_number}">${t.table_number}${t.table_name ? ' - ' + t.table_name : ''} (${t.capacity} seats)</option>`).join('');
     ['addProperty','editProperty'].forEach(id => { const s = document.getElementById(id); if (s) s.innerHTML = propOpts; });
     ['addReservation','editReservation'].forEach(id => { const s = document.getElementById(id); if (s) s.innerHTML = resOpts; });
     const s3 = document.getElementById('addMenuItem');    if (s3) s3.innerHTML = itemOpts;
     const s4 = document.getElementById('addPaymentMethod'); if (s4) s4.innerHTML = payOpts;
+    document.querySelectorAll('.table-select').forEach(s => s.innerHTML = tableOpts);
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -713,8 +717,10 @@
                   <input type="text" name="customer_name" class="fo-input" placeholder="Customer name">
                 </div>
                 <div class="fo-form-group">
-                  <label class="fo-label">Table Number</label>
-                  <input type="text" name="table_number" class="fo-input" placeholder="e.g., T-01">
+                  <label class="fo-label">Table</label>
+                  <select name="table_id" class="fo-select table-select">
+                    <option value="">Select Table</option>
+                  </select>
                 </div>
                 <div class="fo-form-group">
                   <label class="fo-label">Order Status</label>
@@ -784,8 +790,10 @@
                   <input type="text" name="customer_name" class="fo-input" placeholder="Customer name">
                 </div>
                 <div class="fo-form-group">
-                  <label class="fo-label">Table Number</label>
-                  <input type="text" name="table_number" class="fo-input" placeholder="e.g., T-01">
+                  <label class="fo-label">Table</label>
+                  <select name="table_id" class="fo-select table-select">
+                    <option value="">Select Table</option>
+                  </select>
                 </div>
                 <div class="fo-form-group">
                   <label class="fo-label">Order Status</label>
@@ -852,7 +860,7 @@
               <div class="fo-item-name">${i.item_name}</div>
               <div class="fo-item-qty">Qty: ${i.quantity} × ₱${parseFloat(i.unit_price).toFixed(2)}</div>
             </div>
-            <div class="fo-item-total">₱${parseFloat(i.subtotal).toFixed(2)}</div>
+            <div class="fo-item-total">₱${parseFloat(i.total_price).toFixed(2)}</div>
           </div>`).join('')
         : `<div class="fo-item-row" style="color:var(--text-muted);font-style:italic;font-size:13px">No items on this order.</div>`;
 
@@ -932,7 +940,7 @@
       reservation_id: form.elements['reservation_id'].value || null,
       order_type:     form.elements['order_type'].value,
       customer_name:  form.elements['customer_name'].value,
-      table_number:   form.elements['table_number'].value,
+      table_number:   form.elements['table_id'].selectedOptions[0]?.dataset?.number || '',
       order_status:   form.elements['order_status'].value,
       payment_status: form.elements['payment_status'].value,
       notes:          form.elements['notes'].value,
@@ -967,7 +975,9 @@
       form.elements['order_type'].value     = order.order_type;
       form.elements['reservation_id'].value = order.reservation_id || '';
       form.elements['customer_name'].value  = order.customer_name || '';
-      form.elements['table_number'].value   = order.table_number || '';
+      // Find table_id by table_number for edit modal
+      const tableMatch = diningTablesData.find(t => t.table_number === order.table_number);
+      form.elements['table_id'].value = tableMatch ? tableMatch.table_id : '';
       form.elements['order_status'].value   = order.order_status;
       form.elements['payment_status'].value = order.payment_status;
       form.elements['notes'].value          = order.notes || '';
@@ -988,7 +998,7 @@
       reservation_id: form.elements['reservation_id'].value || null,
       order_type:     form.elements['order_type'].value,
       customer_name:  form.elements['customer_name'].value,
-      table_number:   form.elements['table_number'].value,
+      table_number:   form.elements['table_id'].selectedOptions[0]?.dataset?.number || '',
       order_status:   form.elements['order_status'].value,
       payment_status: form.elements['payment_status'].value,
       notes:          form.elements['notes'].value

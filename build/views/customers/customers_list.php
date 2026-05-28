@@ -1,192 +1,563 @@
 <?php if (false) {
 } ?>
 
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@1,500;1,600&display=swap" rel="stylesheet">
 
-<!-- PAGE CONTENT -->
+<style>
+  body {
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .page-title {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 22px;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  /* Stats Cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  @media (min-width: 640px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .stats-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .stat-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .stat-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-label {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #fff;
+  }
+
+  .stat-icon.blue {
+    background: #3b82f6;
+  }
+
+  .stat-icon.green {
+    background: #10b981;
+  }
+
+  .stat-icon.orange {
+    background: #f59e0b;
+  }
+
+  /* Table Card */
+  .table-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .table-header {
+    padding: 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  @media (min-width: 768px) {
+    .table-header {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  .controls-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .search-input {
+    padding: 8px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    min-width: 200px;
+  }
+
+  .filter-select {
+    padding: 8px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+  }
+
+  .btn {
+    padding: 8px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: #334155;
+    color: #fff;
+  }
+
+  .btn-primary:hover {
+    background: #1e293b;
+  }
+
+  .btn-secondary {
+    background: #e2e8f0;
+    color: #334155;
+  }
+
+  .btn-secondary:hover {
+    background: #cbd5e1;
+  }
+
+  .btn-danger {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .btn-danger:hover {
+    background: #fecaca;
+  }
+
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  /* Table */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .data-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .data-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .data-table tr:hover {
+    background: #f8fafc;
+  }
+
+  .customer-row {
+    transition: background 0.2s;
+  }
+
+  /* Customer Cell */
+  .customer-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .customer-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e2e8f0;
+  }
+
+  .customer-avatar-initial {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 16px;
+    color: #fff;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  }
+
+  .customer-name {
+    font-weight: 600;
+    color: #0f172a;
+  }
+
+  .customer-email {
+    font-size: 12px;
+    color: #64748b;
+  }
+
+  /* Badges */
+  .badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .badge-status-active {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .badge-status-inactive {
+    background: #f1f5f9;
+    color: #475569;
+  }
+
+  .badge-status-suspended {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .badge-status-pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  /* Actions */
+  .actions-cell {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .action-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 6px;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .action-btn.view {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+  }
+
+  .action-btn.view:hover {
+    background: #dbeafe;
+  }
+
+  .action-btn.edit {
+    background: #fffbeb;
+    color: #b45309;
+    border-color: #fde68a;
+  }
+
+  .action-btn.edit:hover {
+    background: #fef3c7;
+  }
+
+  .action-btn.delete {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+  }
+
+  .action-btn.delete:hover {
+    background: #fee2e2;
+  }
+
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #94a3b8;
+  }
+
+  .empty-state i {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+
+  /* Modal Styles */
+  .modal-title {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 18px;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .info-label {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+
+  .info-value {
+    font-size: 14px;
+    color: #0f172a;
+    font-weight: 500;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .form-label {
+    font-size: 13px;
+    color: #374151;
+    font-weight: 500;
+  }
+
+  .form-input,
+  .form-select {
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .form-input:focus,
+  .form-select:focus {
+    border-color: #3b82f6;
+  }
+
+  /* Photo Preview */
+  .photo-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .photo-preview img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #e2e8f0;
+  }
+
+  .photo-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .photo-actions label {
+    cursor: pointer;
+    font-size: 12px;
+    color: #4f46e5;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .photo-actions input {
+    display: none;
+  }
+
+  .photo-actions button {
+    font-size: 12px;
+    color: #dc2626;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* Cropper Modal */
+  .cropper-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cropper-modal {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 90%;
+    max-height: 90%;
+    overflow: auto;
+  }
+
+  .cropper-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 16px;
+  }
+</style>
+
 <!-- Stats Cards -->
-<div class="flex flex-wrap -mx-3 mb-6">
-  <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="flex-auto p-4">
-        <div class="flex flex-row -mx-3">
-          <div class="flex-none w-2/3 max-w-full px-3">
-            <div>
-              <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Total Customers</p>
-              <h5 class="mb-2 font-bold dark:text-white" id="statTotal">0</h5>
-            </div>
-          </div>
-          <div class="px-3 text-right basis-1/3">
-            <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-blue-500 to-violet-500">
-              <i class="ni leading-none ni-single-02 text-lg relative top-3.5 text-white"></i>
-            </div>
-          </div>
-        </div>
-      </div>
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Total Customers</span>
+      <span class="stat-value" id="statTotal">0</span>
+    </div>
+    <div class="stat-icon blue">
+      <i class="fas fa-users"></i>
     </div>
   </div>
-
-  <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="flex-auto p-4">
-        <div class="flex flex-row -mx-3">
-          <div class="flex-none w-2/3 max-w-full px-3">
-            <div>
-              <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Active Customers</p>
-              <h5 class="mb-2 font-bold dark:text-white" id="statActive">0</h5>
-            </div>
-          </div>
-          <div class="px-3 text-right basis-1/3">
-            <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-emerald-500 to-teal-400">
-              <i class="ni leading-none ni-check-bold text-lg relative top-3.5 text-white"></i>
-            </div>
-          </div>
-        </div>
-      </div>
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Active Customers</span>
+      <span class="stat-value" id="statActive">0</span>
+    </div>
+    <div class="stat-icon green">
+      <i class="fas fa-check-circle"></i>
     </div>
   </div>
-
-  <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="flex-auto p-4">
-        <div class="flex flex-row -mx-3">
-          <div class="flex-none w-2/3 max-w-full px-3">
-            <div>
-              <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Verified</p>
-              <h5 class="mb-2 font-bold dark:text-white" id="statVerified">0</h5>
-            </div>
-          </div>
-          <div class="px-3 text-right basis-1/3">
-            <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-orange-500 to-yellow-500">
-              <i class="ni leading-none ni-check-bold text-lg relative top-3.5 text-white"></i>
-            </div>
-          </div>
-        </div>
-      </div>
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Verified</span>
+      <span class="stat-value" id="statVerified">0</span>
+    </div>
+    <div class="stat-icon orange">
+      <i class="fas fa-envelope-circle-check"></i>
     </div>
   </div>
-
 </div>
 
 <!-- Customers Table -->
-<div class="flex flex-wrap -mx-3">
-  <div class="w-full max-w-full px-3">
-    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="p-4 pb-0 mb-0 rounded-t-2xl">
-        <div style="display: flex; flex-direction: column; gap: 16px;">
-          <h6 class="mb-0 dark:text-white">Customers List</h6>
-          <div class="controls-container" style="display: flex; flex-direction: column; gap: 12px;">
-            <div class="search-wrapper" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
-              <input
-                type="text"
-                id="searchInput"
-                placeholder="Search customers..."
-                onkeyup="filterTable()"
-                style="padding: 8px 14px; font-size: 0.875rem; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; width: 100%;">
-            </div>
-            <div class="filter-button-group" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
-              <select
-                id="statusFilter"
-                onchange="filterTable()"
-                style="padding: 8px 14px; font-size: 0.875rem; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; width: 100%;">
-                <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="suspended">Suspended</option>
-                <option value="pending_verification">Pending</option>
-              </select>
-              <button
-                onclick="createCustomer()"
-                style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 18px; font-size: 0.75rem; font-weight: 600; color: white; background-color: #334155; border-radius: 8px; border: none; cursor: pointer; white-space: nowrap; width: 100%;">
-                <i class="fas fa-plus" style="font-size: 0.75rem;"></i> Add New Customer
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Responsive Desktop Layout -->
-      <style>
-        @media (min-width: 640px) {
-          .controls-container {
-            flex-direction: row !important;
-            align-items: center !important;
-          }
-
-          .search-wrapper {
-            width: 210px !important;
-          }
-
-          .filter-button-group {
-            flex-direction: row !important;
-            width: auto !important;
-          }
-
-          .filter-button-group button {
-            width: auto !important;
-          }
-
-          .filter-button-group select {
-            width: 140px !important;
-          }
-        }
-
-        @media (min-width: 768px) {
-          .search-wrapper {
-            width: 240px !important;
-          }
-
-          .filter-button-group select {
-            width: 160px !important;
-          }
-        }
-
-        @media (min-width: 1024px) {
-          .controls-container {
-            justify-content: space-between !important;
-          }
-
-          .search-wrapper {
-            width: 280px !important;
-          }
-
-          .filter-button-group select {
-            width: 180px !important;
-          }
-        }
-      </style>
-      <div class="p-0 overflow-x-auto">
-        <table class="items-center justify-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
-          <thead class="align-bottom">
-            <tr>
-              <th class="px-6 py-4 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Customer</th>
-              <th class="px-6 py-4 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Phone</th>
-              <th class="px-6 py-4 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">City</th>
-              <th class="px-6 py-4 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Created</th>
-              <th class="px-6 py-4 font-bold text-center uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
-              <th class="px-6 py-4 font-bold text-center uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="customersTableBody">
-            <tr>
-              <td colspan="6" class="p-4 text-center text-slate-400 dark:text-white/60">Loading customers...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+<div class="table-card">
+  <div class="table-header">
+    <h6 class="page-title">Customers List</h6>
+    <div class="controls-container">
+      <input type="text" id="searchInput" class="search-input" placeholder="Search customers..." onkeyup="filterTable()">
+      <select id="statusFilter" class="filter-select" onchange="filterTable()">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+        <option value="suspended">Suspended</option>
+        <option value="pending">Pending</option>
+      </select>
+      <button class="btn btn-primary" onclick="createCustomer()">
+        <i class="fas fa-plus"></i> Add New Customer
+      </button>
     </div>
   </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Customer</th>
+        <th>Phone</th>
+        <th>City</th>
+        <th>Created</th>
+        <th>Status</th>
+        <th style="text-align: center;">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="customersTableBody">
+      <tr>
+        <td colspan="6" class="empty-state">
+          <i class="fas fa-spinner fa-spin"></i> Loading customers...
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 
 <!-- Cropper Modal -->
-<div id="cropperModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:12px;padding:24px;max-width:90%;max-height:90%;overflow:auto;">
-    <h3 style="margin:0 0 16px 0;font-size:18px;font-weight:600;color:#1e293b;">Crop Image</h3>
-    <div style="margin-bottom:16px;">
-      <img id="cropperImage" style="max-width:100%;max-height:500px;display:block;" alt="Image to crop">
+<div id="cropperModal" class="cropper-overlay">
+  <div class="cropper-modal">
+    <h3 class="modal-title" style="margin: 0 0 16px 0;">Crop Image</h3>
+    <div>
+      <img id="cropperImage" style="max-width: 100%; max-height: 500px; display: block;">
     </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;">
-      <button onclick="cancelCrop()" style="padding:8px 16px;font-size:14px;font-weight:600;color:#fff;background:#dc2626;border:none;border-radius:8px;cursor:pointer;">Cancel</button>
-      <button onclick="applyCrop()" style="padding:8px 16px;font-size:14px;font-weight:600;color:#fff;background:#3b82f6;border:none;border-radius:8px;cursor:pointer;">Apply Crop</button>
+    <div class="cropper-actions">
+      <button class="btn btn-danger" onclick="cancelCrop()">Cancel</button>
+      <button class="btn btn-primary" onclick="applyCrop()">Apply Crop</button>
     </div>
   </div>
 </div>
@@ -201,34 +572,45 @@
   // Geocode data cache
   let regionsData = [];
 
-  function getPhotoPreviewHtml(photoUrl, previewId, showRemove = false) {
-    const imgOrIcon = photoUrl ?
-      `<img src="${photoUrl}" class="w-full h-full object-cover" alt="Profile photo">` :
-      `<i class="fas fa-user text-3xl text-slate-400"></i>`;
+  const DEFAULT_PROFILE_PATH = '<?php echo dirname(dirname($_SERVER['PHP_SELF'])) . '/uploads/profile_photos/default_profile.jpg'; ?>';
 
-    const removeButton =
-      showRemove && photoUrl ?
-      `<button type="button" onclick="removePhoto('${previewId}')"
-             class="text-xs text-red-500 hover:text-red-700 mt-1">
-             <i class="fas fa-trash mr-1"></i>Remove
-           </button>` :
+  function normalizeProfilePhotoUrl(url) {
+    if (!url) return DEFAULT_PROFILE_PATH;
+    const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    if (url.startsWith('http')) return url;
+    if (isLocalhost) {
+      if (url.startsWith('/../uploads/profile_photos/')) return url;
+      if (url.startsWith('/uploads/profile_photos/')) return '/../uploads/profile_photos/' + url.split('/').pop();
+      if (url.startsWith('/build/assets/images/uploads/profile_photos/')) return '/../uploads/profile_photos/' + url.split('/').pop();
+    } else {
+      if (url.startsWith('/uploads/profile_photos/')) return url;
+      if (url.startsWith('/../uploads/profile_photos/')) return '/uploads/profile_photos/' + url.split('/').pop();
+      if (url.startsWith('/build/assets/images/uploads/profile_photos/')) return '/uploads/profile_photos/' + url.split('/').pop();
+    }
+    return url;
+  }
+
+  function getPhotoPreviewHtml(photoUrl, previewId, showRemove = false) {
+    const normalizedUrl = normalizeProfilePhotoUrl(photoUrl);
+    const imgContent = photoUrl ?
+      `<img src="${normalizedUrl}" style="width:100%;height:100%;object-fit:cover;" alt="Profile photo" onerror="this.src='${DEFAULT_PROFILE_PATH}'">` :
+      `<img src="${DEFAULT_PROFILE_PATH}" style="width:100%;height:100%;object-fit:cover;" alt="Profile photo">`;
+
+    const removeButton = showRemove && photoUrl ?
+      `<button type="button" onclick="removePhoto('${previewId}')"><i class="fas fa-trash"></i> Remove</button>` :
       '';
 
     return `
-      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-        <div id="${previewId}"
-             style="width:80px;height:80px;border-radius:50%;overflow:hidden;border:2px solid #e2e8f0;
-                    background:#f1f5f9;display:flex;align-items:center;justify-content:center;
-                    position:relative;flex-shrink:0;">
-          ${imgOrIcon}
+      <div class="photo-preview">
+        <div id="${previewId}" style="width:80px;height:80px;border-radius:50%;overflow:hidden;border:3px solid #e2e8f0;background:#f1f5f9;">
+          ${imgContent}
         </div>
-        <label style="cursor:pointer;font-size:12px;color:#4f46e5;font-weight:600;">
-          <i class="fas fa-camera" style="margin-right:3px;"></i>${showRemove ? 'Change' : 'Upload'}
-          <input type="file" id="${previewId.replace('_preview', '')}"
-                 accept="image/*" style="display:none;"
-                 onchange="previewPhoto(this, '${previewId}')">
-        </label>
-        ${removeButton}
+        <div class="photo-actions">
+          <label><i class="fas fa-camera"></i> ${showRemove ? 'Change' : 'Upload'}
+            <input type="file" id="${previewId.replace('_preview', '')}" accept="image/*" onchange="previewPhoto(this, '${previewId}')">
+          </label>
+          ${removeButton}
+        </div>
       </div>
     `;
   }
@@ -258,10 +640,21 @@
     document.getElementById('statVerified').textContent = verified;
   }
 
+  function getStatusBadgeClass(status) {
+    const classes = {
+      'active': 'badge-status-active',
+      'inactive': 'badge-status-inactive',
+      'suspended': 'badge-status-suspended',
+      'pending': 'badge-status-pending',
+      'pending_verification': 'badge-status-pending'
+    };
+    return classes[status] || 'badge-status-inactive';
+  }
+
   function renderTable() {
     const tbody = document.getElementById('customersTableBody');
     if (!customersData.length) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 dark:text-white/60">No customers found.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><i class="fas fa-inbox"></i><div>No customers found.</div></td></tr>`;
       return;
     }
     tbody.innerHTML = customersData.map(customer => {
@@ -272,56 +665,47 @@
         customer.region_name,
       ].filter(Boolean);
       const addressDisplay = parts.length ? parts.join(', ') : '-';
+      const statusClass = getStatusBadgeClass(customer.account_status);
+      const displayStatus = customer.account_status === 'pending_verification' ? 'pending' : (customer.account_status || 'unknown');
 
       return `
       <tr class="customer-row">
-        <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-          <div class="flex items-center">
+        <td>
+          <div class="customer-cell">
             ${customer.profile_photo_url
-              ? `<img src="${customer.profile_photo_url}" class="w-10 h-10 mr-4 rounded-full object-cover border-2 border-slate-200" alt="${customer.first_name}">` 
-              : `<div class="inline-flex items-center justify-center w-10 h-10 mr-4 text-sm text-white bg-gradient-to-tl from-blue-500 to-violet-500 rounded-full">
-                   ${customer.first_name ? customer.first_name.charAt(0).toUpperCase() : '?'}
-                 </div>`
+              ? `<img src="${normalizeProfilePhotoUrl(customer.profile_photo_url)}" class="customer-avatar" alt="${customer.first_name}" onerror="this.onerror=null;this.src='${DEFAULT_PROFILE_PATH}'">`
+              : `<div class="customer-avatar-initial">${customer.first_name ? customer.first_name.charAt(0).toUpperCase() : '?'}</div>`
             }
             <div>
-              <p class="mb-0 text-sm font-semibold leading-tight dark:text-white">${customer.first_name || ''} ${customer.last_name || ''}</p>
-              <p class="mb-0 text-xs leading-tight text-slate-400 dark:text-white/60">${customer.email}</p>
+              <div class="customer-name">${customer.first_name || ''} ${customer.last_name || ''}</div>
+              <div class="customer-email">${customer.email}</div>
             </div>
           </div>
         </td>
-        <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-          <p class="mb-0 text-sm font-semibold leading-tight dark:text-white">${customer.phone_number || '-'}</p>
+        <td>
+          <div class="customer-name">${customer.phone_number || '-'}</div>
         </td>
-        <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-          <p class="mb-0 text-sm font-semibold leading-tight dark:text-white max-w-xs truncate" title="${addressDisplay}">${addressDisplay}</p>
+        <td>
+          <div class="customer-name" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${addressDisplay}">${addressDisplay}</div>
         </td>
-        <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-          <p class="mb-0 text-sm font-semibold leading-tight dark:text-white">
+        <td>
+          <div class="customer-name">
             ${new Date(customer.created_at).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit', hour12:true })}
-          </p>
+          </div>
         </td>
-        <td class="p-4 text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-          <span class="bg-gradient-to-tl ${
-            customer.account_status === 'active'    ? 'from-emerald-500 to-teal-400'  :
-            customer.account_status === 'suspended' ? 'from-red-500 to-orange-500'    :
-                                                      'from-slate-500 to-slate-400'
-          } px-4 text-sm rounded-1.8 py-2 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">
-            ${customer.account_status || 'unknown'}
-          </span>
+        <td>
+          <span class="badge ${statusClass}">${displayStatus}</span>
         </td>
-        <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-          <div class="flex items-center gap-2">
-            <button onclick="viewCustomer('${customer.user_id}')"
-                    class="inline-flex items-center px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-700/50 border border-blue-200 dark:border-white/10 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 transition-all duration-200 shadow-sm">
-              <i class="fas fa-eye mr-2 text-sm"></i>View
+        <td>
+          <div class="actions-cell">
+            <button onclick="viewCustomer('${customer.user_id}')" class="action-btn view">
+              <i class="fas fa-eye"></i> View
             </button>
-            <button onclick="editCustomer('${customer.user_id}')"
-                    class="inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-500/20 hover:text-amber-600 transition-all duration-200 shadow-sm">
-              <i class="fas fa-edit mr-2 text-sm"></i>Edit
+            <button onclick="editCustomer('${customer.user_id}')" class="action-btn edit">
+              <i class="fas fa-edit"></i> Edit
             </button>
-            <button onclick="deleteCustomer('${customer.user_id}', '${customer.first_name || ''} ${customer.last_name || ''}')"
-                    class="inline-flex items-center px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 bg-white dark:bg-slate-700/50 border border-red-200 dark:border-white/10 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-700 transition-all duration-200 shadow-sm">
-              <i class="fas fa-trash-alt mr-2 text-sm"></i>Delete
+            <button onclick="deleteCustomer('${customer.user_id}', '${customer.first_name || ''} ${customer.last_name || ''}')" class="action-btn delete">
+              <i class="fas fa-trash-alt"></i> Delete
             </button>
           </div>
         </td>
@@ -339,10 +723,11 @@
         icon: 'error',
         title: 'Error',
         text: json.message,
-        confirmButtonColor: '#d33',
+        confirmButtonText: 'OK',
         customClass: {
-          popup: 'swal2-popup-high-z'
-        }
+          confirmButton: 'btn btn-primary'
+        },
+        buttonsStyling: false
       });
     }
 
@@ -360,7 +745,7 @@
       if (geoData.success) addressDetails = geoData.data;
     }
 
-    const photoUrl = customer.profile_photo_url || '<?php echo dirname(dirname($_SERVER['PHP_SELF'])) . '/uploads/profile_photos/default_profile.jpg'; ?>';
+    const photoUrl = normalizeProfilePhotoUrl(customer.profile_photo_url);
     const fullAddress = [
       customer.address_line1,
       customer.address_line2,
@@ -371,38 +756,51 @@
       customer.postal_code,
       customer.country,
     ].filter(Boolean).join(', ') || 'No address provided';
+    const statusClass = getStatusBadgeClass(customer.account_status);
 
     Swal.fire({
       title: 'Customer Details',
       html: `
-      <div class="text-left flex flex-col items-center">
-        <img src="${photoUrl}" class="w-24 h-24 rounded-full object-cover border-2 border-slate-200 shadow-md mb-4" alt="${customer.first_name}">
-        <p class="text-lg font-semibold mb-3">${customer.first_name || ''} ${customer.last_name || ''}</p>
-        <div class="w-full border-t pt-3 mt-2">
-          <p><strong>Email:</strong> ${customer.email || '-'}</p>
-          <p><strong>Phone:</strong> ${customer.phone_number || '-'}</p>
-          <p><strong>Status:</strong>
-            <span class="px-2 py-1 rounded text-xs font-bold uppercase ${
-              customer.account_status === 'active'    ? 'bg-green-100 text-green-800' :
-              customer.account_status === 'suspended' ? 'bg-red-100 text-red-800'     :
-                                                        'bg-gray-100 text-gray-800'
-            }">${customer.account_status || 'unknown'}</span>
-          </p>
-          <div class="mt-3">
-            <p class="font-semibold mb-1">Address:</p>
-            <p class="text-sm text-slate-600">${fullAddress}</p>
-          </div>
-          <p><strong>Email Verified:</strong> ${customer.is_email_verified ? '✓ Yes' : '✗ No'}</p>
-          <p><strong>Phone Verified:</strong>  ${customer.is_phone_verified  ? '✓ Yes' : '✗ No'}</p>
-          <p><strong>Created:</strong> ${new Date(customer.created_at).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit', hour12:true })}</p>
-          ${customer.last_login_at ? `<p><strong>Last Login:</strong> ${new Date(customer.last_login_at).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit', hour12:true })}</p>` : ''}
+        <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 24px;">
+          <img src="${photoUrl}" alt="" style="width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto;" onerror="this.src='${DEFAULT_PROFILE_PATH}'">
+          <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 4px; text-align: center;">${customer.first_name || ''} ${customer.last_name || ''}</h3>
+          <p style="font-size: 13px; color: #666; margin-bottom: 12px; text-align: center;">${customer.email}</p>
+          <span class="badge ${statusClass}">${customer.account_status || 'unknown'}</span>
         </div>
-      </div>`,
-      width: '40rem',
-      confirmButtonColor: '#3085d6',
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">Phone</div>
+            <div class="info-value">${customer.phone_number || '-'}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Email Verified</div>
+            <div class="info-value" style="color: ${customer.is_email_verified ? '#059669' : '#DC2626'}">${customer.is_email_verified ? 'Yes' : 'No'}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Phone Verified</div>
+            <div class="info-value" style="color: ${customer.is_phone_verified ? '#059669' : '#DC2626'}">${customer.is_phone_verified ? 'Yes' : 'No'}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Created</div>
+            <div class="info-value">${new Date(customer.created_at).toLocaleDateString()}</div>
+          </div>
+        </div>
+        <div class="info-item" style="margin-top: 16px;">
+          <div class="info-label">Address</div>
+          <div class="info-value">${fullAddress}</div>
+        </div>
+        ${customer.last_login_at ? `
+        <div class="info-item" style="margin-top: 12px;">
+          <div class="info-label">Last Login</div>
+          <div class="info-value">${new Date(customer.last_login_at).toLocaleString()}</div>
+        </div>` : ''}
+      `,
+      width: '480px',
+      confirmButtonText: 'Close',
       customClass: {
-        popup: 'swal2-popup-high-z'
+        confirmButton: 'btn btn-primary'
       },
+      buttonsStyling: false
     });
   }
 
@@ -419,158 +817,110 @@
             icon: 'error',
             title: 'Error',
             text: data.message,
-            confirmButtonColor: '#d33',
+            confirmButtonText: 'OK',
             customClass: {
-              popup: 'swal2-popup-high-z'
-            }
+              confirmButton: 'btn btn-primary'
+            },
+            buttonsStyling: false
           });
         }
 
         const customer = data.data;
-        const photoUrl = customer.profile_photo_url || '<?php echo dirname(dirname($_SERVER['PHP_SELF'])) . '/uploads/profile_photos/default_profile.jpg'; ?>';
+        const photoUrl = normalizeProfilePhotoUrl(customer.profile_photo_url);
 
         Swal.fire({
           title: 'Edit Customer',
           html: `
-          <form id="editCustomerForm" class="text-left" onsubmit="return false;">
-
-            <!-- ── Photo + basic info ── -->
-            <div style="display:flex;align-items:flex-start;gap:20px;margin-bottom:20px;">
-
-              <!-- Photo column -->
-              <div style="flex-shrink:0;">
+            <form id="editCustomerForm" style="text-align: left;">
+              <!-- Profile Photo Section -->
+              <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
                 ${getPhotoPreviewHtml(photoUrl, 'edit_photo_preview', true)}
                 <input type="hidden" id="edit_remove_photo" value="0">
               </div>
 
-              <!-- Name / email / phone column -->
-              <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                <div>
-                  <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">First Name <span style="color:#ef4444;">*</span></label>
-                  <input type="text" id="edit_first_name" value="${escHtml(customer.first_name || '')}"
-                         style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;box-sizing:border-box;" required>
+              <!-- Personal Info Section -->
+              <div class="form-grid" style="margin-bottom: 20px;">
+                <div class="form-group">
+                  <label class="form-label">First Name *</label>
+                  <input type="text" id="edit_first_name" class="form-input" value="${escHtml(customer.first_name || '')}" required>
                 </div>
-                <div>
-                  <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Last Name <span style="color:#ef4444;">*</span></label>
-                  <input type="text" id="edit_last_name" value="${escHtml(customer.last_name || '')}"
-                         style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;box-sizing:border-box;" required>
+                <div class="form-group">
+                  <label class="form-label">Last Name *</label>
+                  <input type="text" id="edit_last_name" class="form-input" value="${escHtml(customer.last_name || '')}" required>
                 </div>
-                <div>
-                  <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Email <span style="color:#ef4444;">*</span></label>
-                  <input type="email" id="edit_email" value="${escHtml(customer.email || '')}"
-                         style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;box-sizing:border-box;" required>
+                <div class="form-group">
+                  <label class="form-label">Email *</label>
+                  <input type="email" id="edit_email" class="form-input" value="${escHtml(customer.email || '')}" required>
                 </div>
-                <div>
-                  <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Phone Number</label>
-                  <input type="text" id="edit_phone_number" value="${escHtml(customer.phone_number || '')}"
-                         style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;box-sizing:border-box;">
+                <div class="form-group">
+                  <label class="form-label">Phone Number</label>
+                  <input type="text" id="edit_phone_number" class="form-input" value="${escHtml(customer.phone_number || '')}">
                 </div>
               </div>
-            </div>
 
-            <!-- ── Address ── -->
-            <div style="border-top:1px solid #e2e8f0;padding-top:16px;margin-top:4px;">
-              <p style="font-size:13px;font-weight:600;margin:0 0 12px;display:flex;align-items:center;gap:6px;">
-                <i class="fas fa-map-marker-alt" style="color:#94a3b8;"></i> Address
-              </p>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-
-                <div>
-                  <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px;">Region</label>
-                  <input type="text" id="edit_region_code" list="edit_region_list"
-                         placeholder="Search region…"
-                         style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;box-sizing:border-box;"
-                         oninput="onRegionChange('edit')">
-                  <datalist id="edit_region_list"></datalist>
+              <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 16px;">
+                <p style="font-size: 13px; font-weight: 600; margin: 0 0 12px;">
+                  <i class="fas fa-map-marker-alt" style="color: #94a3b8; margin-right: 6px;"></i> Address
+                </p>
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label class="form-label">Region</label>
+                    <input type="text" id="edit_region_code" list="edit_region_list" class="form-input" placeholder="Search region..." oninput="onRegionChange('edit')">
+                    <datalist id="edit_region_list"></datalist>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Province</label>
+                    <input type="text" id="edit_province_code" list="edit_province_list" class="form-input" placeholder="Search province..." oninput="onProvinceChange('edit')">
+                    <datalist id="edit_province_list"></datalist>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">City / Municipality</label>
+                    <input type="text" id="edit_city_code" list="edit_city_list" class="form-input" placeholder="Search city..." oninput="onCityChange('edit')">
+                    <datalist id="edit_city_list"></datalist>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Barangay</label>
+                    <input type="text" id="edit_barangay_code" list="edit_barangay_list" class="form-input" placeholder="Search barangay..." oninput="onBarangayInput('edit')">
+                    <datalist id="edit_barangay_list"></datalist>
+                  </div>
+                  <div class="form-group" style="grid-column: 1/-1;">
+                    <label class="form-label">Address Line 1</label>
+                    <input type="text" id="edit_address_line1" class="form-input" value="${escHtml(customer.address_line1 || '')}" placeholder="House/Unit number, Street name">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Address Line 2</label>
+                    <input type="text" id="edit_address_line2" class="form-input" value="${escHtml(customer.address_line2 || '')}" placeholder="Building, Subdivision...">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Postal Code</label>
+                    <input type="text" id="edit_postal_code" class="form-input" value="${escHtml(customer.postal_code || '')}" placeholder="Zip code">
+                  </div>
                 </div>
-
-                <div>
-                  <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px;">Province</label>
-                  <input type="text" id="edit_province_code" list="edit_province_list"
-                         placeholder="Search province…"
-                         style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;box-sizing:border-box;"
-                         oninput="onProvinceChange('edit')">
-                  <datalist id="edit_province_list"></datalist>
-                </div>
-
-                <div>
-                  <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px;">City / Municipality</label>
-                  <input type="text" id="edit_city_code" list="edit_city_list"
-                         placeholder="Search city…"
-                         style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;box-sizing:border-box;"
-                         oninput="onCityChange('edit')">
-                  <datalist id="edit_city_list"></datalist>
-                </div>
-
-                <div>
-                  <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px;">Barangay</label>
-                  <input type="text" id="edit_barangay_code" list="edit_barangay_list"
-                         placeholder="Search barangay…"
-                         style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;box-sizing:border-box;"
-                         oninput="onBarangayInput('edit')">
-                  <datalist id="edit_barangay_list"></datalist>
-                </div>
-
-                <div style="grid-column:1/-1;">
-                  <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px;">Address Line 1</label>
-                  <input type="text" id="edit_address_line1" value="${escHtml(customer.address_line1 || '')}"
-                         placeholder="House/Unit number, Street name"
-                         style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;box-sizing:border-box;">
-                </div>
-
-                <div>
-                  <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px;">Address Line 2</label>
-                  <input type="text" id="edit_address_line2" value="${escHtml(customer.address_line2 || '')}"
-                         placeholder="Building, Subdivision…"
-                         style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;box-sizing:border-box;">
-                </div>
-
-                <div>
-                  <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px;">Postal Code</label>
-                  <input type="text" id="edit_postal_code" value="${escHtml(customer.postal_code || '')}"
-                         placeholder="Zip code"
-                         style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;box-sizing:border-box;">
-                </div>
-
               </div>
-            </div>
 
-            <!-- ── Account status ── -->
-            <div style="border-top:1px solid #e2e8f0;padding-top:16px;margin-top:16px;">
-              <div style="max-width:220px;">
-                <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Account Status</label>
-                <select id="edit_account_status"
-                        style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;box-sizing:border-box;">
-                  <option value="active"    ${customer.account_status === 'active'    ? 'selected' : ''}>Active</option>
-                  <option value="suspended" ${customer.account_status === 'suspended' ? 'selected' : ''}>Suspended</option>
-                  <option value="inactive"  ${customer.account_status === 'inactive'  ? 'selected' : ''}>Inactive</option>
-                </select>
+              <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 16px;">
+                <div class="form-group" style="max-width: 220px;">
+                  <label class="form-label">Account Status</label>
+                  <select id="edit_account_status" class="form-select">
+                    <option value="active" ${customer.account_status === 'active' ? 'selected' : ''}>Active</option>
+                    <option value="inactive" ${customer.account_status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                    <option value="suspended" ${customer.account_status === 'suspended' ? 'selected' : ''}>Suspended</option>
+                  </select>
+                </div>
               </div>
-            </div>
 
-            <input type="hidden" id="edit_user_id" value="${customer.user_id}">
+              <input type="hidden" id="edit_user_id" value="${customer.user_id}">
 
-            <div style="border-top:1px solid #e2e8f0;padding-top:16px;margin-top:16px;display:flex;gap:12px;justify-content:flex-end;">
-              <button id="edit_cancel_btn" type="button"
-                      style="padding:10px 24px;font-size:14px;font-weight:600;color:#991b1b;
-                             background-color:#fee2e2;border:2px solid #991b1b;border-radius:8px;
-                             cursor:pointer;transition:all 0.2s;">
-                Cancel
-              </button>
-              <button id="edit_save_btn" type="button"
-                      style="padding:10px 24px;font-size:14px;font-weight:600;color:#1e3a8a;
-                             background-color:#e0e7ff;border:2px solid #1e3a8a;border-radius:8px;
-                             cursor:pointer;transition:all 0.2s;">
-                Save Changes
-              </button>
-            </div>
-          </form>
-        `,
-          width: '48rem',
+              <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 16px; display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button" class="btn btn-danger" id="edit_cancel_btn">Cancel</button>
+                <button type="button" class="btn btn-primary" id="edit_save_btn">Save Changes</button>
+              </div>
+            </form>
+          `,
+          width: '600px',
           showConfirmButton: false,
           showCancelButton: false,
           didOpen: async () => {
-            /* Custom button handlers */
             document.getElementById('edit_cancel_btn').addEventListener('click', () => Swal.close());
             document.getElementById('edit_save_btn').addEventListener('click', async () => {
               const first = document.getElementById('edit_first_name').value.trim();
@@ -583,9 +933,9 @@
 
               const fd = new FormData();
               fd.append('user_id', document.getElementById('edit_user_id').value);
-              fd.append('first_name', document.getElementById('edit_first_name').value.trim());
-              fd.append('last_name', document.getElementById('edit_last_name').value.trim());
-              fd.append('email', document.getElementById('edit_email').value.trim());
+              fd.append('first_name', first);
+              fd.append('last_name', last);
+              fd.append('email', email);
               fd.append('phone_number', document.getElementById('edit_phone_number').value.trim());
               fd.append('region_code', document.getElementById('edit_region_code').dataset.code || '');
               fd.append('province_code', document.getElementById('edit_province_code').dataset.code || '');
@@ -611,7 +961,6 @@
               submitCustomerUpdate(fd);
             });
 
-            /* Regions */
             populateDatalist('edit_region_list', regions, 'region', customer.region_code);
 
             if (customer.region_code) {
@@ -620,7 +969,6 @@
 
               if (customer.province_code) {
                 const cities = await fetchCities(customer.province_code);
-                /* NOTE: input id is edit_city_code (not edit_city_municipality_code) */
                 populateDatalist('edit_city_list', cities, 'city', customer.city_municipality_code);
 
                 if (customer.city_municipality_code) {
@@ -640,10 +988,11 @@
           icon: 'error',
           title: 'Error',
           text: 'Failed to load customer details',
-          confirmButtonColor: '#d33',
+          confirmButtonText: 'OK',
           customClass: {
-            popup: 'swal2-popup-high-z'
-          }
+            confirmButton: 'btn btn-primary'
+          },
+          buttonsStyling: false
         });
       });
   }
@@ -651,12 +1000,9 @@
   function submitCustomerUpdate(formData) {
     formData.append('csrf_token', csrfToken);
     Swal.fire({
-      title: 'Updating…',
+      title: 'Updating...',
       allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
-      customClass: {
-        popup: 'swal2-popup-high-z'
-      }
+      didOpen: () => Swal.showLoading()
     });
     fetch('../api/customers.php?action=update', {
         method: 'POST',
@@ -666,24 +1012,25 @@
       .then(data => {
         if (data.success) {
           Swal.fire({
-              icon: 'success',
-              title: 'Updated!',
-              text: data.message,
-              confirmButtonColor: '#3085d6',
-              customClass: {
-                popup: 'swal2-popup-high-z'
-              }
-            })
-            .then(() => fetchCustomers());
+            icon: 'success',
+            title: 'Updated!',
+            text: data.message,
+            confirmButtonText: 'OK',
+            customClass: {
+              confirmButton: 'btn btn-primary'
+            },
+            buttonsStyling: false
+          }).then(() => fetchCustomers());
         } else {
           Swal.fire({
             icon: 'error',
             title: 'Error',
             text: data.message,
-            confirmButtonColor: '#d33',
+            confirmButtonText: 'OK',
             customClass: {
-              popup: 'swal2-popup-high-z'
-            }
+              confirmButton: 'btn btn-primary'
+            },
+            buttonsStyling: false
           });
         }
       });
@@ -697,124 +1044,86 @@
     Swal.fire({
       title: 'Add New Customer',
       html: `
-      <form id="createCustomerForm" class="text-left" onsubmit="return false;">
-
-        <!-- ── Photo + basic info ── -->
-        <div style="display:flex;align-items:flex-start;gap:20px;margin-bottom:20px;">
-
-          <!-- Photo column -->
-          <div style="flex-shrink:0;">
+        <form id="createCustomerForm" style="text-align: left;">
+          <!-- Profile Photo Section -->
+          <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
             ${getPhotoPreviewHtml('', 'create_photo_preview', false)}
           </div>
 
-          <!-- Name / email / phone column -->
-          <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div>
-              <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">First Name <span style="color:#ef4444;">*</span></label>
-              <input type="text" id="create_first_name"
-                     style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;box-sizing:border-box;" required>
+          <!-- Personal Info Section -->
+          <div class="form-grid" style="margin-bottom: 20px;">
+            <div class="form-group">
+              <label class="form-label">First Name *</label>
+              <input type="text" id="create_first_name" class="form-input" required>
             </div>
-            <div>
-              <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Last Name <span style="color:#ef4444;">*</span></label>
-              <input type="text" id="create_last_name"
-                     style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;box-sizing:border-box;" required>
+            <div class="form-group">
+              <label class="form-label">Last Name *</label>
+              <input type="text" id="create_last_name" class="form-input" required>
             </div>
-            <div>
-              <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Email <span style="color:#ef4444;">*</span></label>
-              <input type="email" id="create_email"
-                     style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;box-sizing:border-box;" required>
+            <div class="form-group">
+              <label class="form-label">Email *</label>
+              <input type="email" id="create_email" class="form-input" required>
             </div>
-            <div>
-              <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Phone Number</label>
-              <input type="text" id="create_phone_number"
-                     style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;box-sizing:border-box;">
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="text" id="create_phone_number" class="form-input">
             </div>
           </div>
-        </div>
 
-        <!-- ── Address ── -->
-        <div style="border-top:1px solid #e2e8f0;padding-top:16px;margin-top:4px;">
-          <p style="font-size:13px;font-weight:600;margin:0 0 12px;display:flex;align-items:center;gap:6px;">
-            <i class="fas fa-map-marker-alt" style="color:#94a3b8;"></i> Address
-          </p>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div>
-              <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px;">Region</label>
-              <input type="text" id="create_region_code" list="create_region_list"
-                     placeholder="Search region…"
-                     style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;box-sizing:border-box;"
-                     oninput="onRegionChange('create')">
-              <datalist id="create_region_list"></datalist>
-            </div>
-            <div>
-              <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px;">Province</label>
-              <input type="text" id="create_province_code" list="create_province_list"
-                     placeholder="Search province…"
-                     style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;box-sizing:border-box;"
-                     oninput="onProvinceChange('create')">
-              <datalist id="create_province_list"></datalist>
-            </div>
-            <div>
-              <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px;">City / Municipality</label>
-              <input type="text" id="create_city_code" list="create_city_list"
-                     placeholder="Search city…"
-                     style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;box-sizing:border-box;"
-                     oninput="onCityChange('create')">
-              <datalist id="create_city_list"></datalist>
-            </div>
-            <div>
-              <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px;">Barangay</label>
-              <input type="text" id="create_barangay_code" list="create_barangay_list"
-                     placeholder="Search barangay…"
-                     style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;box-sizing:border-box;"
-                     oninput="onBarangayInput('create')">
-              <datalist id="create_barangay_list"></datalist>
-            </div>
-            <div style="grid-column:1/-1;">
-              <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px;">Address Line 1</label>
-              <input type="text" id="create_address_line1"
-                     placeholder="House/Unit number, Street name"
-                     style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;box-sizing:border-box;">
-            </div>
-            <div>
-              <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px;">Address Line 2</label>
-              <input type="text" id="create_address_line2"
-                     placeholder="Building, Subdivision…"
-                     style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;box-sizing:border-box;">
-            </div>
-            <div>
-              <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px;">Postal Code</label>
-              <input type="text" id="create_postal_code"
-                     placeholder="Zip code"
-                     style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;box-sizing:border-box;">
+          <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 16px;">
+            <p style="font-size: 13px; font-weight: 600; margin: 0 0 12px;">
+              <i class="fas fa-map-marker-alt" style="color: #94a3b8; margin-right: 6px;"></i> Address
+            </p>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Region</label>
+                <input type="text" id="create_region_code" list="create_region_list" class="form-input" placeholder="Search region..." oninput="onRegionChange('create')">
+                <datalist id="create_region_list"></datalist>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Province</label>
+                <input type="text" id="create_province_code" list="create_province_list" class="form-input" placeholder="Search province..." oninput="onProvinceChange('create')">
+                <datalist id="create_province_list"></datalist>
+              </div>
+              <div class="form-group">
+                <label class="form-label">City / Municipality</label>
+                <input type="text" id="create_city_code" list="create_city_list" class="form-input" placeholder="Search city..." oninput="onCityChange('create')">
+                <datalist id="create_city_list"></datalist>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Barangay</label>
+                <input type="text" id="create_barangay_code" list="create_barangay_list" class="form-input" placeholder="Search barangay..." oninput="onBarangayInput('create')">
+                <datalist id="create_barangay_list"></datalist>
+              </div>
+              <div class="form-group" style="grid-column: 1/-1;">
+                <label class="form-label">Address Line 1</label>
+                <input type="text" id="create_address_line1" class="form-input" placeholder="House/Unit number, Street name">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Address Line 2</label>
+                <input type="text" id="create_address_line2" class="form-input" placeholder="Building, Subdivision...">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Postal Code</label>
+                <input type="text" id="create_postal_code" class="form-input" placeholder="Zip code">
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- ── Password ── -->
-        <div style="border-top:1px solid #e2e8f0;padding-top:16px;margin-top:16px;max-width:300px;">
-          <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Password</label>
-          <input type="password" id="create_password" placeholder="Default: Customer@123"
-                 style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;box-sizing:border-box;">
-        </div>
+          <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 16px;">
+            <div class="form-group" style="max-width: 300px;">
+              <label class="form-label">Password</label>
+              <input type="password" id="create_password" class="form-input" placeholder="Default: Customer@123">
+            </div>
+          </div>
 
-        <!-- ── Action buttons ── -->
-        <div style="border-top:1px solid #e2e8f0;padding-top:16px;margin-top:16px;display:flex;gap:12px;justify-content:flex-end;">
-          <button id="create_cancel_btn" type="button"
-                  style="padding:10px 24px;font-size:14px;font-weight:600;color:#991b1b;
-                         background-color:#fee2e2;border:2px solid #991b1b;border-radius:8px;
-                         cursor:pointer;transition:all 0.2s;">
-            Cancel
-          </button>
-          <button id="create_save_btn" type="button"
-                  style="padding:10px 24px;font-size:14px;font-weight:600;color:#1e3a8a;
-                         background-color:#e0e7ff;border:2px solid #1e3a8a;border-radius:8px;
-                         cursor:pointer;transition:all 0.2s;">
-            Create Customer
-          </button>
-        </div>
-      </form>`,
-      width: '48rem',
+          <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 16px; display: flex; gap: 12px; justify-content: flex-end;">
+            <button type="button" class="btn btn-danger" id="create_cancel_btn">Cancel</button>
+            <button type="button" class="btn btn-primary" id="create_save_btn">Create Customer</button>
+          </div>
+        </form>
+      `,
+      width: '600px',
       showConfirmButton: false,
       showCancelButton: false,
       customClass: {
@@ -859,12 +1168,9 @@
 
           Swal.close();
           Swal.fire({
-            title: 'Creating…',
+            title: 'Creating...',
             allowOutsideClick: false,
-            didOpen: () => Swal.showLoading(),
-            customClass: {
-              popup: 'swal2-popup-high-z'
-            }
+            didOpen: () => Swal.showLoading()
           });
 
           fd.append('csrf_token', csrfToken);
@@ -876,24 +1182,25 @@
             .then(data => {
               if (data.success) {
                 Swal.fire({
-                    icon: 'success',
-                    title: 'Created!',
-                    text: data.message,
-                    confirmButtonColor: '#3085d6',
-                    customClass: {
-                      popup: 'swal2-popup-high-z'
-                    }
-                  })
-                  .then(() => fetchCustomers());
+                  icon: 'success',
+                  title: 'Created!',
+                  text: data.message,
+                  confirmButtonText: 'OK',
+                  customClass: {
+                    confirmButton: 'btn btn-primary'
+                  },
+                  buttonsStyling: false
+                }).then(() => fetchCustomers());
               } else {
                 Swal.fire({
                   icon: 'error',
                   title: 'Error',
                   text: data.message,
-                  confirmButtonColor: '#d33',
+                  confirmButtonText: 'OK',
                   customClass: {
-                    popup: 'swal2-popup-high-z'
-                  }
+                    confirmButton: 'btn btn-primary'
+                  },
+                  buttonsStyling: false
                 });
               }
             })
@@ -902,14 +1209,15 @@
                 icon: 'error',
                 title: 'Error',
                 text: 'An error occurred while creating the customer.',
-                confirmButtonColor: '#d33',
+                confirmButtonText: 'OK',
                 customClass: {
-                  popup: 'swal2-popup-high-z'
-                }
+                  confirmButton: 'btn btn-primary'
+                },
+                buttonsStyling: false
               });
             });
         });
-      },
+      }
     });
   }
 
@@ -917,27 +1225,24 @@
 
   function deleteCustomer(userId, customerName) {
     Swal.fire({
-      title: 'Are you sure?',
-      text: `You are about to delete: ${customerName}`,
+      title: 'Delete Customer',
+      text: `Are you sure you want to delete ${customerName}? This action cannot be undone.`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!',
+      confirmButtonText: 'Yes, delete',
       cancelButtonText: 'Cancel',
       customClass: {
-        popup: 'swal2-popup-high-z'
+        confirmButton: 'btn btn-danger',
+        cancelButton: 'btn btn-secondary'
       },
+      buttonsStyling: false
     }).then((result) => {
       if (!result.isConfirmed) return;
 
       Swal.fire({
-        title: 'Deleting…',
+        title: 'Deleting...',
         allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
-        customClass: {
-          popup: 'swal2-popup-high-z'
-        }
+        didOpen: () => Swal.showLoading()
       });
 
       fetch('../api/customers.php?action=delete', {
@@ -948,30 +1253,31 @@
           body: JSON.stringify({
             user_id: userId,
             csrf_token: csrfToken
-          }),
+          })
         })
         .then(r => r.json())
         .then(data => {
           if (data.success) {
             Swal.fire({
-                icon: 'success',
-                title: 'Deleted!',
-                text: data.message,
-                confirmButtonColor: '#3085d6',
-                customClass: {
-                  popup: 'swal2-popup-high-z'
-                }
-              })
-              .then(() => fetchCustomers());
+              icon: 'success',
+              title: 'Deleted!',
+              text: data.message,
+              confirmButtonText: 'OK',
+              customClass: {
+                confirmButton: 'btn btn-primary'
+              },
+              buttonsStyling: false
+            }).then(() => fetchCustomers());
           } else {
             Swal.fire({
               icon: 'error',
               title: 'Error',
               text: data.message,
-              confirmButtonColor: '#d33',
+              confirmButtonText: 'OK',
               customClass: {
-                popup: 'swal2-popup-high-z'
-              }
+                confirmButton: 'btn btn-primary'
+              },
+              buttonsStyling: false
             });
           }
         })
@@ -980,10 +1286,11 @@
             icon: 'error',
             title: 'Error',
             text: 'An error occurred while deleting the customer.',
-            confirmButtonColor: '#d33',
+            confirmButtonText: 'OK',
             customClass: {
-              popup: 'swal2-popup-high-z'
-            }
+              confirmButton: 'btn btn-primary'
+            },
+            buttonsStyling: false
           });
         });
     });
@@ -1286,284 +1593,4 @@
   /* ─── INIT ────────────────────────────────────────────────────────────── */
 
   document.addEventListener('DOMContentLoaded', fetchCustomers);
-
-  async function createCustomer() {
-    const regions = await fetchRegions();
-
-    Swal.fire({
-      title: 'Add New Customer',
-      html: `
-        <form id="createCustomerForm" class="text-left">
-          <div class="grid grid-cols-2 gap-3">
-            <div class="mb-3">
-              <label class="block text-sm font-semibold mb-1">First Name</label>
-              <input type="text" id="create_first_name" class="w-full px-3 py-2 border rounded-lg" required>
-            </div>
-            <div class="mb-3">
-              <label class="block text-sm font-semibold mb-1">Last Name</label>
-              <input type="text" id="create_last_name" class="w-full px-3 py-2 border rounded-lg" required>
-            </div>
-            <div class="mb-3">
-              <label class="block text-sm font-semibold mb-1">Email</label>
-              <input type="email" id="create_email" class="w-full px-3 py-2 border rounded-lg" required>
-            </div>
-            <div class="mb-3">
-              <label class="block text-sm font-semibold mb-1">Phone Number</label>
-              <input type="text" id="create_phone_number" class="w-full px-3 py-2 border rounded-lg">
-            </div>
-          </div>
-          
-          <div class="border-t pt-4 mt-4">
-            <h4 class="text-sm font-semibold mb-3 flex items-center gap-2">
-              <i class="fas fa-map-marker-alt text-slate-400"></i> Address
-            </h4>
-            <div class="grid grid-cols-2 gap-3">
-              <div class="mb-3">
-                <label class="block text-xs font-semibold mb-1">Region</label>
-                <input type="text" id="create_region_code" list="create_region_list" placeholder="Select or search region..." class="w-full px-3 py-2 border rounded-lg" onchange="onRegionChange('create_region_code')">
-                <datalist id="create_region_list"></datalist>
-              </div>
-              <div class="mb-3">
-                <label class="block text-xs font-semibold mb-1">Province</label>
-                <input type="text" id="create_province_code" list="create_province_list" placeholder="Select or search province..." class="w-full px-3 py-2 border rounded-lg" onchange="onProvinceChange('create_province_code')">
-                <datalist id="create_province_list"></datalist>
-              </div>
-              <div class="mb-3">
-                <label class="block text-xs font-semibold mb-1">City/Municipality</label>
-                <input type="text" id="create_city_municipality_code" list="create_city_list" placeholder="Select or search city..." class="w-full px-3 py-2 border rounded-lg" onchange="onCityChange('create_city_municipality_code')">
-                <datalist id="create_city_list"></datalist>
-              </div>
-              <div class="mb-3">
-                <label class="block text-xs font-semibold mb-1">Barangay</label>
-                <input type="text" id="create_barangay_code" list="create_barangay_list" placeholder="Select or search barangay..." class="w-full px-3 py-2 border rounded-lg">
-                <datalist id="create_barangay_list"></datalist>
-              </div>
-              <div class="mb-3 col-span-2">
-                <label class="block text-xs font-semibold mb-1">Address Line 1</label>
-                <input type="text" id="create_address_line1" class="w-full px-3 py-2 border rounded-lg" placeholder="House/Unit number, Street name">
-              </div>
-              <div class="mb-3">
-                <label class="block text-xs font-semibold mb-1">Address Line 2</label>
-                <input type="text" id="create_address_line2" class="w-full px-3 py-2 border rounded-lg" placeholder="Building, Subdivision, etc.">
-              </div>
-              <div class="mb-3">
-                <label class="block text-xs font-semibold mb-1">Postal Code</label>
-                <input type="text" id="create_postal_code" class="w-full px-3 py-2 border rounded-lg" placeholder="Zip code">
-              </div>
-            </div>
-          </div>
-          
-          <div class="border-t pt-4 mt-4">
-            <div class="mb-3">
-              <label class="block text-sm font-semibold mb-1">Password</label>
-              <input type="password" id="create_password" placeholder="Default: Customer@123" class="w-full px-3 py-2 border rounded-lg">
-            </div>
-          </div>
-        </form>
-      `,
-      width: '56rem',
-      didOpen: () => {
-        populateDatalist('create_region_list', regions);
-      },
-      confirmButtonText: 'Create Customer',
-      showCancelButton: true,
-      cancelButtonText: 'Cancel',
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      customClass: {
-        popup: 'swal2-popup-high-z'
-      },
-      preConfirm: () => {
-        const firstName = document.getElementById('create_first_name').value;
-        const lastName = document.getElementById('create_last_name').value;
-        const email = document.getElementById('create_email').value;
-        if (!firstName || !lastName || !email) {
-          Swal.showValidationMessage('Please fill in required fields');
-          return false;
-        }
-      }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        const formData = {
-          first_name: document.getElementById('create_first_name').value,
-          last_name: document.getElementById('create_last_name').value,
-          email: document.getElementById('create_email').value,
-          phone_number: document.getElementById('create_phone_number').value,
-          region_code: document.getElementById('create_region_code').dataset.code || document.getElementById('create_region_code').value || null,
-          province_code: document.getElementById('create_province_code').dataset.code || document.getElementById('create_province_code').value || null,
-          city_municipality_code: document.getElementById('create_city_municipality_code').dataset.code || document.getElementById('create_city_municipality_code').value || null,
-          barangay_code: document.getElementById('create_barangay_code').dataset.code || document.getElementById('create_barangay_code').value || null,
-          address_line1: document.getElementById('create_address_line1').value,
-          address_line2: document.getElementById('create_address_line2').value,
-          postal_code: document.getElementById('create_postal_code').value,
-          password: document.getElementById('create_password').value || null
-        };
-
-        Swal.fire({
-          title: 'Creating...',
-          text: 'Please wait while we create the customer.',
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          },
-          customClass: {
-            popup: 'swal2-popup-high-z'
-          }
-        });
-
-        fetch('../api/customers.php?action=create', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              ...formData,
-              csrf_token: csrfToken
-            })
-          })
-          .then(r => r.json())
-          .then(data => {
-            if (data.success) {
-              Swal.fire({
-                  icon: 'success',
-                  title: 'Created!',
-                  text: data.message,
-                  confirmButtonColor: '#3085d6',
-                  customClass: {
-                    popup: 'swal2-popup-high-z'
-                  }
-                })
-                .then(() => fetchCustomers());
-            } else {
-              Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: data.message,
-                confirmButtonColor: '#d33',
-                customClass: {
-                  popup: 'swal2-popup-high-z'
-                }
-              });
-            }
-          })
-          .catch(() => {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: 'An error occurred while creating the customer.',
-              confirmButtonColor: '#d33',
-              customClass: {
-                popup: 'swal2-popup-high-z'
-              }
-            });
-          });
-      }
-    });
-  }
-
-  function deleteCustomer(userId, customerName) {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: `You are about to delete the customer: ${customerName}`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
-      customClass: {
-        popup: 'swal2-popup-high-z'
-      }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        Swal.fire({
-          title: 'Deleting...',
-          text: 'Please wait while we delete the customer.',
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          },
-          customClass: {
-            popup: 'swal2-popup-high-z'
-          }
-        });
-
-        fetch('../api/customers.php?action=delete', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              user_id: userId,
-              csrf_token: csrfToken
-            })
-          })
-          .then(r => r.json())
-          .then(data => {
-            if (data.success) {
-              Swal.fire({
-                  icon: 'success',
-                  title: 'Deleted!',
-                  text: data.message,
-                  confirmButtonColor: '#3085d6',
-                  customClass: {
-                    popup: 'swal2-popup-high-z'
-                  }
-                })
-                .then(() => fetchCustomers());
-            } else {
-              Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: data.message,
-                confirmButtonColor: '#d33',
-                customClass: {
-                  popup: 'swal2-popup-high-z'
-                }
-              });
-            }
-          })
-          .catch(() => {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: 'An error occurred while deleting the customer.',
-              confirmButtonColor: '#d33',
-              customClass: {
-                popup: 'swal2-popup-high-z'
-              }
-            });
-          });
-      }
-    });
-  }
-</script>
-
-<script>
-  function filterTable() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const statusFilter = document.getElementById('statusFilter').value;
-
-    const rows = document.querySelectorAll('#customersTableBody .customer-row');
-    rows.forEach(row => {
-      const text = row.textContent.toLowerCase();
-      const statusCell = row.querySelector('td:nth-child(6) span');
-      const rowStatus = statusCell ? statusCell.textContent.trim().toLowerCase() : '';
-
-      const matchesSearch = text.includes(searchTerm);
-      const matchesStatus = statusFilter === '' || rowStatus === statusFilter;
-
-      row.style.display = matchesSearch && matchesStatus ? '' : 'none';
-    });
-  }
-
-  function openAddCustomerModal() {
-    // Implement add customer modal
-    Swal.fire({
-      title: 'Add New Customer',
-      text: 'Add customer functionality will be implemented here',
-      icon: 'info',
-      confirmButtonText: 'OK'
-    });
-  }
 </script>

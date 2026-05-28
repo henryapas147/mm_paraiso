@@ -534,7 +534,10 @@ VALUES
 (NULL, 'display', 'resort_name',                    'Resort display name',                  'Balay sa Dagat Resort', 'string', 1),
 (NULL, 'display', 'support_phone',                  'Customer support phone',               '+63822123456', 'string', 1),
 (NULL, 'display', 'support_email',                  'Customer support email',               'info@balaydagat.com', 'string', 1),
-(NULL, 'food_canteen', 'food_tax_rate_percent',          'Food/Canteen Tax Rate (%)',            '12',   'decimal', 1);
+(NULL, 'food_canteen', 'food_tax_rate_percent',          'Food/Canteen Tax Rate (%)',            '12',   'decimal', 1),
+(NULL, 'pricing', 'entrance_fee_hourly',              'Entrance Fee - Hourly (No Room)',      '150',  'decimal', 0),
+(NULL, 'pricing', 'entrance_fee_day_use',             'Entrance Fee - Day Use (No Room)',     '300',  'decimal', 0),
+(NULL, 'pricing', 'entrance_fee_overnight',           'Entrance Fee - Overnight (No Room)',   '500',  'decimal', 0);
 
 -- ============================================================================
 -- 20. BOOKING POLICIES

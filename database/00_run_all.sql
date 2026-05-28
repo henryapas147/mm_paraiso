@@ -58,6 +58,9 @@ SOURCE 10_company_information.sql;
 -- Step 12 — Add Company Geocode Foreign Key Constraints
 SOURCE 11_add_company_geocode_constraints.sql;
 
+-- Step 13 — Migrations
+SOURCE migrations/add_paid_to_payment_status.sql;
+
 -- ============================================================================
 -- FINAL VERIFICATION
 -- ============================================================================

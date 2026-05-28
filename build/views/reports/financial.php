@@ -1,4 +1,140 @@
 <?php if (false) {} ?>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+    /* ── Financial Reports Design System ── */
+    .fin-page {
+        --fin-bg-main: #f0f2f8;
+        --fin-bg-card: #ffffff;
+        --fin-text-primary: #1a1f36;
+        --fin-text-secondary: #6b7280;
+        --fin-text-muted: #9ca3af;
+        --fin-border: #e5e7eb;
+        --fin-accent-blue: #4f46e5;
+        --fin-accent-blue-light: #eef2ff;
+        --fin-accent-emerald: #10b981;
+        --fin-accent-rose: #f43f5e;
+        --fin-accent-orange: #f97316;
+        --fin-accent-violet: #8b5cf6;
+        --fin-shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+        --fin-shadow-md: 0 4px 16px rgba(0,0,0,.08);
+        --fin-radius: 16px;
+        --fin-radius-sm: 10px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: var(--fin-text-primary);
+    }
+
+    .fin-content { display: flex; flex-direction: column; gap: 24px; }
+
+    /* ── CARD ── */
+    .fin-page .card {
+        background: var(--fin-bg-card);
+        border: 1px solid var(--fin-border);
+        border-radius: var(--fin-radius);
+        box-shadow: var(--fin-shadow-sm);
+        overflow: hidden;
+    }
+    .fin-page .card-header {
+        padding: 18px 20px 14px;
+        border-bottom: 1px solid var(--fin-border);
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .fin-page .card-title { font-size: 15px; font-weight: 700; color: var(--fin-text-primary); }
+    .fin-page .card-body { padding: 20px; }
+
+    /* ── BUTTONS ── */
+    .fin-page .btn {
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 7px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all .18s;
+        border: 1.5px solid transparent;
+    }
+    .fin-page .btn-primary {
+        background: var(--fin-accent-blue-light);
+        color: var(--fin-accent-blue);
+        border-color: var(--fin-accent-blue);
+    }
+    .fin-page .btn-primary:hover {
+        background: var(--fin-accent-blue);
+        color: #fff;
+    }
+    .fin-page .btn-secondary {
+        background: var(--fin-bg-main);
+        color: var(--fin-text-secondary);
+        border-color: var(--fin-border);
+    }
+    .fin-page .btn-secondary:hover {
+        border-color: var(--fin-accent-blue);
+        color: var(--fin-accent-blue);
+    }
+
+    /* ── REPORT TYPES LIST ── */
+    .fin-page .report-list { display: flex; flex-direction: column; gap: 8px; }
+    .fin-page .report-item {
+        display: flex; align-items: center; gap: 12px;
+        padding: 12px 14px;
+        border-radius: var(--fin-radius-sm);
+        transition: background .18s;
+        cursor: pointer;
+    }
+    .fin-page .report-item:hover { background: var(--fin-bg-main); }
+    .fin-page .report-item.active { background: var(--fin-accent-blue-light); }
+    .fin-page .report-icon {
+        width: 38px; height: 38px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px;
+        background: var(--fin-accent-blue-light);
+        color: var(--fin-accent-blue);
+    }
+    .fin-page .report-name { font-size: 14px; font-weight: 600; color: var(--fin-text-primary); }
+    .fin-page .report-desc { font-size: 11px; color: var(--fin-text-muted); }
+
+    /* ── PERIOD GRID ── */
+    .fin-page .period-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .fin-page .period-btn {
+        padding: 16px 12px;
+        background: var(--fin-bg-main);
+        border: 1.5px solid var(--fin-border);
+        border-radius: var(--fin-radius-sm);
+        cursor: pointer;
+        transition: all .18s;
+        text-align: center;
+    }
+    .fin-page .period-btn:hover {
+        border-color: var(--fin-accent-blue);
+        background: var(--fin-accent-blue-light);
+    }
+    .fin-page .period-btn.active {
+        border-color: var(--fin-accent-blue);
+        background: var(--fin-accent-blue-light);
+    }
+    .fin-page .period-label { font-size: 13px; font-weight: 600; color: var(--fin-text-primary); }
+    .fin-page .period-sub { font-size: 11px; color: var(--fin-text-muted); }
+
+    /* ── STATS ROW ── */
+    .fin-page .stats-row { display: flex; gap: 16px; justify-content: center; margin-top: 24px; }
+    .fin-page .stat-box {
+        padding: 16px 20px;
+        background: var(--fin-bg-main);
+        border-radius: var(--fin-radius-sm);
+        text-align: center;
+    }
+    .fin-page .stat-label { font-size: 11px; color: var(--fin-text-muted); font-weight: 500; }
+    .fin-page .stat-value { font-size: 18px; font-weight: 700; font-family: 'DM Mono', monospace; margin-top: 4px; }
+    .fin-page .stat-value.emerald { color: var(--fin-accent-emerald); }
+    .fin-page .stat-value.rose { color: var(--fin-accent-rose); }
+    .fin-page .stat-value.blue { color: var(--fin-accent-blue); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+        .fin-page .period-grid { grid-template-columns: repeat(2, 1fr); }
+        .fin-page .stats-row { flex-direction: column; }
+    }
+</style>
+
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     loadFinancialSummary();
@@ -6,27 +142,26 @@
 
   async function loadFinancialSummary() {
     try {
-      // This would fetch P&L, balance sheet data
       document.getElementById('financialContent').innerHTML = `
-        <div class="p-8 text-center">
-          <i class="ni ni-paper-diploma text-6xl text-slate-300 mb-4"></i>
-          <h6 class="text-lg font-semibold text-slate-500 mb-2">Financial Reports</h6>
-          <p class="text-slate-400 max-w-md mx-auto">
+        <div style="padding: 48px 24px; text-align: center;">
+          <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
+          <h6 style="font-size: 18px; font-weight: 600; color: var(--fin-text-primary); margin-bottom: 8px;">Financial Reports</h6>
+          <p style="font-size: 13px; color: var(--fin-text-muted); max-width: 400px; margin: 0 auto; line-height: 1.6;">
             Comprehensive financial reports including Profit & Loss statements, 
             Balance Sheets, and Cash Flow analysis will be implemented here.
           </p>
-          <div class="mt-6 flex justify-center gap-4">
-            <div class="text-center px-4 py-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
-              <p class="text-xs text-slate-500 dark:text-slate-300">Revenue (YTD)</p>
-              <p class="text-lg font-bold text-emerald-500">₱0.00</p>
+          <div class="stats-row">
+            <div class="stat-box">
+              <p class="stat-label">Revenue (YTD)</p>
+              <p class="stat-value emerald">₱0.00</p>
             </div>
-            <div class="text-center px-4 py-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
-              <p class="text-xs text-slate-500 dark:text-slate-300">Expenses (YTD)</p>
-              <p class="text-lg font-bold text-red-500">₱0.00</p>
+            <div class="stat-box">
+              <p class="stat-label">Expenses (YTD)</p>
+              <p class="stat-value rose">₱0.00</p>
             </div>
-            <div class="text-center px-4 py-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
-              <p class="text-xs text-slate-500 dark:text-slate-300">Net Profit</p>
-              <p class="text-lg font-bold text-blue-500">₱0.00</p>
+            <div class="stat-box">
+              <p class="stat-label">Net Profit</p>
+              <p class="stat-value blue">₱0.00</p>
             </div>
           </div>
         </div>
@@ -37,98 +172,96 @@
   }
 </script>
 
-<div class="flex flex-wrap -mx-3 mb-6">
-  <div class="w-full max-w-full px-3">
-    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 rounded-2xl">
-      <div class="p-4 pb-0 mb-0 rounded-t-2xl border-b border-slate-200 dark:border-slate-700">
-        <div class="flex items-center justify-between">
-          <h6 class="mb-0 dark:text-white">Financial Reports</h6>
-          <div class="flex gap-2">
-            <button class="px-3 py-1.5 text-xs font-semibold text-blue-500 bg-white border border-blue-500 rounded-lg hover:bg-blue-50">
-              P&L Statement
-            </button>
-            <button class="px-3 py-1.5 text-xs font-semibold text-slate-500 bg-white border border-slate-300 rounded-lg hover:bg-slate-50">
-              Balance Sheet
-            </button>
-            <button class="px-3 py-1.5 text-xs font-semibold text-slate-500 bg-white border border-slate-300 rounded-lg hover:bg-slate-50">
-              Cash Flow
-            </button>
+<div class="fin-page">
+<div class="fin-content">
+
+  <!-- Main Card -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Financial Reports</div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-primary">P&L Statement</button>
+        <button class="btn btn-secondary">Balance Sheet</button>
+        <button class="btn btn-secondary">Cash Flow</button>
+      </div>
+    </div>
+    <div class="card-body" id="financialContent">
+      <div style="padding: 32px; text-align: center;">
+        <p style="color: var(--fin-text-muted);">Loading financial data...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row: Report Types + Period Selection -->
+  <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px;">
+
+    <!-- Report Types -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Report Types</div>
+      </div>
+      <div class="card-body">
+        <div class="report-list">
+          <div class="report-item active">
+            <div class="report-icon">💰</div>
+            <div>
+              <div class="report-name">Profit & Loss</div>
+              <div class="report-desc">Income vs Expenses</div>
+            </div>
+          </div>
+          <div class="report-item">
+            <div class="report-icon" style="background: var(--fin-bg-main); color: var(--fin-text-secondary);">⚖️</div>
+            <div>
+              <div class="report-name">Balance Sheet</div>
+              <div class="report-desc">Assets, Liabilities, Equity</div>
+            </div>
+          </div>
+          <div class="report-item">
+            <div class="report-icon" style="background: var(--fin-bg-main); color: var(--fin-text-secondary);">📈</div>
+            <div>
+              <div class="report-name">Cash Flow</div>
+              <div class="report-desc">Operating, Investing, Financing</div>
+            </div>
+          </div>
+          <div class="report-item">
+            <div class="report-icon" style="background: var(--fin-bg-main); color: var(--fin-text-secondary);">📊</div>
+            <div>
+              <div class="report-name">Tax Reports</div>
+              <div class="report-desc">VAT, Sales Tax summaries</div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="p-0" id="financialContent">
-        <div class="p-8 text-center">
-          <p class="text-slate-400">Loading financial data...</p>
+    </div>
+
+    <!-- Period Selection -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Period Selection</div>
+      </div>
+      <div class="card-body">
+        <div class="period-grid">
+          <div class="period-btn active">
+            <div class="period-label">This Month</div>
+            <div class="period-sub">Oct 2026</div>
+          </div>
+          <div class="period-btn">
+            <div class="period-label">Last Month</div>
+            <div class="period-sub">Sep 2026</div>
+          </div>
+          <div class="period-btn">
+            <div class="period-label">This Quarter</div>
+            <div class="period-sub">Q4 2026</div>
+          </div>
+          <div class="period-btn">
+            <div class="period-label">This Year</div>
+            <div class="period-sub">2026</div>
+          </div>
         </div>
       </div>
     </div>
+
   </div>
+
 </div>
-
-<div class="flex flex-wrap -mx-3">
-  <div class="w-full max-w-full px-3 lg:w-1/3">
-    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 rounded-2xl">
-      <div class="p-4">
-        <h6 class="mb-4 text-sm font-semibold dark:text-white">Report Types</h6>
-        <ul class="space-y-2">
-          <li class="flex items-center p-3 rounded-lg bg-blue-50 dark:bg-slate-700">
-            <i class="ni ni-money-coins text-blue-500 mr-3"></i>
-            <div>
-              <p class="text-sm font-semibold dark:text-white">Profit & Loss</p>
-              <p class="text-xs text-slate-500">Income vs Expenses</p>
-            </div>
-          </li>
-          <li class="flex items-center p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer">
-            <i class="ni ni-balance text-slate-500 mr-3"></i>
-            <div>
-              <p class="text-sm font-semibold dark:text-white">Balance Sheet</p>
-              <p class="text-xs text-slate-500">Assets, Liabilities, Equity</p>
-            </div>
-          </li>
-          <li class="flex items-center p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer">
-            <i class="ni ni-chart-bar-32 text-slate-500 mr-3"></i>
-            <div>
-              <p class="text-sm font-semibold dark:text-white">Cash Flow</p>
-              <p class="text-xs text-slate-500">Operating, Investing, Financing</p>
-            </div>
-          </li>
-          <li class="flex items-center p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer">
-            <i class="ni ni-chart-pie-35 text-slate-500 mr-3"></i>
-            <div>
-              <p class="text-sm font-semibold dark:text-white">Tax Reports</p>
-              <p class="text-xs text-slate-500">VAT, Sales Tax summaries</p>
-            </div>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <div class="w-full max-w-full px-3 lg:w-2/3">
-    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 rounded-2xl">
-      <div class="p-4 pb-0 mb-0 rounded-t-2xl">
-        <h6 class="mb-0 dark:text-white">Period Selection</h6>
-      </div>
-      <div class="p-4">
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <button class="p-4 text-center border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-700 hover:border-blue-300 transition-all">
-            <p class="text-sm font-semibold dark:text-white">This Month</p>
-            <p class="text-xs text-slate-500">Oct 2026</p>
-          </button>
-          <button class="p-4 text-center border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-700 hover:border-blue-300 transition-all">
-            <p class="text-sm font-semibold dark:text-white">Last Month</p>
-            <p class="text-xs text-slate-500">Sep 2026</p>
-          </button>
-          <button class="p-4 text-center border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-700 hover:border-blue-300 transition-all">
-            <p class="text-sm font-semibold dark:text-white">This Quarter</p>
-            <p class="text-xs text-slate-500">Q4 2026</p>
-          </button>
-          <button class="p-4 text-center border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-700 hover:border-blue-300 transition-all">
-            <p class="text-sm font-semibold dark:text-white">This Year</p>
-            <p class="text-xs text-slate-500">2026</p>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>

@@ -29,6 +29,30 @@ try {
         ");
         $reservations = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => $reservations]);
+      } else if ($action === 'my_reservations') {
+        $userId = $_SESSION['user_id'] ?? null;
+        if (!$userId) {
+          echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+          exit;
+        }
+        $stmt = $pdo->prepare("
+          SELECT
+            r.*,
+            p.property_name,
+            p.property_code,
+            CONCAT(COALESCE(r.walkin_first_name, up.first_name), ' ', COALESCE(r.walkin_last_name, up.last_name)) as guest_name,
+            COALESCE(r.walkin_email, ua.email) as guest_email,
+            COALESCE(r.walkin_phone, ua.phone_number) as guest_phone
+          FROM reservations r
+          LEFT JOIN properties p ON r.property_id = p.property_id
+          LEFT JOIN user_accounts ua ON r.customer_user_id = ua.user_id
+          LEFT JOIN user_profiles up ON r.customer_user_id = up.user_id
+          WHERE r.customer_user_id = ?
+          ORDER BY r.check_in_date DESC
+        ");
+        $stmt->execute([$userId]);
+        $reservations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(['success' => true, 'data' => $reservations]);
       } else if ($action === 'single' && isset($_GET['id'])) {
         $stmt = $pdo->prepare("
           SELECT r.*, p.property_name,
@@ -101,7 +125,9 @@ try {
             check_in_date = ?, check_in_time = ?,
             check_out_date = ?, check_out_time = ?,
             num_adults = ?, num_children = ?, num_infants = ?, num_seniors = ?,
-            total_amount = ?, special_requests = ?, updated_at = NOW()
+            total_amount = ?, special_requests = ?,
+            walkin_first_name = ?, walkin_last_name = ?, walkin_email = ?, walkin_phone = ?,
+            updated_at = NOW()
           WHERE reservation_id = ?
         ");
         $stmt->execute([
@@ -117,6 +143,10 @@ try {
           $data['num_seniors'],
           $data['total_amount'],
           $data['special_requests'] ?? null,
+          $data['first_name'] ?? null,
+          $data['last_name'] ?? null,
+          $data['email'] ?? null,
+          $data['phone'] ?? null,
           $data['reservation_id'],
         ]);
         echo json_encode(['success' => true, 'message' => 'Reservation updated successfully']);
@@ -189,6 +219,179 @@ try {
         }
         
         echo json_encode(['success' => true, 'message' => 'Reservation status updated successfully']);
+      } else if ($action === 'create_walkin') {
+        $pdo->beginTransaction();
+        
+        // Generate reservation code
+        $reservationCode = 'RES-' . strtoupper(substr(uniqid(), -8));
+        $reservationId = 'res-' . uniqid();
+        
+        // Calculate payment status
+        $totalAmount = floatval($data['totalAmount']);
+        $paymentAmount = floatval($data['paymentAmount']);
+        $balanceAmount = $totalAmount - $paymentAmount;
+        
+        if ($paymentAmount >= $totalAmount) {
+          $paymentStatus = 'paid';
+        } elseif ($paymentAmount > 0) {
+          $paymentStatus = 'partial';
+        } else {
+          $paymentStatus = 'unpaid';
+        }
+        
+        // Set check-out date/time based on booking type
+        $checkOutDate = null;
+        $checkOutTime = null;
+        $durationHours = null;
+        
+        if ($data['bookingType'] === 'hourly') {
+          $durationHours = floatval($data['duration']);
+          // Calculate check-out date/time from check-in + duration
+          $checkInDateTime = new DateTime($data['checkInDate'] . ' ' . $data['checkInTime']);
+          $checkInDateTime->modify('+ ' . $durationHours . ' hours');
+          $checkOutDate = $checkInDateTime->format('Y-m-d');
+          $checkOutTime = $checkInDateTime->format('H:i:s');
+        } else {
+          $checkOutDate = $data['checkOutDate'];
+          $checkOutTime = $data['checkOutTime'];
+        }
+        
+        // Create reservation
+        $stmt = $pdo->prepare("
+          INSERT INTO reservations (
+            reservation_id, reservation_code, property_id, customer_user_id,
+            booking_type, reservation_status, payment_status,
+            check_in_date, check_in_time, check_out_date, check_out_time,
+            duration_hours, actual_check_in_at,
+            num_adults, num_children, num_seniors, num_infants,
+            walkin_first_name, walkin_last_name, walkin_email, walkin_phone,
+            total_amount, paid_amount, balance_amount, special_requests,
+            source_channel, created_at, updated_at
+          ) VALUES (?, ?, ?, NULL, ?, 'checked_in', ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'walkin', NOW(), NOW())
+        ");
+        $stmt->execute([
+          $reservationId,
+          $reservationCode,
+          $data['propertyId'],
+          $data['bookingType'],
+          $paymentStatus,
+          $data['checkInDate'],
+          $data['checkInTime'],
+          $checkOutDate,
+          $checkOutTime,
+          $durationHours,
+          $data['adults'],
+          $data['children'],
+          $data['seniors'],
+          $data['infants'],
+          $data['firstName'],
+          $data['lastName'],
+          $data['email'] ?? null,
+          $data['phone'],
+          $totalAmount,
+          $paymentAmount,
+          $balanceAmount,
+          $data['notes'] ?? null
+        ]);
+        
+        $resRoomId = null; // Will be set if room is selected
+        
+        // Only create reservation_room if a room was selected
+        if (!empty($data['roomId'])) {
+          // Get room details
+          $roomStmt = $pdo->prepare("SELECT * FROM rooms WHERE room_id = ?");
+          $roomStmt->execute([$data['roomId']]);
+          $room = $roomStmt->fetch(PDO::FETCH_ASSOC);
+          
+          if ($room) {
+            // Create reservation_room
+            $resRoomId = 'rr-' . uniqid();
+            $roomTotal = $totalAmount;
+            
+            $rrStmt = $pdo->prepare("
+              INSERT INTO reservation_rooms (
+                res_room_id, reservation_id, room_id, category_id,
+                booking_type, price_per_night, price_per_hour,
+                num_nights, num_hours, room_total,
+                room_status, actual_check_in_at
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'checked_in', NOW())
+            ");
+            $rrStmt->execute([
+              $resRoomId,
+              $reservationId,
+              $data['roomId'],
+              $room['category_id'] ?? null,
+              $data['bookingType'],
+              $roomTotal,
+              $roomTotal,
+              1,
+              $durationHours ?? 0,
+              $roomTotal
+            ]);
+          }
+        }
+        
+        // Add primary guest to reservation_guests
+        $guestId = 'guest-' . uniqid();
+        $guestStmt = $pdo->prepare("
+          INSERT INTO reservation_guests (
+            res_guest_id, reservation_id, guest_type, first_name, last_name,
+            created_at, updated_at
+          ) VALUES (?, ?, 'primary', ?, ?, NOW(), NOW())
+        ");
+        $guestStmt->execute([
+          $guestId,
+          $reservationId,
+          $data['firstName'],
+          $data['lastName']
+        ]);
+        
+        // Create payment if amount > 0
+        if ($paymentAmount > 0) {
+          $paymentId = 'pay-' . uniqid();
+          
+          // Get payment method ID from code
+          $methodStmt = $pdo->prepare("SELECT method_id FROM payment_methods WHERE method_code = ? AND is_active = 1");
+          $methodStmt->execute([$data['paymentMethod']]);
+          $method = $methodStmt->fetch(PDO::FETCH_ASSOC);
+          $methodId = $method ? $method['method_id'] : null;
+          
+          $payStmt = $pdo->prepare("
+            INSERT INTO payments (
+              payment_id, reservation_id, method_id, transaction_type, amount,
+              reference_number, payment_status, payment_date, payment_time,
+              created_at, updated_at
+            ) VALUES (?, ?, ?, 'payment', ?, ?, 'paid', ?, ?, NOW(), NOW())
+          ");
+          $payStmt->execute([
+            $paymentId,
+            $reservationId,
+            $methodId,
+            $paymentAmount,
+            $data['reference'] ?? null,
+            $data['checkInDate'],
+            $data['checkInTime']
+          ]);
+        }
+        
+        // Create check-in log
+        $logId = 'log-' . uniqid();
+        $logStmt = $pdo->prepare("
+          INSERT INTO check_in_logs (
+            log_id, reservation_id, res_room_id, event_type, event_at,
+            processed_by, notes, created_at
+          ) VALUES (?, ?, ?, 'walk_in_check_in', NOW(), ?, ?, NOW())
+        ");
+        $logStmt->execute([
+          $logId,
+          $reservationId,
+          $resRoomId, // Can be null if no room selected
+          $_SESSION['user_id'] ?? null,
+          $data['notes'] ?? null
+        ]);
+        
+        $pdo->commit();
+        echo json_encode(['success' => true, 'message' => 'Walk-in check-in successful', 'reservation_id' => $reservationId, 'reservation_code' => $reservationCode]);
       }
       break;
 

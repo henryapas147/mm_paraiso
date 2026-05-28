@@ -2,24 +2,551 @@
 // Dynamic default profile image path based on environment
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'];
-$basePath = dirname($_SERVER['SCRIPT_NAME']); // Gets /admin_booking/build or equivalent
+$basePath = dirname($_SERVER['SCRIPT_NAME']);
 $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
 ?>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0 }
+
+  body {
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background: #f5f5f5;
+    color: #1a1a1a
+  }
+
+  .page {
+    padding: 24px;
+    max-width: 100%;
+    margin: 0 auto
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px
+  }
+
+  @media (max-width: 768px) {
+    .stats-grid {
+      grid-template-columns: 1fr
+    }
+  }
+
+  .stat-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px
+  }
+
+  .stat-card .icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0
+  }
+
+  .stat-card .icon.violet {
+    background: #E0E7FF;
+    color: #5B21B6
+  }
+
+  .stat-card .icon.emerald {
+    background: #D1FAE5;
+    color: #047857
+  }
+
+  .stat-card .icon.red {
+    background: #FEE2E2;
+    color: #DC2626
+  }
+
+  .stat-card .label {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 4px
+  }
+
+  .stat-card .value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap
+  }
+
+  .card-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    font-weight: 600;
+    font-style: italic
+  }
+
+  .card-body {
+    padding: 0;
+    overflow-x: auto
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    width: 100%
+  }
+
+  .controls-left, .controls-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap
+  }
+
+  .search-input {
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 13px;
+    width: 240px
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: #185FA5
+  }
+
+  select {
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 13px;
+    background: #fff
+  }
+
+  .btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all .2s
+  }
+
+  .btn-primary {
+    background: #185FA5;
+    color: #fff
+  }
+
+  .btn-primary:hover {
+    background: #145090
+  }
+
+  .btn-secondary {
+    background: #fff;
+    color: #1a1a1a;
+    border: 1px solid #e0e0e0
+  }
+
+  .btn-secondary:hover {
+    background: #f5f5f5
+  }
+
+  .btn-success {
+    background: #059669;
+    color: #fff
+  }
+
+  .btn-success:hover {
+    background: #047857
+  }
+
+  .btn-danger {
+    background: #DC2626;
+    color: #fff
+  }
+
+  .btn-danger:hover {
+    background: #B91C1C
+  }
+
+  .btn-amber {
+    background: #D97706;
+    color: #fff
+  }
+
+  .btn-amber:hover {
+    background: #B45309
+  }
+
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 12px
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse
+  }
+
+  th, td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 13px
+  }
+
+  th {
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px
+  }
+
+  tr:hover {
+    background: #f9f9f9
+  }
+
+  .user-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover
+  }
+
+  .user-avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #E0E7FF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #5B21B6;
+    font-size: 16px
+  }
+
+  .user-info .name {
+    font-weight: 500;
+    color: #1a1a1a
+  }
+
+  .user-info .email {
+    font-size: 12px;
+    color: #666
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px
+  }
+
+  .role-super_admin {
+    background: #4C1D95;
+    color: #fff
+  }
+
+  .role-admin {
+    background: #1E40AF;
+    color: #fff
+  }
+
+  .role-front_desk {
+    background: #0E7490;
+    color: #fff
+  }
+
+  .role-housekeeping {
+    background: #047857;
+    color: #fff
+  }
+
+  .role-canteen_staff {
+    background: #C2410C;
+    color: #fff
+  }
+
+  .role-security {
+    background: #374151;
+    color: #fff
+  }
+
+  .role-customer {
+    background: #475569;
+    color: #fff
+  }
+
+  .status-active {
+    background: #D1FAE5;
+    color: #059669
+  }
+
+  .status-inactive {
+    background: #F5F5F5;
+    color: #666
+  }
+
+  .status-suspended {
+    background: #FEE2E2;
+    color: #DC2626
+  }
+
+  .actions {
+    display: flex;
+    gap: 8px
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: #666
+  }
+
+  .empty-state i {
+    font-size: 48px;
+    color: #e0e0e0;
+    margin-bottom: 16px
+  }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center
+  }
+
+  .modal-overlay.active {
+    display: flex
+  }
+
+  .modal {
+    background: #fff;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto
+  }
+
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between
+  }
+
+  .modal-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    font-weight: 600;
+    font-style: italic
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #666
+  }
+
+  .modal-body {
+    padding: 20px
+  }
+
+  .modal-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px
+  }
+
+  .form-group {
+    margin-bottom: 16px
+  }
+
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 4px
+  }
+
+  .form-input, .form-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 13px
+  }
+
+  .form-input:focus, .form-select:focus {
+    outline: none;
+    border-color: #185FA5
+  }
+
+  .form-input:disabled {
+    background: #f5f5f5;
+    color: #666
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px
+  }
+
+  @media (max-width: 640px) {
+    .form-grid {
+      grid-template-columns: 1fr
+    }
+  }
+
+  .photo-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 24px
+  }
+
+  .photo-preview img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #e0e0e0
+  }
+
+  .photo-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px
+  }
+
+  .photo-actions label {
+    font-size: 12px;
+    color: #185FA5;
+    cursor: pointer
+  }
+
+  .photo-actions label input {
+    display: none
+  }
+
+  .photo-actions button {
+    font-size: 12px;
+    color: #DC2626;
+    background: none;
+    border: none;
+    cursor: pointer
+  }
+
+  .crop-area {
+    display: none;
+    margin-top: 16px;
+    padding: 16px;
+    background: #f9f9f9;
+    border-radius: 8px
+  }
+
+  .crop-area img {
+    max-width: 100%;
+    display: block
+  }
+
+  .crop-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 12px
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px
+  }
+
+  .info-item {
+    padding: 12px;
+    background: #f9f9f9;
+    border-radius: 6px
+  }
+
+  .info-label {
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 4px
+  }
+
+  .info-value {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1a1a1a
+  }
+</style>
+
 <script>
   let usersData = [];
   let croppedImageData = null;
   let csrfToken = '';
+  const cropperInstances = {};
 
-  // Default profile image path from PHP
   const DEFAULT_PROFILE_PATH = '<?php echo $defaultProfilePath; ?>';
 
-  // Normalize profile photo URL based on environment
   function normalizeProfilePhotoUrl(url) {
     if (!url || url.includes('default_profile')) {
       return DEFAULT_PROFILE_PATH;
     }
-
-    // If URL is already absolute (starts with http:// or https://), return as-is
     if (url.startsWith('http://') || url.startsWith('https://')) {
       return url;
     }
@@ -29,145 +556,57 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
       window.location.hostname.match(/^192\.168\./) ||
       window.location.hostname.match(/^10\./);
 
-    const basePath = '<?php echo $basePath; ?>';
-
-    // Ensure path starts with /
     if (!url.startsWith('/')) {
       url = '/' + url;
     }
 
     if (isLocalhost) {
-      // Localhost expects /admin_booking/uploads/profile_photos/
-      if (url.startsWith('/admin_booking/uploads/profile_photos/')) {
-        return url;
-      }
-      // Convert Hostinger path to localhost path
+      if (url.startsWith('/../uploads/profile_photos/')) return url;
       if (url.startsWith('/uploads/profile_photos/')) {
-        const filename = url.split('/').pop();
-        return '/admin_booking/uploads/profile_photos/' + filename;
+        return '/../uploads/profile_photos/' + url.split('/').pop();
       }
-      // Handle old /build/assets/images/ format
       if (url.startsWith('/build/assets/images/uploads/profile_photos/')) {
-        const filename = url.split('/').pop();
-        return '/admin_booking/uploads/profile_photos/' + filename;
+        return '/../uploads/profile_photos/' + url.split('/').pop();
       }
     } else {
-      // Hostinger expects /uploads/profile_photos/
-      if (url.startsWith('/uploads/profile_photos/')) {
-        return url;
+      if (url.startsWith('/uploads/profile_photos/')) return url;
+      if (url.startsWith('/../uploads/profile_photos/')) {
+        return '/uploads/profile_photos/' + url.split('/').pop();
       }
-      // Convert localhost path to Hostinger path
-      if (url.startsWith('/admin_booking/uploads/profile_photos/')) {
-        const filename = url.split('/').pop();
-        return '/uploads/profile_photos/' + filename;
-      }
-      // Handle old /build/assets/images/ format
       if (url.startsWith('/build/assets/images/uploads/profile_photos/')) {
-        const filename = url.split('/').pop();
-        return '/uploads/profile_photos/' + filename;
+        return '/uploads/profile_photos/' + url.split('/').pop();
       }
     }
-
     return url;
   }
 
-  const cropperInstances = {};
-
-  function getPhotoPreviewHtml(photoUrl, previewId, showRemove = false, fallbackInitial = '?') {
-    const imgOrIcon = photoUrl ?
-      `<img src="${photoUrl}" class="w-full h-full object-cover">` :
-      `<i class="fas fa-user text-2xl text-slate-400"></i>`;
-
-    const removeButton = showRemove && photoUrl ?
-      `<button type="button" onclick="removePhoto('${previewId}', '${fallbackInitial}')" class="text-xs text-red-500 hover:text-red-700"><i class="fas fa-trash mr-1"></i>Remove</button>` :
-      '';
-
-    return `
-      <div id="${previewId}" class="w-16 h-16 rounded-full overflow-hidden border-3 border-slate-200 shadow-md flex items-center justify-center bg-slate-100">
-        ${imgOrIcon}
-      </div>
-      <div class="flex gap-2 mt-2">
-        <label class="cursor-pointer text-xs text-indigo-600 font-semibold hover:text-indigo-800">
-          <i class="fas fa-camera mr-1"></i>${showRemove ? 'Change' : 'Upload'}
-          <input type="file" id="${previewId.replace('_preview', '')}" accept="image/*" class="hidden" onchange="previewPhoto(this, '${previewId}', '${fallbackInitial}')">
-        </label>
-        ${removeButton}
-      </div>
-      <div id="${previewId}_cropArea" style="display:none;" class="mt-4 w-full bg-slate-50 p-4 rounded-lg border border-slate-200">
-        <div style="max-height: 300px; overflow: hidden;">
-          <img id="${previewId}_cropImg" style="max-width:100%; display:block;">
-        </div>
-        <div class="flex gap-3 mt-4 justify-center">
-          <button type="button" onclick="applyCrop('${previewId}')"
-            class="px-4 py-2 text-sm font-semibold text-white bg-slate-700 rounded-lg hover:bg-slate-800 shadow-md">
-            <i class="fas fa-check mr-2"></i>Apply Crop
-          </button>
-          <button type="button" onclick="cancelCrop('${previewId}')"
-            class="px-4 py-2 text-sm font-semibold text-white bg-slate-500 rounded-lg hover:bg-slate-600 shadow-md">
-            <i class="fas fa-times mr-2"></i>Cancel
-          </button>
-        </div>
-      </div>
-    `;
-  }
-
-  function getFormFieldHtml(id, label, value = '', type = 'text', disabled = false, required = false) {
-    const disabledAttr = disabled ? 'disabled' : '';
-    const requiredAttr = required ? 'required' : '';
-    const extraClasses = disabled ? 'border-slate-200 bg-slate-100 text-slate-500' : 'border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent';
-    return `
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">${label}</label>
-        <input type="${type}" id="${id}" value="${value}" ${disabledAttr} ${requiredAttr} class="w-full px-3 py-2 text-sm border ${extraClasses} rounded-lg focus:outline-none">
-      </div>
-    `;
-  }
-
-  function getSelectFieldHtml(id, label, options, selectedValue = '') {
-    const optionsHtml = options.map(opt =>
-      `<option value="${opt.value}" ${opt.value == selectedValue ? 'selected' : ''}>${opt.label}</option>`
-    ).join('');
-    return `
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">${label}</label>
-        <select id="${id}" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-          ${optionsHtml}
-        </select>
-      </div>
-    `;
-  }
-
-  function getCommonSwalConfig() {
-    return {
-      customClass: {
-        popup: 'swal2-popup-high-z',
-        confirmButton: 'inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-slate-700 hover:bg-slate-800 rounded-lg shadow-sm transition-all duration-200 dark:bg-slate-600 dark:hover:bg-slate-500 whitespace-nowrap mr-2',
-        cancelButton: 'inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-slate-500 hover:bg-slate-600 rounded-lg shadow-sm transition-all duration-200 dark:bg-slate-700 dark:hover:bg-slate-600 whitespace-nowrap'
-      },
-      buttonsStyling: false
+  function getRoleBadgeClass(roleCode) {
+    const classes = {
+      'super_admin': 'role-super_admin',
+      'admin': 'role-admin',
+      'front_desk': 'role-front_desk',
+      'housekeeping': 'role-housekeeping',
+      'canteen_staff': 'role-canteen_staff',
+      'security': 'role-security',
+      'customer': 'role-customer'
     };
+    return classes[roleCode] || 'role-customer';
   }
 
-  function getRoleBadgeStyle(roleCode) {
-    const gradients = {
-      'super_admin': 'linear-gradient(310deg, #1e1b4b, #4c1d95)', // deep indigo-violet — elite authority
-      'admin': 'linear-gradient(310deg, #1e3a5f, #1d4ed8)', // navy-royal blue — trusted leadership
-      'front_desk': 'linear-gradient(310deg, #0f4c75, #0891b2)', // deep ocean — approachable & sharp
-      'housekeeping': 'linear-gradient(310deg, #064e3b, #047857)', // deep forest green — clean & grounded
-      'canteen_staff': 'linear-gradient(310deg, #7c2d12, #c2410c)', // deep burnt orange — bold & warm
-      'security': 'linear-gradient(310deg, #1c1917, #44403c)', // dark charcoal — serious & strong
-      'customer': 'linear-gradient(310deg, #1e293b, #334155)', // dark slate — neutral & modern
+  function getStatusBadgeClass(status) {
+    const classes = {
+      'active': 'status-active',
+      'inactive': 'status-inactive',
+      'suspended': 'status-suspended'
     };
-    return gradients[roleCode] || gradients['customer'];
+    return classes[status] || 'status-inactive';
   }
 
   async function fetchCsrfToken() {
     try {
       const res = await fetch('api/users.php?action=csrf_token');
       const json = await res.json();
-      if (json.success) {
-        csrfToken = json.csrf_token;
-      }
+      if (json.success) csrfToken = json.csrf_token;
     } catch (e) {
       console.error('Error fetching CSRF token:', e);
     }
@@ -199,107 +638,102 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
   function renderTable() {
     const tbody = document.getElementById('usersTableBody');
     if (!usersData.length) {
-      tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400 dark:text-white/60">No users found.</td></tr>`;
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="empty-state">
+            <i class="fas fa-users"></i>
+            <p>No users found.</p>
+          </td>
+        </tr>`;
       return;
     }
-    tbody.innerHTML = usersData.map(user => `
-      <tr class="user-row">
-        <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-          <div class="flex items-center">
-            <div class="inline-flex items-center justify-center w-10 h-10 mr-4 text-sm text-white bg-gradient-to-tl from-indigo-500 to-violet-500 rounded-circle overflow-hidden flex-shrink-0">
-              <img src="${normalizeProfilePhotoUrl(user.profile_photo_url)}" alt="avatar" class="w-full h-full object-cover rounded-circle">
+    tbody.innerHTML = usersData.map(user => {
+      const photoUrl = normalizeProfilePhotoUrl(user.profile_photo_url);
+      const roleClass = getRoleBadgeClass(user.role_code);
+      const statusClass = getStatusBadgeClass(user.account_status);
+      const lastLogin = user.last_login_at ?
+        new Date(user.last_login_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) :
+        'Never';
+      const created = new Date(user.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
+
+      return `
+        <tr class="user-row">
+          <td>
+            <div class="user-cell">
+              <img src="${photoUrl}" alt="" class="user-avatar" onerror="this.src='${DEFAULT_PROFILE_PATH}'">
+              <div class="user-info">
+                <div class="name">${user.first_name || ''} ${user.last_name || ''}</div>
+                <div class="email">${user.email}</div>
+              </div>
             </div>
-            <div>
-              <p class="mb-0 text-sm font-semibold leading-tight dark:text-white">${user.first_name || ''} ${user.last_name || ''}</p>
-              <p class="mb-0 text-xs leading-tight text-slate-400 dark:text-white/60">${user.email}</p>
+          </td>
+          <td>
+            <span class="badge ${roleClass}">${user.role_label || user.role_code || '-'}</span>
+          </td>
+          <td>${user.phone_number || '-'}</td>
+          <td>${lastLogin}</td>
+          <td>${created}</td>
+          <td style="text-align: center">
+            <span class="badge ${statusClass}">${user.account_status || 'unknown'}</span>
+          </td>
+          <td>
+            <div class="actions">
+              <button class="btn btn-secondary btn-sm" onclick="viewUser('${user.user_id}')">
+                <i class="fas fa-eye"></i> View
+              </button>
+              <button class="btn btn-amber btn-sm" onclick="editUser('${user.user_id}')">
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="deleteUser('${user.user_id}')">
+                <i class="fas fa-trash"></i> Delete
+              </button>
             </div>
-          </div>
-        </td>
-        <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-          <span style="background: ${getRoleBadgeStyle(user.role_code)};" class="px-4 text-sm rounded-1.8 py-2 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">
-            ${user.role_label || user.role_code || '-'}
-          </span>
-        </td>
-        <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-          <p class="mb-0 text-sm font-semibold leading-tight dark:text-white">${user.phone_number || '-'}</p>
-        </td>
-        <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-          <p class="mb-0 text-sm font-semibold leading-tight dark:text-white">${user.last_login_at ? new Date(user.last_login_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : 'Never'}</p>
-        </td>
-        <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-          <p class="mb-0 text-sm font-semibold leading-tight dark:text-white">${new Date(user.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</p>
-        </td>
-        <td class="p-4 text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-          <span style="background: ${
-            user.account_status === 'active'    ? 'linear-gradient(310deg, #2dce89, #2dcecc)' :
-            user.account_status === 'suspended' ? 'linear-gradient(310deg, #f53939, #fb6340)' :
-                                                  'linear-gradient(310deg, #67748e, #8392ab)'
-          };" class="px-4 text-sm rounded-1.8 py-2 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">
-            ${user.account_status || 'unknown'}
-          </span>
-        </td>
-        <td class="p-4 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-          <div class="flex items-center gap-2">
-            <button onclick="viewUser('${user.user_id}')" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-700/50 border border-blue-200 dark:border-white/10 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 transition-all duration-200 shadow-sm">
-              <i class="fas fa-eye mr-2 text-sm"></i>View
-            </button>
-            <button onclick="editUser('${user.user_id}')" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-500/20 hover:text-amber-600 transition-all duration-200 shadow-sm">
-              <i class="fas fa-edit mr-2 text-sm"></i>Edit
-            </button>
-            <button onclick="deleteUser('${user.user_id}')" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-600 dark:text-white/70 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-600 transition-all duration-200 shadow-sm">
-              <i class="fas fa-trash mr-2 text-sm"></i>Delete
-            </button>
-          </div>
-        </td>
-      </tr>`).join('');
+          </td>
+        </tr>`;
+    }).join('');
   }
 
   function viewUser(userId) {
     const user = usersData.find(u => u.user_id === userId);
     if (!user) return;
-    const statusColors = {
-      'active': 'bg-emerald-100 text-emerald-700',
-      'inactive': 'bg-slate-100 text-slate-700',
-      'suspended': 'bg-red-100 text-red-700'
-    };
-    const statusClass = statusColors[user.account_status] || 'bg-slate-100 text-slate-700';
-    const commonConfig = getCommonSwalConfig();
+    const statusClass = getStatusBadgeClass(user.account_status);
+    const roleClass = getRoleBadgeClass(user.role_code);
+
     Swal.fire({
       title: 'User Details',
       html: `
-        <div class="text-left">
-          <div class="flex flex-col items-center mb-8">
-            <img src="${normalizeProfilePhotoUrl(user.profile_photo_url)}" alt="avatar" class="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg">
-            <h3 class="mt-4 text-lg font-bold text-slate-800">${user.first_name || ''} ${user.last_name || ''}</h3>
-            <p class="text-sm text-slate-500">${user.email}</p>
-            <span class="mt-3 px-3 py-1 text-xs font-semibold rounded-full ${statusClass}">${user.account_status || 'unknown'}</span>
+        <div style="text-align: center; margin-bottom: 24px">
+          <img src="${normalizeProfilePhotoUrl(user.profile_photo_url)}" alt="" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 12px" onerror="this.src='${DEFAULT_PROFILE_PATH}'">
+          <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 4px">${user.first_name || ''} ${user.last_name || ''}</h3>
+          <p style="font-size: 13px; color: #666; margin-bottom: 12px">${user.email}</p>
+          <span class="badge ${statusClass}">${user.account_status || 'unknown'}</span>
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">Role</div>
+            <div class="info-value"><span class="badge ${roleClass}">${user.role_label || user.role_code || '-'}</span></div>
           </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="p-3 bg-slate-50 rounded-lg">
-              <p class="text-xs text-slate-500 mb-1">Role</p>
-              <p class="text-sm font-semibold text-slate-800">${user.role_label || user.role_code || '-'}</p>
-            </div>
-            <div class="p-3 bg-slate-50 rounded-lg">
-              <p class="text-xs text-slate-500 mb-1">Phone</p>
-              <p class="text-sm font-semibold text-slate-800">${user.phone_number || '-'}</p>
-            </div>
-            <div class="p-3 bg-slate-50 rounded-lg">
-              <p class="text-xs text-slate-500 mb-1">Email Verified</p>
-              <p class="text-sm font-semibold ${user.is_email_verified ? 'text-emerald-600' : 'text-red-600'}">${user.is_email_verified ? 'Yes' : 'No'}</p>
-            </div>
-            <div class="p-3 bg-slate-50 rounded-lg">
-              <p class="text-xs text-slate-500 mb-1">Last Login</p>
-              <p class="text-sm font-semibold text-slate-800">${user.last_login_at ? new Date(user.last_login_at).toLocaleString() : 'Never'}</p>
-            </div>
+          <div class="info-item">
+            <div class="info-label">Phone</div>
+            <div class="info-value">${user.phone_number || '-'}</div>
           </div>
-          <div class="mt-4 p-3 bg-slate-50 rounded-lg">
-            <p class="text-xs text-slate-500 mb-1">Account Created</p>
-            <p class="text-sm font-semibold text-slate-800">${new Date(user.created_at).toLocaleDateString()}</p>
+          <div class="info-item">
+            <div class="info-label">Email Verified</div>
+            <div class="info-value" style="color: ${user.is_email_verified ? '#059669' : '#DC2626'}">${user.is_email_verified ? 'Yes' : 'No'}</div>
           </div>
+          <div class="info-item">
+            <div class="info-label">Last Login</div>
+            <div class="info-value">${user.last_login_at ? new Date(user.last_login_at).toLocaleString() : 'Never'}</div>
+          </div>
+        </div>
+        <div class="info-item" style="margin-top: 16px">
+          <div class="info-label">Account Created</div>
+          <div class="info-value">${new Date(user.created_at).toLocaleDateString()}</div>
         </div>
       `,
       confirmButtonText: 'Close',
-      ...commonConfig
+      customClass: { confirmButton: 'btn btn-primary' },
+      buttonsStyling: false
     });
   }
 
@@ -312,44 +746,77 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
       const res = await fetch('api/users.php?action=roles');
       const json = await res.json();
       if (json.success) {
-        rolesOptions = json.data.map(r => ({
-          value: r.role_id,
-          label: r.role_label
-        }));
+        rolesOptions = json.data.map(r => ({ value: r.role_id, label: r.role_label }));
       }
     } catch (e) {}
 
-    const fallbackInitial = user.first_name ? user.first_name.charAt(0).toUpperCase() : '?';
-    const commonConfig = getCommonSwalConfig();
+    const photoUrl = normalizeProfilePhotoUrl(user.profile_photo_url);
 
     Swal.fire({
       title: 'Edit User',
       html: `
-        <form id="editUserForm" class="text-left">
-          <div class="flex flex-col items-center mb-8">
-            ${getPhotoPreviewHtml(normalizeProfilePhotoUrl(user.profile_photo_url), 'edit_photo_preview', true, fallbackInitial)}
+        <form id="editUserForm" style="text-align: left">
+          <div class="photo-preview">
+            <img id="edit_photo_img" src="${photoUrl}" alt="" onerror="this.src='${DEFAULT_PROFILE_PATH}'">
+            <div class="photo-actions">
+              <label><i class="fas fa-camera"></i> Change
+                <input type="file" id="edit_photo" accept="image/*" onchange="previewPhoto(this, 'edit_photo_img')">
+              </label>
+              <button type="button" onclick="removePhoto('edit_photo_img')"><i class="fas fa-trash"></i> Remove</button>
+            </div>
             <input type="hidden" id="edit_remove_photo" value="0">
           </div>
-          <div class="grid grid-cols-2 gap-4">
-            ${getFormFieldHtml('edit_first_name', 'First Name', user.first_name || '', 'text', false, true)}
-            ${getFormFieldHtml('edit_last_name', 'Last Name', user.last_name || '', 'text', false, true)}
-            ${getFormFieldHtml('edit_email', 'Email (Read-only)', user.email, 'text', true, false)}
-            ${getFormFieldHtml('edit_phone_number', 'Phone Number', user.phone_number || '')}
-            ${getSelectFieldHtml('edit_role_id', 'Role', rolesOptions, user.role_id)}
-            ${getSelectFieldHtml('edit_account_status', 'Account Status', [
-              { value: 'active', label: 'Active' },
-              { value: 'inactive', label: 'Inactive' },
-              { value: 'suspended', label: 'Suspended' }
-            ], user.account_status)}
+          <div class="crop-area" id="edit_crop_area">
+            <img id="edit_crop_img" style="max-width: 100%">
+            <div class="crop-actions">
+              <button type="button" class="btn btn-primary btn-sm" onclick="applyCrop('edit')">Apply Crop</button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="cancelCrop('edit')">Cancel</button>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">First Name *</label>
+              <input type="text" id="edit_first_name" class="form-input" value="${user.first_name || ''}" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name *</label>
+              <input type="text" id="edit_last_name" class="form-input" value="${user.last_name || ''}" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email (Read-only)</label>
+              <input type="text" class="form-input" value="${user.email}" disabled>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="text" id="edit_phone_number" class="form-input" value="${user.phone_number || ''}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Role</label>
+              <select id="edit_role_id" class="form-select">
+                ${rolesOptions.map(opt => `<option value="${opt.value}" ${opt.value == user.role_id ? 'selected' : ''}>${opt.label}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Account Status</label>
+              <select id="edit_account_status" class="form-select">
+                <option value="active" ${user.account_status === 'active' ? 'selected' : ''}>Active</option>
+                <option value="inactive" ${user.account_status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                <option value="suspended" ${user.account_status === 'suspended' ? 'selected' : ''}>Suspended</option>
+              </select>
+            </div>
           </div>
           <input type="hidden" id="edit_user_id" value="${user.user_id}">
         </form>
       `,
-      width: '52rem',
-      confirmButtonText: 'Save Changes',
+      width: '600px',
       showCancelButton: true,
+      confirmButtonText: 'Save Changes',
       cancelButtonText: 'Cancel',
-      ...commonConfig,
+      customClass: {
+        confirmButton: 'btn btn-primary',
+        cancelButton: 'btn btn-secondary'
+      },
+      buttonsStyling: false,
       preConfirm: () => {
         if (!document.getElementById('edit_first_name').value || !document.getElementById('edit_last_name').value) {
           Swal.showValidationMessage('First and last name are required');
@@ -366,60 +833,36 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
         fd.append('role_id', document.getElementById('edit_role_id').value);
         fd.append('account_status', document.getElementById('edit_account_status').value);
         fd.append('remove_photo', document.getElementById('edit_remove_photo').value);
+        fd.append('csrf_token', csrfToken);
 
         if (croppedImageData) {
-          const file = new File([croppedImageData], 'cropped_photo.jpg', {
-            type: 'image/jpeg'
-          });
+          const file = new File([croppedImageData], 'cropped_photo.jpg', { type: 'image/jpeg' });
           fd.append('profile_photo', file);
           croppedImageData = null;
-          submitUserUpdate(fd);
         } else {
           const photoFile = document.getElementById('edit_photo').files[0];
           if (photoFile) fd.append('profile_photo', photoFile);
-          submitUserUpdate(fd);
         }
+
+        Swal.fire({ title: 'Saving...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        fetch('api/users.php?action=update', { method: 'POST', body: fd })
+          .then(r => r.json())
+          .then(data => {
+            if (data.success) {
+              Swal.fire({ icon: 'success', title: 'Updated!', text: data.message, confirmButtonText: 'OK', customClass: { confirmButton: 'btn btn-primary' }, buttonsStyling: false })
+                .then(() => fetchUsers());
+            } else {
+              Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonText: 'OK', customClass: { confirmButton: 'btn btn-primary' }, buttonsStyling: false });
+            }
+          });
       }
     });
-
-    function submitUserUpdate(formData) {
-      Swal.fire({
-        title: 'Saving...',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
-        ...getCommonSwalConfig()
-      });
-      formData.append('csrf_token', csrfToken);
-      fetch('api/users.php?action=update', {
-        method: 'POST',
-        body: formData
-      }).then(r => r.json()).then(data => {
-        if (data.success) {
-          Swal.fire({
-            icon: 'success',
-            title: 'Updated!',
-            text: data.message,
-            confirmButtonColor: '#3085d6',
-            ...getCommonSwalConfig()
-          }).then(() => fetchUsers());
-        } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: data.message,
-            confirmButtonColor: '#d33',
-            ...getCommonSwalConfig()
-          });
-        }
-      });
-    }
   }
 
   async function deleteUser(userId) {
     const user = usersData.find(u => u.user_id === userId);
     if (!user) return;
 
-    const commonConfig = getCommonSwalConfig();
     Swal.fire({
       title: 'Delete User',
       text: `Are you sure you want to delete ${user.first_name || ''} ${user.last_name || ''}? This action cannot be undone.`,
@@ -427,41 +870,28 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
       showCancelButton: true,
       confirmButtonText: 'Yes, delete',
       cancelButtonText: 'Cancel',
-      ...commonConfig
+      customClass: {
+        confirmButton: 'btn btn-danger',
+        cancelButton: 'btn btn-secondary'
+      },
+      buttonsStyling: false
     }).then(result => {
       if (result.isConfirmed) {
         const fd = new FormData();
         fd.append('user_id', userId);
         fd.append('csrf_token', csrfToken);
 
-        Swal.fire({
-          title: 'Deleting...',
-          allowOutsideClick: false,
-          didOpen: () => Swal.showLoading(),
-          ...getCommonSwalConfig()
-        });
-        fetch('api/users.php?action=delete', {
-          method: 'POST',
-          body: fd
-        }).then(r => r.json()).then(data => {
-          if (data.success) {
-            Swal.fire({
-              icon: 'success',
-              title: 'Deleted!',
-              text: data.message,
-              confirmButtonColor: '#3085d6',
-              ...getCommonSwalConfig()
-            }).then(() => fetchUsers());
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: data.message,
-              confirmButtonColor: '#d33',
-              ...getCommonSwalConfig()
-            });
-          }
-        });
+        Swal.fire({ title: 'Deleting...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        fetch('api/users.php?action=delete', { method: 'POST', body: fd })
+          .then(r => r.json())
+          .then(data => {
+            if (data.success) {
+              Swal.fire({ icon: 'success', title: 'Deleted!', text: data.message, confirmButtonText: 'OK', customClass: { confirmButton: 'btn btn-primary' }, buttonsStyling: false })
+                .then(() => fetchUsers());
+            } else {
+              Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonText: 'OK', customClass: { confirmButton: 'btn btn-primary' }, buttonsStyling: false });
+            }
+          });
       }
     });
   }
@@ -470,36 +900,66 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
     fetch('api/users.php?action=roles')
       .then(r => r.json())
       .then(json => {
-        const rolesOptions = json.success ? json.data.map(r => ({
-          value: r.role_id,
-          label: r.role_label
-        })) : [];
-        const commonConfig = getCommonSwalConfig();
+        const rolesOptions = json.success ? json.data.map(r => ({ value: r.role_id, label: r.role_label })) : [];
+
         Swal.fire({
           title: 'Add New User',
           html: `
-            <form id="createUserForm" class="text-left">
-              <div class="flex flex-col items-center mb-8">
-                ${getPhotoPreviewHtml(null, 'create_photo_preview', false, '?')}
+            <form id="createUserForm" style="text-align: left">
+              <div class="photo-preview">
+                <img id="create_photo_img" src="${DEFAULT_PROFILE_PATH}" alt="">
+                <div class="photo-actions">
+                  <label><i class="fas fa-camera"></i> Upload
+                    <input type="file" id="create_photo" accept="image/*" onchange="previewPhoto(this, 'create_photo_img')">
+                  </label>
+                </div>
               </div>
-              <div class="grid grid-cols-2 gap-4">
-                ${getFormFieldHtml('create_first_name', 'First Name', '', 'text', false, true)}
-                ${getFormFieldHtml('create_last_name', 'Last Name', '', 'text', false, true)}
-                ${getFormFieldHtml('create_email', 'Email', '', 'email', false, true)}
-                ${getFormFieldHtml('create_phone_number', 'Phone Number', '')}
-                ${getSelectFieldHtml('create_role_id', 'Role', rolesOptions)}
-                <div>
-                  <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
-                  <input type="password" id="create_password" placeholder="Leave blank for default" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+              <div class="crop-area" id="create_crop_area">
+                <img id="create_crop_img" style="max-width: 100%">
+                <div class="crop-actions">
+                  <button type="button" class="btn btn-primary btn-sm" onclick="applyCrop('create')">Apply Crop</button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="cancelCrop('create')">Cancel</button>
+                </div>
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">First Name *</label>
+                  <input type="text" id="create_first_name" class="form-input" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Last Name *</label>
+                  <input type="text" id="create_last_name" class="form-input" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Email *</label>
+                  <input type="email" id="create_email" class="form-input" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Phone Number</label>
+                  <input type="text" id="create_phone_number" class="form-input">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Role</label>
+                  <select id="create_role_id" class="form-select">
+                    ${rolesOptions.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join('')}
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Password</label>
+                  <input type="password" id="create_password" class="form-input" placeholder="Leave blank for default">
                 </div>
               </div>
             </form>
           `,
-          width: '52rem',
-          confirmButtonText: 'Create User',
+          width: '600px',
           showCancelButton: true,
+          confirmButtonText: 'Create User',
           cancelButtonText: 'Cancel',
-          ...commonConfig,
+          customClass: {
+            confirmButton: 'btn btn-primary',
+            cancelButton: 'btn btn-secondary'
+          },
+          buttonsStyling: false,
           preConfirm: () => {
             if (!document.getElementById('create_first_name').value || !document.getElementById('create_last_name').value || !document.getElementById('create_email').value) {
               Swal.showValidationMessage('First name, last name, and email are required');
@@ -515,72 +975,50 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
             fd.append('phone_number', document.getElementById('create_phone_number').value);
             fd.append('role_id', document.getElementById('create_role_id').value);
             fd.append('password', document.getElementById('create_password').value || '');
+            fd.append('csrf_token', csrfToken);
 
             if (croppedImageData) {
-              const file = new File([croppedImageData], 'cropped_photo.jpg', {
-                type: 'image/jpeg'
-              });
+              const file = new File([croppedImageData], 'cropped_photo.jpg', { type: 'image/jpeg' });
               fd.append('profile_photo', file);
               croppedImageData = null;
-              submitUserCreate(fd);
             } else {
               const photoFile = document.getElementById('create_photo').files[0];
               if (photoFile) fd.append('profile_photo', photoFile);
-              submitUserCreate(fd);
             }
+
+            Swal.fire({ title: 'Creating...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            fetch('api/users.php?action=create', { method: 'POST', body: fd })
+              .then(r => r.json())
+              .then(data => {
+                if (data.success) {
+                  Swal.fire({ icon: 'success', title: 'Created!', text: data.message, confirmButtonText: 'OK', customClass: { confirmButton: 'btn btn-primary' }, buttonsStyling: false })
+                    .then(() => fetchUsers());
+                } else {
+                  Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonText: 'OK', customClass: { confirmButton: 'btn btn-primary' }, buttonsStyling: false });
+                }
+              });
           }
         });
-
-        function submitUserCreate(formData) {
-          Swal.fire({
-            title: 'Creating...',
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading(),
-            ...getCommonSwalConfig()
-          });
-          formData.append('csrf_token', csrfToken);
-          fetch('api/users.php?action=create', {
-            method: 'POST',
-            body: formData
-          }).then(r => r.json()).then(data => {
-            if (data.success) {
-              Swal.fire({
-                icon: 'success',
-                title: 'Created!',
-                text: data.message,
-                confirmButtonColor: '#3085d6',
-                ...getCommonSwalConfig()
-              }).then(() => fetchUsers());
-            } else {
-              Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: data.message,
-                confirmButtonColor: '#d33',
-                ...getCommonSwalConfig()
-              });
-            }
-          });
-        }
       });
   }
 
-  function previewPhoto(input, previewId, fallbackInitial) {
+  function previewPhoto(input, previewId) {
     if (input.files && input.files[0]) {
       const reader = new FileReader();
       reader.onload = e => {
-        const cropImg = document.getElementById(`${previewId}_cropImg`);
-        const cropArea = document.getElementById(`${previewId}_cropArea`);
+        const cropImg = document.getElementById(previewId.replace('_img', '_crop_img'));
+        const cropArea = document.getElementById(previewId.replace('_img', '_crop_area'));
+        const prefix = previewId.startsWith('edit') ? 'edit' : 'create';
 
-        if (cropperInstances[previewId]) {
-          cropperInstances[previewId].destroy();
-          delete cropperInstances[previewId];
+        if (cropperInstances[prefix]) {
+          cropperInstances[prefix].destroy();
+          delete cropperInstances[prefix];
         }
 
         cropImg.src = e.target.result;
         cropArea.style.display = 'block';
 
-        cropperInstances[previewId] = new Cropper(cropImg, {
+        cropperInstances[prefix] = new Cropper(cropImg, {
           aspectRatio: 1,
           viewMode: 1,
           dragMode: 'move',
@@ -596,56 +1034,48 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
     }
   }
 
-  function applyCrop(previewId) {
-    const cropper = cropperInstances[previewId];
+  function applyCrop(prefix) {
+    const cropper = cropperInstances[prefix];
     if (!cropper) return;
 
-    const canvas = cropper.getCroppedCanvas({
-      width: 200,
-      height: 200
-    });
+    const canvas = cropper.getCroppedCanvas({ width: 200, height: 200 });
     canvas.toBlob(blob => {
       croppedImageData = blob;
-
-      const preview = document.getElementById(previewId);
+      const preview = document.getElementById(prefix + '_photo_img');
       const reader = new FileReader();
-      reader.onload = e => {
-        preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
-      };
+      reader.onload = e => { preview.src = e.target.result; };
       reader.readAsDataURL(blob);
 
       cropper.destroy();
-      delete cropperInstances[previewId];
-      document.getElementById(`${previewId}_cropArea`).style.display = 'none';
+      delete cropperInstances[prefix];
+      document.getElementById(prefix + '_crop_area').style.display = 'none';
     }, 'image/jpeg', 0.9);
   }
 
-  function cancelCrop(previewId) {
-    if (cropperInstances[previewId]) {
-      cropperInstances[previewId].destroy();
-      delete cropperInstances[previewId];
+  function cancelCrop(prefix) {
+    if (cropperInstances[prefix]) {
+      cropperInstances[prefix].destroy();
+      delete cropperInstances[prefix];
     }
-    document.getElementById(`${previewId}_cropArea`).style.display = 'none';
-
-    const fileInput = document.getElementById(previewId.replace('_preview', ''));
+    document.getElementById(prefix + '_crop_area').style.display = 'none';
+    const fileInput = document.getElementById(prefix + '_photo');
     if (fileInput) fileInput.value = '';
   }
 
-  function removePhoto(previewId, fallbackInitial) {
-    if (cropperInstances[previewId]) {
-      cropperInstances[previewId].destroy();
-      delete cropperInstances[previewId];
+  function removePhoto(previewId) {
+    const prefix = previewId.startsWith('edit') ? 'edit' : 'create';
+    if (cropperInstances[prefix]) {
+      cropperInstances[prefix].destroy();
+      delete cropperInstances[prefix];
     }
-    const cropArea = document.getElementById(`${previewId}_cropArea`);
+    const cropArea = document.getElementById(prefix + '_crop_area');
     if (cropArea) cropArea.style.display = 'none';
 
-    const preview = document.getElementById(previewId);
-    preview.innerHTML = `<img src="${DEFAULT_PROFILE_PATH}" class="w-full h-full object-cover">`;
+    document.getElementById(previewId).src = DEFAULT_PROFILE_PATH;
     const removeInput = document.getElementById('edit_remove_photo');
     if (removeInput) removeInput.value = '1';
     const fileInput = document.getElementById('edit_photo');
     if (fileInput) fileInput.value = '';
-
     croppedImageData = null;
   }
 
@@ -654,7 +1084,7 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
     const status = document.getElementById('statusFilter').value;
     document.querySelectorAll('#usersTableBody .user-row').forEach(row => {
       const text = row.textContent.toLowerCase();
-      const statusCell = row.querySelector('td:nth-child(6) span');
+      const statusCell = row.querySelector('td:nth-child(6) .badge');
       const rowStatus = statusCell ? statusCell.textContent.trim().toLowerCase() : '';
       row.style.display = (text.includes(search) && (status === '' || rowStatus === status)) ? '' : 'none';
     });
@@ -666,153 +1096,81 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
   });
 </script>
 
-<!-- PAGE CONTENT -->
-<!-- Stats Cards -->
-<div class="flex flex-wrap gap-4 mb-6">
-
-  <div class="flex items-center gap-5 flex-1 min-w-[200px] bg-white dark:bg-slate-850 border border-slate-200 dark:border-white/10 rounded-2xl px-8 py-6 shadow-sm">
-    <div class="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-3xl">
-      <i class="fas fa-users"></i>
+<div class="page">
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="icon violet">
+        <i class="fas fa-users"></i>
+      </div>
+      <div>
+        <div class="label">Total Users</div>
+        <div class="value" id="statTotal">...</div>
+      </div>
     </div>
-    <div>
-      <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-white/50">Total Users</p>
-      <h5 class="mb-0 font-bold text-slate-800 dark:text-white text-4xl" id="statTotal">...</h5>
+    <div class="stat-card">
+      <div class="icon emerald">
+        <i class="fas fa-user-check"></i>
+      </div>
+      <div>
+        <div class="label">Active</div>
+        <div class="value" id="statActive">...</div>
+      </div>
     </div>
-  </div>
-
-  <div class="flex items-center gap-5 flex-1 min-w-[200px] bg-white dark:bg-slate-850 border border-slate-200 dark:border-white/10 rounded-2xl px-8 py-6 shadow-sm">
-    <div class="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-3xl">
-      <i class="fas fa-user-check"></i>
-    </div>
-    <div>
-      <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-white/50">Active</p>
-      <h5 class="mb-0 font-bold text-slate-800 dark:text-white text-4xl" id="statActive">...</h5>
-    </div>
-  </div>
-
-  <div class="flex items-center gap-5 flex-1 min-w-[200px] bg-white dark:bg-slate-850 border border-slate-200 dark:border-white/10 rounded-2xl px-8 py-6 shadow-sm">
-    <div class="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-3xl">
-      <i class="fas fa-user-slash"></i>
-    </div>
-    <div>
-      <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-white/50">Inactive / Suspended</p>
-      <h5 class="mb-0 font-bold text-slate-800 dark:text-white text-4xl" id="statInactive">...</h5>
+    <div class="stat-card">
+      <div class="icon red">
+        <i class="fas fa-user-slash"></i>
+      </div>
+      <div>
+        <div class="label">Inactive / Suspended</div>
+        <div class="value" id="statInactive">...</div>
+      </div>
     </div>
   </div>
 
-</div>
-
-<!-- Users Table -->
-<div class="flex flex-wrap -mx-3">
-  <div class="w-full max-w-full px-3">
-    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-
-      <!-- Table Header -->
-      <div class="p-6 pb-0 mb-0 rounded-t-2xl">
-        <div style="display: flex; flex-direction: column; gap: 16px;">
-          <h6 class="mb-0 dark:text-white">User Accounts</h6>
-          <div class="controls-container" style="display: flex; flex-direction: column; gap: 12px;">
-            <div class="search-wrapper" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
-              <input
-                type="text"
-                id="searchInput"
-                placeholder="Search users..."
-                onkeyup="filterTable()"
-                style="padding: 8px 14px; font-size: 0.875rem; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; width: 100%;">
-            </div>
-            <div class="filter-button-group" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
-              <select
-                id="statusFilter"
-                onchange="filterTable()"
-                style="padding: 8px 14px; font-size: 0.875rem; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; width: 100%;">
-                <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="suspended">Suspended</option>
-              </select>
-              <button
-                onclick="createUser()"
-                style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 18px; font-size: 0.75rem; font-weight: 600; color: white; background-color: #334155; border-radius: 8px; border: none; cursor: pointer; white-space: nowrap; width: 100%;">
-                <i class="fas fa-plus" style="font-size: 0.75rem;"></i> Add New User
-              </button>
-            </div>
-          </div>
+  <!-- Users Table -->
+  <div class="card">
+    <div class="card-header">
+      <div class="controls">
+        <div class="controls-left">
+          <h2 class="card-title">User Accounts</h2>
+        </div>
+        <div class="controls-right">
+          <input type="text" id="searchInput" class="search-input" placeholder="Search users..." onkeyup="filterTable()">
+          <select id="statusFilter" onchange="filterTable()">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="suspended">Suspended</option>
+          </select>
+          <button class="btn btn-primary" onclick="createUser()">
+            <i class="fas fa-plus mr-1"></i> Add New User
+          </button>
         </div>
       </div>
-
-      <!-- Responsive Desktop Layout -->
-      <style>
-        @media (min-width: 640px) {
-          .controls-container {
-            flex-direction: row !important;
-            align-items: center !important;
-          }
-
-          .search-wrapper {
-            width: 210px !important;
-          }
-
-          .filter-button-group {
-            flex-direction: row !important;
-            width: auto !important;
-          }
-
-          .filter-button-group select {
-            width: 140px !important;
-          }
-
-          .filter-button-group button {
-            width: auto !important;
-          }
-        }
-
-        @media (min-width: 768px) {
-          .search-wrapper {
-            width: 240px !important;
-          }
-
-          .filter-button-group select {
-            width: 160px !important;
-          }
-        }
-
-        @media (min-width: 1024px) {
-          .controls-container {
-            justify-content: space-between !important;
-          }
-
-          .search-wrapper {
-            width: 280px !important;
-          }
-
-          .filter-button-group select {
-            width: 180px !important;
-          }
-        }
-      </style>
-
-      <!-- Table Body -->
-      <div class="p-0 overflow-x-auto">
-        <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
-          <thead class="align-bottom">
-            <tr>
-              <th class="px-6 py-4 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">User</th>
-              <th class="px-6 py-4 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Role</th>
-              <th class="px-6 py-4 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Phone</th>
-              <th class="px-6 py-4 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Last Login</th>
-              <th class="px-6 py-4 font-bold text-left uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Created</th>
-              <th class="px-6 py-4 font-bold text-center uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
-              <th class="px-6 py-4 font-bold text-center uppercase align-middle bg-transparent border-b shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="usersTableBody">
-            <tr>
-              <td colspan="7" class="p-4 text-center text-slate-400 dark:text-white/60">Loading users...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
+    </div>
+    <div class="card-body">
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Role</th>
+            <th>Phone</th>
+            <th>Last Login</th>
+            <th>Created</th>
+            <th style="text-align: center">Status</th>
+            <th style="text-align: center">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="usersTableBody">
+          <tr>
+            <td colspan="7" class="empty-state">
+              <i class="fas fa-spinner fa-spin"></i>
+              <p>Loading users...</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>

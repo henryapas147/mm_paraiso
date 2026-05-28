@@ -52,4 +52,17 @@ class CustomerController extends Controller
         }
         $this->viewCustomer('customers/payments');
     }
+
+    public function foodOrders()
+    {
+        if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+            header('Location: ' . dirname($_SERVER['SCRIPT_NAME']) . '/sign-in');
+            exit;
+        }
+        if (($_SESSION['role_code'] ?? '') !== 'customer') {
+            header('Location: ' . dirname($_SERVER['SCRIPT_NAME']) . '/');
+            exit;
+        }
+        $this->viewCustomer('customers/food_orders');
+    }
 }

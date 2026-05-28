@@ -68,6 +68,20 @@ try {
         $stmt = $pdo->prepare("SELECT s.*, p.property_name FROM system_settings s LEFT JOIN properties p ON s.property_id = p.property_id WHERE s.setting_id = ?");
         $stmt->execute([$_GET['id']]);
         echo json_encode(['success' => true, 'data' => $stmt->fetch(PDO::FETCH_ASSOC)]);
+
+      } elseif ($action === 'entrance_fees') {
+        // Get entrance fee settings for walk-in guests without room reservation
+        $stmt = $pdo->prepare("SELECT setting_key, setting_value FROM system_settings WHERE setting_group = 'pricing' AND setting_key LIKE 'entrance_fee_%'");
+        $stmt->execute();
+        $settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+        
+        $fees = [
+          'hourly' => floatval($settings['entrance_fee_hourly'] ?? 0),
+          'day_use' => floatval($settings['entrance_fee_day_use'] ?? 0),
+          'overnight' => floatval($settings['entrance_fee_overnight'] ?? 0)
+        ];
+        
+        echo json_encode(['success' => true, 'data' => $fees]);
       }
       break;
 

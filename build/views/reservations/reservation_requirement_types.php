@@ -1,31 +1,218 @@
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
+
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0
+  }
+
+  body {
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background: #f5f5f5;
+    color: #1a1a1a
+  }
+
+  .page {
+    padding: 24px;
+    max-width: 100%;
+    margin: 0 auto
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap
+  }
+
+  .card-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    font-weight: 600;
+    font-style: italic
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap
+  }
+
+  .search-wrap {
+    position: relative
+  }
+
+  .search-wrap i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 15px;
+    pointer-events: none
+  }
+
+  .search-input {
+    padding: 7px 12px 7px 34px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    color: #1a1a1a;
+    outline: none;
+    width: 220px;
+    min-width: 160px
+  }
+
+  .search-input:focus {
+    border-color: #185FA5
+  }
+
+  .table-wrap {
+    overflow-x: auto
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px
+  }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid #e0e0e0;
+    white-space: nowrap
+  }
+
+  thead th.center {
+    text-align: center
+  }
+
+  thead th.right {
+    text-align: right
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    transition: background .1s
+  }
+
+  tbody tr:last-child {
+    border-bottom: none
+  }
+
+  tbody tr:hover {
+    background: #f9f9f9
+  }
+
+  td {
+    padding: 11px 16px;
+    vertical-align: middle;
+    white-space: nowrap
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: capitalize
+  }
+
+  .badge.yes {
+    background: #E8F5E9;
+    color: #2E7D32
+  }
+
+  .badge.no {
+    background: #F5F5F5;
+    color: #666
+  }
+
+  .badge.active {
+    background: #E8F5E9;
+    color: #2E7D32
+  }
+
+  .badge.inactive {
+    background: #FFEBEE;
+    color: #C62828
+  }
+
+  .badge.applies {
+    background: #E3F2FD;
+    color: #1565C0;
+    margin-right: 4px
+  }
+
+  .empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    color: #666
+  }
+
+  .empty-state i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+    color: #ccc
+  }
+</style>
+
 <!-- PAGE CONTENT -->
 
-<div class="flex flex-wrap -mx-3">
-  <div class="flex-none w-full max-w-full px-3">
-    <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-        <h6 class="dark:text-white">Requirement Types List</h6>
-      </div>
-      <div class="flex-auto px-0 pt-0 pb-2">
-        <div class="p-0 overflow-x-auto">
-          <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500" id="requirementTypesTable">
-            <thead class="align-bottom">
-              <tr>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Code</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Label</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Property</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Applies To</th>
-                <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Mandatory</th>
-                <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Active</th>
-                <th class="px-6 py-3 font-bold text-right uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Sort Order</th>
-              </tr>
-            </thead>
-            <tbody id="requirementTypesTableBody">
-              <tr><td colspan="7" class="p-4 text-center text-slate-400 dark:text-white/60">Loading...</td></tr>
-            </tbody>
-          </table>
+<div class="page">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Requirement Types</div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search types..." onkeyup="filterTable()">
         </div>
       </div>
+    </div>
+    <div class="table-wrap">
+      <table id="requirementTypesTable">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Label</th>
+            <th>Property</th>
+            <th>Applies To</th>
+            <th class="center">Mandatory</th>
+            <th class="center">Active</th>
+            <th class="right">Sort Order</th>
+          </tr>
+        </thead>
+        <tbody id="requirementTypesTableBody">
+          <tr>
+            <td colspan="7" class="empty-state">
+              <i class="fa-regular fa-clipboard"></i>
+              Loading...
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -45,11 +232,11 @@
         requirementTypesData = result.data;
         renderRequirementTypesTable();
       } else {
-        document.getElementById('requirementTypesTableBody').innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-400">${result.message}</td></tr>`;
+        document.getElementById('requirementTypesTableBody').innerHTML = `<tr><td colspan="7" class="empty-state"><i>⚠</i>${result.message}</td></tr>`;
       }
     } catch (error) {
       console.error('Error fetching requirement types:', error);
-      document.getElementById('requirementTypesTableBody').innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-400">Failed to load data</td></tr>`;
+      document.getElementById('requirementTypesTableBody').innerHTML = `<tr><td colspan="7" class="empty-state"><i>⚠</i>Failed to load data</td></tr>`;
     }
   }
 
@@ -58,51 +245,37 @@
     if (!tbody) return;
 
     if (requirementTypesData.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400 dark:text-white/60">No requirement types found</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><i class="fa-regular fa-clipboard"></i>No requirement types found</td></tr>`;
       return;
     }
 
     tbody.innerHTML = requirementTypesData.map(rt => {
       const appliesTo = (rt.applies_to || '').split(',').map(t => t.trim()).filter(Boolean);
       const appliesHtml = appliesTo.map(t =>
-        `<span class="text-xs font-semibold bg-blue-100 text-blue-600 px-2 py-1 rounded mr-1 capitalize">${t.replace(/_/g, ' ')}</span>`
+        `<span class="badge applies">${t.replace(/_/g, ' ')}</span>`
       ).join('');
 
       const mandatoryBadge = rt.is_mandatory == 1
-        ? `<span class="text-xs font-semibold bg-green-100 text-green-600 px-2 py-1 rounded">Yes</span>`
-        : `<span class="text-xs font-semibold bg-gray-100 text-gray-600 px-2 py-1 rounded">No</span>`;
+        ? `<span class="badge yes">Yes</span>`
+        : `<span class="badge no">No</span>`;
 
       const activeBadge = rt.is_active == 1
-        ? `<span class="text-xs font-semibold bg-green-100 text-green-600 px-2 py-1 rounded">Active</span>`
-        : `<span class="text-xs font-semibold bg-red-100 text-red-600 px-2 py-1 rounded">Inactive</span>`;
+        ? `<span class="badge active">Active</span>`
+        : `<span class="badge inactive">Inactive</span>`;
 
       const propertyCell = rt.property_name
         ? rt.property_name
-        : `<span class="text-slate-400">All Properties</span>`;
+        : `<span style="color:#999">All Properties</span>`;
 
       return `
         <tr class="reqtype-row">
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 font-semibold leading-tight dark:text-white text-xs">${rt.req_code || '-'}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 font-semibold leading-tight dark:text-white text-xs">${rt.req_label || '-'}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 text-xs leading-tight dark:text-white">${propertyCell}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            ${appliesHtml || '<span class="text-slate-400 text-xs">-</span>'}
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap text-center">
-            ${mandatoryBadge}
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap text-center">
-            ${activeBadge}
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap text-right">
-            <p class="mb-0 text-xs leading-tight dark:text-white">${rt.sort_order || '-'}</p>
-          </td>
+          <td><strong>${rt.req_code || '-'}</strong></td>
+          <td><strong>${rt.req_label || '-'}</strong></td>
+          <td>${propertyCell}</td>
+          <td>${appliesHtml || '<span style="color:#999">-</span>'}</td>
+          <td style="text-align:center">${mandatoryBadge}</td>
+          <td style="text-align:center">${activeBadge}</td>
+          <td style="text-align:right">${rt.sort_order || '-'}</td>
         </tr>
       `;
     }).join('');

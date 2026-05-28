@@ -1,9 +1,16 @@
 <?php if (false) {} ?>
 
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@1,500;1,600&display=swap" rel="stylesheet">
+
 <style>
 /* ── Reset & base ─────────────────────────────── */
 .ci-list *{box-sizing:border-box}
-.ci-list{font-family:var(--font-sans,system-ui,sans-serif);color:var(--color-text-primary,#111)}
+.ci-list{font-family:'DM Sans',sans-serif;color:var(--color-text-primary,#111)}
+
+/* ── Typography ──────────────────────────────── */
+.ci-table-title{font-family:'Lora',serif;font-style:italic;font-size:18px;font-weight:500}
+.ci-stat-label{font-family:'Lora',serif;font-style:italic;font-size:13px;font-weight:600;margin-bottom:.35rem}
 
 /* ── Stats grid ───────────────────────────────── */
 .ci-stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.75rem;margin-bottom:1.5rem}
@@ -14,7 +21,6 @@
 .ci-stat-card:hover{box-shadow:0 0 0 2px currentColor}
 .ci-stat-card.active{box-shadow:0 0 0 2px var(--ci-accent)}
 
-.ci-stat-label{font-size:12px;font-weight:500;margin-bottom:.35rem}
 .ci-stat-count{font-size:28px;font-weight:600;line-height:1}
 
 .ci-stat-all      {background:#fff;color:#374151;--ci-accent:#3b82f6}
@@ -44,7 +50,6 @@
 /* ── Table card ───────────────────────────────── */
 .ci-table-card{background:var(--color-background-primary,#fff);border:.5px solid var(--color-border-tertiary,#e5e7eb);border-radius:12px;overflow:hidden;margin-bottom:1.5rem}
 .ci-table-header{padding:1.1rem 1.25rem;border-bottom:.5px solid var(--color-border-tertiary,#e5e7eb)}
-.ci-table-title{font-size:16px;font-weight:500}
 .ci-table-subtitle{font-size:13px;color:var(--color-text-secondary,#6b7280);margin-top:3px}
 
 .ci-table{width:100%;border-collapse:collapse;font-size:13px}

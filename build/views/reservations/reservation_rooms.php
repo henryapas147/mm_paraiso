@@ -1,33 +1,248 @@
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
+
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0
+  }
+
+  body {
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background: #f5f5f5;
+    color: #1a1a1a
+  }
+
+  .page {
+    padding: 24px;
+    max-width: 100%;
+    margin: 0 auto
+  }
+
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap
+  }
+
+  .page-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 22px;
+    font-weight: 600;
+    font-style: italic;
+    color: #1a1a1a
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap
+  }
+
+  .card-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    font-weight: 600;
+    font-style: italic
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap
+  }
+
+  .search-wrap {
+    position: relative
+  }
+
+  .search-wrap i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 15px;
+    pointer-events: none
+  }
+
+  .search-input {
+    padding: 7px 12px 7px 34px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    color: #1a1a1a;
+    outline: none;
+    width: 220px;
+    min-width: 160px
+  }
+
+  .search-input:focus {
+    border-color: #185FA5
+  }
+
+  .table-wrap {
+    overflow-x: auto
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px
+  }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid #e0e0e0;
+    white-space: nowrap
+  }
+
+  thead th.right {
+    text-align: right
+  }
+
+  thead th.center {
+    text-align: center
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    transition: background .1s
+  }
+
+  tbody tr:last-child {
+    border-bottom: none
+  }
+
+  tbody tr:hover {
+    background: #f9f9f9
+  }
+
+  td {
+    padding: 11px 16px;
+    vertical-align: middle;
+    white-space: nowrap
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: capitalize
+  }
+
+  .status-badge.reserved {
+    background: #E3F2FD;
+    color: #1565C0
+  }
+
+  .status-badge.checked_in {
+    background: #E8F5E9;
+    color: #2E7D32
+  }
+
+  .status-badge.checked_out {
+    background: #F5F5F5;
+    color: #666
+  }
+
+  .status-badge.cancelled {
+    background: #FFEBEE;
+    color: #C62828
+  }
+
+  .status-badge.no_show {
+    background: #FFF3E0;
+    color: #E65100
+  }
+
+  .type-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: capitalize;
+    background: #E6F1FB;
+    color: #0C447C
+  }
+
+  .empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    color: #666
+  }
+
+  .empty-state i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+    color: #ccc
+  }
+</style>
+
 <!-- PAGE CONTENT -->
 
-<div class="flex flex-wrap -mx-3">
-  <div class="flex-none w-full max-w-full px-3">
-    <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-      <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-        <h6 class="dark:text-white">Reservation Rooms List</h6>
-      </div>
-      <div class="flex-auto px-0 pt-0 pb-2">
-        <div class="p-0 overflow-x-auto">
-          <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500" id="reservationRoomsTable">
-            <thead class="align-bottom">
-              <tr>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Reservation</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Property</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Room</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Category</th>
-                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Type</th>
-                <th class="px-6 py-3 font-bold text-right uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Price/Night</th>
-                <th class="px-6 py-3 font-bold text-right uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Nights/Hours</th>
-                <th class="px-6 py-3 font-bold text-right uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Room Total</th>
-                <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
-              </tr>
-            </thead>
-            <tbody id="reservationRoomsTableBody">
-              <tr><td colspan="9" class="p-4 text-center text-slate-400 dark:text-white/60">Loading...</td></tr>
-            </tbody>
-          </table>
+<div class="page">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Reservation Rooms</div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search rooms..." onkeyup="filterTable()">
         </div>
       </div>
+    </div>
+    <div class="table-wrap">
+      <table id="reservationRoomsTable">
+        <thead>
+          <tr>
+            <th>Reservation</th>
+            <th>Property</th>
+            <th>Room</th>
+            <th>Category</th>
+            <th>Type</th>
+            <th class="right">Price/Night</th>
+            <th class="right">Nights/Hours</th>
+            <th class="right">Room Total</th>
+            <th class="center">Status</th>
+          </tr>
+        </thead>
+        <tbody id="reservationRoomsTableBody">
+          <tr>
+            <td colspan="9" class="empty-state">
+              <i class="fa-regular fa-clipboard"></i>
+              Loading...
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -47,11 +262,11 @@
         reservationRoomsData = result.data;
         renderReservationRoomsTable();
       } else {
-        document.getElementById('reservationRoomsTableBody').innerHTML = `<tr><td colspan="9" class="p-4 text-center text-red-400">${result.message}</td></tr>`;
+        document.getElementById('reservationRoomsTableBody').innerHTML = `<tr><td colspan="9" class="empty-state"><i>⚠</i>${result.message}</td></tr>`;
       }
     } catch (error) {
       console.error('Error fetching reservation rooms:', error);
-      document.getElementById('reservationRoomsTableBody').innerHTML = `<tr><td colspan="9" class="p-4 text-center text-red-400">Failed to load data</td></tr>`;
+      document.getElementById('reservationRoomsTableBody').innerHTML = `<tr><td colspan="9" class="empty-state"><i>⚠</i>Failed to load data</td></tr>`;
     }
   }
 
@@ -60,51 +275,37 @@
     if (!tbody) return;
 
     if (reservationRoomsData.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-slate-400 dark:text-white/60">No reservation rooms found</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" class="empty-state"><i class="fa-regular fa-clipboard"></i>No reservation rooms found</td></tr>`;
       return;
     }
 
-    const statusMap = {
-      'reserved': 'bg-blue-100 text-blue-600',
-      'checked_in': 'bg-green-100 text-green-600',
-      'checked_out': 'bg-gray-100 text-gray-600',
-      'cancelled': 'bg-red-100 text-red-600',
-      'no_show': 'bg-orange-100 text-orange-600'
-    };
-
     tbody.innerHTML = reservationRoomsData.map(rr => {
-      const statusCls = statusMap[rr.room_status] || 'bg-gray-100 text-gray-600';
       const nightsHours = rr.booking_type === 'hourly'
         ? `${rr.num_hours || '-'} hrs`
         : `${rr.num_nights || '-'} nights`;
       return `
         <tr class="resroom-row">
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 font-semibold leading-tight dark:text-white text-xs">${rr.reservation_code || '-'}</p>
+          <td>
+            <strong>${rr.reservation_code || '-'}</strong>
           </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 font-semibold leading-tight dark:text-white text-xs">${rr.property_name || '-'}</p>
+          <td>${rr.property_name || '-'}</td>
+          <td>
+            <div>${rr.room_number || ''}</div>
+            <div style="font-size:12px;color:#666">${rr.room_name || ''}</div>
           </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 font-semibold leading-tight dark:text-white text-xs">${(rr.room_number || '') + (rr.room_name ? ' - ' + rr.room_name : '')}</p>
+          <td>${rr.category_name || '-'}</td>
+          <td>
+            <span class="type-badge">${rr.booking_type || '-'}</span>
           </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <p class="mb-0 text-xs leading-tight dark:text-white">${rr.category_name || '-'}</p>
+          <td style="text-align:right">
+            <strong>${parseFloat(rr.price_per_night || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</strong>
           </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-            <span class="text-xs font-semibold bg-blue-100 text-blue-600 px-2 py-1 rounded capitalize">${rr.booking_type || '-'}</span>
+          <td style="text-align:right">${nightsHours}</td>
+          <td style="text-align:right">
+            <strong>${parseFloat(rr.room_total || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</strong>
           </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap text-right">
-            <p class="mb-0 font-semibold leading-tight dark:text-white text-xs">${parseFloat(rr.price_per_night || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap text-right">
-            <p class="mb-0 text-xs leading-tight dark:text-white">${nightsHours}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap text-right">
-            <p class="mb-0 font-semibold leading-tight dark:text-white text-xs">${parseFloat(rr.room_total || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</p>
-          </td>
-          <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap text-center">
-            <span class="text-xs font-semibold ${statusCls} px-2 py-1 rounded capitalize">${(rr.room_status || '-').replace(/_/g, ' ')}</span>
+          <td style="text-align:center">
+            <span class="status-badge ${rr.room_status || ''}">${(rr.room_status || '-').replace(/_/g, ' ')}</span>
           </td>
         </tr>
       `;
