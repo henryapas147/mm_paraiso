@@ -24,12 +24,13 @@ try {
           INNER JOIN rooms rm ON rr.room_id = rm.room_id
           INNER JOIN room_categories rc ON rr.category_id = rc.category_id
           INNER JOIN properties p ON r.property_id = p.property_id
+          WHERE r.deleted_at IS NULL
           ORDER BY rr.created_at DESC
         ");
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => $rows]);
       } else if ($action === 'single' && isset($_GET['id'])) {
-        $stmt = $pdo->prepare("SELECT rr.*, r.reservation_code FROM reservation_rooms rr INNER JOIN reservations r ON rr.reservation_id = r.reservation_id WHERE rr.res_room_id = ?");
+        $stmt = $pdo->prepare("SELECT rr.*, r.reservation_code FROM reservation_rooms rr INNER JOIN reservations r ON rr.reservation_id = r.reservation_id WHERE rr.res_room_id = ? AND r.deleted_at IS NULL");
         $stmt->execute([$_GET['id']]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => $row]);
@@ -37,9 +38,10 @@ try {
         $stmt = $pdo->prepare("
           SELECT rr.*, rm.room_number, rm.room_name, rc.category_name
           FROM reservation_rooms rr
+          INNER JOIN reservations r ON rr.reservation_id = r.reservation_id
           INNER JOIN rooms rm ON rr.room_id = rm.room_id
           INNER JOIN room_categories rc ON rr.category_id = rc.category_id
-          WHERE rr.reservation_id = ?
+          WHERE rr.reservation_id = ? AND r.deleted_at IS NULL
         ");
         $stmt->execute([$_GET['reservation_id']]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);

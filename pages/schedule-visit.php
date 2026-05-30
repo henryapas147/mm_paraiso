@@ -1450,6 +1450,8 @@ function createAdminNotification($data)
                                     <div class="col-6 text-end" id="totalAmountDisplay" style="font-size: 1.2em; color: #f35525;">₱0.00</div>
                                   </div>
                                   <input type="hidden" name="total_amount" id="totalAmountInput" value="0">
+                                  <input type="hidden" name="base_amount" id="baseAmountInput" value="0">
+                                  <input type="hidden" name="seasonal_rate_discount" id="seasonalRateDiscountInput" value="0">
                                   <input type="hidden" name="booking_type" id="bookingTypeInput" value="day_use">
                                   <input type="hidden" name="num_nights" id="numNightsInput" value="0">
                                   <input type="hidden" name="num_hours" id="numHoursInput" value="0">
@@ -1600,6 +1602,20 @@ function createAdminNotification($data)
                           
                           <!-- Hidden input for food items -->
                           <input type="hidden" name="food_items" id="foodItemsInput" value="">
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Booking Policies Section -->
+                    <div class="col-lg-12 mt-4">
+                      <div class="card" style="border-left: 4px solid #f35525;">
+                        <div class="card-header bg-light py-2">
+                          <h6 class="mb-0" style="color: #f35525;"><i class="fa fa-info-circle me-2"></i>Booking Policies</h6>
+                        </div>
+                        <div class="card-body py-3">
+                          <div id="bookingPoliciesContainer">
+                            <p class="text-muted small mb-0">Select a property to view booking policies</p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -2406,6 +2422,15 @@ function createAdminNotification($data)
         extraChildrenRow.style.display = 'none';
       }
 
+      // Calculate extra fees total
+      const extraFees = extraAdultsCost + extraSeniorsCost + extraChildrenCost;
+      
+      // Store base amount (before any discounts)
+      const baseAmount = baseRate + extraFees;
+      
+      // Store seasonal rate discount amount
+      let seasonalRateDiscount = 0;
+      
       // Apply dynamic pricing (seasonal rates & pricing rules)
       let dynamicPricingBreakdown = [];
       const propertyId = document.getElementById('property_id')?.value;
@@ -2421,6 +2446,12 @@ function createAdminNotification($data)
           const priceResult = await priceResponse.json();
 
           if (priceResult.success) {
+            // Calculate seasonal rate discount
+            const seasonalRateData = priceResult.breakdown?.find(b => b.type === 'seasonal_rate');
+            if (seasonalRateData) {
+              seasonalRateDiscount = seasonalRateData.adjustment || 0;
+            }
+            
             totalAmount = priceResult.final_amount;
             dynamicPricingBreakdown = priceResult.breakdown || [];
 
@@ -2490,7 +2521,7 @@ function createAdminNotification($data)
         }
       }
 
-      // Store subtotal (before promo discount)
+      // Store subtotal (before promo discount, after seasonal rate)
       const subtotalAmount = totalAmount;
 
       // Apply promo discount if available
@@ -2509,6 +2540,11 @@ function createAdminNotification($data)
         maximumFractionDigits: 2
       });
       document.getElementById('totalAmountInput').value = totalAmount.toFixed(2);
+      
+      // Update hidden fields for form submission
+      document.getElementById('baseAmountInput').value = baseAmount.toFixed(2);
+      document.getElementById('seasonalRateDiscountInput').value = seasonalRateDiscount.toFixed(2);
+      document.getElementById('promoDiscountAmount').value = promoDiscount.toFixed(2);
 
       // Also update payment option labels
       updatePaymentAmounts(totalAmount);
@@ -3102,6 +3138,7 @@ function createAdminNotification($data)
         checkAvailability();
         loadRoomCategories();
         loadPaymentAccounts();
+        loadBookingPolicies();
       });
     }
 
@@ -3113,12 +3150,86 @@ function createAdminNotification($data)
     if (propertySelect?.value) {
       loadRoomCategories();
       loadPaymentAccounts();
+      loadBookingPolicies();
       // Calculate totals if category is also preselected
       if (roomCategorySelect?.value) {
         calculateTotalAmount();
       }
       // Load food menu if property selected
       loadFoodMenu(propertySelect.value);
+    }
+
+    // ============================================
+    // BOOKING POLICIES SECTION
+    // ============================================
+
+    async function loadBookingPolicies() {
+      const propertyId = propertySelect?.value;
+      const container = document.getElementById('bookingPoliciesContainer');
+
+      if (!propertyId) {
+        container.innerHTML = '<p class="text-muted small mb-0">Select a property to view booking policies</p>';
+        return;
+      }
+
+      try {
+        const response = await fetch(`api/booking_policies.php?action=list&property_id=${encodeURIComponent(propertyId)}`);
+        const result = await response.json();
+
+        if (result.success && result.data && result.data.length > 0) {
+          renderBookingPolicies(result.data);
+        } else {
+          container.innerHTML = '<p class="text-muted small mb-0">No specific booking policies for this property</p>';
+        }
+      } catch (error) {
+        console.error('Error loading booking policies:', error);
+        container.innerHTML = '<p class="text-danger small mb-0">Failed to load booking policies</p>';
+      }
+    }
+
+    function renderBookingPolicies(policies) {
+      const container = document.getElementById('bookingPoliciesContainer');
+
+      // Group policies by type
+      const policiesByType = {};
+      policies.forEach(policy => {
+        if (!policiesByType[policy.policy_type]) {
+          policiesByType[policy.policy_type] = [];
+        }
+        policiesByType[policy.policy_type].push(policy);
+      });
+
+      let html = '<div class="row">';
+
+      // Render each policy type
+      for (const [type, typePolicies] of Object.entries(policiesByType)) {
+        const typeLabel = type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        const typeIcon = type === 'cancellation' ? 'fa-times-circle' :
+                        type === 'deposit' ? 'fa-money-bill' :
+                        type === 'check_in' ? 'fa-sign-in-alt' :
+                        type === 'check_out' ? 'fa-sign-out-alt' : 'fa-info-circle';
+
+        html += `
+          <div class="col-md-6 mb-3">
+            <div class="border rounded p-2" style="background: #fafafa;">
+              <small class="fw-bold" style="color: #f35525;">
+                <i class="fa ${typeIcon} me-1"></i>${typeLabel}
+              </small>
+              ${typePolicies.map(policy => `
+                <div class="mt-1">
+                  <small class="d-block text-muted">${escapeHtml(policy.policy_name)}</small>
+                  ${policy.free_cancel_hours !== null ? `<small class="d-block">Free cancellation: ${policy.free_cancel_hours}h before check-in</small>` : ''}
+                  ${policy.penalty_type && policy.penalty_value ? `<small class="d-block">Penalty: ${policy.penalty_type === 'percentage' ? policy.penalty_value + '%' : '₱' + parseFloat(policy.penalty_value).toLocaleString('en-PH')}</small>` : ''}
+                  ${policy.deposit_type && policy.deposit_value ? `<small class="d-block">Deposit: ${policy.deposit_type === 'percentage' ? policy.deposit_value + '%' : '₱' + parseFloat(policy.deposit_value).toLocaleString('en-PH')}</small>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      html += '</div>';
+      container.innerHTML = html;
     }
 
     // ============================================

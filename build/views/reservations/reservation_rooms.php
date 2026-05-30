@@ -228,7 +228,6 @@
             <th>Room</th>
             <th>Category</th>
             <th>Type</th>
-            <th class="right">Price/Night</th>
             <th class="right">Nights/Hours</th>
             <th class="right">Room Total</th>
             <th class="center">Status</th>
@@ -236,7 +235,7 @@
         </thead>
         <tbody id="reservationRoomsTableBody">
           <tr>
-            <td colspan="9" class="empty-state">
+            <td colspan="8" class="empty-state">
               <i class="fa-regular fa-clipboard"></i>
               Loading...
             </td>
@@ -262,11 +261,11 @@
         reservationRoomsData = result.data;
         renderReservationRoomsTable();
       } else {
-        document.getElementById('reservationRoomsTableBody').innerHTML = `<tr><td colspan="9" class="empty-state"><i>⚠</i>${result.message}</td></tr>`;
+        document.getElementById('reservationRoomsTableBody').innerHTML = `<tr><td colspan="8" class="empty-state"><i>⚠</i>${result.message}</td></tr>`;
       }
     } catch (error) {
       console.error('Error fetching reservation rooms:', error);
-      document.getElementById('reservationRoomsTableBody').innerHTML = `<tr><td colspan="9" class="empty-state"><i>⚠</i>Failed to load data</td></tr>`;
+      document.getElementById('reservationRoomsTableBody').innerHTML = `<tr><td colspan="8" class="empty-state"><i>⚠</i>Failed to load data</td></tr>`;
     }
   }
 
@@ -275,7 +274,7 @@
     if (!tbody) return;
 
     if (reservationRoomsData.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="9" class="empty-state"><i class="fa-regular fa-clipboard"></i>No reservation rooms found</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><i class="fa-regular fa-clipboard"></i>No reservation rooms found</td></tr>`;
       return;
     }
 
@@ -296,9 +295,6 @@
           <td>${rr.category_name || '-'}</td>
           <td>
             <span class="type-badge">${rr.booking_type || '-'}</span>
-          </td>
-          <td style="text-align:right">
-            <strong>${parseFloat(rr.price_per_night || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</strong>
           </td>
           <td style="text-align:right">${nightsHours}</td>
           <td style="text-align:right">

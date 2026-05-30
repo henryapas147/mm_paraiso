@@ -62,7 +62,11 @@ try {
         mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
         mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
       
-      $stmt->execute([
+      $seasonStmt = $pdo->prepare("INSERT INTO reservation_pricing_breakdown 
+        (breakdown_id, reservation_id, res_room_id, component_type, component_name, 
+         base_amount, final_amount, sort_order, is_visible) 
+        VALUES (?,?,?,?,?,?,?,?,?)");
+      $seasonStmt->execute([
         $seasonBreakdownId, $reservationId, $resRoomId, 'seasonal_rate', $season['season_name'],
         $baseAmount, $adjustedAmount, $sortOrder++, 1
       ]);
@@ -122,7 +126,11 @@ try {
           break;
       }
       
-      $stmt->execute([
+      $ruleStmt = $pdo->prepare("INSERT INTO reservation_pricing_breakdown 
+        (breakdown_id, reservation_id, res_room_id, component_type, component_name, 
+         base_amount, final_amount, sort_order, is_visible) 
+        VALUES (?,?,?,?,?,?,?,?,?)");
+      $ruleStmt->execute([
         $ruleBreakdownId, $reservationId, $resRoomId, 'pricing_rule', $rule['rule_name'],
         $baseAmount, $adjustedAmount, $sortOrder++, 1
       ]);
@@ -170,7 +178,11 @@ try {
       $promoDiscount = $baseAmount * 0.10; 
       $adjustedAmount = $baseAmount - $promoDiscount;
       
-      $stmt->execute([
+      $promoInsertStmt = $pdo->prepare("INSERT INTO reservation_pricing_breakdown 
+        (breakdown_id, reservation_id, res_room_id, component_type, component_name, 
+         base_amount, final_amount, sort_order, is_visible) 
+        VALUES (?,?,?,?,?,?,?,?,?)");
+      $promoInsertStmt->execute([
         $promoBreakdownId, $reservationId, $resRoomId, 'promotion', $promo['promo_title'],
         $baseAmount, $adjustedAmount, $sortOrder++, 1
       ]);
@@ -196,7 +208,7 @@ try {
         $limit  = max(1, min(100, intval($_GET['limit'] ?? 10)));
         $offset = ($page - 1) * $limit;
 
-        $where  = [];
+        $where  = ['r.deleted_at IS NULL'];
         $params = [];
 
         if (!empty($_GET['search'])) {
@@ -224,6 +236,8 @@ try {
           LEFT JOIN properties p ON r.property_id = p.property_id
           LEFT JOIN user_accounts ua ON r.customer_user_id = ua.user_id
           LEFT JOIN user_profiles up ON r.customer_user_id = up.user_id
+          LEFT JOIN reservation_rooms rr ON r.reservation_id = rr.reservation_id
+          LEFT JOIN rooms rm ON rr.room_id = rm.room_id
           $whereClause
         ";
 
@@ -238,7 +252,10 @@ try {
             p.property_code,
             CONCAT(COALESCE(r.walkin_first_name, up.first_name), ' ', COALESCE(r.walkin_last_name, up.last_name)) as guest_name,
             COALESCE(r.walkin_email, ua.email) as guest_email,
-            COALESCE(r.walkin_phone, ua.phone_number) as guest_phone
+            COALESCE(r.walkin_phone, ua.phone_number) as guest_phone,
+            rm.room_id,
+            rm.room_number,
+            rm.room_name
           $baseSelect
           ORDER BY r.created_at DESC
           LIMIT $limit OFFSET $offset
@@ -269,7 +286,7 @@ try {
           LEFT JOIN properties p ON r.property_id = p.property_id
           LEFT JOIN user_accounts ua ON r.customer_user_id = ua.user_id
           LEFT JOIN user_profiles up ON r.customer_user_id = up.user_id
-          WHERE r.customer_user_id = ?
+          WHERE r.customer_user_id = ? AND r.deleted_at IS NULL
           ORDER BY r.check_in_date DESC
         ");
         $stmt->execute([$userId]);
@@ -290,10 +307,10 @@ try {
           LEFT JOIN properties p ON r.property_id = p.property_id
           LEFT JOIN user_accounts ua ON r.customer_user_id = ua.user_id
           LEFT JOIN user_profiles up ON r.customer_user_id = up.user_id
-          LEFT JOIN payments pay ON r.reservation_id = pay.reservation_id
+          LEFT JOIN payments pay ON r.reservation_id = pay.reservation_id AND pay.transaction_type = 'payment'
           LEFT JOIN payment_methods pm ON pay.method_id = pm.method_id
           LEFT JOIN payment_attachments pa ON pay.payment_id = pa.payment_id
-          WHERE r.reservation_id = ?
+          WHERE r.reservation_id = ? AND r.deleted_at IS NULL
           GROUP BY r.reservation_id
         ");
         $stmt->execute([$_GET['id']]);
@@ -419,7 +436,7 @@ try {
         ]);
         echo json_encode(['success' => true, 'message' => 'Reservation updated successfully']);
       } else if ($action === 'delete') {
-        $stmt = $pdo->prepare("DELETE FROM reservations WHERE reservation_id = ?");
+        $stmt = $pdo->prepare("UPDATE reservations SET deleted_at = NOW() WHERE reservation_id = ?");
         $stmt->execute([$data['reservation_id']]);
         echo json_encode(['success' => true, 'message' => 'Reservation deleted successfully']);
       } else if ($action === 'update_status') {
@@ -495,9 +512,14 @@ try {
         $reservationId = 'res-' . uniqid();
         
         // Calculate payment status
-        $totalAmount = floatval($data['totalAmount']); // Already discounted amount from frontend
+        $baseAmount = floatval($data['baseAmount'] ?? 0); // Base amount before any discounts
+        $seasonalRateDiscount = floatval($data['seasonalRateDiscount'] ?? 0); // Seasonal rate adjustment
         $promoDiscount = floatval($data['promoDiscount'] ?? 0);
-        $subtotalAmount = !empty($data['subtotalAmount']) ? floatval($data['subtotalAmount']) : ($totalAmount + $promoDiscount);
+        $subtotalAmount = !empty($data['subtotalAmount']) ? floatval($data['subtotalAmount']) : ($baseAmount + $seasonalRateDiscount);
+        
+        // Calculate final total including all discounts
+        $totalAmount = $subtotalAmount - $promoDiscount;
+        
         $paymentAmount = floatval($data['paymentAmount']);
         $balanceAmount = $totalAmount - $paymentAmount;
         
@@ -535,7 +557,7 @@ try {
             duration_hours, actual_check_in_at,
             num_adults, num_children, num_seniors, num_infants,
             reservation_status, source_channel, special_requests,
-            subtotal_amount, discount_amount, total_amount, paid_amount, balance_amount, payment_status,
+            subtotal_amount, base_amount, discount_amount, seasonal_rate_discount, total_amount, paid_amount, balance_amount, payment_status,
             confirmed_at, confirmed_by, created_by
           ) VALUES (
             ?, ?, ?, NULL,
@@ -543,7 +565,7 @@ try {
             ?, ?, ?, ?, ?, ?, NOW(),
             ?, ?, ?, ?,
             'checked_in', 'walk_in', ?,
-            ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?, ?, ?,
             NOW(), ?, ?
           )
         ");
@@ -566,9 +588,11 @@ try {
           $data['seniors'],
           $data['infants'],
           $data['notes'] ?? null,
-          $subtotalAmount,  // Original amount before discount
-          $promoDiscount,   // Discount amount
-          $totalAmount,     // Final amount after discount
+          $subtotalAmount,           // After seasonal rate, before promo
+          $baseAmount,               // Base amount before any discounts
+          $promoDiscount,            // Promo discount amount
+          $seasonalRateDiscount,     // Seasonal rate adjustment
+          $totalAmount,              // Final amount after discount
           $paymentAmount,
           $balanceAmount,
           $paymentStatus,
@@ -611,7 +635,7 @@ try {
               $roomTotal
             ]);
             
-            // Calculate and save pricing breakdown (use subtotal as base, skip base_rate since already created)
+            // Calculate and save pricing breakdown (use baseAmount as base, skip base_rate since already created)
             savePricingBreakdown(
               $pdo, 
               $reservationId, 
@@ -619,7 +643,7 @@ try {
               $data['propertyId'], 
               $room['category_id'] ?? null, 
               $data['checkInDate'], 
-              $subtotalAmount, // Original amount before discount
+              $baseAmount, // Original amount before any discounts
               $data['bookingType'],
               true // skipBaseRate - already created above
             );
@@ -713,8 +737,8 @@ try {
           $resRoomId, // NULL if no room selected
           'base_rate',
           $resRoomId ? 'Base Room Rate' : 'Entrance Fee',
-          $subtotalAmount, // Original amount before discount
-          $subtotalAmount,
+          $baseAmount, // Original amount before any discounts
+          $baseAmount,
           0, // First in sort order
           1
         ]);

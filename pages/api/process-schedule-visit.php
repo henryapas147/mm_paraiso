@@ -79,14 +79,19 @@ try {
         ];
     }
 
-    // Get amounts and promo data
-    $totalAmount = floatval($_POST['total_amount'] ?? $_POST['calculated_total'] ?? 0);
+    // Get amounts and discount data
+    $baseAmount = floatval($_POST['base_amount'] ?? 0);
+    $seasonalRateDiscount = floatval($_POST['seasonal_rate_discount'] ?? 0);
     $promoDiscount = floatval($_POST['promo_discount'] ?? 0);
     $promoId = $_POST['promo_id'] ?? null;
     $promoCode = $_POST['promo_code'] ?? null;
 
-    // Calculate subtotal (amount before discount)
-    $subtotalAmount = $totalAmount + $promoDiscount;
+    // Calculate subtotal (base amount after seasonal rate, before promo discount)
+    // This should be base_amount + seasonal_rate_discount (which can be negative for discounts)
+    $subtotalAmount = $baseAmount + $seasonalRateDiscount;
+
+    // Calculate final total including all discounts
+    $totalAmount = $subtotalAmount - $promoDiscount;
 
     $paymentOption = $_POST['payment_option'] ?? 'full';
 
@@ -122,14 +127,14 @@ try {
             check_in_date, check_in_time, check_out_date, check_out_time,
             walkin_first_name, walkin_last_name, walkin_email, walkin_phone,
             num_adults, num_children, num_seniors, special_requests,
-            source_channel, subtotal_amount, discount_amount, total_amount, paid_amount, balance_amount, created_at, updated_at
+            source_channel, subtotal_amount, base_amount, discount_amount, seasonal_rate_discount, total_amount, paid_amount, balance_amount, created_at, updated_at
         ) VALUES (
             :reservation_id, :reservation_code, :property_id, :customer_user_id,
             :booking_type, 'pending', :payment_status,
             :check_in_date, :check_in_time, :check_out_date, :check_out_time,
             :first_name, :last_name, :email, :phone,
             :num_adults, :num_children, :num_seniors, :special_requests,
-            'website', :subtotal_amount, :discount_amount, :total_amount, :paid_amount, :balance_amount, NOW(), NOW()
+            'website', :subtotal_amount, :base_amount, :discount_amount, :seasonal_rate_discount, :total_amount, :paid_amount, :balance_amount, NOW(), NOW()
         )
     ");
 
@@ -155,7 +160,9 @@ try {
         ':num_seniors' => intval($_POST['num_seniors'] ?? 0),
         ':special_requests' => $_POST['message'] ?? '',
         ':subtotal_amount' => $subtotalAmount,
+        ':base_amount' => $baseAmount,
         ':discount_amount' => $promoDiscount,
+        ':seasonal_rate_discount' => $seasonalRateDiscount,
         ':total_amount' => $totalAmount,
         ':paid_amount' => $amountPaid,
         ':balance_amount' => $balanceAmount
@@ -504,13 +511,13 @@ Total: ₱' . number_format($totalAmount, 2);
             $resRoomId ?? null,
             'base_rate',
             'Base Room Rate',
-            $subtotalAmount,
-            $subtotalAmount,
+            $baseAmount,
+            $baseAmount,
             0,
             1
         ]);
 
-        $currentAmount = $subtotalAmount;
+        $currentAmount = $baseAmount;
         $sortOrder = 1;
 
         // Check for seasonal rates
@@ -543,7 +550,7 @@ Total: ₱' . number_format($totalAmount, 2);
                 $resRoomId ?? null,
                 'seasonal_rate',
                 $season['season_name'],
-                $currentAmount,
+                $baseAmount,
                 $adjustedAmount,
                 $sortOrder++,
                 1
@@ -723,7 +730,11 @@ Total: ₱' . number_format($totalAmount, 2);
             'amount_paid' => $amountPaid,
             'payment_status' => $paymentStatus,
             'transaction_reference' => $_POST['transaction_reference'] ?? null,
-            'requirements' => $reqTypes
+            'requirements' => $reqTypes,
+            'base_amount' => $baseAmount ?? 0,
+            'seasonal_rate_discount' => $seasonalRateDiscount ?? 0,
+            'discount_amount' => $promoDiscount ?? 0,
+            'promo_code' => $promoCode ?? null
         ]);
         
         if (!$emailResult['success']) {

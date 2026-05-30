@@ -450,6 +450,86 @@ class EmailService
         $paymentStatus = ucfirst(htmlspecialchars($data['payment_status'] ?? 'pending'));
         $txnRef = !empty($data['transaction_reference']) ? "<p><strong>Reference Number:</strong> " . htmlspecialchars($data['transaction_reference']) . "</p>" : '';
         
+        // Pricing breakdown
+        $baseAmount = !empty($data['base_amount']) ? floatval($data['base_amount']) : 0;
+        $seasonalRateDiscount = !empty($data['seasonal_rate_discount']) ? floatval($data['seasonal_rate_discount']) : 0;
+        $discountAmount = !empty($data['discount_amount']) ? floatval($data['discount_amount']) : 0;
+        
+        // Build pricing breakdown section
+        $pricingBreakdownBlock = '';
+        if ($baseAmount > 0 || $seasonalRateDiscount != 0 || $discountAmount > 0) {
+            $breakdownRows = '';
+            
+            // Base amount
+            if ($baseAmount > 0) {
+                $breakdownRows .= '
+                    <tr>
+                      <td style="padding:10px 20px;border-bottom:1px solid #f3f4f6;">
+                        <span style="font-size:13px;color:#6b7280;">Base Amount</span>
+                      </td>
+                      <td style="padding:10px 20px;border-bottom:1px solid #f3f4f6;text-align:right;">
+                        <span style="font-size:14px;color:#1a1a2e;font-weight:600;">&#8369;' . number_format($baseAmount, 2) . '</span>
+                      </td>
+                    </tr>';
+            }
+            
+            // Seasonal rate discount
+            if ($seasonalRateDiscount != 0) {
+                $isDiscount = $seasonalRateDiscount < 0;
+                $label = $isDiscount ? 'Seasonal Rate Discount' : 'Seasonal Rate Surcharge';
+                $color = $isDiscount ? '#16a34a' : '#dc2626';
+                $sign = $isDiscount ? '-' : '+';
+                $breakdownRows .= '
+                    <tr>
+                      <td style="padding:10px 20px;border-bottom:1px solid #f3f4f6;">
+                        <span style="font-size:13px;color:#6b7280;">' . $label . '</span>
+                      </td>
+                      <td style="padding:10px 20px;border-bottom:1px solid #f3f4f6;text-align:right;">
+                        <span style="font-size:14px;color:' . $color . ';font-weight:600;">' . $sign . '&#8369;' . number_format(abs($seasonalRateDiscount), 2) . '</span>
+                      </td>
+                    </tr>';
+            }
+            
+            // Promo discount
+            if ($discountAmount > 0) {
+                $promoCode = !empty($data['promo_code']) ? ' (' . htmlspecialchars($data['promo_code']) . ')' : '';
+                $breakdownRows .= '
+                    <tr>
+                      <td style="padding:10px 20px;border-bottom:1px solid #f3f4f6;">
+                        <span style="font-size:13px;color:#6b7280;">Promotion Discount' . $promoCode . '</span>
+                      </td>
+                      <td style="padding:10px 20px;border-bottom:1px solid #f3f4f6;text-align:right;">
+                        <span style="font-size:14px;color:#16a34a;font-weight:600;">-&#8369;' . number_format($discountAmount, 2) . '</span>
+                      </td>
+                    </tr>';
+            }
+            
+            // Final total
+            $breakdownRows .= '
+                    <tr style="background:#f9fafb;">
+                      <td style="padding:12px 20px;">
+                        <span style="font-size:13px;font-weight:700;color:#1a1a2e;">Final Total</span>
+                      </td>
+                      <td style="padding:12px 20px;text-align:right;">
+                        <span style="font-size:16px;font-weight:800;color:#e84118;">&#8369;' . $totalAmount . '</span>
+                      </td>
+                    </tr>';
+            
+            $pricingBreakdownBlock = '
+              <!-- Pricing Breakdown -->
+              <tr>
+                <td style="padding:0 48px 24px;">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
+                    <tr>
+                      <td colspan="2" style="background:#fef3c7;padding:12px 20px;border-bottom:1px solid #fde68a;">
+                        <span style="font-size:12px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:0.8px;">&#128176; Pricing Breakdown</span>
+                      </td>
+                    </tr>' . $breakdownRows . '
+                  </table>
+                </td>
+              </tr>';
+        }
+        
         // Guest count
         $numAdults = intval($data['num_adults'] ?? 0);
         $numChildren = intval($data['num_children'] ?? 0);
@@ -631,6 +711,8 @@ class EmailService
                   </table>
                 </td>
               </tr>
+
+              ' . $pricingBreakdownBlock . '
 
               <!-- Payment Information -->
               <tr>

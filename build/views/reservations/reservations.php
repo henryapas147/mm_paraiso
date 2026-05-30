@@ -1182,7 +1182,11 @@
       
       if (result.success && result.data) {
         currentViewReservationId = reservationId;
-        renderViewModal(result.data);
+        // Fetch requirements for this reservation
+        const reqResponse = await fetch(`../api/reservation_requirements.php?action=by_reservation&reservation_id=${reservationId}`);
+        const reqResult = await reqResponse.json();
+        const requirements = reqResult.success ? reqResult.data : [];
+        renderViewModal(result.data, requirements);
         document.getElementById('viewModal').classList.add('open');
       } else {
         showAlert('Error', 'Failed to load reservation details', () => {});
@@ -1193,7 +1197,7 @@
     }
   }
 
-  function renderViewModal(data) {
+  function renderViewModal(data, requirements = []) {
     const body = document.getElementById('viewModalBody');
     const footer = document.getElementById('viewModalFooter');
     
@@ -1318,7 +1322,7 @@
         </div>
       </div>
 
-      ${data.requirements && data.requirements.length > 0 ? `
+      ${requirements && requirements.length > 0 ? `
       <div style="margin-top:24px">
         <h3 style="margin:0 0 12px;font-size:14px;font-weight:600;color:#92400e;text-transform:uppercase;letter-spacing:0.05em">Requirements</h3>
         <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;overflow:hidden">
@@ -1328,16 +1332,24 @@
                 <th style="padding:8px 12px;text-align:left;font-weight:600;color:#78350f;font-size:11px;text-transform:uppercase">Requirement</th>
                 <th style="padding:8px 12px;text-align:left;font-weight:600;color:#78350f;font-size:11px;text-transform:uppercase">Type</th>
                 <th style="padding:8px 12px;text-align:center;font-weight:600;color:#78350f;font-size:11px;text-transform:uppercase">Status</th>
+                <th style="padding:8px 12px;text-align:center;font-weight:600;color:#78350f;font-size:11px;text-transform:uppercase">File</th>
               </tr>
             </thead>
             <tbody>
-              ${data.requirements.map(req => {
+              ${requirements.map(req => {
                 const statusColors = {pending:'#FFF3E0;color:#E65100',submitted:'#E3F2FD;color:#1565C0',approved:'#E8F5E9;color:#2E7D32',rejected:'#FFEBEE;color:#C62828'};
                 const sc = statusColors[req.status] || '#F5F5F5;color:#666';
+                const fileCell = req.file_url
+                  ? `<a href="${req.file_url}" target="_blank" style="color:#185FA5;text-decoration:none;font-size:12px"><i class="fa-solid fa-file"></i> View</a>`
+                  : `<span style="color:#999;font-size:12px">No file</span>`;
                 return `<tr style="border-top:1px solid #fde68a">
-                  <td style="padding:9px 12px;color:#1a1a1a">${req.req_label || '-'}</td>
+                  <td style="padding:9px 12px;color:#1a1a1a">
+                    <div style="font-weight:500">${req.req_label || '-'}</div>
+                    ${req.template_url ? `<a href="${req.template_url}" target="_blank" style="font-size:11px;color:#185FA5;text-decoration:none"><i class="fa-solid fa-download"></i> Template</a>` : ''}
+                  </td>
                   <td style="padding:9px 12px"><span style="font-size:11px;background:${req.is_mandatory ? '#fee2e2;color:#b91c1c' : '#f3f4f6;color:#6b7280'};border-radius:4px;padding:2px 7px;font-weight:600">${req.is_mandatory ? 'Required' : 'Optional'}</span></td>
                   <td style="padding:9px 12px;text-align:center"><span style="font-size:11px;background:${sc};border-radius:9999px;padding:2px 9px;font-weight:500">${req.status ? req.status.charAt(0).toUpperCase()+req.status.slice(1) : '-'}</span></td>
+                  <td style="padding:9px 12px;text-align:center">${fileCell}</td>
                 </tr>`;
               }).join('')}
             </tbody>
@@ -1551,10 +1563,16 @@
         rejected: 'background:#FFEBEE;color:#C62828'
       };
       const sc = statusColors[req.status] || 'background:#f5f5f5;color:#666';
+      const fileLink = req.file_url
+        ? `<a href="${req.file_url}" target="_blank" style="font-size:11px;color:#185FA5;text-decoration:none;margin-left:8px"><i class="fa-solid fa-file"></i> View File</a>`
+        : '';
+      const templateLink = req.template_url
+        ? `<a href="${req.template_url}" target="_blank" style="font-size:11px;color:#185FA5;text-decoration:none;margin-left:8px"><i class="fa-solid fa-download"></i> Template</a>`
+        : '';
       return `
         <div style="padding:10px 14px;${i > 0 ? 'border-top:1px solid #fde68a;' : ''}display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
           <div>
-            <div style="font-size:13px;font-weight:500;color:#1a1a1a">${req.req_label}</div>
+            <div style="font-size:13px;font-weight:500;color:#1a1a1a">${req.req_label}${fileLink}${templateLink}</div>
             <div style="margin-top:4px"><span style="font-size:11px;border-radius:9999px;padding:2px 9px;font-weight:500;${sc}">${req.status ? req.status.charAt(0).toUpperCase()+req.status.slice(1) : 'Pending'}</span></div>
           </div>
           <div style="display:flex;gap:6px">
@@ -1606,8 +1624,11 @@
           document.getElementById('checkInPaymentAmount').value = '';
         }
         
-        // Load requirements for review
-        renderCheckInRequirements(result.data.requirements || []);
+        // Fetch requirements for this reservation
+        const reqResponse = await fetch(`../api/reservation_requirements.php?action=by_reservation&reservation_id=${reservationId}`);
+        const reqResult = await reqResponse.json();
+        const requirements = reqResult.success ? reqResult.data : [];
+        renderCheckInRequirements(requirements);
 
         // Set current date/time as default
         const now = new Date();

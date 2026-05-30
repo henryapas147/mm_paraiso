@@ -11,7 +11,7 @@ try {
         INNER JOIN properties p ON sr.property_id = p.property_id
         LEFT JOIN room_categories rc ON sr.applies_to = rc.category_id
         WHERE sr.is_active = 1
-        AND (sr.date_start <= CURDATE() AND sr.date_end >= CURDATE())
+        AND sr.date_end >= CURDATE()
         ORDER BY sr.date_start ASC
     ");
     $stmt->execute();
@@ -91,7 +91,7 @@ if (!empty($activeSeasonalRates)):
     padding: 10px 0;
     position: sticky;
     top: 80px;
-    z-index: 999;
+    z-index: 900;
     font-family: 'Poppins', sans-serif;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }

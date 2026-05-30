@@ -120,6 +120,25 @@ $propertyId = $_GET['id'] ?? null;
     </div>
   </div>
 
+  <!-- Booking Policies Section -->
+  <div class="section" id="bookingPoliciesSection" style="background: #fafafa;">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="section-heading" style="text-align: center; margin-bottom: 40px;">
+            <h6>| Booking Policies</h6>
+            <h2>Important Information</h2>
+          </div>
+        </div>
+      </div>
+      <div class="row" id="policiesContainer">
+        <div class="col-lg-12 text-center">
+          <p>Loading booking policies...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Available Rooms Section -->
   <div class="section" id="availableRoomsSection" style="background: #fff;">
     <div class="container">
@@ -280,6 +299,7 @@ $propertyId = $_GET['id'] ?? null;
         if (result.success) {
           renderPropertyDetails(result.data);
           renderSpecialOffers();
+          fetchBookingPolicies(result.data.property_id);
         } else {
           document.getElementById('propertyDetailsContainer').innerHTML = `
             <div class="col-lg-12 text-center">
@@ -413,6 +433,78 @@ $propertyId = $_GET['id'] ?? null;
           </div>
         </div>
       `;
+    }
+
+    // Fetch booking policies for this property
+    async function fetchBookingPolicies(propertyId) {
+      try {
+        const response = await fetch(`api/booking_policies.php?action=list&property_id=${encodeURIComponent(propertyId)}`);
+        const result = await response.json();
+
+        if (result.success && result.data && result.data.length > 0) {
+          renderBookingPolicies(result.data);
+        } else {
+          document.getElementById('bookingPoliciesSection').style.display = 'none';
+        }
+      } catch (error) {
+        console.error('Error fetching booking policies:', error);
+        document.getElementById('bookingPoliciesSection').style.display = 'none';
+      }
+    }
+
+    // Render booking policies
+    function renderBookingPolicies(policies) {
+      const container = document.getElementById('policiesContainer');
+
+      // Group policies by type
+      const policiesByType = {};
+      policies.forEach(policy => {
+        if (!policiesByType[policy.policy_type]) {
+          policiesByType[policy.policy_type] = [];
+        }
+        policiesByType[policy.policy_type].push(policy);
+      });
+
+      let html = '';
+
+      // Render each policy type
+      for (const [type, typePolicies] of Object.entries(policiesByType)) {
+        const typeLabel = type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        const typeIcon = type === 'cancellation' ? 'fa-times-circle' : 
+                        type === 'deposit' ? 'fa-money-bill' : 
+                        type === 'check_in' ? 'fa-sign-in-alt' : 
+                        type === 'check_out' ? 'fa-sign-out-alt' : 'fa-info-circle';
+
+        html += `
+          <div class="col-lg-6" style="margin-bottom: 30px;">
+            <div style="background: white; border-radius: 10px; padding: 25px; border-left: 4px solid #f35525; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+              <h4 style="margin-bottom: 20px; color: #2a2a2a;">
+                <i class="fa ${typeIcon}" style="color: #f35525; margin-right: 10px;"></i>
+                ${typeLabel}
+              </h4>
+              <div class="row">
+                ${typePolicies.map(policy => `
+                  <div class="col-lg-12" style="margin-bottom: 20px;">
+                    <div style="background: #fafafa; padding: 15px; border-radius: 8px;">
+                      <h5 style="margin-bottom: 10px; color: #f35525; font-size: 16px;">${escapeHtml(policy.policy_name)}</h5>
+                      ${policy.description ? `<p style="color: #666; font-size: 14px; margin-bottom: 10px; line-height: 1.6;">${escapeHtml(policy.description)}</p>` : ''}
+                      <div style="font-size: 13px; color: #444;">
+                        ${policy.free_cancel_hours !== null ? `<div><strong>Free Cancellation:</strong> Up to ${policy.free_cancel_hours} hours before check-in</div>` : ''}
+                        ${policy.penalty_type && policy.penalty_value ? `<div><strong>Penalty:</strong> ${policy.penalty_type === 'percentage' ? policy.penalty_value + '%' : '₱' + parseFloat(policy.penalty_value).toLocaleString('en-PH')} ${policy.penalty_type === 'percentage' ? 'of total' : 'flat fee'}</div>` : ''}
+                        ${policy.deposit_type && policy.deposit_value ? `<div><strong>Deposit:</strong> ${policy.deposit_type === 'percentage' ? policy.deposit_value + '%' : '₱' + parseFloat(policy.deposit_value).toLocaleString('en-PH')} ${policy.deposit_type === 'percentage' ? 'of total' : 'flat fee'}</div>` : ''}
+                        ${policy.min_nights ? `<div><strong>Minimum Nights:</strong> ${policy.min_nights} night${policy.min_nights > 1 ? 's' : ''}</div>` : ''}
+                        ${policy.category_name ? `<div><strong>Applies to:</strong> ${escapeHtml(policy.category_name)}</div>` : ''}
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
     }
 
     // Render special offers section (static)

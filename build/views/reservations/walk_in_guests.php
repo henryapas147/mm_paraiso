@@ -663,6 +663,25 @@
         <div class="form-group full" id="walkInPriceBreakdown" style="display:none">
           <div style="background:#f8fafc;border:1px solid #e0e0e0;border-radius:6px;padding:12px;font-size:13px;">
             <div style="font-weight:600;color:#444;margin-bottom:8px;">Price Breakdown</div>
+            
+            <!-- Seasonal Rate Row (hidden by default) -->
+            <div id="walkInSeasonalRateRow" style="display:none;margin-bottom:8px;">
+              <div class="alert alert-info py-2 mb-1" style="font-size: 13px;">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <i class="fa fa-calendar-alt"></i>
+                    <strong id="walkInSeasonalRateName">Seasonal Rate</strong>
+                    <span class="badge bg-light text-dark ms-2" id="walkInSeasonalRateBadge">0%</span>
+                  </div>
+                  <div class="text-end">
+                    <span id="walkInSeasonalRateAdjustment" class="text-success fw-bold">-₱0.00</span>
+                    <span class="text-muted ms-2">→</span>
+                    <span id="walkInSeasonalRateDisplay" class="fw-bold">₱0.00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <div id="walkInBreakdownLines" style="display:flex;flex-direction:column;gap:4px;"></div>
             <div style="border-top:1px solid #e0e0e0;margin-top:8px;padding-top:8px;display:flex;justify-content:space-between;">
               <span style="font-weight:600;">Total</span>
@@ -971,9 +990,11 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
           <div>
             <div class="detail-row"><div class="detail-label">Payment Status</div><div class="detail-value"><span class="status-badge ${data.payment_status}">${data.payment_status ? data.payment_status.replace(/_/g,'  ') : '-'}</span></div></div>
-            ${data.subtotal_amount > 0 ? `<div class="detail-row"><div class="detail-label">Original Amount</div><div class="detail-value" style="text-decoration:line-through;color:#999">₱${parseFloat(data.subtotal_amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</div></div>` : ''}
-            ${data.discount_amount > 0 ? `<div class="detail-row"><div class="detail-label">Discount</div><div class="detail-value" style="color:#3B6D11">-₱${parseFloat(data.discount_amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</div></div>` : ''}
-            <div class="detail-row"><div class="detail-label">Total Amount</div><div class="detail-value"><strong>₱${parseFloat(data.total_amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</strong></div></div>
+            ${data.base_amount > 0 ? `<div class="detail-row"><div class="detail-label"><i class="fas fa-calculator" style="margin-right:6px;color:#666"></i>Base Amount</div><div class="detail-value"><span style="background:#f8f9fa;padding:4px 8px;border-radius:4px;font-family:monospace">₱${parseFloat(data.base_amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</span></div></div>` : ''}
+            ${data.seasonal_rate_discount && parseFloat(data.seasonal_rate_discount) !== 0 ? `<div class="detail-row"><div class="detail-label"><i class="fas fa-snowflake" style="margin-right:6px;color:#2196F3"></i>Seasonal Rate</div><div class="detail-value"><span style="background:${parseFloat(data.seasonal_rate_discount) > 0 ? '#ffebee' : '#e8f5e8'};color:${parseFloat(data.seasonal_rate_discount) > 0 ? '#c62828' : '#2e7d32'};padding:4px 8px;border-radius:4px;font-weight:500;font-family:monospace">${parseFloat(data.seasonal_rate_discount) > 0 ? '+' : ''}₱${parseFloat(data.seasonal_rate_discount).toLocaleString('en-US', {minimumFractionDigits: 2})}</span></div></div>` : ''}
+            ${data.subtotal_amount > 0 ? `<div class="detail-row"><div class="detail-label"><i class="fas fa-minus" style="margin-right:6px;color:#666"></i>Subtotal</div><div class="detail-value"><span style="background:#f3e5f5;padding:4px 8px;border-radius:4px;color:#6a1b9a;font-family:monospace">₱${parseFloat(data.subtotal_amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</span></div></div>` : ''}
+            ${data.discount_amount > 0 ? `<div class="detail-row"><div class="detail-label"><i class="fas fa-tag" style="margin-right:6px;color:#4CAF50"></i>Promo Discount</div><div class="detail-value"><span style="background:#e8f5e8;color:#2e7d32;padding:4px 8px;border-radius:4px;font-weight:500;font-family:monospace">-₱${parseFloat(data.discount_amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</span></div></div>` : ''}
+            <div class="detail-row"><div class="detail-label"><i class="fas fa-receipt" style="margin-right:6px;color:#FF5722"></i>Total Amount</div><div class="detail-value"><strong style="background:#fff3e0;color:#e65100;padding:6px 12px;border-radius:6px;font-size:14px;font-family:monospace">₱${parseFloat(data.total_amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</strong></div></div>
             <div class="detail-row"><div class="detail-label">Amount Paid</div><div class="detail-value">₱${parseFloat(data.paid_amount || data.amount_paid || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</div></div>
           </div>
           <div>
@@ -989,47 +1010,57 @@
       ${data.pricing_breakdown?.length ? `
       <div style="margin-top:24px">
         <h3 style="margin:0 0 12px;font-size:14px;font-weight:600;color:#185FA5;text-transform:uppercase;letter-spacing:0.05em">
-          <i class="fas fa-receipt" style="margin-right:6px"></i>Pricing Breakdown
+          <i class="fas fa-chart-line" style="margin-right:6px;color:#2196F3"></i>Pricing Breakdown
         </h3>
-        <div style="background:#f9fafb;border:0.5px solid #e5e7eb;border-radius:8px;overflow:hidden">
+        <div style="background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.05)">
           <table style="width:100%;border-collapse:collapse;font-size:13px">
             <thead>
-              <tr style="background:#f3f4f6">
-                <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:500;color:#666;text-transform:uppercase">Component</th>
-                <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:500;color:#666;text-transform:uppercase">Base</th>
-                <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:500;color:#666;text-transform:uppercase">Adj</th>
-                <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:500;color:#666;text-transform:uppercase">Final</th>
+              <tr style="background:linear-gradient(135deg,#e2e8f0 0%,#cbd5e1 100%)">
+                <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:0.05em">Component</th>
+                <th style="padding:12px 16px;text-align:right;font-size:11px;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:0.05em">Base</th>
+                <th style="padding:12px 16px;text-align:right;font-size:11px;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:0.05em">Adjustment</th>
+                <th style="padding:12px 16px;text-align:right;font-size:11px;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:0.05em">Final</th>
               </tr>
             </thead>
             <tbody>
               ${data.pricing_breakdown.map(item => {
-                const badgeColors = {
-                  'base_rate': '#EAF3DE',
-                  'seasonal_rate': '#E6F1FB', 
-                  'pricing_rule': '#FAEEDA',
-                  'promotion': '#EEEDFE',
-                  'extra_guest_fee': '#FEF6E6',
-                  'tax': '#FCEBEB',
-                  'deposit': '#F1EFE8'
+                const componentConfig = {
+                  'base_rate': { bg: '#dcfce7', color: '#166534', icon: 'fa-bed' },
+                  'seasonal_rate': { bg: '#dbeafe', color: '#1d4ed8', icon: 'fa-snowflake' },
+                  'pricing_rule': { bg: '#fef3c7', color: '#92400e', icon: 'fa-gavel' },
+                  'promotion': { bg: '#fce7f3', color: '#9f1239', icon: 'fa-tag' },
+                  'extra_guest_fee': { bg: '#fed7aa', color: '#9a3412', icon: 'fa-users' },
+                  'tax': { bg: '#fecaca', color: '#991b1b', icon: 'fa-receipt' },
+                  'deposit': { bg: '#e5e7eb', color: '#374151', icon: 'fa-lock' }
                 };
-                const badgeColor = badgeColors[item.component_type] || '#f3f4f6';
-                const typeLabel = item.component_type.replace(/_/g, ' ').toUpperCase();
-                const adj = item.discount_amount ? `-${parseFloat(item.discount_amount).toLocaleString('en-US', {minimumFractionDigits:2})}` : 
-                             item.multiplier ? `${item.multiplier}x` : '-';
+                const config = componentConfig[item.component_type] || { bg: '#f3f4f6', color: '#666', icon: 'fa-circle' };
+                const typeLabel = item.component_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                const adj = item.discount_amount ? 
+                  `<span style="color:#dc2626;font-weight:600">-₱${parseFloat(item.discount_amount).toLocaleString('en-US', {minimumFractionDigits:2})}</span>` : 
+                  item.multiplier ? `<span style="color:#059669;font-weight:600">${item.multiplier}x</span>` : 
+                  '<span style="color:#9ca3af">-</span>';
+                
                 return `
-                <tr style="border-top:0.5px solid #e5e7eb">
-                  <td style="padding:10px 12px">
-                    <div style="display:flex;align-items:center;gap:8px">
-                      <span style="background:${badgeColor};padding:2px 8px;border-radius:12px;font-size:10px;font-weight:500;color:#666">${typeLabel}</span>
-                      <span style="font-weight:500">${item.component_name}</span>
+                <tr style="border-top:1px solid #e2e8f0;transition:background-color 0.2s" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='transparent'">
+                  <td style="padding:14px 16px">
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <div style="width:32px;height:32px;background:${config.bg};color:${config.color};border-radius:8px;display:flex;align-items:center;justify-content:center">
+                        <i class="fas ${config.icon}" style="font-size:12px"></i>
+                      </div>
+                      <div>
+                        <div style="font-weight:600;color:#1e293b;font-size:13px">${item.component_name}</div>
+                        <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+                          <span style="background:${config.bg};color:${config.color};padding:2px 6px;border-radius:4px;font-size:9px;font-weight:600;letter-spacing:0.5px">${typeLabel}</span>
+                          ${item.season_name ? `<span style="font-size:10px;color:#64748b"><i class="fas fa-snowflake" style="margin-right:2px"></i>${item.season_name}</span>` : ''}
+                          ${item.rule_name ? `<span style="font-size:10px;color:#64748b"><i class="fas fa-gavel" style="margin-right:2px"></i>${item.rule_name}</span>` : ''}
+                          ${item.promo_title ? `<span style="font-size:10px;color:#64748b"><i class="fas fa-tag" style="margin-right:2px"></i>${item.promo_title}</span>` : ''}
+                        </div>
+                      </div>
                     </div>
-                    ${item.season_name ? `<div style="font-size:11px;color:#666;margin-top:2px;padding-left:44px">Season: ${item.season_name}</div>` : ''}
-                    ${item.rule_name ? `<div style="font-size:11px;color:#666;margin-top:2px;padding-left:44px">Rule: ${item.rule_name}</div>` : ''}
-                    ${item.promo_title ? `<div style="font-size:11px;color:#666;margin-top:2px;padding-left:44px">Promo: ${item.promo_title}</div>` : ''}
                   </td>
-                  <td style="padding:10px 12px;text-align:right;font-family:monospace">₱${parseFloat(item.base_amount).toLocaleString('en-US', {minimumFractionDigits:2})}</td>
-                  <td style="padding:10px 12px;text-align:right;font-family:monospace;color:${item.discount_amount ? '#C62828' : '#666'}">${adj}</td>
-                  <td style="padding:10px 12px;text-align:right;font-family:monospace;font-weight:500">₱${parseFloat(item.final_amount).toLocaleString('en-US', {minimumFractionDigits:2})}</td>
+                  <td style="padding:14px 16px;text-align:right;font-family:monospace;font-weight:500;color:#475569">₱${parseFloat(item.base_amount).toLocaleString('en-US', {minimumFractionDigits:2})}</td>
+                  <td style="padding:14px 16px;text-align:right;font-family:monospace;font-weight:600">${adj}</td>
+                  <td style="padding:14px 16px;text-align:right;font-family:monospace;font-weight:600;color:#0f172a;background:#f8fafc;border-radius:6px">₱${parseFloat(item.final_amount).toLocaleString('en-US', {minimumFractionDigits:2})}</td>
                 </tr>`;
               }).join('')}
               <tr style="background:#E6F1FB;font-weight:600">
@@ -1045,18 +1076,30 @@
       ${data.applied_promotions?.length ? `
       <div style="margin-top:24px">
         <h3 style="margin:0 0 12px;font-size:14px;font-weight:600;color:#185FA5;text-transform:uppercase;letter-spacing:0.05em">
-          <i class="fas fa-ticket" style="margin-right:6px"></i>Applied Promotions
+          <i class="fas fa-ticket" style="margin-right:6px;color:#FF9800"></i>Applied Promotions
         </h3>
-        <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;flex-direction:column;gap:10px">
           ${data.applied_promotions.map(promo => `
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#f9fafb;border:0.5px solid #e5e7eb;border-radius:8px">
-              <div>
-                <div style="font-weight:500">${promo.promo_title}</div>
-                <div style="font-size:12px;color:#666">Code: ${promo.promo_code_used || '-'}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:linear-gradient(135deg,#fff8e1 0%,#fff3c4 100%);border:1px solid #ffcc02;border-radius:10px;box-shadow:0 2px 4px rgba(255,152,0,0.1)">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:40px;height:40px;background:#FF9800;border-radius:8px;display:flex;align-items:center;justify-content:center">
+                  <i class="fas fa-tag" style="color:white;font-size:16px"></i>
+                </div>
+                <div>
+                  <div style="font-weight:600;color:#e65100;font-size:14px">${promo.promo_title}</div>
+                  <div style="font-size:12px;color:#666;margin-top:2px">
+                    <i class="fas fa-barcode" style="margin-right:4px;font-size:10px"></i>
+                    ${promo.promo_code_used || 'No code'}
+                  </div>
+                </div>
               </div>
               <div style="text-align:right">
-                <div style="font-family:monospace;color:#C62828;font-weight:500">-₱${parseFloat(promo.discount_amount).toLocaleString('en-US', {minimumFractionDigits:2})}</div>
-                <div style="font-size:11px;color:#666">${promo.discount_type === 'percentage' ? promo.discount_value + '% off' : 'Fixed discount'}</div>
+                <div style="background:#e8f5e8;color:#2e7d32;padding:6px 12px;border-radius:6px;font-weight:600;font-family:monospace;font-size:13px">
+                  -₱${parseFloat(promo.discount_amount).toLocaleString('en-US', {minimumFractionDigits:2})}
+                </div>
+                <div style="font-size:11px;color:#666;margin-top:4px;font-style:italic">
+                  ${promo.discount_type === 'percentage' ? promo.discount_value + '% off' : 'Fixed discount'}
+                </div>
               </div>
             </div>
           `).join('')}
@@ -1197,6 +1240,7 @@
         availableRooms = rooms;
         rooms.forEach(room => {
           roomSelect.innerHTML += `<option value="${room.room_id}"
+            data-category-id="${room.category_id || ''}"
             data-overnight="${room.override_price_per_night || 0}"
             data-hourly="${room.override_price_per_hour || 0}"
             data-dayuse="${room.override_price_day_use || 0}"
@@ -1213,7 +1257,7 @@
     calculateWalkInAmount();
   }
 
-  function calculateWalkInAmount() {
+  async function calculateWalkInAmount() {
     const roomSelect    = document.getElementById('walkInRoom');
     const bookingType   = document.getElementById('walkInBookingType').value;
     const duration      = parseFloat(document.getElementById('walkInDuration').value) || 0;
@@ -1305,6 +1349,83 @@
       }
     }
 
+    // Store base amount (before any discounts)
+    const baseAmount = total;
+    
+    // Apply dynamic pricing (seasonal rates & pricing rules)
+    let seasonalRateDiscount = 0;
+    const propertySelect = document.getElementById('walkInProperty');
+    const propertyId = propertySelect.value;
+    const checkInDate = document.getElementById('walkInCheckInDate').value;
+    
+    if (propertyId && checkInDate && total > 0) {
+      try {
+        // Get room category ID if room is selected
+        const roomSelect = document.getElementById('walkInRoom');
+        const selectedOption = roomSelect.options[roomSelect.selectedIndex];
+        const categoryId = (selectedOption && selectedOption.value && selectedOption.dataset.categoryId) ? selectedOption.dataset.categoryId : null;
+        
+        const priceResponse = await fetch(`../../pages/api/calculate-price.php?property_id=${propertyId}&category_id=${categoryId}&base_amount=${total}&check_in_date=${checkInDate}&booking_type=${bookingType}`);
+        const priceResult = await priceResponse.json();
+
+        if (priceResult.success) {
+          // Calculate seasonal rate discount
+          const seasonalRateData = priceResult.breakdown?.find(b => b.type === 'seasonal_rate');
+          if (seasonalRateData) {
+            seasonalRateDiscount = Math.abs(seasonalRateData.adjustment || 0);
+          }
+          
+          total = priceResult.final_amount;
+          
+          // Display seasonal rate if present
+          const seasonalRate = priceResult.breakdown?.find(b => b.type === 'seasonal_rate');
+          if (seasonalRate) {
+            const multiplier = seasonalRate.multiplier;
+            let percentageText = '';
+            let adjustmentClass = '';
+            const isDiscount = multiplier < 1;
+            
+            if (isDiscount) {
+              const discountPercent = ((1 - multiplier) * 100).toFixed(0);
+              percentageText = `-${discountPercent}%`;
+              adjustmentClass = 'text-success';
+            } else if (multiplier > 1) {
+              const increasePercent = ((multiplier - 1) * 100).toFixed(0);
+              percentageText = `+${increasePercent}%`;
+              adjustmentClass = 'text-danger';
+            }
+            
+            // Update seasonal rate display row
+            document.getElementById('walkInSeasonalRateName').textContent = seasonalRate.name;
+            document.getElementById('walkInSeasonalRateBadge').textContent = percentageText;
+            document.getElementById('walkInSeasonalRateAdjustment').textContent = (isDiscount ? '-' : '+') + '₱' + seasonalRateDiscount.toLocaleString('en-PH', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            });
+            document.getElementById('walkInSeasonalRateAdjustment').className = adjustmentClass + ' fw-bold';
+            document.getElementById('walkInSeasonalRateDisplay').textContent = '₱' + seasonalRate.final_amount.toLocaleString('en-PH', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            });
+            document.getElementById('walkInSeasonalRateRow').style.display = 'block';
+            
+            lines.push({ 
+              label: `${seasonalRate.name} (${percentageText})`, 
+              amount: seasonalRateDiscount, 
+              discount: isDiscount,
+              seasonal: true 
+            });
+          } else {
+            // Hide seasonal rate row if no seasonal rate
+            document.getElementById('walkInSeasonalRateRow').style.display = 'none';
+          }
+        }
+      } catch (error) {
+        console.error('Dynamic pricing error:', error);
+        // Continue with base amount if API fails
+      }
+    }
+    
     // Calculate subtotal (before promo discount)
     const subtotal = total;
     
@@ -1330,6 +1451,27 @@
 
     // Update form fields
     document.getElementById('walkInSubtotalAmount').value = subtotal.toFixed(2);
+    
+    // Add hidden fields for base amount and seasonal rate discount if they don't exist
+    if (!document.getElementById('walkInBaseAmount')) {
+      const baseInput = document.createElement('input');
+      baseInput.type = 'hidden';
+      baseInput.id = 'walkInBaseAmount';
+      baseInput.name = 'base_amount';
+      document.getElementById('walkInForm').appendChild(baseInput);
+    }
+    if (!document.getElementById('walkInSeasonalRateDiscount')) {
+      const seasonalInput = document.createElement('input');
+      seasonalInput.type = 'hidden';
+      seasonalInput.id = 'walkInSeasonalRateDiscount';
+      seasonalInput.name = 'seasonal_rate_discount';
+      document.getElementById('walkInForm').appendChild(seasonalInput);
+    }
+    
+    // Set the values
+    document.getElementById('walkInBaseAmount').value = baseAmount.toFixed(2);
+    document.getElementById('walkInSeasonalRateDiscount').value = seasonalRateDiscount.toFixed(2);
+    
     if (promoDiscount > 0) {
       document.getElementById('discountRow').style.display = 'block';
       document.getElementById('walkInDiscountDisplay').value = promoDiscount.toFixed(2);
@@ -1438,6 +1580,10 @@
     document.getElementById('walkInPromoId').value = '';
     document.getElementById('walkInPromoDiscount').value = '0';
     document.getElementById('promoValidationResult').style.display = 'none';
+    
+    // Reset seasonal rate display
+    document.getElementById('walkInSeasonalRateRow').style.display = 'none';
+    
     document.getElementById('walkInBookingType').value = 'overnight';
     document.getElementById('walkInCheckOutTime').value = '11:00';
     toggleDateFields();
@@ -1473,9 +1619,19 @@
         validatedPromoData = result.promo;
         document.getElementById('walkInPromoId').value = result.promo.promo_id;
         
-        // Calculate discount (default 10% if no discount_id linked)
+        // Calculate discount based on promo type
         const currentTotal = parseFloat(document.getElementById('walkInTotalAmount').value) || 0;
-        const discount = currentTotal * 0.10; // Simplified - would use actual discount rules
+        let discount = 0;
+        
+        if (result.promo.promo_type === 'percentage') {
+          discount = currentTotal * (result.promo.discount_value / 100);
+        } else if (result.promo.promo_type === 'fixed') {
+          discount = result.promo.discount_value || 0;
+        } else {
+          // Default 10% if no specific type
+          discount = currentTotal * 0.10;
+        }
+        
         document.getElementById('walkInPromoDiscount').value = discount.toFixed(2);
         
         resultDiv.innerHTML = `<i class="fas fa-check-circle" style="color:#3B6D11"></i> <strong>${result.promo.promo_title}</strong> applied! Discount: ₱${discount.toFixed(2)}`;
@@ -1539,6 +1695,10 @@
     const promoCode = document.getElementById('walkInPromoCode').value.trim();
     const promoDiscount = parseFloat(document.getElementById('walkInPromoDiscount').value) || 0;
 
+    // Get base amount and seasonal rate discount
+    const baseAmount = parseFloat(document.getElementById('walkInBaseAmount')?.value || totalAmount);
+    const seasonalRateDiscount = parseFloat(document.getElementById('walkInSeasonalRateDiscount')?.value || 0);
+
     showAlert('Confirm Walk-In', `Process walk-in check-in for ${firstName} ${lastName}?`, () => confirmWalkIn({
       propertyId,
       roomId,
@@ -1557,6 +1717,8 @@
       seniors,
       infants,
       subtotalAmount,
+      baseAmount,
+      seasonalRateDiscount,
       totalAmount,
       paymentAmount,
       paymentMethod,

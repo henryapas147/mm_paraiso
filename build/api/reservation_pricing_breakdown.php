@@ -47,11 +47,27 @@ try {
           'total_discount' => 0,
           'total_final' => 0
         ];
+        
+        $currentAmount = 0;
         foreach ($data as $row) {
-          $totals['total_base'] += (float)$row['base_amount'];
-          $totals['total_discount'] += (float)$row['discount_amount'];
-          $totals['total_final'] += (float)$row['final_amount'];
+          if ($row['component_type'] === 'base_rate') {
+            // Base rate is the starting point
+            $totals['total_base'] = (float)$row['base_amount'];
+            $currentAmount = (float)$row['final_amount'];
+          } elseif ($row['component_type'] === 'seasonal_rate') {
+            // Seasonal rate adjusts the current amount
+            $currentAmount = (float)$row['final_amount'];
+          } elseif ($row['component_type'] === 'promotion') {
+            // Promotions are discounts
+            $totals['total_discount'] += (float)$row['discount_amount'];
+            $currentAmount += (float)$row['final_amount']; // Add negative amount
+          } elseif ($row['component_type'] === 'pricing_rule') {
+            // Pricing rules can be additions or discounts
+            $currentAmount = (float)$row['final_amount'];
+          }
         }
+        
+        $totals['total_final'] = $currentAmount;
         
         echo json_encode(['success' => true, 'data' => $data, 'totals' => $totals]);
         

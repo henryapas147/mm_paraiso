@@ -410,7 +410,8 @@ Header Style
   position: relative;
   background-color: #fff;
   height: 100px;
-  z-index: 100;
+  z-index: 1001;
+  overflow: visible;
   -webkit-transition: all .5s ease 0s;
   -moz-transition: all .5s ease 0s;
   -o-transition: all .5s ease 0s;
@@ -420,6 +421,7 @@ Header Style
 .header-area .main-nav {
   background: transparent;
   display: flex;
+  overflow: visible;
 }
 
 .header-area .main-nav .logo {
@@ -599,7 +601,7 @@ Header Style
   border-radius: 10px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.12);
   min-width: 180px;
-  z-index: 999;
+  z-index: 9999;
   overflow: hidden;
 }
 

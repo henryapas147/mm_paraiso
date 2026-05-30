@@ -23,17 +23,24 @@ try {
           LEFT JOIN user_accounts ua ON r.customer_user_id = ua.user_id
           LEFT JOIN user_profiles up ON r.customer_user_id = up.user_id
           LEFT JOIN properties p ON r.property_id = p.property_id
+          WHERE r.deleted_at IS NULL
           ORDER BY rg.created_at DESC
         ");
         $guests = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => $guests]);
       } else if ($action === 'single' && isset($_GET['id'])) {
-        $stmt = $pdo->prepare("SELECT rg.*, r.reservation_code FROM reservation_guests rg INNER JOIN reservations r ON rg.reservation_id = r.reservation_id WHERE rg.res_guest_id = ?");
+        $stmt = $pdo->prepare("SELECT rg.*, r.reservation_code FROM reservation_guests rg INNER JOIN reservations r ON rg.reservation_id = r.reservation_id WHERE rg.res_guest_id = ? AND r.deleted_at IS NULL");
         $stmt->execute([$_GET['id']]);
         $guest = $stmt->fetch(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => $guest]);
       } else if ($action === 'by_reservation' && isset($_GET['reservation_id'])) {
-        $stmt = $pdo->prepare("SELECT * FROM reservation_guests WHERE reservation_id = ? ORDER BY guest_type ASC");
+        $stmt = $pdo->prepare("
+          SELECT rg.* 
+          FROM reservation_guests rg
+          INNER JOIN reservations r ON rg.reservation_id = r.reservation_id
+          WHERE rg.reservation_id = ? AND r.deleted_at IS NULL
+          ORDER BY rg.guest_type ASC
+        ");
         $stmt->execute([$_GET['reservation_id']]);
         $guests = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => $guests]);
