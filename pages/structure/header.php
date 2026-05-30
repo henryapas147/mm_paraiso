@@ -81,6 +81,11 @@ $companyName = $companyInfo['company_name'] ?? 'M&M Paraiso';
     </div>
 </header>
 
+<?php
+// Include seasonal alert banner below header
+include 'seasonal-alert.php';
+?>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const toggle = document.querySelector('.user-dropdown-toggle');

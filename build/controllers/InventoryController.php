@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Core\RBAC;
+
 class InventoryController extends Controller
 {
     public function index()
@@ -62,5 +64,17 @@ class InventoryController extends Controller
     public function inventoryActions()
     {
         $this->view('inventory/inventory_actions');
+    }
+
+    public function pos()
+    {
+        // Check if user has POS access permission
+        if (!RBAC::canAccessPOS()) {
+            // Redirect to dashboard with error
+            $_SESSION['error'] = 'You do not have permission to access the Point of Sale.';
+            header('Location: ' . ($this->base_url ?? './'));
+            exit;
+        }
+        $this->view('inventory/pos', ['hide_sidebar' => true]);
     }
 }

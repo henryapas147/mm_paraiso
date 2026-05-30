@@ -652,7 +652,7 @@
     <div class="card-header">
       <div class="card-title">All Reservations</div>
       <div class="toolbar">
-        <button class="btn btn-primary" onclick="openWalkInModal()" style="white-space:nowrap"><i class="fa-solid fa-user-plus"></i> Walk-In Check-In</button>
+        <a href="walk-in-guests" class="btn btn-primary" style="white-space:nowrap"><i class="fa-solid fa-user-plus"></i> Walk-In Guests</a>
         <div class="search-wrap">
           <i class="fa-solid fa-magnifying-glass"></i>
           <input type="text" id="searchInput" class="search-input" placeholder="Search reservations..." onkeyup="filterTable()">
@@ -900,6 +900,10 @@
           <label>Event Time (12hr format)</label>
           <input type="text" id="checkInEventTime" placeholder="e.g., 2:30 PM" required>
         </div>
+        <div class="form-group full" id="checkInRequirementsSection" style="display:none">
+          <label style="color:#92400e;margin-bottom:8px;">&#128196; Requirements Verification</label>
+          <div id="checkInRequirementsList" style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;overflow:hidden;"></div>
+        </div>
         <div class="form-group full">
           <label>Notes</label>
           <textarea id="checkInNotes" rows="3" placeholder="Optional notes about check-in..."></textarea>
@@ -951,125 +955,6 @@
   </div>
 </div>
 
-<!-- Walk-In Check-In Modal -->
-<div class="overlay" id="walkInModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Walk-In Guest Check-In</div>
-      <button class="modal-close" onclick="closeModal('walkInModal')">&times;</button>
-    </div>
-    <div class="modal-body">
-      <form id="walkInForm" class="form-grid">
-        <div class="form-group full">
-          <label>Property <span class="req">*</span></label>
-          <select id="walkInProperty" required onchange="loadAvailableRooms()">
-            <option value="">Select Property</option>
-          </select>
-        </div>
-        <div class="form-group full">
-          <label>Room (Optional)</label>
-          <select id="walkInRoom" onchange="calculateWalkInAmount()">
-            <option value="">No Room - General Entry</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>First Name <span class="req">*</span></label>
-          <input type="text" id="walkInFirstName" required>
-        </div>
-        <div class="form-group">
-          <label>Last Name <span class="req">*</span></label>
-          <input type="text" id="walkInLastName" required>
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="walkInEmail">
-        </div>
-        <div class="form-group">
-          <label>Phone <span class="req">*</span></label>
-          <input type="tel" id="walkInPhone" required>
-        </div>
-        <div class="form-group">
-          <label>Booking Type <span class="req">*</span></label>
-          <select id="walkInBookingType" required onchange="toggleDateFields()">
-            <option value="overnight">Overnight</option>
-            <option value="hourly">Hourly</option>
-            <option value="day_use">Day Use</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Check-in Date <span class="req">*</span></label>
-          <input type="date" id="walkInCheckInDate" required onchange="updateHourlyCheckoutTime()">
-        </div>
-        <div class="form-group">
-          <label>Check-in Time <span class="req">*</span></label>
-          <input type="time" id="walkInCheckInTime" required onchange="updateHourlyCheckoutTime()">
-        </div>
-        <div class="form-group" id="walkInCheckOutDateGroup">
-          <label>Check-out Date <span class="req">*</span></label>
-          <input type="date" id="walkInCheckOutDate">
-        </div>
-        <div class="form-group" id="walkInCheckOutTimeGroup">
-          <label>Check-out Time <span class="req">*</span></label>
-          <input type="time" id="walkInCheckOutTime">
-        </div>
-        <div class="form-group" id="walkInDurationGroup" style="display:none">
-          <label>Duration (Hours) <span class="req">*</span></label>
-          <input type="number" id="walkInDuration" min="1" step="0.5" onchange="calculateWalkInAmount(); updateHourlyCheckoutTime();">
-        </div>
-        <div class="form-group" id="walkInCalculatedCheckoutGroup" style="display:none">
-          <label>Calculated Check-out</label>
-          <input type="text" id="walkInCalculatedCheckout" readonly style="background:#f5f5f5">
-        </div>
-        <div class="form-group">
-          <label>Adults <span class="req">*</span></label>
-          <input type="number" id="walkInAdults" min="1" value="1" required>
-        </div>
-        <div class="form-group">
-          <label>Children</label>
-          <input type="number" id="walkInChildren" min="0" value="0">
-        </div>
-        <div class="form-group">
-          <label>Seniors/PWD</label>
-          <input type="number" id="walkInSeniors" min="0" value="0">
-        </div>
-        <div class="form-group">
-          <label>Infants</label>
-          <input type="number" id="walkInInfants" min="0" value="0">
-        </div>
-        <div class="form-group full">
-          <label>Total Amount <span class="req">*</span></label>
-          <input type="number" id="walkInTotalAmount" step="0.01" min="0" required readonly style="background:#f5f5f5">
-        </div>
-        <div class="form-group full">
-          <label>Payment Amount <span class="req">*</span></label>
-          <input type="number" id="walkInPaymentAmount" step="0.01" min="0" required>
-        </div>
-        <div class="form-group">
-          <label>Payment Method <span class="req">*</span></label>
-          <select id="walkInPaymentMethod" required>
-            <option value="cash">Cash</option>
-            <option value="gcash">GCash</option>
-            <option value="maya">Maya</option>
-            <option value="card">Card</option>
-            <option value="bank_transfer">Bank Transfer</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Reference Number</label>
-          <input type="text" id="walkInReference" placeholder="Transaction reference">
-        </div>
-        <div class="form-group full">
-          <label>Notes</label>
-          <textarea id="walkInNotes" rows="3" placeholder="Optional notes..."></textarea>
-        </div>
-      </form>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal('walkInModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="processWalkIn()">Process Walk-In Check-In</button>
-    </div>
-  </div>
-</div>
 
 <script>
   let reservationsData = [];
@@ -1081,12 +966,15 @@
   document.addEventListener('DOMContentLoaded', function() {
     fetchReservationsData();
     checkUrlParams();
-    loadProperties();
   });
 
-  async function fetchReservationsData(page = 1) {
+  async function fetchReservationsData(page = 1, search = '', statusFilter = '', paymentFilter = '') {
     try {
-      const response = await fetch(`../api/reservations.php?action=list&page=${page}&limit=${itemsPerPage}`);
+      let url = `../api/reservations.php?action=list&page=${page}&limit=${itemsPerPage}`;
+      if (search) url += `&search=${encodeURIComponent(search)}`;
+      if (statusFilter) url += `&status=${encodeURIComponent(statusFilter)}`;
+      if (paymentFilter) url += `&payment_status=${encodeURIComponent(paymentFilter)}`;
+      const response = await fetch(url);
       const result = await response.json();
       if (result.success) {
         reservationsData = result.data;
@@ -1104,254 +992,12 @@
     }
   }
 
-  async function loadProperties() {
-    try {
-      const response = await fetch('../api/properties.php?action=list');
-      const result = await response.json();
-      if (result.success && result.data && result.data.data) {
-        const select = document.getElementById('walkInProperty');
-        select.innerHTML = '<option value="">Select Property</option>';
-        result.data.data.forEach(prop => {
-          select.innerHTML += `<option value="${prop.property_id}">${prop.property_name}</option>`;
-        });
-      }
-    } catch (error) {
-      console.error('Error loading properties:', error);
-    }
-  }
-
-  // Store room data and entrance fees for amount calculation
-  let availableRooms = [];
-  let entranceFees = { hourly: 0, day_use: 0, overnight: 0 };
-
-  async function loadEntranceFees() {
-    try {
-      const response = await fetch('../api/system_settings.php?action=entrance_fees');
-      const result = await response.json();
-      if (result.success && result.data) {
-        entranceFees = result.data;
-      }
-    } catch (error) {
-      console.error('Error loading entrance fees:', error);
-    }
-  }
-
-  async function loadAvailableRooms() {
-    const propertyId = document.getElementById('walkInProperty').value;
-    const roomSelect = document.getElementById('walkInRoom');
-    roomSelect.innerHTML = '<option value="">No Room - General Entry</option>';
-    availableRooms = [];
-
-    if (!propertyId) return;
-
-    try {
-      const response = await fetch(`../api/rooms.php?action=list&property_id=${propertyId}&per_page=100`);
-      const result = await response.json();
-      if (result.success && result.data && result.data.data) {
-        // Filter rooms by selected property
-        const rooms = result.data.data.filter(room => room.property_id === propertyId);
-        availableRooms = rooms;
-        rooms.forEach(room => {
-          roomSelect.innerHTML += `<option value="${room.room_id}" data-overnight="${room.override_price_per_night || 0}" data-hourly="${room.override_price_per_hour || 0}" data-dayuse="${room.override_price_day_use || 0}">${room.room_number} - ${room.room_name}</option>`;
-        });
-      }
-    } catch (error) {
-      console.error('Error loading rooms:', error);
-    }
-  }
-
-  function calculateWalkInAmount() {
-    const roomSelect = document.getElementById('walkInRoom');
-    const bookingType = document.getElementById('walkInBookingType').value;
-    const duration = parseFloat(document.getElementById('walkInDuration').value) || 0;
-    const totalAmountInput = document.getElementById('walkInTotalAmount');
-
-    const selectedOption = roomSelect.options[roomSelect.selectedIndex];
-    let amount = 0;
-
-    if (selectedOption && selectedOption.value) {
-      // Room selected - calculate based on room rates
-      if (bookingType === 'overnight') {
-        amount = parseFloat(selectedOption.dataset.overnight) || 0;
-      } else if (bookingType === 'hourly') {
-        const hourlyRate = parseFloat(selectedOption.dataset.hourly) || 0;
-        amount = hourlyRate * duration;
-      } else if (bookingType === 'day_use') {
-        amount = parseFloat(selectedOption.dataset.dayuse) || 0;
-      }
-    } else {
-      // No room selected - use entrance fee from database
-      if (bookingType === 'overnight') {
-        amount = entranceFees.overnight || 0;
-      } else if (bookingType === 'hourly') {
-        amount = entranceFees.hourly || 0;
-      } else if (bookingType === 'day_use') {
-        amount = entranceFees.day_use || 0;
-      }
-    }
-
-    totalAmountInput.value = amount.toFixed(2);
-    totalAmountInput.readOnly = true;
-    totalAmountInput.style.background = '#f5f5f5';
-  }
-
-  function updateHourlyCheckoutTime() {
-    const checkInDate = document.getElementById('walkInCheckInDate').value;
-    const checkInTime = document.getElementById('walkInCheckInTime').value;
-    const duration = parseFloat(document.getElementById('walkInDuration').value) || 0;
-    const calculatedCheckoutInput = document.getElementById('walkInCalculatedCheckout');
-
-    if (checkInDate && checkInTime && duration > 0) {
-      const checkInDateTime = new Date(`${checkInDate}T${checkInTime}`);
-      const checkoutDateTime = new Date(checkInDateTime.getTime() + duration * 60 * 60 * 1000);
-
-      const checkoutDate = checkoutDateTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      const checkoutTime = checkoutDateTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-
-      calculatedCheckoutInput.value = `${checkoutDate} at ${checkoutTime}`;
-    } else {
-      calculatedCheckoutInput.value = '';
-    }
-  }
-
-  function toggleDateFields() {
-    const bookingType = document.getElementById('walkInBookingType').value;
-    const checkOutDateGroup = document.getElementById('walkInCheckOutDateGroup');
-    const checkOutTimeGroup = document.getElementById('walkInCheckOutTimeGroup');
-    const durationGroup = document.getElementById('walkInDurationGroup');
-
-    const calculatedCheckoutGroup = document.getElementById('walkInCalculatedCheckoutGroup');
-
-    if (bookingType === 'hourly') {
-      checkOutDateGroup.style.display = 'none';
-      checkOutTimeGroup.style.display = 'none';
-      durationGroup.style.display = 'block';
-      calculatedCheckoutGroup.style.display = 'block';
-      updateHourlyCheckoutTime();
-    } else {
-      checkOutDateGroup.style.display = 'block';
-      checkOutTimeGroup.style.display = 'block';
-      durationGroup.style.display = 'none';
-      calculatedCheckoutGroup.style.display = 'none';
-    }
-
-    // Recalculate amount when booking type changes
-    calculateWalkInAmount();
-  }
-
-  async function openWalkInModal() {
-    // Load entrance fees first
-    await loadEntranceFees();
-
-    // Set current date/time as defaults
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-
-    document.getElementById('walkInCheckInDate').value = `${year}-${month}-${day}`;
-    document.getElementById('walkInCheckInTime').value = `${hours}:${minutes}`;
-
-    // Set default check-out to tomorrow for overnight
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowYear = tomorrow.getFullYear();
-    const tomorrowMonth = String(tomorrow.getMonth() + 1).padStart(2, '0');
-    const tomorrowDay = String(tomorrow.getDate()).padStart(2, '0');
-    document.getElementById('walkInCheckOutDate').value = `${tomorrowYear}-${tomorrowMonth}-${tomorrowDay}`;
-    document.getElementById('walkInCheckOutTime').value = '11:00';
-
-    // Reset and calculate initial amount based on default booking type
-    document.getElementById('walkInRoom').value = '';
-    calculateWalkInAmount();
-
-    document.getElementById('walkInModal').classList.add('open');
-  }
-
-  async function processWalkIn() {
-    const propertyId = document.getElementById('walkInProperty').value;
-    const roomId = document.getElementById('walkInRoom').value;
-    const firstName = document.getElementById('walkInFirstName').value;
-    const lastName = document.getElementById('walkInLastName').value;
-    const email = document.getElementById('walkInEmail').value;
-    const phone = document.getElementById('walkInPhone').value;
-    const bookingType = document.getElementById('walkInBookingType').value;
-    const checkInDate = document.getElementById('walkInCheckInDate').value;
-    const checkInTime = document.getElementById('walkInCheckInTime').value;
-    const checkOutDate = document.getElementById('walkInCheckOutDate').value;
-    const checkOutTime = document.getElementById('walkInCheckOutTime').value;
-    const duration = document.getElementById('walkInDuration').value;
-    const adults = document.getElementById('walkInAdults').value;
-    const children = document.getElementById('walkInChildren').value;
-    const seniors = document.getElementById('walkInSeniors').value;
-    const infants = document.getElementById('walkInInfants').value;
-    const totalAmount = document.getElementById('walkInTotalAmount').value;
-    const paymentAmount = document.getElementById('walkInPaymentAmount').value;
-    const paymentMethod = document.getElementById('walkInPaymentMethod').value;
-    const reference = document.getElementById('walkInReference').value;
-    const notes = document.getElementById('walkInNotes').value;
-
-    if (!propertyId || !firstName || !lastName || !phone || !checkInDate || !checkInTime || !totalAmount || !paymentAmount) {
-      showAlert('Error', 'Please fill in all required fields', () => {});
-      return;
-    }
-
-    if (bookingType === 'hourly' && !duration) {
-      showAlert('Error', 'Please specify duration for hourly booking', () => {});
-      return;
-    }
-
-    if (bookingType !== 'hourly' && (!checkOutDate || !checkOutTime)) {
-      showAlert('Error', 'Please specify check-out date and time', () => {});
-      return;
-    }
-
-    showAlert(
-      'Confirm Walk-In Check-In',
-      `Process walk-in check-in for ${firstName} ${lastName}?`,
-      () => confirmProcessWalkIn({
-        propertyId, roomId, firstName, lastName, email, phone, bookingType,
-        checkInDate, checkInTime, checkOutDate, checkOutTime, duration,
-        adults, children, seniors, infants, totalAmount, paymentAmount,
-        paymentMethod, reference, notes
-      })
-    );
-  }
-
-  async function confirmProcessWalkIn(data) {
-    try {
-      const response = await fetch('../api/reservations.php?action=create_walkin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': '<?php echo htmlspecialchars($_SESSION["csrf_token"] ?? "", ENT_QUOTES, "UTF-8"); ?>'
-        },
-        body: JSON.stringify(data)
-      });
-      const result = await response.json();
-
-      if (result.success) {
-        closeModal('walkInModal');
-        fetchReservationsData(currentPage);
-        showAlert('Success', 'Walk-in guest checked in successfully', () => {});
-      } else {
-        showAlert('Error', 'Failed to process walk-in check-in: ' + (result.message || 'Unknown error'), () => {});
-      }
-    } catch (error) {
-      console.error('Error processing walk-in check-in:', error);
-      showAlert('Error', 'Failed to process walk-in check-in', () => {});
-    }
-  }
 
   function updateStats() {
-    const total = reservationsData.length;
+    document.getElementById('statTotal').textContent = totalItems;
     const pending = reservationsData.filter(r => r.reservation_status === 'pending').length;
     const confirmed = reservationsData.filter(r => r.reservation_status === 'confirmed').length;
     const checkedIn = reservationsData.filter(r => r.reservation_status === 'checked_in').length;
-
-    document.getElementById('statTotal').textContent = total;
     document.getElementById('statPending').textContent = pending;
     document.getElementById('statConfirmed').textContent = confirmed;
     document.getElementById('statCheckedIn').textContent = checkedIn;
@@ -1438,7 +1084,8 @@
         <td class="center">
           <div class="actions-cell">
             <button onclick="event.stopPropagation(); viewReservation('${r.reservation_id}')" class="action-btn"><i class="fa-solid fa-eye"></i> View</button>
-            ${r.reservation_status === 'pending' || r.reservation_status === 'confirmed' ? `<button onclick="event.stopPropagation(); openCheckInModal('${r.reservation_id}')" class="action-btn" style="background:#E8F5E9;color:#2E7D32;border-color:#A5D6A7"><i class="fa-solid fa-right-to-bracket"></i> Check In</button>` : ''}
+            ${r.reservation_status === 'confirmed' ? `<button onclick="event.stopPropagation(); openCheckInModal('${r.reservation_id}')" class="action-btn" style="background:#E8F5E9;color:#2E7D32;border-color:#A5D6A7"><i class="fa-solid fa-right-to-bracket"></i> Check In</button>` : ''}
+            ${r.reservation_status === 'pending' ? `<button class="action-btn" disabled title="Reservation must be confirmed before check-in" style="opacity:0.45;cursor:not-allowed"><i class="fa-solid fa-right-to-bracket"></i> Check In</button>` : ''}
             ${r.reservation_status === 'checked_in' ? `<button onclick="event.stopPropagation(); openCheckOutModal('${r.reservation_id}')" class="action-btn" style="background:#E3F2FD;color:#1565C0;border-color:#90CAF9"><i class="fa-solid fa-right-from-bracket"></i> Check Out</button>` : ''}
             <button onclick="event.stopPropagation(); editReservation('${r.reservation_id}')" class="action-btn"><i class="fa-solid fa-pencil"></i> Edit</button>
             <button onclick="event.stopPropagation(); deleteReservation('${r.reservation_id}')" class="action-btn danger"><i class="fa-solid fa-trash"></i> Delete</button>
@@ -1453,23 +1100,15 @@
     if (tbody) tbody.innerHTML = `<tr><td colspan="10" class="empty-state"><i>⚠</i>${msg}</td></tr>`;
   }
 
+  let filterTimer = null;
   function filterTable() {
-    const search = document.getElementById('searchInput').value.toUpperCase();
-    const statusFilter = document.getElementById('statusFilter').value;
-    const paymentFilter = document.getElementById('paymentFilter').value;
-    const rows = document.querySelectorAll('#reservationsTable .reservation-row');
-
-    rows.forEach(row => {
-      const text = row.textContent.toUpperCase();
-      const statusCell = row.querySelector('td:nth-child(7)');
-      const paymentCell = row.querySelector('td:nth-child(8)');
-
-      const matchesSearch = text.includes(search);
-      const matchesStatus = !statusFilter || (statusCell && statusCell.textContent.toLowerCase().includes(statusFilter.toLowerCase().replace('_', ' ')));
-      const matchesPayment = !paymentFilter || (paymentCell && paymentCell.textContent.toLowerCase().includes(paymentFilter.toLowerCase()));
-
-      row.style.display = matchesSearch && matchesStatus && matchesPayment ? '' : 'none';
-    });
+    clearTimeout(filterTimer);
+    filterTimer = setTimeout(() => {
+      const search = document.getElementById('searchInput').value;
+      const statusFilter = document.getElementById('statusFilter').value;
+      const paymentFilter = document.getElementById('paymentFilter').value;
+      fetchReservationsData(1, search, statusFilter, paymentFilter);
+    }, 300);
   }
 
   function viewReservation(reservationId) {
@@ -1592,7 +1231,7 @@
           </div>
           <div class="detail-row">
             <div class="detail-label">Guests</div>
-            <div class="detail-value">${data.num_adults || 0} Adult${(data.num_adults || 0) > 1 ? 's' : ''}${(data.num_children || 0) > 0 ? ', ' + data.num_children + ' Child' + ((data.num_children || 0) > 1 ? 'ren' : '') : ''}</div>
+            <div class="detail-value">${data.num_adults || 0} Adult${(data.num_adults || 0) > 1 ? 's' : ''}${(data.num_children || 0) > 0 ? ', ' + data.num_children + ' Child' + ((data.num_children || 0) > 1 ? 'ren' : '') : ''}${(data.num_seniors || 0) > 0 ? ', ' + data.num_seniors + ' Senior' + ((data.num_seniors || 0) > 1 ? 's' : '') : ''}${(data.num_infants || 0) > 0 ? ', ' + data.num_infants + ' Infant' + ((data.num_infants || 0) > 1 ? 's' : '') : ''}</div>
           </div>
         </div>
       </div>
@@ -1678,6 +1317,34 @@
           <div class="detail-value">${data.special_requests || '-'}</div>
         </div>
       </div>
+
+      ${data.requirements && data.requirements.length > 0 ? `
+      <div style="margin-top:24px">
+        <h3 style="margin:0 0 12px;font-size:14px;font-weight:600;color:#92400e;text-transform:uppercase;letter-spacing:0.05em">Requirements</h3>
+        <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;overflow:hidden">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="background:#fef3c7">
+                <th style="padding:8px 12px;text-align:left;font-weight:600;color:#78350f;font-size:11px;text-transform:uppercase">Requirement</th>
+                <th style="padding:8px 12px;text-align:left;font-weight:600;color:#78350f;font-size:11px;text-transform:uppercase">Type</th>
+                <th style="padding:8px 12px;text-align:center;font-weight:600;color:#78350f;font-size:11px;text-transform:uppercase">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.requirements.map(req => {
+                const statusColors = {pending:'#FFF3E0;color:#E65100',submitted:'#E3F2FD;color:#1565C0',approved:'#E8F5E9;color:#2E7D32',rejected:'#FFEBEE;color:#C62828'};
+                const sc = statusColors[req.status] || '#F5F5F5;color:#666';
+                return `<tr style="border-top:1px solid #fde68a">
+                  <td style="padding:9px 12px;color:#1a1a1a">${req.req_label || '-'}</td>
+                  <td style="padding:9px 12px"><span style="font-size:11px;background:${req.is_mandatory ? '#fee2e2;color:#b91c1c' : '#f3f4f6;color:#6b7280'};border-radius:4px;padding:2px 7px;font-weight:600">${req.is_mandatory ? 'Required' : 'Optional'}</span></td>
+                  <td style="padding:9px 12px;text-align:center"><span style="font-size:11px;background:${sc};border-radius:9999px;padding:2px 9px;font-weight:500">${req.status ? req.status.charAt(0).toUpperCase()+req.status.slice(1) : '-'}</span></td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      ` : ''}
     `;
 
     // Update footer with approve/reject buttons if status is pending
@@ -1863,6 +1530,57 @@
     }
   }
 
+  let checkInRequirements = [];
+
+  function renderCheckInRequirements(requirements) {
+    const section = document.getElementById('checkInRequirementsSection');
+    const list = document.getElementById('checkInRequirementsList');
+    checkInRequirements = requirements || [];
+
+    if (checkInRequirements.length === 0) {
+      section.style.display = 'none';
+      return;
+    }
+
+    section.style.display = '';
+    list.innerHTML = checkInRequirements.map((req, i) => {
+      const statusColors = {
+        pending: 'background:#FFF3E0;color:#E65100',
+        submitted: 'background:#E3F2FD;color:#1565C0',
+        approved: 'background:#E8F5E9;color:#2E7D32',
+        rejected: 'background:#FFEBEE;color:#C62828'
+      };
+      const sc = statusColors[req.status] || 'background:#f5f5f5;color:#666';
+      return `
+        <div style="padding:10px 14px;${i > 0 ? 'border-top:1px solid #fde68a;' : ''}display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:13px;font-weight:500;color:#1a1a1a">${req.req_label}</div>
+            <div style="margin-top:4px"><span style="font-size:11px;border-radius:9999px;padding:2px 9px;font-weight:500;${sc}">${req.status ? req.status.charAt(0).toUpperCase()+req.status.slice(1) : 'Pending'}</span></div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button type="button" onclick="setReqStatus(${i},'approved',this)"
+              style="font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid #A5D6A7;background:${req.status==='approved'?'#2E7D32':'#E8F5E9'};color:${req.status==='approved'?'#fff':'#2E7D32'};cursor:pointer;font-weight:500">
+              ✓ Approved
+            </button>
+            <button type="button" onclick="setReqStatus(${i},'rejected',this)"
+              style="font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid #EF9A9A;background:${req.status==='rejected'?'#C62828':'#FFEBEE'};color:${req.status==='rejected'?'#fff':'#C62828'};cursor:pointer;font-weight:500">
+              ✕ Rejected
+            </button>
+            <button type="button" onclick="setReqStatus(${i},'pending',this)"
+              style="font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid #ccc;background:#f5f5f5;color:#666;cursor:pointer">
+              Pending
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function setReqStatus(index, status, btn) {
+    checkInRequirements[index].status = status;
+    // Re-render to reflect new state
+    renderCheckInRequirements(checkInRequirements);
+  }
+
   async function openCheckInModal(reservationId) {
     try {
       const response = await fetch(`../api/reservations.php?action=single&id=${reservationId}`);
@@ -1888,6 +1606,9 @@
           document.getElementById('checkInPaymentAmount').value = '';
         }
         
+        // Load requirements for review
+        renderCheckInRequirements(result.data.requirements || []);
+
         // Set current date/time as default
         const now = new Date();
         const year = now.getFullYear();
@@ -1961,6 +1682,25 @@
 
   async function confirmProcessCheckIn(reservationId, eventType, eventAt, notes) {
     try {
+      // Save updated requirement statuses first
+      const staffId = '<?php echo htmlspecialchars($_SESSION["user_id"] ?? "", ENT_QUOTES, "UTF-8"); ?>';
+      for (const req of checkInRequirements) {
+        await fetch('../api/reservation_requirements.php?action=update', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': '<?php echo htmlspecialchars($_SESSION["csrf_token"] ?? "", ENT_QUOTES, "UTF-8"); ?>'
+          },
+          body: JSON.stringify({
+            req_id: req.req_id,
+            status: req.status,
+            file_url: req.file_url || null,
+            notes: req.notes || null,
+            reviewed_by: staffId || null
+          })
+        });
+      }
+
       // Process payment if provided
       const paymentAmount = parseFloat(document.getElementById('checkInPaymentAmount').value || 0);
       const paymentMethod = document.getElementById('checkInPaymentMethod').value;

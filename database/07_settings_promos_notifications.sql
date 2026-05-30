@@ -238,4 +238,96 @@ CREATE TABLE IF NOT EXISTS notification_recipients (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Per-user delivery and read status for each notification';
 
+-- ============================================================================
+-- TABLE: reservation_pricing_breakdown
+-- Audit trail of how each reservation's price was calculated.
+-- Links reservations to the specific rules, seasons, and promos that applied.
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS reservation_pricing_breakdown (
+    breakdown_id    CHAR(36)        NOT NULL                                  COMMENT 'PK – UUID v4',
+    reservation_id  CHAR(36)        NOT NULL                                  COMMENT 'FK → reservations.reservation_id',
+    res_room_id     CHAR(36)        NULL                                      COMMENT 'FK → reservation_rooms.res_room_id (NULL = applies to whole reservation)',
+    -- What type of pricing component was applied
+    component_type  ENUM(
+                        'base_rate',          -- Base room/category rate
+                        'seasonal_rate',      -- Seasonal multiplier applied
+                        'pricing_rule',       -- Weekend/holiday/min-stay rule
+                        'promotion',          -- Promo discount
+                        'extra_guest_fee',    -- Adult/child/senior fees
+                        'extra_charges',      -- Additional services/fees
+                        'tax',                -- Tax amount
+                        'deposit'             -- Deposit collected
+                    )               NOT NULL,
+    -- Link to the specific rule/promo/season that was applied (all nullable)
+    rule_id         CHAR(36)        NULL                                      COMMENT 'FK → pricing_rules.rule_id',
+    season_id       CHAR(36)        NULL                                      COMMENT 'FK → seasonal_rates.season_id',
+    promo_id        CHAR(36)        NULL                                      COMMENT 'FK → promotions.promo_id',
+    -- Human-readable description of what was applied
+    component_name  VARCHAR(150)    NOT NULL                                  COMMENT 'e.g. "Weekend Surcharge", "Summer Peak Season", "EARLYBIRD Promo"',
+    description     TEXT            NULL                                      COMMENT 'Detailed explanation of calculation',
+    -- Financial breakdown
+    base_amount     DECIMAL(12,2)   NOT NULL DEFAULT 0.00                     COMMENT 'Amount before any multiplier/discount',
+    multiplier      DECIMAL(5,3)    NULL                                      COMMENT 'Rate multiplier (e.g. 1.5 for 50% increase)',
+    discount_percent DECIMAL(5,2)   NULL                                      COMMENT 'Discount percentage applied',
+    discount_amount DECIMAL(12,2)   NOT NULL DEFAULT 0.00                     COMMENT 'Flat discount amount',
+    final_amount    DECIMAL(12,2)   NOT NULL DEFAULT 0.00                     COMMENT 'Net amount for this component',
+    -- For ordering and display
+    sort_order      TINYINT(3)      NOT NULL DEFAULT 0                        COMMENT 'Display order on receipt/invoice',
+    is_visible      TINYINT(1)      NOT NULL DEFAULT 1                        COMMENT '1 = show on guest receipt, 0 = internal only',
+    created_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (breakdown_id),
+    KEY idx_reservation_id (reservation_id),
+    KEY idx_res_room_id (res_room_id),
+    KEY idx_component_type (component_type),
+    KEY idx_rule_id (rule_id),
+    KEY idx_season_id (season_id),
+    KEY idx_promo_id (promo_id),
+    KEY idx_created_at (created_at),
+    CONSTRAINT fk_rpb_reservation_id FOREIGN KEY (reservation_id) REFERENCES reservations(reservation_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_rpb_res_room_id FOREIGN KEY (res_room_id) REFERENCES reservation_rooms(res_room_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_rpb_rule_id FOREIGN KEY (rule_id) REFERENCES pricing_rules(rule_id) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT fk_rpb_season_id FOREIGN KEY (season_id) REFERENCES seasonal_rates(season_id) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT fk_rpb_promo_id FOREIGN KEY (promo_id) REFERENCES promotions(promo_id) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Audit trail of pricing components applied to each reservation';
+
+-- ============================================================================
+-- TABLE: reservation_promotions
+-- Tracks which promotions were applied to reservations.
+-- Junction table linking reservations to promotions with usage details.
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS reservation_promotions (
+    res_promo_id    CHAR(36)        NOT NULL                                  COMMENT 'PK – UUID v4',
+    reservation_id  CHAR(36)        NOT NULL                                  COMMENT 'FK → reservations.reservation_id',
+    promo_id        CHAR(36)        NOT NULL                                  COMMENT 'FK → promotions.promo_id',
+    -- Usage details
+    promo_code_used VARCHAR(50)     NULL                                      COMMENT 'Actual code entered by guest (for tracking usage)',
+    discount_amount DECIMAL(12,2)   NOT NULL DEFAULT 0.00                     COMMENT 'Discount amount applied',
+    discount_type   ENUM('percentage','fixed_amount')                         NOT NULL DEFAULT 'percentage',
+    discount_value  DECIMAL(10,2)   NOT NULL DEFAULT 0.00                     COMMENT 'Original discount % or amount from promo',
+    -- Validation
+    validated_at    TIMESTAMP       NULL                                      COMMENT 'When promo was validated',
+    validated_by    CHAR(36)        NULL                                      COMMENT 'Staff who approved promo (NULL = auto-validated)',
+    is_applied      TINYINT(1)      NOT NULL DEFAULT 1                        COMMENT '1 = discount applied, 0 = removed/voided',
+    -- Usage tracking for analytics
+    source_channel  ENUM('website','mobile_app','walk_in','phone','staff')
+                                            NULL                              COMMENT 'Where promo code was entered',
+    -- Metadata
+    notes           TEXT            NULL,
+    created_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (res_promo_id),
+    UNIQUE KEY uk_res_promo (reservation_id, promo_id),
+    KEY idx_promo_id (promo_id),
+    KEY idx_promo_code (promo_code_used),
+    KEY idx_is_applied (is_applied),
+    KEY idx_created_at (created_at),
+    CONSTRAINT fk_rp_reservation_id FOREIGN KEY (reservation_id) REFERENCES reservations(reservation_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_rp_promo_id FOREIGN KEY (promo_id) REFERENCES promotions(promo_id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Promotion/discount code usage per reservation';
+
 SELECT '07_settings_promos_notifications.sql — OK' AS migration_status;

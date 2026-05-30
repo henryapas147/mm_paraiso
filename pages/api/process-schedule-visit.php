@@ -79,8 +79,15 @@ try {
         ];
     }
 
-    // Calculate required payment
+    // Get amounts and promo data
     $totalAmount = floatval($_POST['total_amount'] ?? $_POST['calculated_total'] ?? 0);
+    $promoDiscount = floatval($_POST['promo_discount'] ?? 0);
+    $promoId = $_POST['promo_id'] ?? null;
+    $promoCode = $_POST['promo_code'] ?? null;
+
+    // Calculate subtotal (amount before discount)
+    $subtotalAmount = $totalAmount + $promoDiscount;
+
     $paymentOption = $_POST['payment_option'] ?? 'full';
 
     if ($paymentOption === 'full' && $paymentSettings['allow_full_payment']) {
@@ -114,15 +121,15 @@ try {
             booking_type, reservation_status, payment_status,
             check_in_date, check_in_time, check_out_date, check_out_time,
             walkin_first_name, walkin_last_name, walkin_email, walkin_phone,
-            num_adults, num_children, special_requests,
-            source_channel, total_amount, paid_amount, balance_amount, created_at, updated_at
+            num_adults, num_children, num_seniors, special_requests,
+            source_channel, subtotal_amount, discount_amount, total_amount, paid_amount, balance_amount, created_at, updated_at
         ) VALUES (
             :reservation_id, :reservation_code, :property_id, :customer_user_id,
             :booking_type, 'pending', :payment_status,
             :check_in_date, :check_in_time, :check_out_date, :check_out_time,
             :first_name, :last_name, :email, :phone,
-            :num_adults, :num_children, :special_requests,
-            'website', :total_amount, :paid_amount, :balance_amount, NOW(), NOW()
+            :num_adults, :num_children, :num_seniors, :special_requests,
+            'website', :subtotal_amount, :discount_amount, :total_amount, :paid_amount, :balance_amount, NOW(), NOW()
         )
     ");
 
@@ -145,7 +152,10 @@ try {
         ':phone' => $_POST['phone'],
         ':num_adults' => $_POST['num_adults'] ?? 1,
         ':num_children' => $_POST['num_children'] ?? 0,
+        ':num_seniors' => intval($_POST['num_seniors'] ?? 0),
         ':special_requests' => $_POST['message'] ?? '',
+        ':subtotal_amount' => $subtotalAmount,
+        ':discount_amount' => $promoDiscount,
         ':total_amount' => $totalAmount,
         ':paid_amount' => $amountPaid,
         ':balance_amount' => $balanceAmount
@@ -329,6 +339,24 @@ Total: ₱' . number_format($totalAmount, 2);
         $recipStmt->execute([$recipId, $notifId, $staff['user_id']]);
     }
 
+    // Resolve room_id — use submitted value or find any available room for this category
+    $resolvedRoomId = !empty($_POST['room_id']) ? $_POST['room_id'] : null;
+    if (!$resolvedRoomId) {
+        $roomLookupStmt = $pdo->prepare("
+            SELECT room_id FROM rooms
+            WHERE category_id = ? AND property_id = ? AND is_active = 1 AND room_status = 'available'
+            ORDER BY room_number ASC
+            LIMIT 1
+        ");
+        $roomLookupStmt->execute([$_POST['room_category_id'], $_POST['property_id']]);
+        $roomRow = $roomLookupStmt->fetch(PDO::FETCH_ASSOC);
+        if ($roomRow) {
+            $resolvedRoomId = $roomRow['room_id'];
+        } else {
+            throw new Exception('No available room found for the selected category. Please contact us for assistance.');
+        }
+    }
+
     // Get room pricing details from form
     $priceNight = floatval($_POST['price_per_night'] ?? 0);
     $priceHour = floatval($_POST['price_per_hour'] ?? 0);
@@ -336,6 +364,7 @@ Total: ₱' . number_format($totalAmount, 2);
     $numHours = floatval($_POST['num_hours'] ?? 0);
     $extraAdultFee = floatval($_POST['extra_adult_fee'] ?? 0);
     $extraChildFee = floatval($_POST['extra_child_fee'] ?? 0);
+    $extraSeniorFee = floatval($_POST['extra_senior_fee'] ?? 0);
 
     // Create reservation room entry
     $resRoomId = 'rr-' . uniqid();
@@ -343,12 +372,12 @@ Total: ₱' . number_format($totalAmount, 2);
         INSERT INTO reservation_rooms (
             res_room_id, reservation_id, category_id, room_id,
             booking_type, price_per_night, price_per_hour,
-            num_nights, num_hours, extra_adult_fee, extra_child_fee,
+            num_nights, num_hours, extra_adult_fee, extra_child_fee, extra_senior_fee,
             room_total, room_status, created_at, updated_at
         ) VALUES (
             ?, ?, ?, ?,
             ?, ?, ?,
-            ?, ?, ?, ?,
+            ?, ?, ?, ?, ?,
             ?, 'reserved', NOW(), NOW()
         )
     ");
@@ -357,7 +386,7 @@ Total: ₱' . number_format($totalAmount, 2);
         $resRoomId,
         $reservationId,
         $_POST['room_category_id'],
-        $_POST['room_id'] ?? null,
+        $resolvedRoomId,
         $_POST['booking_type'] ?? 'day_use',
         $priceNight,
         $priceHour,
@@ -365,6 +394,7 @@ Total: ₱' . number_format($totalAmount, 2);
         $numHours,
         $extraAdultFee,
         $extraChildFee,
+        $extraSeniorFee,
         $totalAmount
     ]);
 
@@ -431,6 +461,245 @@ Total: ₱' . number_format($totalAmount, 2);
         }
     }
 
+    // Seed reservation requirements based on booking type
+    $bookingType = $_POST['booking_type'] ?? 'day_use';
+    $reqTypesStmt = $pdo->prepare("
+        SELECT req_type_id, req_label, description, is_mandatory
+        FROM reservation_requirement_types
+        WHERE is_active = 1
+          AND (property_id = ? OR property_id IS NULL)
+          AND FIND_IN_SET(?, applies_to)
+        ORDER BY sort_order ASC
+    ");
+    $reqTypesStmt->execute([$_POST['property_id'], $bookingType]);
+    $reqTypes = $reqTypesStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($reqTypes as $reqType) {
+        $reqId = 'req-' . uniqid();
+        $reqInsertStmt = $pdo->prepare("
+            INSERT INTO reservation_requirements (
+                req_id, reservation_id, req_type_id, res_guest_id,
+                status, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, 'pending', NOW(), NOW())
+        ");
+        $reqInsertStmt->execute([$reqId, $reservationId, $reqType['req_type_id'], $guestId]);
+    }
+
+    // Create pricing breakdown entry for base rate
+    if ($subtotalAmount > 0) {
+        $baseBreakdownId = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+            mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
+            mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
+            mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
+
+        $pbStmt = $pdo->prepare("
+            INSERT INTO reservation_pricing_breakdown
+            (breakdown_id, reservation_id, res_room_id, component_type, component_name,
+             base_amount, final_amount, sort_order, is_visible)
+            VALUES (?,?,?,?,?,?,?,?,?)
+        ");
+        $pbStmt->execute([
+            $baseBreakdownId,
+            $reservationId,
+            $resRoomId ?? null,
+            'base_rate',
+            'Base Room Rate',
+            $subtotalAmount,
+            $subtotalAmount,
+            0,
+            1
+        ]);
+
+        $currentAmount = $subtotalAmount;
+        $sortOrder = 1;
+
+        // Check for seasonal rates
+        $seasonStmt = $pdo->prepare("
+            SELECT season_id, season_name, rate_multiplier, applies_to
+            FROM seasonal_rates
+            WHERE property_id = ?
+            AND is_active = 1
+            AND date_start <= ?
+            AND date_end >= ?
+            AND (applies_to IS NULL OR applies_to = ?)
+            ORDER BY rate_multiplier DESC
+            LIMIT 1
+        ");
+        $seasonStmt->execute([$_POST['property_id'], $_POST['visit_date'], $_POST['visit_date'], $_POST['room_category_id'] ?? null]);
+        $season = $seasonStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($season && $season['rate_multiplier'] != 1.0) {
+            $multiplier = floatval($season['rate_multiplier']);
+            $adjustedAmount = $currentAmount * $multiplier;
+
+            $seasonBreakdownId = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+                mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
+                mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
+                mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
+
+            $pbStmt->execute([
+                $seasonBreakdownId,
+                $reservationId,
+                $resRoomId ?? null,
+                'seasonal_rate',
+                $season['season_name'],
+                $currentAmount,
+                $adjustedAmount,
+                $sortOrder++,
+                1
+            ]);
+
+            // Update with proper references
+            $updateStmt = $pdo->prepare("
+                UPDATE reservation_pricing_breakdown
+                SET season_id = ?, multiplier = ?, final_amount = ?
+                WHERE breakdown_id = ?
+            ");
+            $updateStmt->execute([$season['season_id'], $multiplier, $adjustedAmount, $seasonBreakdownId]);
+
+            $currentAmount = $adjustedAmount;
+        }
+
+        // Check for pricing rules
+        $dayOfWeek = strtolower(date('D', strtotime($_POST['visit_date']))); // mon, tue, etc
+        $rulesStmt = $pdo->prepare("
+            SELECT rule_id, rule_name, rule_type, rule_value, applies_to
+            FROM pricing_rules
+            WHERE property_id = ?
+            AND is_active = 1
+            AND (category_id IS NULL OR category_id = ?)
+            AND (applies_to = 'all' OR applies_to = ?)
+            AND (date_start IS NULL OR date_start <= ?)
+            AND (date_end IS NULL OR date_end >= ?)
+            AND (day_of_week IS NULL OR FIND_IN_SET(?, day_of_week))
+            ORDER BY priority DESC
+        ");
+        $rulesStmt->execute([
+            $_POST['property_id'],
+            $_POST['room_category_id'] ?? null,
+            $_POST['booking_type'] ?? 'day_use',
+            $_POST['visit_date'],
+            $_POST['visit_date'],
+            $dayOfWeek
+        ]);
+        $rules = $rulesStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($rules as $rule) {
+            $ruleValue = floatval($rule['rule_value']);
+            $adjustedAmount = $currentAmount;
+            $discountAmount = 0;
+            $multiplier = null;
+
+            switch ($rule['rule_type']) {
+                case 'percentage_add':
+                    $multiplier = 1 + ($ruleValue / 100);
+                    $adjustedAmount = $currentAmount * $multiplier;
+                    break;
+                case 'percentage_discount':
+                    $discountAmount = $currentAmount * ($ruleValue / 100);
+                    $adjustedAmount = $currentAmount - $discountAmount;
+                    break;
+                case 'fixed_add':
+                    $adjustedAmount = $currentAmount + $ruleValue;
+                    break;
+                case 'fixed_discount':
+                    $discountAmount = $ruleValue;
+                    $adjustedAmount = $currentAmount - $discountAmount;
+                    break;
+                default:
+                    continue 2;
+            }
+
+            if ($adjustedAmount < 0) {
+                $adjustedAmount = 0;
+            }
+
+            $ruleBreakdownId = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+                mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
+                mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
+                mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
+
+            $pbStmt->execute([
+                $ruleBreakdownId,
+                $reservationId,
+                $resRoomId ?? null,
+                'pricing_rule',
+                $rule['rule_name'],
+                $currentAmount,
+                $adjustedAmount,
+                $sortOrder++,
+                1
+            ]);
+
+            // Update with proper references
+            $updateStmt = $pdo->prepare("
+                UPDATE reservation_pricing_breakdown
+                SET rule_id = ?, discount_amount = ?, final_amount = ?
+                WHERE breakdown_id = ?
+            ");
+            $updateStmt->execute([$rule['rule_id'], $discountAmount, $adjustedAmount, $ruleBreakdownId]);
+
+            $currentAmount = $adjustedAmount;
+        }
+
+        // Add promo discount to pricing breakdown if applicable
+        if ($promoDiscount > 0 && $promoId) {
+            $promoLookup = $pdo->prepare("SELECT promo_title, promo_code FROM promotions WHERE promo_id = ?");
+            $promoLookup->execute([$promoId]);
+            $promoData = $promoLookup->fetch(PDO::FETCH_ASSOC);
+
+            $promoBreakdownId = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+                mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
+                mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
+                mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
+
+            $pbStmt->execute([
+                $promoBreakdownId,
+                $reservationId,
+                $resRoomId ?? null,
+                'promotion',
+                ($promoData['promo_title'] ?? 'Promo Discount') . ($promoData['promo_code'] ? ' (' . $promoData['promo_code'] . ')' : ''),
+                0,
+                -$promoDiscount,
+                99,
+                1
+            ]);
+
+            // Update with promo reference
+            $updateStmt = $pdo->prepare("
+                UPDATE reservation_pricing_breakdown
+                SET promo_id = ?, discount_amount = ?, final_amount = ?
+                WHERE breakdown_id = ?
+            ");
+            $updateStmt->execute([$promoId, $promoDiscount, -$promoDiscount, $promoBreakdownId]);
+
+            // Create reservation_promotions entry
+            $resPromoId = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+                mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
+                mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
+                mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
+
+            $rpStmt = $pdo->prepare("
+                INSERT INTO reservation_promotions
+                (res_promo_id, reservation_id, promo_id, promo_code_used, discount_amount,
+                 discount_type, discount_value, validated_by, source_channel, is_applied)
+                VALUES (?,?,?,?,?,?,?,?,?,?)
+            ");
+            $rpStmt->execute([
+                $resPromoId,
+                $reservationId,
+                $promoId,
+                $promoCode,
+                $promoDiscount,
+                'percentage',
+                10,
+                $userId,
+                'website',
+                1
+            ]);
+        }
+    }
+
     $pdo->commit();
 
     // Send confirmation email
@@ -446,13 +715,15 @@ Total: ₱' . number_format($totalAmount, 2);
             'visit_time' => $_POST['visit_time'],
             'num_adults' => $_POST['num_adults'] ?? 1,
             'num_children' => $_POST['num_children'] ?? 0,
+            'num_seniors' => intval($_POST['num_seniors'] ?? 0),
             'payment_method' => $paymentMethod['method_label'] ?? 'N/A',
             'payment_option' => $paymentOption,
             'total_amount' => $totalAmount,
             'amount_required' => $requiredPayment,
             'amount_paid' => $amountPaid,
             'payment_status' => $paymentStatus,
-            'transaction_reference' => $_POST['transaction_reference'] ?? null
+            'transaction_reference' => $_POST['transaction_reference'] ?? null,
+            'requirements' => $reqTypes
         ]);
         
         if (!$emailResult['success']) {

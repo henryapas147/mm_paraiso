@@ -34,6 +34,11 @@ class ReservationsController extends Controller
         $this->view('reservations/reservation_requirements');
     }
 
+    public function walkInGuests()
+    {
+        $this->view('reservations/walk_in_guests');
+    }
+
     public function checkInLogs()
     {
         $this->view('reservations/check_in_logs');
@@ -42,5 +47,15 @@ class ReservationsController extends Controller
     public function entranceLogs()
     {
         $this->view('reservations/entrance_logs');
+    }
+
+    public function reservationPromotions()
+    {
+        $this->view('reservations/reservation_promotions');
+    }
+
+    public function pricingBreakdown()
+    {
+        $this->view('reservations/pricing_breakdown');
     }
 }

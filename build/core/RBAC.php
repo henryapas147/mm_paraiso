@@ -138,6 +138,28 @@ class RBAC
     }
 
     /**
+     * Check if user can access POS (Point of Sale)
+     * Requires pos.access permission OR canteen_staff/front_desk/admin/super_admin role
+     */
+    public static function canAccessPOS()
+    {
+        // First check specific permission
+        if (self::hasPermission('pos.access')) {
+            return true;
+        }
+
+        // Also allow based on role hierarchy (canteen_staff and above)
+        $allowedRoles = ['canteen_staff', 'front_desk', 'admin', 'super_admin'];
+        foreach ($allowedRoles as $role) {
+            if (self::hasRoleLevel($role)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Get all permissions for a role from database
      */
     public static function getRolePermissions($role)
@@ -210,6 +232,7 @@ class RBAC
                 'reservations.check_in', 'reservations.check_out',
                 'reservations.reservations.view', 'reservations.rooms.view', 'reservations.guests.view',
                 'reservations.requirement_types.view', 'reservations.requirements.view',
+                'reservations.walk_in_guests.view',
                 'reservations.check_in_logs.view', 'reservations.entrance_logs.view'
             ],
             'customers' => ['customers.view', 'customers.create', 'customers.edit', 'customers.delete'],
@@ -218,7 +241,7 @@ class RBAC
                 'inventory.products.view', 'inventory.categories.view', 'inventory.units.view',
                 'inventory.locations.view', 'inventory.suppliers.view', 'inventory.stock_location.view',
                 'inventory.purchase_orders.view', 'inventory.stock_transactions.view',
-                'inventory.stock_transfers.view', 'inventory.sales.view'
+                'inventory.stock_transfers.view', 'inventory.sales.view', 'pos.access'
             ],
             'food_canteen' => [
                 'food_canteen.view', 'food_canteen.create', 'food_canteen.edit', 'food_canteen.delete',
@@ -389,6 +412,7 @@ class RBAC
             'reservations/reservation-guests' => ['reservations.view', 'reservations.guests.view'],
             'reservations/reservation-requirement-types' => ['reservations.view', 'reservations.requirement_types.view'],
             'reservations/reservation-requirements' => ['reservations.view', 'reservations.requirements.view'],
+            'reservations/walk-in-guests' => ['reservations.view', 'reservations.walk_in_guests.view'],
             'reservations/check-in-logs' => ['reservations.view', 'reservations.check_in_logs.view'],
             'reservations/entrance-logs' => ['reservations.view', 'reservations.entrance_logs.view'],
             // Payments & Billing

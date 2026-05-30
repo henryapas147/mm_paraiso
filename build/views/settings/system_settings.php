@@ -598,6 +598,7 @@
 <script>
   let settingsData = [];
   let propertiesData = [];
+  let groupsData = [];
   let pagination = {
     page: 1,
     limit: 10,
@@ -627,6 +628,7 @@
       const json = await res.json();
       if (json.success) {
         propertiesData = json.data.properties;
+        groupsData = json.data.settingGroups || [];
         populateDropdowns();
       }
     } catch (e) {
@@ -720,10 +722,25 @@
   }
 
   function populateDropdowns() {
-    const opts = '<option value="">Global (all properties)</option>' + propertiesData.map(p => `<option value="${p.property_id}">${p.property_name}</option>`).join('');
+    // Properties
+    const propOpts = '<option value="">Global (all properties)</option>' +
+      propertiesData.map(p => `<option value="${p.property_id}">${p.property_name}</option>`).join('');
     ['addProperty', 'editProperty'].forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.innerHTML = opts;
+      if (el) el.innerHTML = propOpts;
+    });
+
+    // Groups — merge DB groups from API with any already loaded in the table
+    const groupsFromSettings = [...new Set(settingsData.map(s => s.setting_group).filter(Boolean))];
+    const groupsFromApi = groupsData.map(g => g.setting_group).filter(Boolean);
+    const allGroups = [...new Set([...groupsFromApi, ...groupsFromSettings])].sort();
+
+    const groupOpts = '<option value="">Select group</option>' +
+      allGroups.map(g => `<option value="${g}">${g.charAt(0).toUpperCase() + g.slice(1)}</option>`).join('');
+
+    ['addGroup', 'editGroup'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = groupOpts;
     });
   }
 
@@ -842,13 +859,8 @@
           </div>
           <div class="form-group">
             <label>Group <span class="req">*</span></label>
-            <select name="setting_group" required>
+            <select name="setting_group" id="addGroup" required>
               <option value="">Select group</option>
-              <option value="booking">Booking</option>
-              <option value="payment">Payment</option>
-              <option value="notifications">Notifications</option>
-              <option value="display">Display</option>
-              <option value="security">Security</option>
             </select>
           </div>
           <hr class="divider">
@@ -920,13 +932,8 @@
           </div>
           <div class="form-group">
             <label>Group <span class="req">*</span></label>
-            <select name="setting_group" required>
+            <select name="setting_group" id="editGroup" required>
               <option value="">Select group</option>
-              <option value="booking">Booking</option>
-              <option value="payment">Payment</option>
-              <option value="notifications">Notifications</option>
-              <option value="display">Display</option>
-              <option value="security">Security</option>
             </select>
           </div>
           <hr class="divider">
@@ -983,7 +990,8 @@
 
 <script>
   function openAddModal() {
-    document.getElementById('addOverlay').classList.add('open')
+    populateDropdowns();
+    document.getElementById('addOverlay').classList.add('open');
   }
 
   function closeAddModal() {
@@ -994,16 +1002,33 @@
   function openEditModal(id) {
     const s = settingsData.find(x => x.setting_id == id);
     if (!s) return;
+
+    // Rebuild dropdowns first so options exist before we set values
+    populateDropdowns();
+
     const f = document.getElementById('editForm');
     document.getElementById('editSettingId').value = s.setting_id;
-    f.property_id.value = s.property_id || '';
-    f.setting_group.value = s.setting_group;
-    f.setting_key.value = s.setting_key;
+    f.property_id.value   = s.property_id || '';
+    f.setting_key.value   = s.setting_key;
     f.setting_label.value = s.setting_label;
-    f.data_type.value = s.data_type;
-    f.is_public.value = s.is_public;
+    f.data_type.value     = s.data_type;
+    f.is_public.value     = s.is_public;
     f.setting_value.value = s.setting_value || '';
-    f.description.value = s.description || '';
+    f.description.value   = s.description || '';
+
+    // Set group AFTER dropdown is rebuilt
+    const editGroup = document.getElementById('editGroup');
+    editGroup.value = s.setting_group;
+
+    // Fallback: if the group isn't in the list yet, add it dynamically
+    if (editGroup.value !== s.setting_group) {
+      const opt = document.createElement('option');
+      opt.value = s.setting_group;
+      opt.textContent = s.setting_group.charAt(0).toUpperCase() + s.setting_group.slice(1);
+      editGroup.appendChild(opt);
+      editGroup.value = s.setting_group;
+    }
+
     document.getElementById('editOverlay').classList.add('open');
   }
 

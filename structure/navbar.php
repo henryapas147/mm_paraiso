@@ -1,4 +1,8 @@
 <?php
+// Load RBAC class for role checking
+require_once __DIR__ . '/../build/core/RBAC.php';
+use App\Core\RBAC;
+
 // Get current route from URL for dynamic breadcrumb (supports clean URL routing)
 $request_uri = strtok($_SERVER['REQUEST_URI'], '?');
 $base_path = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
@@ -13,6 +17,9 @@ if (!isset($base_url) || empty($base_url)) {
     }
     $base_url = $script_dir;
 }
+
+// Check if user can access POS
+$canAccessPOS = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true && RBAC::canAccessPOS();
 
 // Get user's profile photo for navbar
 // Dynamic default profile image path based on environment
@@ -129,6 +136,7 @@ function getBreadcrumbInfo($route)
         'inventory/stock-transfers' => ['Inventory', 'Stock Transfers'],
         'inventory/inventory-sales' => ['Inventory', 'Inventory Sales'],
         'inventory/inventory-actions' => ['Inventory', 'Inventory Actions'],
+        'inventory/pos' => ['Inventory', 'Point of Sale'],
         'food-canteen' => ['Food & Canteen', 'Food & Canteen'],
         'food-canteen/food-categories' => ['Food & Canteen', 'Food Categories'],
         'food-canteen/menu-items' => ['Food & Canteen', 'Menu Items'],
@@ -419,6 +427,18 @@ $breadcrumb = getBreadcrumbInfo($current_route);
                         <!-- fixed-plugin-button-nav  -->
                     </a>
                 </li>
+
+                <?php if ($canAccessPOS): ?>
+                <!-- POS Button -->
+                <li class="flex items-center px-3">
+                    <a href="<?php echo $base_url ?? './'; ?>inventory/pos" 
+                       class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 hover:shadow-lg transition-all duration-200"
+                       title="Point of Sale">
+                        <i class="fas fa-cash-register" style="margin-right: 5px;"></i>
+                        <span class="hidden sm:inline">POS</span>
+                    </a>
+                </li>
+                <?php endif; ?>
 
                 <!-- notifications -->
 

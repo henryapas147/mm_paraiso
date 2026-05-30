@@ -568,6 +568,25 @@
     border-color: #185FA5;
     background: #fff
   }
+
+  .confirm-modal-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 8px
+  }
+
+  .confirm-modal-text {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px
+  }
+
+  .confirm-modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end
+  }
 </style>
 
 <script>
@@ -673,12 +692,22 @@
       tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><i class="fas fa-database-off"></i>No promotion images found.</td></tr>`;
       return;
     }
-    tbody.innerHTML = promotionImagesData.map(img => `
+    tbody.innerHTML = promotionImagesData.map(img => {
+      let imageUrl = img.image_url || '';
+      if (imageUrl && !imageUrl.startsWith('http')) {
+        const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        if (isLocalhost) {
+          imageUrl = '/admin_booking/' + imageUrl;
+        } else {
+          imageUrl = '/' + imageUrl;
+        }
+      }
+      return `
       <tr class="promotion-image-row" data-id="${img.promo_image_id}">
         <td>
           <div class="preview-cell">
-            <img src="${img.image_url || ''}" alt="" class="preview-thumb" onerror="this.src='https://placehold.co/40x40?text=N/A'">
-            <span class="label-text">${img.image_url || '—'}</span>
+            <img src="${imageUrl}" alt="" class="preview-thumb" onerror="this.src='https://placehold.co/40x40?text=N/A'">
+            <span class="label-text">${img.image_url?.split('/').pop() || '—'}</span>
           </div>
         </td>
         <td><span class="value-text">${img.promo_title || '—'}</span></td>
@@ -692,7 +721,8 @@
             </button>
           </div>
         </td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
   }
 
   function populateDropdowns() {
@@ -798,7 +828,8 @@
       <span class="modal-title" id="addModalTitle">New promotion image</span>
       <button class="modal-close" onclick="closeAddModal()" aria-label="Close">×</button>
     </div>
-    <form id="addForm" onsubmit="submitAdd(event)">
+    <form id="addForm" onsubmit="submitAdd(event)" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
       <div class="modal-body">
         <div class="form-grid">
           <div class="form-group">
@@ -817,8 +848,12 @@
             </select>
           </div>
           <div class="form-group full">
-            <label>Image URL <span class="req">*</span></label>
-            <input type="url" name="image_url" required placeholder="https://example.com/image.jpg">
+            <label>Image file <span class="req">*</span></label>
+            <input type="file" name="image" required accept="image/*">
+          </div>
+          <div class="form-group full">
+            <label>Or Image URL (optional)</label>
+            <input type="url" name="image_url" placeholder="https://example.com/image.jpg">
           </div>
           <div class="form-group full">
             <label>Thumbnail URL</label>
@@ -848,6 +883,20 @@
 <!-- Toast -->
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<!-- Confirm Modal -->
+<div class="overlay" id="confirmOverlay">
+  <div class="modal" style="max-width: 400px">
+    <div class="modal-body">
+      <div class="confirm-modal-title">Delete image?</div>
+      <div class="confirm-modal-text" id="confirmText">Are you sure you want to delete this image? This cannot be undone.</div>
+      <div class="confirm-modal-actions">
+        <button type="button" class="btn" onclick="closeConfirmModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" style="background: #A32D2D; border-color: #A32D2D" id="confirmDeleteBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   function openAddModal() {
     document.getElementById('addOverlay').classList.add('open')
@@ -858,6 +907,19 @@
     document.getElementById('addForm').reset();
   }
 
+  function openConfirmModal(text, onConfirm) {
+    document.getElementById('confirmText').textContent = text;
+    document.getElementById('confirmOverlay').classList.add('open');
+    document.getElementById('confirmDeleteBtn').onclick = function() {
+      closeConfirmModal();
+      onConfirm();
+    };
+  }
+
+  function closeConfirmModal() {
+    document.getElementById('confirmOverlay').classList.remove('open');
+  }
+
   function handleOverlayClick(e, id) {
     if (e.target === document.getElementById(id)) document.getElementById(id).classList.remove('open');
   }
@@ -865,18 +927,12 @@
   function submitAdd(e) {
     e.preventDefault();
     const f = document.getElementById('addForm');
-    const payload = {
-      promo_id: f.elements['promo_id'].value,
-      image_url: f.elements['image_url'].value,
-      thumbnail_url: f.elements['thumbnail_url'].value || null,
-      image_type: f.elements['image_type'].value,
-      sort_order: f.elements['sort_order'].value || 0,
-      is_active: f.elements['is_active'].value
-    };
+    const formData = new FormData(f);
+    formData.append('uploaded_by', 'system');
+    
     fetch('../api/promotion_images.php?action=create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: formData
       })
       .then(r => r.json())
       .then(data => {
@@ -895,24 +951,26 @@
   }
 
   function confirmDelete(id, name) {
-    if (!confirm(`Delete image "${name}"? This cannot be undone.`)) return;
-    fetch('../api/promotion_images.php?action=delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ promo_image_id: id })
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          fetchPromotionImages();
-          showToast('Image deleted', 'success');
-        } else {
-          showToast(data.message, 'error');
-        }
-      })
-      .catch(() => {
-        showToast('An error occurred while deleting the image', 'error');
-      });
+    openConfirmModal(`Are you sure you want to delete "${name}"? This cannot be undone.`, () => {
+      const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+      fetch('../api/promotion_images.php?action=delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+          body: JSON.stringify({ promo_image_id: id, csrf_token: csrfToken })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            showToast('Image deleted', 'success');
+            fetchPromotionImages();
+          } else {
+            showToast(data.message, 'error');
+          }
+        })
+        .catch(() => {
+          showToast('An error occurred while deleting the image', 'error');
+        });
+    });
   }
 
   let toastTimer;

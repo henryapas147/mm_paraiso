@@ -46,7 +46,69 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    flex-wrap: nowrap
+    flex-wrap: wrap
+  }
+
+  .entries-select {
+    padding: 7px 12px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    color: #1a1a1a;
+    outline: none
+  }
+
+  .entries-select:focus {
+    border-color: #185FA5
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-top: 1px solid #e0e0e0;
+    justify-content: space-between;
+    flex-wrap: wrap
+  }
+
+  .pagination-info {
+    font-size: 13px;
+    color: #666
+  }
+
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px
+  }
+
+  .pagination-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    color: #1a1a1a;
+    cursor: pointer;
+    transition: all .2s
+  }
+
+  .pagination-btn:hover:not(:disabled) {
+    background: #f5f5f5;
+    border-color: #999
+  }
+
+  .pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed
+  }
+
+  .pagination-btn.active {
+    background: #185FA5;
+    color: #fff;
+    border-color: #185FA5
   }
 
   .search-wrap {
@@ -209,6 +271,12 @@
           <i class="fa-solid fa-magnifying-glass"></i>
           <input type="text" id="searchInput" class="search-input" placeholder="Search logs..." onkeyup="filterTable()">
         </div>
+        <select id="entriesPerPage" class="entries-select" onchange="changeEntriesPerPage()">
+          <option value="10">10 entries</option>
+          <option value="25">25 entries</option>
+          <option value="50">50 entries</option>
+          <option value="100">100 entries</option>
+        </select>
       </div>
     </div>
     <div class="table-wrap">
@@ -236,11 +304,18 @@
         </tbody>
       </table>
     </div>
+    <div class="pagination" id="pagination">
+      <div class="pagination-info" id="paginationInfo">Showing 0 of 0 entries</div>
+      <div class="pagination-controls" id="paginationControls"></div>
+    </div>
   </div>
 </div>
 
 <script>
   let entranceLogsData = [];
+  let filteredData = [];
+  let currentPage = 1;
+  let entriesPerPage = 10;
 
   document.addEventListener('DOMContentLoaded', function() {
     fetchEntranceLogsData();
@@ -252,7 +327,10 @@
       const result = await response.json();
       if (result.success) {
         entranceLogsData = result.data;
+        filteredData = [...entranceLogsData];
+        currentPage = 1;
         renderEntranceLogsTable();
+        renderPagination();
       } else {
         document.getElementById('entranceLogsTableBody').innerHTML = `<tr><td colspan="9" class="empty-state"><i>⚠</i>${result.message}</td></tr>`;
       }
@@ -273,12 +351,16 @@
     const tbody = document.getElementById('entranceLogsTableBody');
     if (!tbody) return;
 
-    if (entranceLogsData.length === 0) {
+    if (filteredData.length === 0) {
       tbody.innerHTML = `<tr><td colspan="9" class="empty-state"><i class="fa-regular fa-clipboard"></i>No entrance logs found</td></tr>`;
       return;
     }
 
-    tbody.innerHTML = entranceLogsData.map(log => {
+    const startIndex = (currentPage - 1) * entriesPerPage;
+    const endIndex = startIndex + entriesPerPage;
+    const pageData = filteredData.slice(startIndex, endIndex);
+
+    tbody.innerHTML = pageData.map(log => {
       const entryLabel = log.entry_type === 'entry' ? 'Entry' : 'Exit';
       const visitorName = log.visitor_name || (log.first_name ? `${log.first_name} ${log.last_name}` : '-');
       const reservation = log.reservation_code || '<span style="color:#999">Walk-in</span>';
@@ -299,10 +381,66 @@
     }).join('');
   }
 
+  function renderPagination() {
+    const paginationInfo = document.getElementById('paginationInfo');
+    const paginationControls = document.getElementById('paginationControls');
+    const totalPages = Math.ceil(filteredData.length / entriesPerPage);
+
+    if (filteredData.length === 0) {
+      paginationInfo.textContent = 'Showing 0 of 0 entries';
+      paginationControls.innerHTML = '';
+      return;
+    }
+
+    const startEntry = (currentPage - 1) * entriesPerPage + 1;
+    const endEntry = Math.min(currentPage * entriesPerPage, filteredData.length);
+    paginationInfo.textContent = `Showing ${startEntry}-${endEntry} of ${filteredData.length} entries`;
+
+    let buttons = '';
+    buttons += `<button class="pagination-btn" onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''}>First</button>`;
+    buttons += `<button class="pagination-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Prev</button>`;
+
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      buttons += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+    }
+
+    buttons += `<button class="pagination-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`;
+    buttons += `<button class="pagination-btn" onclick="goToPage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>Last</button>`;
+
+    paginationControls.innerHTML = buttons;
+  }
+
+  function goToPage(page) {
+    const totalPages = Math.ceil(filteredData.length / entriesPerPage);
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderEntranceLogsTable();
+    renderPagination();
+  }
+
+  function changeEntriesPerPage() {
+    entriesPerPage = parseInt(document.getElementById('entriesPerPage').value);
+    currentPage = 1;
+    renderEntranceLogsTable();
+    renderPagination();
+  }
+
   function filterTable() {
     const filter = document.getElementById('searchInput').value.toUpperCase();
-    document.querySelectorAll('#entranceLogsTable .entrance-row').forEach(row => {
-      row.style.display = row.textContent.toUpperCase().includes(filter) ? '' : 'none';
+    filteredData = entranceLogsData.filter(log => {
+      const text = Object.values(log).join(' ').toUpperCase();
+      return text.includes(filter);
     });
+    currentPage = 1;
+    renderEntranceLogsTable();
+    renderPagination();
   }
 </script>

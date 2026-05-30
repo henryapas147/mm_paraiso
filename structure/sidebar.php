@@ -73,7 +73,7 @@ function canShowSubPage($subPermission)
 $property_pages = ['properties-rooms/properties', 'properties-rooms/rooms', 'properties-rooms/room-categories', 'properties-rooms/amenities', 'properties-rooms/room-blocks'];
 $inventory_pages = ['inventory/product', 'inventory/inventory-categories', 'inventory/units-of-measure', 'inventory/inventory-locations', 'inventory/suppliers', 'inventory/product-stock-per-location', 'inventory/purchase-orders', 'inventory/stock-transactions', 'inventory/stock-transfers', 'inventory/inventory-sales', 'inventory/inventory-actions'];
 $food_canteen_pages = ['food-canteen/food-categories', 'food-canteen/menu-items', 'food-canteen/food-orders'];
-$reservations_pages = ['reservations/reservations', 'reservations/reservation-rooms', 'reservations/reservation-guests', 'reservations/reservation-requirement-types', 'reservations/reservation-requirements', 'reservations/check-in-logs', 'reservations/entrance-logs'];
+$reservations_pages = ['reservations/reservations', 'reservations/reservation-rooms', 'reservations/reservation-guests', 'reservations/reservation-requirement-types', 'reservations/reservation-requirements', 'reservations/walk-in-guests', 'reservations/check-in-logs', 'reservations/entrance-logs', 'reservations/reservation-promotions', 'reservations/pricing-breakdown'];
 $payments_billing_pages = ['payments-billing/payment-methods', 'payments-billing/payments', 'payments-billing/invoices', 'payments-billing/invoice-line-items', 'payments-billing/discounts', 'payments-billing/discount-usages', 'payments-billing/extra-charges', 'payments-billing/billing'];
 $settings_pages = ['settings/system-settings', 'settings/company', 'settings/pricing-rules', 'settings/seasonal-rates', 'settings/booking-policies', 'settings/promotions', 'settings/promotion-images', 'settings/notifications', 'settings/notification-recipients', 'settings/rbac-settings'];
 $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', 'reports/customers', 'reports/food-canteen', 'reports/financial'];
@@ -729,6 +729,14 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Requirements</span>
                                 </a>
                             <?php endif; ?>
+                            <?php if (canShowSubPage('reservations.walk_in_guests.view')): ?>
+                                <a href="<?php echo $base_url; ?>reservations/walk-in-guests" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('reservations/walk-in-guests', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
+                                    <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
+                                        <span class="sidebar-dot"></span>
+                                    </span>
+                                    <span class="duration-300 opacity-100 pointer-events-none ease truncate">Walk-In Guests</span>
+                                </a>
+                            <?php endif; ?>
                             <?php if (canShowSubPage('reservations.check_in_logs.view')): ?>
                                 <a href="<?php echo $base_url; ?>reservations/check-in-logs" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('reservations/check-in-logs', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
@@ -743,6 +751,22 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                                         <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Entrance Logs</span>
+                                </a>
+                            <?php endif; ?>
+                            <?php if (canShowSubPage('reservations.promotions.view')): ?>
+                                <a href="<?php echo $base_url; ?>reservations/reservation-promotions" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('reservations/reservation-promotions', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
+                                    <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
+                                        <span class="sidebar-dot"></span>
+                                    </span>
+                                    <span class="duration-300 opacity-100 pointer-events-none ease truncate">Reservation Promotions</span>
+                                </a>
+                            <?php endif; ?>
+                            <?php if (canShowSubPage('reservations.pricing.view')): ?>
+                                <a href="<?php echo $base_url; ?>reservations/pricing-breakdown" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('reservations/pricing-breakdown', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg">
+                                    <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
+                                        <span class="sidebar-dot"></span>
+                                    </span>
+                                    <span class="duration-300 opacity-100 pointer-events-none ease truncate">Pricing Breakdown</span>
                                 </a>
                             <?php endif; ?>
                         </div>

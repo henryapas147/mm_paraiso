@@ -536,7 +536,11 @@
   }
 </style>
 
+<?php
+require_once __DIR__ . '/../../../config/auth.php';
+?>
 <script>
+  let csrfToken = "<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>";
   let seasonalRatesData = [];
   let propertiesData = [];
   let categoriesData = [];
@@ -773,6 +777,7 @@
       <button class="modal-close" onclick="closeAddModal()" aria-label="Close">×</button>
     </div>
     <form id="addForm" onsubmit="submitAdd(event)">
+      <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
       <div class="modal-body">
         <div class="form-grid">
           <div class="form-group">
@@ -801,7 +806,9 @@
           </div>
           <div class="form-group">
             <label>Rate multiplier <span class="req">*</span></label>
-            <input type="number" step="0.001" name="rate_multiplier" required placeholder="e.g. 1.5 for 50% increase, 0.8 for 20% discount">
+            <input type="number" step="0.001" name="rate_multiplier" id="addRateMultiplier" required placeholder="e.g. 1.5 for 50% increase, 0.8 for 20% discount" oninput="updateMultiplierPreview('add')">
+            <div id="addMultiplierPreview" style="font-size: 12px; margin-top: 5px; color: #666;"></div>
+            <div id="addMultiplierWarning" style="font-size: 12px; margin-top: 5px; color: #dc2626; display: none;"></div>
           </div>
           <div class="form-group">
             <label>Status</label>
@@ -828,6 +835,7 @@
       <button class="modal-close" onclick="closeEditModal()" aria-label="Close">×</button>
     </div>
     <form id="editForm" onsubmit="submitEdit(event)">
+      <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
       <div class="modal-body">
         <div class="form-grid">
           <input type="hidden" name="season_id" id="editSeasonId">
@@ -857,7 +865,9 @@
           </div>
           <div class="form-group">
             <label>Rate multiplier <span class="req">*</span></label>
-            <input type="number" step="0.001" name="rate_multiplier" required placeholder="e.g. 1.5 for 50% increase, 0.8 for 20% discount">
+            <input type="number" step="0.001" name="rate_multiplier" id="editRateMultiplier" required placeholder="e.g. 1.5 for 50% increase, 0.8 for 20% discount" oninput="updateMultiplierPreview('edit')">
+            <div id="editMultiplierPreview" style="font-size: 12px; margin-top: 5px; color: #666;"></div>
+            <div id="editMultiplierWarning" style="font-size: 12px; margin-top: 5px; color: #dc2626; display: none;"></div>
           </div>
           <div class="form-group">
             <label>Status</label>
@@ -887,6 +897,8 @@
   function closeAddModal() {
     document.getElementById('addOverlay').classList.remove('open');
     document.getElementById('addForm').reset();
+    document.getElementById('addMultiplierPreview').textContent = '';
+    document.getElementById('addMultiplierWarning').style.display = 'none';
   }
 
   function openEditModal(id) {
@@ -902,21 +914,61 @@
     f.rate_multiplier.value = s.rate_multiplier;
     f.is_active.value = s.is_active;
     document.getElementById('editOverlay').classList.add('open');
+    updateMultiplierPreview('edit');
   }
 
   function closeEditModal() {
     document.getElementById('editOverlay').classList.remove('open');
     document.getElementById('editForm').reset();
+    document.getElementById('editMultiplierPreview').textContent = '';
+    document.getElementById('editMultiplierWarning').style.display = 'none';
   }
 
   function handleOverlayClick(e, id) {
     if (e.target === document.getElementById(id)) document.getElementById(id).classList.remove('open');
   }
 
+  function updateMultiplierPreview(type) {
+    const input = document.getElementById(type + 'RateMultiplier');
+    const preview = document.getElementById(type + 'MultiplierPreview');
+    const warning = document.getElementById(type + 'MultiplierWarning');
+    const value = parseFloat(input.value);
+
+    if (isNaN(value)) {
+      preview.textContent = '';
+      warning.style.display = 'none';
+      return;
+    }
+
+    let text = '';
+    let warningText = '';
+
+    if (value === 1.0) {
+      text = 'No change in price (0% adjustment)';
+    } else if (value > 1.0) {
+      const increase = ((value - 1) * 100).toFixed(1);
+      text = `Price increase by ${increase}%`;
+      if (value > 2.0) {
+        warningText = `Warning: ${increase}% increase is very high. Consider using a lower multiplier.`;
+      }
+    } else {
+      const discount = ((1 - value) * 100).toFixed(1);
+      text = `Price discount by ${discount}%`;
+      if (value < 0.5) {
+        warningText = `Warning: ${discount}% discount is very high. Consider using a higher multiplier.`;
+      }
+    }
+
+    preview.textContent = text;
+    warning.textContent = warningText;
+    warning.style.display = warningText ? 'block' : 'none';
+  }
+
   function submitAdd(e) {
     e.preventDefault();
     const f = document.getElementById('addForm');
     const payload = {
+      csrf_token: csrfToken,
       property_id: f.elements['property_id'].value || null,
       season_name: f.elements['season_name'].value,
       date_start: f.elements['date_start'].value,
@@ -927,7 +979,7 @@
     };
     fetch('../api/seasonal_rates.php?action=create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
         body: JSON.stringify(payload)
       })
       .then(r => r.json())
@@ -950,6 +1002,7 @@
     e.preventDefault();
     const f = document.getElementById('editForm');
     const payload = {
+      csrf_token: csrfToken,
       season_id: document.getElementById('editSeasonId').value,
       property_id: f.elements['property_id'].value || null,
       season_name: f.elements['season_name'].value,
@@ -961,7 +1014,7 @@
     };
     fetch('../api/seasonal_rates.php?action=update', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
         body: JSON.stringify(payload)
       })
       .then(r => r.json())
@@ -984,8 +1037,8 @@
     if (!confirm(`Delete season "${name}"? This cannot be undone.`)) return;
     fetch('../api/seasonal_rates.php?action=delete', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ season_id: id })
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+        body: JSON.stringify({ csrf_token: csrfToken, season_id: id })
       })
       .then(r => r.json())
       .then(data => {

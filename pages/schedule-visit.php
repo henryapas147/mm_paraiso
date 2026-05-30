@@ -77,7 +77,7 @@ try {
         base_price_day_use, base_price_per_night, base_price_per_hour,
         minimum_hours,
         max_adult_capacity, max_child_capacity, max_total_capacity,
-        extra_adult_fee, extra_child_fee,
+        extra_adult_fee, extra_child_fee, extra_senior_fee,
         allows_overnight, allows_day_use, allows_hourly,
         bed_configuration, view_type
       FROM room_categories 
@@ -106,6 +106,25 @@ try {
 $companyName = $companyInfo['company_name'] ?? 'M&M Paraiso';
 $phone = $companyInfo['phone_number'] ?? '+63 XXX XXX XXXX';
 $email = $companyInfo['email'] ?? 'info@company.com';
+
+// Fetch logged-in user info to pre-fill personal information
+$loggedInUser = null;
+if (isset($_SESSION['user_id'])) {
+  try {
+    $userStmt = $pdo->prepare("
+      SELECT ua.email, ua.phone_number,
+             up.first_name, up.last_name
+      FROM user_accounts ua
+      LEFT JOIN user_profiles up ON ua.user_id = up.user_id
+      WHERE ua.user_id = ? AND ua.account_status = 'active'
+      LIMIT 1
+    ");
+    $userStmt->execute([$_SESSION['user_id']]);
+    $loggedInUser = $userStmt->fetch(PDO::FETCH_ASSOC);
+  } catch (PDOException $e) {
+    error_log("Failed to fetch logged-in user info: " . $e->getMessage());
+  }
+}
 
 // Fetch payment settings and methods
 $paymentSettings = null;
@@ -295,7 +314,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Verify room category belongs to selected property and get capacity info
     $catCheckStmt = $pdo->prepare("
-      SELECT category_id, max_adult_capacity, max_child_capacity, extra_adult_fee, extra_child_fee
+      SELECT category_id, max_adult_capacity, max_child_capacity, extra_adult_fee, extra_child_fee, extra_senior_fee
       FROM room_categories 
       WHERE category_id = ? AND property_id = ? AND is_active = 1
     ");
@@ -308,15 +327,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validate guest count against capacity and extra fees
     $numAdults = intval($_POST['num_adults'] ?? 1);
     $numChildren = intval($_POST['num_children'] ?? 0);
+    $numSeniors = intval($_POST['num_seniors'] ?? 0);
     $maxAdults = intval($categoryData['max_adult_capacity']);
     $maxChildren = intval($categoryData['max_child_capacity']);
     $extraAdultFee = floatval($categoryData['extra_adult_fee']);
     $extraChildFee = floatval($categoryData['extra_child_fee']);
+    $extraSeniorFee = floatval($categoryData['extra_senior_fee']);
 
     // Check if extra adults exceed capacity without configured fee
-    if ($numAdults > $maxAdults && $extraAdultFee <= 0) {
-      $extraAdults = $numAdults - $maxAdults;
-      throw new Exception("Guest count error: {$extraAdults} extra adult(s) exceeds capacity (max {$maxAdults}), but no extra adult fee is configured. Please contact us for assistance.");
+    // Seniors count toward adult slots when checking capacity
+    $effectiveAdults = $numAdults + $numSeniors;
+    if ($effectiveAdults > $maxAdults && $extraAdultFee <= 0 && $extraSeniorFee <= 0) {
+      $extraAdults = $effectiveAdults - $maxAdults;
+      throw new Exception("Guest count error: {$extraAdults} extra adult(s)/senior(s) exceeds capacity (max {$maxAdults}), but no extra fee is configured. Please contact us for assistance.");
     }
 
     // Check if extra children exceed capacity without configured fee
@@ -571,31 +594,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       // ============================================
       // CHECK FOR EXISTING USER
       // ============================================
-      // Look up user by email (and optionally verify name matches)
       $customerUserId = null;
-      $userStmt = $pdo->prepare("
-        SELECT user_id, first_name, last_name 
-        FROM user_accounts 
-        WHERE email = ? AND is_active = 1
-        LIMIT 1
-      ");
-      $userStmt->execute([$_POST['email']]);
-      $existingUser = $userStmt->fetch();
 
-      if ($existingUser) {
-        // Optional: Verify name matches (case-insensitive)
-        $inputFirstName = strtolower(trim($_POST['first_name']));
-        $inputLastName = strtolower(trim($_POST['last_name']));
-        $dbFirstName = strtolower(trim($existingUser['first_name']));
-        $dbLastName = strtolower(trim($existingUser['last_name']));
+      if (isset($_SESSION['user_id'])) {
+        // User is logged in — use their session ID directly
+        $customerUserId = $_SESSION['user_id'];
+        error_log("Linked reservation to logged-in user: {$customerUserId}");
+      } else {
+        // Guest flow — look up user by email + name match
+        $userStmt = $pdo->prepare("
+          SELECT ua.user_id, up.first_name, up.last_name
+          FROM user_accounts ua
+          LEFT JOIN user_profiles up ON ua.user_id = up.user_id
+          WHERE ua.email = ? AND ua.account_status = 'active'
+          LIMIT 1
+        ");
+        $userStmt->execute([$_POST['email']]);
+        $existingUser = $userStmt->fetch();
 
-        // If names match, link to existing user
-        if ($inputFirstName === $dbFirstName && $inputLastName === $dbLastName) {
-          $customerUserId = $existingUser['user_id'];
-          error_log("Linked reservation to existing user: {$customerUserId} ({$_POST['email']})");
-        } else {
-          // Email exists but name differs - treat as guest (could be same email, different person)
-          error_log("Email match but name mismatch for: {$_POST['email']}. Treating as guest booking.");
+        if ($existingUser) {
+          $inputFirstName = strtolower(trim($_POST['first_name']));
+          $inputLastName  = strtolower(trim($_POST['last_name']));
+          $dbFirstName    = strtolower(trim($existingUser['first_name'] ?? ''));
+          $dbLastName     = strtolower(trim($existingUser['last_name'] ?? ''));
+
+          if ($inputFirstName === $dbFirstName && $inputLastName === $dbLastName) {
+            $customerUserId = $existingUser['user_id'];
+            error_log("Linked reservation to existing user by email+name: {$customerUserId} ({$_POST['email']})");
+          } else {
+            error_log("Email match but name mismatch for: {$_POST['email']}. Treating as guest booking.");
+          }
         }
       }
 
@@ -608,9 +636,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     booking_type, reservation_status, payment_status,
                     check_in_date, check_in_time, check_out_date, check_out_time,
                     walkin_first_name, walkin_last_name, walkin_email, walkin_phone,
-                    num_adults, num_children, special_requests,
+                    num_adults, num_children, num_seniors, special_requests,
                     source_channel, total_amount, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
             ");
 
       $stmt->execute([
@@ -631,6 +659,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_POST['phone'],
         $_POST['num_adults'] ?? 1,
         $_POST['num_children'] ?? 0,
+        intval($_POST['num_seniors'] ?? 0),
         ($_POST['visit_purpose'] ?? '') . ($_POST['message'] ? ': ' . $_POST['message'] : ''),
         'website',
         floatval($_POST['total_amount'] ?? 0)
@@ -985,10 +1014,8 @@ function createAdminNotification($data)
                 <form id="schedule-visit-form" action="" method="post" enctype="multipart/form-data">
                   <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
 
-                  <!-- Room Hidden Field (if coming from "Book This Room") -->
-                  <?php if ($preselectedRoomId): ?>
-                    <input type="hidden" name="room_id" value="<?php echo htmlspecialchars($preselectedRoomId); ?>">
-                  <?php endif; ?>
+                  <!-- Room ID hidden field - populated by preselection or room selector in availability panel -->
+                  <input type="hidden" name="room_id" id="selected_room_id" value="<?php echo htmlspecialchars($preselectedRoomId ?? ''); ?>">
 
                   <!-- Room/Category Info Display -->
                   <?php if ($preselectedRoomId || $preselectedCategoryId): ?>
@@ -1065,6 +1092,7 @@ function createAdminNotification($data)
                                       data-max-children="<?php echo intval($cat['max_child_capacity']); ?>"
                                       data-extra-adult-fee="<?php echo floatval($cat['extra_adult_fee']); ?>"
                                       data-extra-child-fee="<?php echo floatval($cat['extra_child_fee']); ?>"
+                                      data-extra-senior-fee="<?php echo floatval($cat['extra_senior_fee']); ?>"
                                       data-allows-overnight="<?php echo $cat['allows_overnight'] ? '1' : '0'; ?>"
                                       data-allows-day-use="<?php echo $cat['allows_day_use'] ? '1' : '0'; ?>"
                                       data-allows-hourly="<?php echo $cat['allows_hourly'] ? '1' : '0'; ?>"
@@ -1080,8 +1108,8 @@ function createAdminNotification($data)
                               <div id="categoryDetails" class="form-text" style="display: <?php echo $preselectedCategoryData ? 'block' : 'none'; ?>;">
                                 <?php if ($preselectedCategoryData): ?>
                                   <strong>Capacity:</strong> <?php echo $preselectedCategoryData['max_adult_capacity']; ?> Adults, <?php echo $preselectedCategoryData['max_child_capacity']; ?> Children
-                                  <?php if ($preselectedCategoryData['extra_adult_fee'] > 0 || $preselectedCategoryData['extra_child_fee'] > 0): ?>
-                                    | <strong>Extra: Adult +₱<?php echo number_format($preselectedCategoryData['extra_adult_fee'], 2); ?>, Child +₱<?php echo number_format($preselectedCategoryData['extra_child_fee'], 2); ?></strong>
+                                  <?php if ($preselectedCategoryData['extra_adult_fee'] > 0 || $preselectedCategoryData['extra_child_fee'] > 0 || $preselectedCategoryData['extra_senior_fee'] > 0): ?>
+                                    | <strong>Extra: Adult +₱<?php echo number_format($preselectedCategoryData['extra_adult_fee'], 2); ?>, Child +₱<?php echo number_format($preselectedCategoryData['extra_child_fee'], 2); ?>, Senior +₱<?php echo number_format($preselectedCategoryData['extra_senior_fee'], 2); ?></strong>
                                   <?php endif; ?>
                                   <?php if ($preselectedCategoryData['bed_configuration']): ?>
                                     <br><strong>Bed:</strong> <?php echo htmlspecialchars($preselectedCategoryData['bed_configuration']); ?>
@@ -1098,12 +1126,13 @@ function createAdminNotification($data)
                               <input type="hidden" id="categoryMinimumHours" value="<?php echo $preselectedCategoryData ? intval($preselectedCategoryData['minimum_hours'] ?? 2) : '2'; ?>">
                               <input type="hidden" id="categoryMaxAdults" value="<?php echo $preselectedCategoryData ? intval($preselectedCategoryData['max_adult_capacity']) : '2'; ?>">
                               <input type="hidden" id="categoryMaxChildren" value="<?php echo $preselectedCategoryData ? intval($preselectedCategoryData['max_child_capacity']) : '2'; ?>">
-                              <input type="hidden" id="categoryExtraAdultFee" value="<?php echo $preselectedCategoryData ? floatval($preselectedCategoryData['extra_adult_fee']) : '0'; ?>">
-                              <input type="hidden" id="categoryExtraChildFee" value="<?php echo $preselectedCategoryData ? floatval($preselectedCategoryData['extra_child_fee']) : '0'; ?>">
+                              <input type="hidden" id="categoryExtraAdultFee" name="extra_adult_fee" value="<?php echo $preselectedCategoryData ? floatval($preselectedCategoryData['extra_adult_fee']) : '0'; ?>">
+                              <input type="hidden" id="categoryExtraChildFee" name="extra_child_fee" value="<?php echo $preselectedCategoryData ? floatval($preselectedCategoryData['extra_child_fee']) : '0'; ?>">
+                              <input type="hidden" id="categoryExtraSeniorFee" name="extra_senior_fee" value="<?php echo $preselectedCategoryData ? floatval($preselectedCategoryData['extra_senior_fee']) : '0'; ?>">
                               <input type="hidden" id="categoryAllowsOvernight" value="<?php echo $preselectedCategoryData ? ($preselectedCategoryData['allows_overnight'] ? '1' : '0') : '1'; ?>">
                               <input type="hidden" id="categoryAllowsDayUse" value="<?php echo $preselectedCategoryData ? ($preselectedCategoryData['allows_day_use'] ? '1' : '0') : '1'; ?>">
                               <input type="hidden" id="categoryAllowsHourly" value="<?php echo $preselectedCategoryData ? ($preselectedCategoryData['allows_hourly'] ? '1' : '0') : '0'; ?>">
-                              <input type="hidden" id="bookingType" value="day_use">
+                              <input type="hidden" id="bookingType" name="booking_type" value="day_use">
                               <!-- Booking Type Settings (database-driven) -->
                               <input type="hidden" id="dbHourlyMinHours" value="<?php echo intval($bookingTypeSettings['hourly_min_hours'] ?? 3); ?>">
                               <input type="hidden" id="dbHourlyMaxHours" value="<?php echo intval($bookingTypeSettings['hourly_max_hours'] ?? 12); ?>">
@@ -1128,14 +1157,15 @@ function createAdminNotification($data)
                                                                     'max_child_capacity' => intval($cat['max_child_capacity']),
                                                                     'extra_adult_fee' => floatval($cat['extra_adult_fee']),
                                                                     'extra_child_fee' => floatval($cat['extra_child_fee']),
+                                                                    'extra_senior_fee' => floatval($cat['extra_senior_fee']),
                                                                     'allows_overnight' => boolval($cat['allows_overnight']),
                                                                     'allows_day_use' => boolval($cat['allows_day_use']),
                                                                     'allows_hourly' => boolval($cat['allows_hourly']),
                                                                     'bed_configuration' => $cat['bed_configuration'],
                                                                     'view_type' => $cat['view_type'],
                                                                     'capacity_display' => $cat['max_adult_capacity'] . ' Adults, ' . $cat['max_child_capacity'] . ' Children',
-                                                                    'extra_fees_display' => ($cat['extra_adult_fee'] > 0 || $cat['extra_child_fee'] > 0)
-                                                                      ? 'Extra: Adult +₱' . number_format($cat['extra_adult_fee'], 2) . ', Child +₱' . number_format($cat['extra_child_fee'], 2)
+                                                                    'extra_fees_display' => ($cat['extra_adult_fee'] > 0 || $cat['extra_child_fee'] > 0 || $cat['extra_senior_fee'] > 0)
+                                                                      ? 'Extra: Adult +₱' . number_format($cat['extra_adult_fee'], 2) . ', Child +₱' . number_format($cat['extra_child_fee'], 2) . ', Senior +₱' . number_format($cat['extra_senior_fee'], 2)
                                                                       : null
                                                                   ];
                                                                 }, $preselectedCategories)); ?>;
@@ -1202,13 +1232,20 @@ function createAdminNotification($data)
                               </div>
                             </div>
 
-                            <div class="col-lg-6 mb-3">
+                            <div class="col-lg-4 mb-3">
                               <label for="num_adults" class="form-label">Number of Adults *</label>
                               <input type="number" name="num_adults" id="num_adults" class="form-control" value="<?php echo htmlspecialchars($preselectedNumAdults); ?>" min="1" max="20" required>
                             </div>
-                            <div class="col-lg-6 mb-3">
+                            <div class="col-lg-4 mb-3">
                               <label for="num_children" class="form-label">Number of Children</label>
                               <input type="number" name="num_children" id="num_children" class="form-control" value="0" min="0" max="20">
+                            </div>
+                            <div class="col-lg-4 mb-3">
+                              <label for="num_seniors" class="form-label">Senior Citizens
+                                <small class="text-muted" data-bs-toggle="tooltip" title="Senior citizens (60+) beyond the package inclusion are charged at the senior rate instead of the regular adult rate."><i class="fa fa-info-circle"></i></small>
+                              </label>
+                              <input type="number" name="num_seniors" id="num_seniors" class="form-control" value="0" min="0" max="20">
+                              <div class="form-text" id="seniorFeeHint" style="display:none;"></div>
                             </div>
 
                             <!-- Availability Alert -->
@@ -1234,22 +1271,54 @@ function createAdminNotification($data)
                       <h5 class="mb-3" style="color: #f35525;">Personal Information</h5>
                       <div class="card" style="border: 1px solid #e0e0e0; border-radius: 8px;">
                         <div class="card-body">
+                          <?php
+                            $hasFirstName = !empty(trim($loggedInUser['first_name'] ?? ''));
+                            $hasLastName  = !empty(trim($loggedInUser['last_name'] ?? ''));
+                            $hasPhone     = !empty(trim($loggedInUser['phone_number'] ?? ''));
+                          ?>
+                          <?php if ($loggedInUser):
+                            $missingFields = [];
+                            if (!$hasFirstName) $missingFields[] = 'First Name';
+                            if (!$hasLastName)  $missingFields[] = 'Last Name';
+                            if (!$hasPhone)     $missingFields[] = 'Phone Number';
+                          ?>
+                          <div class="alert alert-info py-2 mb-3" style="font-size: 0.875rem;">
+                            <i class="fa fa-user-circle"></i> Booking as <strong><?php echo htmlspecialchars($loggedInUser['email']); ?></strong>.
+                            <?php if (!empty($missingFields)): ?>
+                              Please fill in your <strong><?php echo implode(', ', $missingFields); ?></strong> to continue.
+                              You can also update them permanently on your <a href="../build/customer/profile" style="color: #0d6efd;">profile page</a>.
+                            <?php else: ?>
+                              To update your details, visit your <a href="../build/customer/profile" style="color: #0d6efd;">profile page</a>.
+                            <?php endif; ?>
+                          </div>
+                          <?php endif; ?>
                           <div class="row">
                             <div class="col-lg-6 mb-3">
                               <label for="first_name" class="form-label">First Name *</label>
-                              <input type="text" name="first_name" id="first_name" class="form-control" placeholder="Your First Name..." autocomplete="given-name" required>
+                              <?php $fnReadonly = $loggedInUser && $hasFirstName; ?>
+                              <input type="text" name="first_name" id="first_name" class="form-control <?php echo $fnReadonly ? 'bg-light' : ''; ?>" placeholder="Your First Name..." autocomplete="given-name" required
+                                value="<?php echo htmlspecialchars($loggedInUser['first_name'] ?? ''); ?>"
+                                <?php echo $fnReadonly ? 'readonly' : ''; ?>>
                             </div>
                             <div class="col-lg-6 mb-3">
                               <label for="last_name" class="form-label">Last Name *</label>
-                              <input type="text" name="last_name" id="last_name" class="form-control" placeholder="Your Last Name..." autocomplete="family-name" required>
+                              <?php $lnReadonly = $loggedInUser && $hasLastName; ?>
+                              <input type="text" name="last_name" id="last_name" class="form-control <?php echo $lnReadonly ? 'bg-light' : ''; ?>" placeholder="Your Last Name..." autocomplete="family-name" required
+                                value="<?php echo htmlspecialchars($loggedInUser['last_name'] ?? ''); ?>"
+                                <?php echo $lnReadonly ? 'readonly' : ''; ?>>
                             </div>
                             <div class="col-lg-6 mb-3">
                               <label for="email" class="form-label">Email Address *</label>
-                              <input type="email" name="email" id="email" class="form-control" placeholder="your.email@example.com" autocomplete="email" required>
+                              <input type="email" name="email" id="email" class="form-control bg-light" placeholder="your.email@example.com" autocomplete="email" required
+                                value="<?php echo htmlspecialchars($loggedInUser['email'] ?? ''); ?>"
+                                <?php echo $loggedInUser ? 'readonly' : ''; ?>>
                             </div>
                             <div class="col-lg-6 mb-3">
                               <label for="phone" class="form-label">Phone Number *</label>
-                              <input type="tel" name="phone" id="phone" class="form-control" placeholder="+63 9XX XXX XXXX" autocomplete="tel" required>
+                              <?php $phReadonly = $loggedInUser && $hasPhone; ?>
+                              <input type="tel" name="phone" id="phone" class="form-control <?php echo $phReadonly ? 'bg-light' : ''; ?>" placeholder="+63 9XX XXX XXXX" autocomplete="tel" required
+                                value="<?php echo htmlspecialchars($loggedInUser['phone_number'] ?? ''); ?>"
+                                <?php echo $phReadonly ? 'readonly' : ''; ?>>
                               <div class="form-text">Format: +63 9XX XXX XXXX</div>
                             </div>
                           </div>
@@ -1319,10 +1388,62 @@ function createAdminNotification($data)
                                     <div class="col-6">Extra Adults (<span id="extraAdultsCount">0</span>):</div>
                                     <div class="col-6 text-end" id="extraAdultsFee">+₱0.00</div>
                                   </div>
+                                  <div class="row" id="extraSeniorsRow" style="display: none;">
+                                    <div class="col-6">Extra Senior Citizens (<span id="extraSeniorsCount">0</span>):</div>
+                                    <div class="col-6 text-end" id="extraSeniorsFee">+₱0.00</div>
+                                  </div>
                                   <div class="row" id="extraChildrenRow" style="display: none;">
                                     <div class="col-6">Extra Children (<span id="extraChildrenCount">0</span>):</div>
                                     <div class="col-6 text-end" id="extraChildrenFee">+₱0.00</div>
                                   </div>
+
+                                  <!-- Seasonal Rate Row (hidden by default) -->
+                                  <div class="row" id="seasonalRateRow" style="display: none;">
+                                    <div class="col-12">
+                                      <div class="alert alert-info py-2 mb-1" style="font-size: 13px;">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                          <div>
+                                            <i class="fa fa-calendar-alt"></i>
+                                            <strong id="seasonalRateName">Seasonal Rate</strong>
+                                            <span class="badge bg-light text-dark ms-2" id="seasonalRateBadge">0%</span>
+                                          </div>
+                                          <div class="text-end">
+                                            <span id="seasonalRateAdjustment" class="text-success fw-bold">-₱0.00</span>
+                                            <span class="text-muted ms-2">→</span>
+                                            <span id="seasonalRateDisplay" class="fw-bold">₱0.00</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <!-- Pricing Rules Container (hidden by default) -->
+                                  <div id="pricingRulesContainer" style="display: none;"></div>
+
+                                  <!-- Promo Code Section -->
+                                  <div class="row mt-3 mb-2" id="promoCodeRow">
+                                    <div class="col-12">
+                                      <div class="input-group input-group-sm">
+                                        <input type="text" id="promoCodeInput" class="form-control" placeholder="Enter promo code (optional)">
+                                        <button type="button" class="btn btn-outline-primary" id="applyPromoBtn" onclick="applyPromoCode()">
+                                          <i class="fa fa-check"></i> Apply
+                                        </button>
+                                      </div>
+                                      <div id="promoValidationResult" class="small mt-1" style="display: none;"></div>
+                                      <input type="hidden" id="promoId" name="promo_id">
+                                      <input type="hidden" id="promoCodeHidden" name="promo_code">
+                                      <input type="hidden" id="promoDiscountAmount" name="promo_discount" value="0">
+                                    </div>
+                                  </div>
+
+                                  <!-- Promo Discount Row (hidden by default) -->
+                                  <div class="row" id="promoDiscountRow" style="display: none;">
+                                    <div class="col-6 text-success">
+                                          Promo Discount (<span id="promoCodeDisplay"></span>):
+                                    </div>
+                                    <div class="col-6 text-end text-success" id="promoDiscountDisplay">-₱0.00</div>
+                                  </div>
+
                                   <hr class="my-2">
                                   <div class="row fw-bold">
                                     <div class="col-6">Total Amount:</div>
@@ -1606,21 +1727,41 @@ function createAdminNotification($data)
             } else {
               alertHtml += `<p class="mb-2"><i class="fa fa-check-circle text-success"></i> ${propertyData.available_rooms} room${propertyData.available_rooms > 1 ? 's' : ''} available (${propertyData.booked_rooms} of ${propertyData.total_rooms} booked)</p>`;
 
-              // Show available rooms as suggestions
+              // Show available rooms filtered by selected category
               if (result.data && result.data.length > 0) {
-                alertHtml += `<div class="mt-3 pt-2 border-top">`;
-                alertHtml += `<p class="mb-2 small text-muted"><strong>Available rooms:</strong></p>`;
-                alertHtml += `<div class="list-group list-group-flush small">`;
-                result.data.forEach(room => {
-                  alertHtml += `
-                    <div class="list-group-item px-0 py-1 bg-transparent">
-                      <i class="fa fa-door-open text-success me-2"></i>
-                      <strong>${room.room_name || room.room_number}</strong>
-                      <span class="text-muted">(${room.category_name})</span>
-                    </div>
-                  `;
-                });
-                alertHtml += `</div></div>`;
+                const selectedCategoryId = document.getElementById('room_category_id')?.value || '';
+                const filteredRooms = selectedCategoryId
+                  ? result.data.filter(room => room.category_id === selectedCategoryId)
+                  : result.data;
+
+                if (filteredRooms.length > 0) {
+                  const currentRoomId = document.getElementById('selected_room_id')?.value || '';
+                  alertHtml += `<div class="mt-3 pt-2 border-top">`;
+                  alertHtml += `<p class="mb-2 small text-muted"><strong>Available rooms in selected category:</strong></p>`;
+                  alertHtml += `<div class="d-flex flex-wrap gap-2">`;
+                  filteredRooms.forEach(room => {
+                    const isSelected = currentRoomId === room.room_id;
+                    alertHtml += `
+                      <button type="button"
+                        class="btn btn-sm room-selector-btn ${isSelected ? 'btn-success' : 'btn-outline-secondary'}"
+                        data-room-id="${room.room_id}"
+                        data-room-name="${room.room_name || room.room_number}"
+                        onclick="selectRoom(this)">
+                        <i class="fa fa-door-open me-1"></i>
+                        ${room.room_name || room.room_number}
+                      </button>
+                    `;
+                  });
+                  alertHtml += `</div>`;
+                  if (!currentRoomId) {
+                    alertHtml += `<p class="mt-2 mb-0 small text-warning"><i class="fa fa-info-circle"></i> Please select a room above to proceed.</p>`;
+                  }
+                  alertHtml += `</div>`;
+                } else if (selectedCategoryId) {
+                  alertHtml += `<div class="mt-3 pt-2 border-top"><p class="mb-0 small text-danger"><i class="fa fa-exclamation-circle"></i> No available rooms in the selected category for these dates.</p></div>`;
+                  submitButton.disabled = true;
+                  submitButton.textContent = 'No rooms available for selected category';
+                }
               }
 
               if (propertyData.available_rooms <= 2) {
@@ -1669,6 +1810,7 @@ function createAdminNotification($data)
     const totalAmountSection = document.getElementById('totalAmountSection');
     const numAdultsInput = document.getElementById('num_adults');
     const numChildrenInput = document.getElementById('num_children');
+    const numSeniorsInput = document.getElementById('num_seniors');
 
     // Store room categories data - use preselected if available
     let roomCategoriesData = window.preselectedCategories || [];
@@ -1730,6 +1872,7 @@ function createAdminNotification($data)
               data-max-children="${cat.max_child_capacity}"
               data-extra-adult-fee="${cat.extra_adult_fee}"
               data-extra-child-fee="${cat.extra_child_fee}"
+              data-extra-senior-fee="${cat.extra_senior_fee || 0}"
               data-allows-overnight="${cat.allows_overnight ? '1' : '0'}"
               data-allows-day-use="${cat.allows_day_use ? '1' : '0'}"
               data-allows-hourly="${cat.allows_hourly ? '1' : '0'}">
@@ -1772,6 +1915,17 @@ function createAdminNotification($data)
         document.getElementById('categoryMaxChildren').value = category.max_child_capacity;
         document.getElementById('categoryExtraAdultFee').value = category.extra_adult_fee;
         document.getElementById('categoryExtraChildFee').value = category.extra_child_fee;
+        document.getElementById('categoryExtraSeniorFee').value = category.extra_senior_fee || 0;
+        // Show senior fee hint if configured
+        const seniorHint = document.getElementById('seniorFeeHint');
+        if (seniorHint) {
+          if (category.extra_senior_fee > 0) {
+            seniorHint.textContent = `Extra senior (beyond package): +₱${category.extra_senior_fee.toLocaleString('en-PH', {minimumFractionDigits: 2})} each`;
+            seniorHint.style.display = 'block';
+          } else {
+            seniorHint.style.display = 'none';
+          }
+        }
         document.getElementById('categoryAllowsOvernight').value = category.allows_overnight ? '1' : '0';
         document.getElementById('categoryAllowsDayUse').value = category.allows_day_use ? '1' : '0';
         document.getElementById('categoryAllowsHourly').value = category.allows_hourly ? '1' : '0';
@@ -1795,12 +1949,38 @@ function createAdminNotification($data)
       }
     }
 
+    // Select a room from the availability panel
+    function selectRoom(btn) {
+      const roomId = btn.dataset.roomId;
+      const roomName = btn.dataset.roomName;
+      // Update hidden input
+      document.getElementById('selected_room_id').value = roomId;
+      // Update button states
+      document.querySelectorAll('.room-selector-btn').forEach(b => {
+        b.classList.remove('btn-success');
+        b.classList.add('btn-outline-secondary');
+      });
+      btn.classList.remove('btn-outline-secondary');
+      btn.classList.add('btn-success');
+      // Remove the "please select" hint if present
+      const hint = btn.closest('.mt-3')?.querySelector('.text-warning');
+      if (hint) hint.remove();
+      // Re-enable submit if it was blocked only for room selection
+      const capacityAlert = document.getElementById('capacityValidationAlert');
+      const bookingAlert = document.getElementById('bookingTypeValidationAlert');
+      if ((!capacityAlert || capacityAlert.style.display === 'none') &&
+          (!bookingAlert || bookingAlert.style.display === 'none')) {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Schedule Visit';
+      }
+    }
+
     // Show capacity validation alert
     function showCapacityAlert(type, extraCount, maxCapacity) {
       const alertDiv = document.getElementById('capacityValidationAlert');
       const alertContent = document.getElementById('capacityAlertContent');
-      const typeLabel = type === 'adult' ? 'adults' : 'children';
-      const singularLabel = type === 'adult' ? 'an adult' : 'a child';
+      const typeLabel = type === 'senior' ? 'senior citizen(s)' : type === 'adult' ? 'adults' : 'children';
+      const singularLabel = type === 'senior' ? 'a senior citizen' : type === 'adult' ? 'an adult' : 'a child';
 
       if (alertDiv && alertContent) {
         alertContent.innerHTML = `
@@ -1954,7 +2134,7 @@ function createAdminNotification($data)
     }
 
     // Calculate total amount based on category pricing, guest counts, and dates
-    function calculateTotalAmount() {
+    async function calculateTotalAmount() {
       // Get pricing data
       const priceDay = parseFloat(document.getElementById('categoryBasePriceDay')?.value || 0);
       const priceNight = parseFloat(document.getElementById('categoryBasePriceNight')?.value || 0);
@@ -1975,9 +2155,11 @@ function createAdminNotification($data)
       const maxChildren = parseInt(document.getElementById('categoryMaxChildren')?.value || 2);
       const extraAdultFee = parseFloat(document.getElementById('categoryExtraAdultFee')?.value || 0);
       const extraChildFee = parseFloat(document.getElementById('categoryExtraChildFee')?.value || 0);
+      const extraSeniorFee = parseFloat(document.getElementById('categoryExtraSeniorFee')?.value || 0);
 
       const numAdults = parseInt(numAdultsInput?.value || 1);
       const numChildren = parseInt(numChildrenInput?.value || 0);
+      const numSeniors = parseInt(numSeniorsInput?.value || 0);
 
       // Get dates
       const checkInDate = document.getElementById('visit_date')?.value;
@@ -2085,16 +2267,29 @@ function createAdminNotification($data)
 
       let totalAmount = baseRate;
 
-      // Calculate extra adult fees and validate
+      // Seniors occupy adult slots — check combined adult+senior count against package inclusion
+      // Extra seniors beyond the adult capacity get charged at extra_senior_fee
+      // Extra adults beyond the adult capacity (after seniors fill remaining slots) get charged at extra_adult_fee
       let extraAdults = 0;
       let extraAdultsCost = 0;
-      if (numAdults > maxAdults) {
-        extraAdults = numAdults - maxAdults;
-        if (extraAdultFee <= 0) {
+      let extraSeniors = 0;
+      let extraSeniorsCost = 0;
+
+      const totalAdultSlots = numAdults + numSeniors;
+      if (totalAdultSlots > maxAdults) {
+        const totalExtra = totalAdultSlots - maxAdults;
+        // Seniors get priority for extra slots — any extra seniors are billed at senior rate
+        extraSeniors = Math.min(numSeniors, totalExtra);
+        extraAdults = totalExtra - extraSeniors;
+        if (extraAdults > 0 && extraAdultFee <= 0) {
           showCapacityAlert('adult', extraAdults, maxAdults);
         }
+        if (extraSeniors > 0 && extraSeniorFee <= 0) {
+          showCapacityAlert('senior', extraSeniors, maxAdults);
+        }
         extraAdultsCost = extraAdults * extraAdultFee;
-        totalAmount += extraAdultsCost;
+        extraSeniorsCost = extraSeniors * extraSeniorFee;
+        totalAmount += extraAdultsCost + extraSeniorsCost;
       }
 
       // Calculate extra child fees and validate
@@ -2185,6 +2380,19 @@ function createAdminNotification($data)
         extraAdultsRow.style.display = 'none';
       }
 
+      // Update extra seniors row
+      const extraSeniorsRow = document.getElementById('extraSeniorsRow');
+      if (extraSeniors > 0) {
+        document.getElementById('extraSeniorsCount').textContent = extraSeniors;
+        document.getElementById('extraSeniorsFee').textContent = '+₱' + extraSeniorsCost.toLocaleString('en-PH', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+        extraSeniorsRow.style.display = 'flex';
+      } else {
+        extraSeniorsRow.style.display = 'none';
+      }
+
       // Update extra children row
       const extraChildrenRow = document.getElementById('extraChildrenRow');
       if (extraChildren > 0) {
@@ -2196,6 +2404,103 @@ function createAdminNotification($data)
         extraChildrenRow.style.display = 'flex';
       } else {
         extraChildrenRow.style.display = 'none';
+      }
+
+      // Apply dynamic pricing (seasonal rates & pricing rules)
+      let dynamicPricingBreakdown = [];
+      const propertyId = document.getElementById('property_id')?.value;
+      const categoryId = document.getElementById('room_category_id')?.value;
+
+      // Hide dynamic pricing rows initially
+      document.getElementById('seasonalRateRow').style.display = 'none';
+      document.getElementById('pricingRulesContainer').style.display = 'none';
+
+      if (propertyId && checkInDate && totalAmount > 0) {
+        try {
+          const priceResponse = await fetch(`api/calculate-price.php?property_id=${propertyId}&category_id=${categoryId}&base_amount=${totalAmount}&check_in_date=${checkInDate}&booking_type=${bookingType}`);
+          const priceResult = await priceResponse.json();
+
+          if (priceResult.success) {
+            totalAmount = priceResult.final_amount;
+            dynamicPricingBreakdown = priceResult.breakdown || [];
+
+            // Display seasonal rate if present
+            const seasonalRate = dynamicPricingBreakdown.find(b => b.type === 'seasonal_rate');
+            if (seasonalRate) {
+              document.getElementById('seasonalRateName').textContent = seasonalRate.name;
+
+              // Calculate percentage
+              const multiplier = seasonalRate.multiplier;
+              let percentageText = '';
+              let adjustmentClass = '';
+
+              if (multiplier < 1) {
+                const discountPercent = ((1 - multiplier) * 100).toFixed(0);
+                percentageText = `-${discountPercent}%`;
+                adjustmentClass = 'text-success';
+              } else if (multiplier > 1) {
+                const increasePercent = ((multiplier - 1) * 100).toFixed(0);
+                percentageText = `+${increasePercent}%`;
+                adjustmentClass = 'text-danger';
+              } else {
+                percentageText = '0%';
+                adjustmentClass = 'text-muted';
+              }
+
+              document.getElementById('seasonalRateBadge').textContent = percentageText;
+
+              // Show adjustment amount
+              const adjustmentElement = document.getElementById('seasonalRateAdjustment');
+              adjustmentElement.textContent = (seasonalRate.adjustment >= 0 ? '+' : '') + '₱' + seasonalRate.adjustment.toLocaleString('en-PH', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              });
+              adjustmentElement.className = adjustmentClass + ' fw-bold';
+
+              // Show final amount
+              document.getElementById('seasonalRateDisplay').textContent = '₱' + seasonalRate.final_amount.toLocaleString('en-PH', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              });
+
+              document.getElementById('seasonalRateRow').style.display = 'flex';
+            }
+
+            // Display pricing rules if present
+            const pricingRules = dynamicPricingBreakdown.filter(b => b.type === 'pricing_rule');
+            if (pricingRules.length > 0) {
+              const rulesContainer = document.getElementById('pricingRulesContainer');
+              rulesContainer.innerHTML = pricingRules.map(rule => `
+                <div class="row">
+                  <div class="col-6 text-warning">
+                    <i class="fa fa-tag"></i> ${rule.name}:
+                  </div>
+                  <div class="col-6 text-end text-warning">₱${rule.final_amount.toLocaleString('en-PH', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                  })}</div>
+                </div>
+              `).join('');
+              rulesContainer.style.display = 'block';
+            }
+          }
+        } catch (error) {
+          console.error('Dynamic pricing error:', error);
+          // Continue with base amount if API fails
+        }
+      }
+
+      // Store subtotal (before promo discount)
+      const subtotalAmount = totalAmount;
+
+      // Apply promo discount if available
+      const promoDiscount = appliedPromo ? appliedPromo.discount_amount : 0;
+      if (promoDiscount > 0) {
+        totalAmount = Math.max(0, totalAmount - promoDiscount);
+
+        // Update promo display with new values
+        document.getElementById('promoDiscountDisplay').textContent = `-₱${promoDiscount.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
+        document.getElementById('promoDiscountAmount').value = promoDiscount.toFixed(2);
       }
 
       // Update total
@@ -2235,11 +2540,95 @@ function createAdminNotification($data)
       fullAmountLabel.textContent = `₱${totalAmount.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
     }
 
+    // Promo Code Functions
+    let appliedPromo = null;
+
+    async function applyPromoCode() {
+      const promoInput = document.getElementById('promoCodeInput');
+      const promoCode = promoInput.value.trim();
+      const resultDiv = document.getElementById('promoValidationResult');
+      const propertyId = document.getElementById('property_id')?.value;
+
+      if (!promoCode) {
+        resultDiv.innerHTML = '<span class="text-muted">Please enter a promo code</span>';
+        resultDiv.style.display = 'block';
+        return;
+      }
+
+      // Temporarily clear appliedPromo to get base amount without discount
+      const tempPromo = appliedPromo;
+      appliedPromo = null;
+
+      // Recalculate to get base amount (without promo)
+      await calculateTotalAmount();
+      const baseAmount = parseFloat(document.getElementById('totalAmountInput')?.value || 0);
+
+      // Restore promo if validation fails
+      appliedPromo = tempPromo;
+
+      if (baseAmount <= 0) {
+        resultDiv.innerHTML = '<span class="text-warning"><i class="fa fa-exclamation-triangle"></i> Please select dates and category first</span>';
+        resultDiv.style.display = 'block';
+        return;
+      }
+
+      resultDiv.innerHTML = '<span class="text-muted"><i class="fa fa-spinner fa-spin"></i> Validating...</span>';
+      resultDiv.style.display = 'block';
+
+      try {
+        const response = await fetch(`api/validate-promo.php?promo_code=${encodeURIComponent(promoCode)}&property_id=${propertyId}&total_amount=${baseAmount}`);
+        const result = await response.json();
+
+        if (result.success && result.valid) {
+          appliedPromo = result.promo;
+
+          // Update hidden fields
+          document.getElementById('promoId').value = result.promo.promo_id;
+          document.getElementById('promoCodeHidden').value = result.promo.promo_code;
+          document.getElementById('promoDiscountAmount').value = result.promo.discount_amount;
+
+          // Show success message
+          resultDiv.innerHTML = `<span class="text-success"><i class="fa fa-check"></i> ${result.promo.promo_title}</span>`;
+
+          // Show discount row
+          document.getElementById('promoCodeDisplay').textContent = result.promo.promo_code;
+          document.getElementById('promoDiscountDisplay').textContent = `-₱${result.promo.discount_amount.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
+          document.getElementById('promoDiscountRow').style.display = 'flex';
+
+          // Recalculate total with discount
+          await calculateTotalAmount();
+        } else {
+          appliedPromo = null;
+          document.getElementById('promoId').value = '';
+          document.getElementById('promoCodeHidden').value = '';
+          document.getElementById('promoDiscountAmount').value = '0';
+          document.getElementById('promoDiscountRow').style.display = 'none';
+
+          resultDiv.innerHTML = `<span class="text-danger"><i class="fa fa-times"></i> ${result.error || 'Invalid promo code'}</span>`;
+          await calculateTotalAmount();
+        }
+      } catch (error) {
+        console.error('Promo validation error:', error);
+        resultDiv.innerHTML = '<span class="text-danger"><i class="fa fa-times"></i> Failed to validate promo code</span>';
+      }
+    }
+
+    // Clear promo when dates/category change (recalculate will call this)
+    function clearPromoCode() {
+      if (appliedPromo) {
+        // Keep the code in input but recalculate discount based on new total
+        applyPromoCode();
+      }
+    }
+
     // Add event listeners for calculations
     if (roomCategorySelect) {
-      roomCategorySelect.addEventListener('change', function() {
+      roomCategorySelect.addEventListener('change', async function() {
         updateCategoryDetails();
-        calculateTotalAmount();
+        await calculateTotalAmount();
+        // Reset selected room and re-check availability to filter rooms for new category
+        document.getElementById('selected_room_id').value = '';
+        checkAvailability();
       });
     }
 
@@ -2251,6 +2640,11 @@ function createAdminNotification($data)
     if (numChildrenInput) {
       numChildrenInput.addEventListener('change', calculateTotalAmount);
       numChildrenInput.addEventListener('input', calculateTotalAmount);
+    }
+
+    if (numSeniorsInput) {
+      numSeniorsInput.addEventListener('change', calculateTotalAmount);
+      numSeniorsInput.addEventListener('input', calculateTotalAmount);
     }
 
     // Add event listeners for date/time changes
@@ -2284,6 +2678,27 @@ function createAdminNotification($data)
 
         const submitButton = form.querySelector('button[type="submit"]');
         const originalText = submitButton?.textContent || 'Schedule Visit';
+
+        // Guard: if availability panel is showing rooms, a room must be selected
+        const selectedRoomId = document.getElementById('selected_room_id')?.value || '';
+        const availabilityVisible = document.getElementById('availabilityAlert')?.style.display !== 'none';
+        const hasRoomButtons = document.querySelectorAll('.room-selector-btn').length > 0;
+        if (availabilityVisible && hasRoomButtons && !selectedRoomId) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
+          }
+          // Scroll to and highlight the room selection area
+          document.getElementById('availabilityAlert')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          const hint = document.querySelector('.room-selector-btn')?.closest('.mt-3')?.querySelector('.text-warning');
+          if (!hint) {
+            const hintEl = document.createElement('p');
+            hintEl.className = 'mt-2 mb-0 small text-warning';
+            hintEl.innerHTML = '<i class="fa fa-info-circle"></i> Please select a room above to proceed.';
+            document.querySelector('.room-selector-btn')?.closest('.d-flex')?.after(hintEl);
+          }
+          return;
+        }
 
         // Disable submit button
         if (submitButton) {
@@ -2333,11 +2748,11 @@ function createAdminNotification($data)
             }
             successModal?.show();
 
-            // Redirect after delay
+            // Redirect only when user closes the modal
             if (result.redirect_url) {
-              setTimeout(() => {
+              successModalEl?.addEventListener('hidden.bs.modal', function () {
                 window.location.href = result.redirect_url;
-              }, 3000);
+              }, { once: true });
             }
           } else {
             throw new Error(result.error || 'Failed to create reservation');
@@ -2930,7 +3345,7 @@ function createAdminNotification($data)
       propertySelect.addEventListener('change', function() {
         // Reset pagination and cart when property changes
         foodCurrentPage = 1;
-        
+
         if (this.value) {
           loadFoodMenu(this.value);
         } else {
@@ -2939,6 +3354,23 @@ function createAdminNotification($data)
           updateFoodUI();
         }
       });
+    }
+
+    // Auto-apply promo code from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const promoFromUrl = urlParams.get('promo');
+    if (promoFromUrl) {
+      const promoInput = document.getElementById('promoCodeInput');
+      if (promoInput) {
+        promoInput.value = promoFromUrl;
+        // Auto-apply after a longer delay to ensure property, dates, and category are loaded
+        setTimeout(() => {
+          const currentTotal = parseFloat(document.getElementById('totalAmountInput')?.value || 0);
+          if (currentTotal > 0) {
+            applyPromoCode();
+          }
+        }, 1000);
+      }
     }
   </script>
 

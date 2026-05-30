@@ -134,7 +134,9 @@ function handleGetRequest(string $action, PDO $pdo): void {
 
       // Get paginated rooms with property, category, and images info
       $stmt = $pdo->prepare("
-        SELECT r.*, p.property_name, c.category_name
+        SELECT r.*, p.property_name, c.category_name,
+               c.extra_adult_fee, c.extra_child_fee, c.extra_senior_fee,
+               c.max_adult_capacity, c.max_child_capacity, c.max_total_capacity
         FROM rooms r
         LEFT JOIN properties p ON r.property_id = p.property_id
         LEFT JOIN room_categories c ON r.category_id = c.category_id

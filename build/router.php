@@ -49,8 +49,11 @@ $router->add('reservations/reservation-rooms', ['controller' => 'Reservations', 
 $router->add('reservations/reservation-guests', ['controller' => 'Reservations', 'action' => 'reservationGuests']);
 $router->add('reservations/reservation-requirement-types', ['controller' => 'Reservations', 'action' => 'reservationRequirementTypes']);
 $router->add('reservations/reservation-requirements', ['controller' => 'Reservations', 'action' => 'reservationRequirements']);
+$router->add('reservations/walk-in-guests', ['controller' => 'Reservations', 'action' => 'walkInGuests']);
 $router->add('reservations/check-in-logs', ['controller' => 'Reservations', 'action' => 'checkInLogs']);
 $router->add('reservations/entrance-logs', ['controller' => 'Reservations', 'action' => 'entranceLogs']);
+$router->add('reservations/reservation-promotions', ['controller' => 'Reservations', 'action' => 'reservationPromotions']);
+$router->add('reservations/pricing-breakdown', ['controller' => 'Reservations', 'action' => 'pricingBreakdown']);
 
 // Payments & Billing
 $router->add('payments-billing', ['controller' => 'PaymentsBilling', 'action' => 'index']);

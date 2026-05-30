@@ -76,9 +76,12 @@ try {
         $settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
         
         $fees = [
-          'hourly' => floatval($settings['entrance_fee_hourly'] ?? 0),
-          'day_use' => floatval($settings['entrance_fee_day_use'] ?? 0),
-          'overnight' => floatval($settings['entrance_fee_overnight'] ?? 0)
+          'hourly'               => floatval($settings['entrance_fee_hourly'] ?? 0),
+          'day_use'              => floatval($settings['entrance_fee_day_use'] ?? 0),
+          'overnight'            => floatval($settings['entrance_fee_overnight'] ?? 0),
+          'adult_rate'           => floatval($settings['entrance_fee_adult_rate'] ?? 0),
+          'child_rate'           => floatval($settings['entrance_fee_child_rate'] ?? 0),
+          'senior_discount_pct'  => floatval($settings['entrance_fee_senior_discount_pct'] ?? 20),
         ];
         
         echo json_encode(['success' => true, 'data' => $fees]);

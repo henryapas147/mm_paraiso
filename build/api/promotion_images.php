@@ -64,22 +64,60 @@ try {
       break;
 
     case 'POST':
-      $data = json_decode(file_get_contents('php://input'), true);
-
       if ($action === 'create') {
         $imageId = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
           mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
           mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
           mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
-        
+
+        $imageUrl = null;
+        $thumbnailUrl = null;
+
+        // Handle file upload
+        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+          $uploadDir = __DIR__ . '/../../uploads/promotion_images/';
+          if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+          }
+
+          $fileExt = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+          $fileName = $imageId . '.' . $fileExt;
+          $filePath = $uploadDir . $fileName;
+
+          if (move_uploaded_file($_FILES['image']['tmp_name'], $filePath)) {
+            $imageUrl = 'uploads/promotion_images/' . $fileName;
+          } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to upload image']);
+            exit;
+          }
+        } else {
+          // Fallback to URL if no file uploaded
+          $data = json_decode(file_get_contents('php://input'), true);
+          $imageUrl = $data['image_url'] ?? null;
+          $thumbnailUrl = $data['thumbnail_url'] ?? null;
+        }
+
+        // Get other form data
+        $promoId = $_POST['promo_id'] ?? ($data['promo_id'] ?? null);
+        $imageType = $_POST['image_type'] ?? ($data['image_type'] ?? 'banner');
+        $sortOrder = $_POST['sort_order'] ?? ($data['sort_order'] ?? 0);
+        $isActive = $_POST['is_active'] ?? ($data['is_active'] ?? 1);
+        $uploadedBy = $_POST['uploaded_by'] ?? ($data['uploaded_by'] ?? null);
+
+        if (!$imageUrl) {
+          echo json_encode(['success' => false, 'message' => 'Image URL or file is required']);
+          exit;
+        }
+
         $stmt = $pdo->prepare("INSERT INTO promotion_images (promo_image_id, promo_id, image_url, thumbnail_url, image_type, sort_order, is_active, uploaded_by) VALUES (?,?,?,?,?,?,?,?)");
         $stmt->execute([
-          $imageId, $data['promo_id'], $data['image_url'], $data['thumbnail_url'] ?? null,
-          $data['image_type'] ?? 'banner', $data['sort_order'] ?? 0, $data['is_active'] ?? 1, $data['uploaded_by'] ?? null
+          $imageId, $promoId, $imageUrl, $thumbnailUrl,
+          $imageType, $sortOrder, $isActive, $uploadedBy
         ]);
         echo json_encode(['success' => true, 'message' => 'Promotion image added', 'promo_image_id' => $imageId]);
 
       } elseif ($action === 'update') {
+        $data = json_decode(file_get_contents('php://input'), true);
         $stmt = $pdo->prepare("UPDATE promotion_images SET promo_id=?, image_url=?, thumbnail_url=?, image_type=?, sort_order=?, is_active=?, uploaded_by=? WHERE promo_image_id=?");
         $stmt->execute([
           $data['promo_id'], $data['image_url'], $data['thumbnail_url'] ?? null,
@@ -89,6 +127,20 @@ try {
         echo json_encode(['success' => true, 'message' => 'Promotion image updated']);
 
       } elseif ($action === 'delete') {
+        $data = json_decode(file_get_contents('php://input'), true);
+        
+        // Get image info to delete file
+        $stmt = $pdo->prepare("SELECT image_url FROM promotion_images WHERE promo_image_id=?");
+        $stmt->execute([$data['promo_image_id']]);
+        $image = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($image && $image['image_url']) {
+          $filePath = realpath(__DIR__ . '/../../..') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $image['image_url']);
+          if (file_exists($filePath)) {
+            unlink($filePath);
+          }
+        }
+        
         $stmt = $pdo->prepare("DELETE FROM promotion_images WHERE promo_image_id=?");
         $stmt->execute([$data['promo_image_id']]);
         echo json_encode(['success' => true, 'message' => 'Promotion image deleted']);

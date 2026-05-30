@@ -70,12 +70,28 @@ try {
     case 'POST':
       $data = json_decode(file_get_contents('php://input'), true);
 
+      // Validate CSRF token for write operations
+      if (!validateCsrfToken($data['csrf_token'] ?? '')) {
+        echo json_encode(['success' => false, 'message' => 'Invalid or missing CSRF token']);
+        exit;
+      }
+
       if ($action === 'create') {
         $seasonId = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
           mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
           mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
           mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
-        
+
+        // Validate rate multiplier
+        $multiplier = floatval($data['rate_multiplier']);
+        if ($multiplier < 0.5 || $multiplier > 3.0) {
+          echo json_encode([
+            'success' => false,
+            'message' => 'Rate multiplier must be between 0.5 (50% discount) and 3.0 (200% increase). Current value: ' . $multiplier
+          ]);
+          exit;
+        }
+
         $stmt = $pdo->prepare("INSERT INTO seasonal_rates (season_id, property_id, season_name, date_start, date_end, rate_multiplier, applies_to, is_active, created_by) VALUES (?,?,?,?,?,?,?,?,?)");
         $stmt->execute([
           $seasonId, $data['property_id'], $data['season_name'],
@@ -86,6 +102,16 @@ try {
         echo json_encode(['success' => true, 'message' => 'Seasonal rate created', 'season_id' => $seasonId]);
 
       } elseif ($action === 'update') {
+        // Validate rate multiplier
+        $multiplier = floatval($data['rate_multiplier']);
+        if ($multiplier < 0.5 || $multiplier > 3.0) {
+          echo json_encode([
+            'success' => false,
+            'message' => 'Rate multiplier must be between 0.5 (50% discount) and 3.0 (200% increase). Current value: ' . $multiplier
+          ]);
+          exit;
+        }
+
         $stmt = $pdo->prepare("UPDATE seasonal_rates SET property_id=?, season_name=?, date_start=?, date_end=?, rate_multiplier=?, applies_to=?, is_active=?, created_by=? WHERE season_id=?");
         $stmt->execute([
           $data['property_id'], $data['season_name'],

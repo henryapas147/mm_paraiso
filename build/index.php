@@ -70,6 +70,7 @@ $router->add('inventory/stock-transactions', ['controller' => 'InventoryControll
 $router->add('inventory/stock-transfers', ['controller' => 'InventoryController', 'action' => 'stockTransfers']);
 $router->add('inventory/inventory-sales', ['controller' => 'InventoryController', 'action' => 'inventorySales']);
 $router->add('inventory/inventory-actions', ['controller' => 'InventoryController', 'action' => 'inventoryActions']);
+$router->add('inventory/pos', ['controller' => 'InventoryController', 'action' => 'pos']);
 
 // Food & Canteen
 $router->add('food-canteen', ['controller' => 'FoodCanteenController', 'action' => 'index']);
@@ -84,8 +85,11 @@ $router->add('reservations/reservation-rooms', ['controller' => 'ReservationsCon
 $router->add('reservations/reservation-guests', ['controller' => 'ReservationsController', 'action' => 'reservationGuests']);
 $router->add('reservations/reservation-requirement-types', ['controller' => 'ReservationsController', 'action' => 'reservationRequirementTypes']);
 $router->add('reservations/reservation-requirements', ['controller' => 'ReservationsController', 'action' => 'reservationRequirements']);
+$router->add('reservations/walk-in-guests', ['controller' => 'ReservationsController', 'action' => 'walkInGuests']);
 $router->add('reservations/check-in-logs', ['controller' => 'ReservationsController', 'action' => 'checkInLogs']);
 $router->add('reservations/entrance-logs', ['controller' => 'ReservationsController', 'action' => 'entranceLogs']);
+$router->add('reservations/reservation-promotions', ['controller' => 'ReservationsController', 'action' => 'reservationPromotions']);
+$router->add('reservations/pricing-breakdown', ['controller' => 'ReservationsController', 'action' => 'pricingBreakdown']);
 
 // Payments & Billing
 $router->add('payments-billing', ['controller' => 'PaymentsBillingController', 'action' => 'index']);

@@ -1380,6 +1380,34 @@ Featured Style
   border-top: 1px solid #eaeaea;
 }
 
+.featured-accordion-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.featured-accordion-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.featured-accordion-list li:last-child {
+  margin-bottom: 0;
+}
+
+.featured-accordion-list li i {
+  color: #f35525;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
 .featured .info-table {
   border-radius: 10px;
   box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.15);

@@ -35,6 +35,7 @@ try {
             max_total_capacity,
             extra_adult_fee,
             extra_child_fee,
+            extra_senior_fee,
             floor_area_sqm,
             bed_configuration,
             view_type,
@@ -109,6 +110,7 @@ try {
             'max_total_capacity' => intval($category['max_total_capacity']),
             'extra_adult_fee' => floatval($category['extra_adult_fee']),
             'extra_child_fee' => floatval($category['extra_child_fee']),
+            'extra_senior_fee' => floatval($category['extra_senior_fee']),
             'floor_area_sqm' => $category['floor_area_sqm'] ? floatval($category['floor_area_sqm']) : null,
             'bed_configuration' => $category['bed_configuration'],
             'view_type' => $category['view_type'],
@@ -118,8 +120,8 @@ try {
             // Formatted display values
             'base_price_day_use_formatted' => '₱' . number_format($category['base_price_day_use'], 2),
             'capacity_display' => $category['max_adult_capacity'] . ' Adults, ' . $category['max_child_capacity'] . ' Children',
-            'extra_fees_display' => ($category['extra_adult_fee'] > 0 || $category['extra_child_fee'] > 0) 
-                ? 'Extra: Adult +₱' . number_format($category['extra_adult_fee'], 2) . ', Child +₱' . number_format($category['extra_child_fee'], 2)
+            'extra_fees_display' => ($category['extra_adult_fee'] > 0 || $category['extra_child_fee'] > 0 || $category['extra_senior_fee'] > 0)
+                ? 'Extra: Adult +₱' . number_format($category['extra_adult_fee'], 2) . ', Child +₱' . number_format($category['extra_child_fee'], 2) . ', Senior +₱' . number_format($category['extra_senior_fee'], 2)
                 : null
         ];
     }, $categories);

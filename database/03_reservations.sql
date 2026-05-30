@@ -106,6 +106,7 @@ CREATE TABLE IF NOT EXISTS reservation_rooms (
     num_hours               DECIMAL(5,2)    NULL,
     extra_adult_fee         DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
     extra_child_fee         DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
+    extra_senior_fee        DECIMAL(10,2)   NOT NULL DEFAULT 0.00             COMMENT 'Extra fee per senior citizen beyond package inclusion',
     extra_charges           DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
     room_total              DECIMAL(12,2)   NOT NULL DEFAULT 0.00,
     -- Status per room

@@ -453,9 +453,46 @@ class EmailService
         // Guest count
         $numAdults = intval($data['num_adults'] ?? 0);
         $numChildren = intval($data['num_children'] ?? 0);
+        $numSeniors = intval($data['num_seniors'] ?? 0);
         $guestDisplay = $numAdults . ' Adult' . ($numAdults > 1 ? 's' : '');
         if ($numChildren > 0) {
             $guestDisplay .= ', ' . $numChildren . ' Child' . ($numChildren > 1 ? 'ren' : '');
+        }
+        if ($numSeniors > 0) {
+            $guestDisplay .= ', ' . $numSeniors . ' Senior Citizen' . ($numSeniors > 1 ? 's' : '');
+        }
+
+        // Build requirements block for email
+        $requirementsBlock = '';
+        $requirements = $data['requirements'] ?? [];
+        if (!empty($requirements)) {
+            $reqRows = '';
+            foreach ($requirements as $req) {
+                $mandatoryBadge = $req['is_mandatory']
+                    ? '<span style="font-size:11px;background:#fee2e2;color:#b91c1c;border-radius:4px;padding:2px 7px;margin-left:8px;font-weight:600;">Required</span>'
+                    : '<span style="font-size:11px;background:#f3f4f6;color:#6b7280;border-radius:4px;padding:2px 7px;margin-left:8px;">Optional</span>';
+                $desc = !empty($req['description']) ? '<br><span style="font-size:12px;color:#6b7280;">' . htmlspecialchars($req['description']) . '</span>' : '';
+                $reqRows .= '
+                <tr>
+                  <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:14px;color:#374151;">
+                    <i style="color:#f59e0b;margin-right:8px;">&#9679;</i>'
+                    . htmlspecialchars($req['req_label']) . $mandatoryBadge . $desc . '
+                  </td>
+                </tr>';
+            }
+            $requirementsBlock = '
+              <!-- Requirements Section -->
+              <tr>
+                <td style="padding:0 48px 28px;">
+                  <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:0.5px;">
+                    &#128196; Documents &amp; Requirements Needed Before Check-in
+                  </p>
+                  <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:16px 20px;">
+                    <p style="margin:0 0 10px;font-size:13px;color:#92400e;">Please prepare and submit the following before your visit:</p>
+                    <table width="100%" cellpadding="0" cellspacing="0">' . $reqRows . '</table>
+                  </div>
+                </td>
+              </tr>';
         }
 
         // Format visit date to "Month Day, Year" format
@@ -670,6 +707,8 @@ class EmailService
                 </td>
               </tr>
 
+              ' . $requirementsBlock . '
+
               <!-- Contact Note -->
               <tr>
                 <td style="padding:0 48px 32px;">
@@ -721,9 +760,13 @@ class EmailService
         
         $numAdults = intval($data['num_adults'] ?? 0);
         $numChildren = intval($data['num_children'] ?? 0);
+        $numSeniors = intval($data['num_seniors'] ?? 0);
         $guestDisplay = $numAdults . ' Adult' . ($numAdults > 1 ? 's' : '');
         if ($numChildren > 0) {
             $guestDisplay .= ', ' . $numChildren . ' Child' . ($numChildren > 1 ? 'ren' : '');
+        }
+        if ($numSeniors > 0) {
+            $guestDisplay .= ', ' . $numSeniors . ' Senior Citizen' . ($numSeniors > 1 ? 's' : '');
         }
 
         // Format visit date and time
@@ -756,6 +799,20 @@ class EmailService
             $text .= "Reference: {$data['transaction_reference']}\n";
         }
         $text .= "Status: " . ucfirst($data['payment_status'] ?? 'pending') . " (Awaiting admin confirmation)\n\n";
+
+        $requirements = $data['requirements'] ?? [];
+        if (!empty($requirements)) {
+            $text .= "DOCUMENTS & REQUIREMENTS NEEDED BEFORE CHECK-IN:\n";
+            foreach ($requirements as $req) {
+                $mandatory = $req['is_mandatory'] ? ' [Required]' : ' [Optional]';
+                $text .= "  - " . $req['req_label'] . $mandatory . "\n";
+                if (!empty($req['description'])) {
+                    $text .= "    " . $req['description'] . "\n";
+                }
+            }
+            $text .= "\n";
+        }
+
         $text .= "We will contact you at {$data['phone']} to confirm your visit.\n\n";
         $text .= $companyName;
 
