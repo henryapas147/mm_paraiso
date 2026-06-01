@@ -35,7 +35,7 @@ foreach ($required as $field) {
     }
 }
 
-// property_id is required for dine_in and room_service, optional for takeout
+// property_id is required for room_service, optional for dine_in and takeout
 // For room_service, property_id can be derived from the room_id
 $orderType = $data['order_type'] ?? '';
 $propertyId = $data['property_id'] ?? null;
@@ -54,9 +54,9 @@ if ($orderType === 'room_service' && empty($propertyId) && !empty($data['room_id
     }
 }
 
-if (empty($propertyId) && in_array($orderType, ['dine_in', 'room_service'])) {
+if (empty($propertyId) && $orderType === 'room_service') {
     http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Property is required for dine-in and room service orders']);
+    echo json_encode(['success' => false, 'error' => 'Property is required for room service orders']);
     exit;
 }
 
@@ -161,7 +161,7 @@ try {
     }
 
     $pdo->commit();
-    
+
     // Send confirmation email if customer email provided
     if (!empty($data['customer_email'])) {
         try {

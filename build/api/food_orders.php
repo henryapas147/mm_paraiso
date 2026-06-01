@@ -2,6 +2,7 @@
 header('Content-Type: application/json');
 require_once '../config/middleware.php';
 applyAuthMiddleware();
+require_once 'inventory_functions.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
@@ -13,7 +14,7 @@ try {
         $stmt = $pdo->query("
           SELECT fo.*, p.property_name, r.reservation_id as res_reservation_id, r.reservation_code
           FROM food_orders fo
-          INNER JOIN properties p ON fo.property_id = p.property_id
+          LEFT JOIN properties p ON fo.property_id = p.property_id
           LEFT JOIN reservations r ON fo.reservation_id = r.reservation_id
           ORDER BY fo.created_at DESC
           LIMIT 200
@@ -95,7 +96,7 @@ try {
         echo json_encode(['success' => true, 'data' => $orders]);
 
       } elseif ($action === 'single' && isset($_GET['id'])) {
-        $stmt = $pdo->prepare("SELECT fo.*, p.property_name, r.reservation_id as res_reservation_id, r.reservation_code FROM food_orders fo INNER JOIN properties p ON fo.property_id = p.property_id LEFT JOIN reservations r ON fo.reservation_id = r.reservation_id WHERE fo.order_id = ?");
+        $stmt = $pdo->prepare("SELECT fo.*, p.property_name, r.reservation_id as res_reservation_id, r.reservation_code FROM food_orders fo LEFT JOIN properties p ON fo.property_id = p.property_id LEFT JOIN reservations r ON fo.reservation_id = r.reservation_id WHERE fo.order_id = ?");
         $stmt->execute([$_GET['id']]);
         $order = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($order) {
@@ -104,6 +105,18 @@ try {
           $order['items'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
         echo json_encode(['success' => true, 'data' => $order]);
+
+      } elseif ($action === 'status_history' && isset($_GET['id'])) {
+        $stmt = $pdo->prepare("
+          SELECT fosh.*, up.first_name, up.last_name
+          FROM food_order_status_history fosh
+          LEFT JOIN user_profiles up ON fosh.changed_by = up.user_id
+          WHERE fosh.order_id = ?
+          ORDER BY fosh.created_at ASC
+        ");
+        $stmt->execute([$_GET['id']]);
+        $history = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(['success' => true, 'data' => $history]);
       }
       break;
 
@@ -150,8 +163,67 @@ try {
         echo json_encode(['success' => true, 'message' => 'Order created', 'order_id' => $id, 'order_number' => $orderNumber]);
 
       } elseif ($action === 'update_status') {
+        $pdo->beginTransaction();
+        
+        // Get current status
+        $stmt = $pdo->prepare("SELECT order_status FROM food_orders WHERE order_id = ?");
+        $stmt->execute([$data['order_id']]);
+        $currentStatus = $stmt->fetchColumn();
+        
+        // Update status
         $stmt = $pdo->prepare("UPDATE food_orders SET order_status=? WHERE order_id=?");
         $stmt->execute([$data['order_status'], $data['order_id']]);
+        
+        // Log status change to history
+        $historyId = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+          mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
+          mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
+          mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
+        $stmt = $pdo->prepare("
+          INSERT INTO food_order_status_history (history_id, order_id, old_status, new_status, changed_by, changed_by_type, change_reason)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([
+          $historyId,
+          $data['order_id'],
+          $currentStatus,
+          $data['order_status'],
+          $_SESSION['user_id'] ?? null,
+          'admin',
+          $data['change_reason'] ?? null
+        ]);
+        
+        // Deduct inventory when status changes to 'preparing' and hasn't been deducted yet
+        if ($data['order_status'] === 'preparing' && $currentStatus !== 'preparing') {
+          // Check if inventory already deducted for this order
+          $stmt = $pdo->prepare("SELECT COUNT(*) FROM inventory_transactions WHERE reference_type = 'food_order' AND reference_id = ?");
+          $stmt->execute([$data['order_id']]);
+          $alreadyDeducted = $stmt->fetchColumn() > 0;
+          
+          if (!$alreadyDeducted) {
+            // Get order items
+            $stmt = $pdo->prepare("SELECT item_id, quantity FROM food_order_items WHERE order_id = ?");
+            $stmt->execute([$data['order_id']]);
+            $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Deduct inventory for each item
+            $inventoryErrors = [];
+            foreach ($items as $item) {
+              $result = deductInventoryForOrder($pdo, $data['order_id'], $item['item_id'], $item['quantity'], $_SESSION['user_id'] ?? null);
+              if (!$result['success']) {
+                $inventoryErrors[] = $result['message'];
+              }
+            }
+            
+            if (!empty($inventoryErrors)) {
+              $pdo->rollBack();
+              echo json_encode(['success' => false, 'message' => 'Inventory deduction failed: ' . implode(', ', $inventoryErrors)]);
+              exit;
+            }
+          }
+        }
+        
+        $pdo->commit();
         echo json_encode(['success' => true, 'message' => 'Order status updated']);
 
       } elseif ($action === 'update_payment') {
@@ -161,12 +233,32 @@ try {
 
       } elseif ($action === 'delete') {
         $pdo->beginTransaction();
+        
+        // Rollback inventory transactions for this order
+        $stmt = $pdo->prepare("SELECT transaction_id FROM inventory_transactions WHERE reference_type = 'food_order' AND reference_id = ?");
+        $stmt->execute([$data['order_id']]);
+        $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        foreach ($transactions as $trans) {
+          $rollbackData = ['transaction_id' => $trans['transaction_id'], 'reason' => 'Order deleted'];
+          
+          // Call inventory rollback API internally
+          $ch = curl_init();
+          curl_setopt($ch, CURLOPT_URL, 'http://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . '/../inventory_transactions.php?action=rollback');
+          curl_setopt($ch, CURLOPT_POST, true);
+          curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($rollbackData));
+          curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'X-CSRF-Token: ' . ($data['csrf_token'] ?? '')]);
+          curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+          $response = curl_exec($ch);
+          curl_close($ch);
+        }
+        
         $stmt = $pdo->prepare("DELETE FROM food_order_items WHERE order_id=?");
         $stmt->execute([$data['order_id']]);
         $stmt = $pdo->prepare("DELETE FROM food_orders WHERE order_id=?");
         $stmt->execute([$data['order_id']]);
         $pdo->commit();
-        echo json_encode(['success' => true, 'message' => 'Order deleted']);
+        echo json_encode(['success' => true, 'message' => 'Order deleted and inventory restored']);
       }
       break;
 

@@ -19,6 +19,11 @@ class FoodCanteenController extends Controller
         $this->view('food-canteen/menu_items');
     }
 
+    public function recipes()
+    {
+        $this->view('food-canteen/recipes');
+    }
+
     public function foodOrders()
     {
         $this->view('food-canteen/food_orders');

@@ -30,6 +30,8 @@ $router->add('inventory/units-of-measure', ['controller' => 'Inventory', 'action
 $router->add('inventory/inventory-locations', ['controller' => 'Inventory', 'action' => 'inventoryLocations']);
 $router->add('inventory/suppliers', ['controller' => 'Inventory', 'action' => 'suppliers']);
 $router->add('inventory/product-stock-per-location', ['controller' => 'Inventory', 'action' => 'productStockPerLocation']);
+$router->add('inventory/product-uom-conversions', ['controller' => 'Inventory', 'action' => 'productUomConversions']);
+$router->add('inventory/inventory-transactions', ['controller' => 'Inventory', 'action' => 'inventoryTransactions']);
 $router->add('inventory/purchase-orders', ['controller' => 'Inventory', 'action' => 'purchaseOrders']);
 $router->add('inventory/stock-transactions', ['controller' => 'Inventory', 'action' => 'stockTransactions']);
 $router->add('inventory/stock-transfers', ['controller' => 'Inventory', 'action' => 'stockTransfers']);

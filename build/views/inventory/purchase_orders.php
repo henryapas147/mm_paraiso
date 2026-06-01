@@ -570,6 +570,82 @@
 
   .po-form-textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
 
+  /* ── Custom Alert Modal ───────────────────────────── */
+  .po-alert-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+  }
+
+  .po-alert-overlay.open { display: flex; }
+
+  .po-alert-box {
+    background: var(--color-background-primary, #fff);
+    border-radius: var(--po-r-lg);
+    box-shadow: var(--po-shadow-lg);
+    max-width: 400px;
+    width: 100%;
+    padding: 24px;
+    animation: poAlertIn .2s cubic-bezier(.22,.68,0,1.2);
+  }
+
+  @keyframes poAlertIn {
+    from { opacity: 0; transform: scale(.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .po-alert-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 8px;
+  }
+
+  .po-alert-message {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+
+  .po-alert-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  .po-alert-btn-cancel,
+  .po-alert-btn-confirm {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: var(--po-r-md);
+    border: 1px solid rgba(0,0,0,.12);
+    background: var(--color-background-primary, #fff);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: all .15s;
+    font-family: var(--po-font);
+  }
+
+  .po-alert-btn-cancel:hover { background: var(--color-background-secondary, #F8FAFC); }
+
+  .po-alert-btn-confirm {
+    background: var(--po-blue);
+    color: #fff;
+    border-color: var(--po-blue);
+  }
+
+  .po-alert-btn-confirm:hover {
+    background: var(--po-blue-dark);
+    border-color: var(--po-blue-dark);
+  }
+
   /* ── Details view ────────────────────────────────── */
   .po-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
 
@@ -746,11 +822,11 @@
 
           <div class="po-form-group">
             <label class="po-form-label">PO Number <span class="req">*</span></label>
-            <input type="text" name="po_number" required class="po-form-input" placeholder="e.g., PO-2024-000001">
+            <input type="text" name="po_number" id="addPoNumber" required class="po-form-input" placeholder="Auto-generated" readonly style="background: var(--po-slate-pale);">
           </div>
           <div class="po-form-group">
             <label class="po-form-label">PO Date <span class="req">*</span></label>
-            <input type="date" name="po_date" required class="po-form-input">
+            <input type="date" name="po_date" id="addPoDate" required class="po-form-input">
           </div>
           <div class="po-form-group">
             <label class="po-form-label">Property <span class="req">*</span></label>
@@ -758,7 +834,9 @@
           </div>
           <div class="po-form-group">
             <label class="po-form-label">Supplier <span class="req">*</span></label>
-            <select name="supplier_id" required class="po-form-select"><option value="">Select Supplier</option></select>
+            <select name="supplier_id" id="addPoSupplier" required class="po-form-select" onchange="onAddSupplierChange()">
+              <option value="">Select Supplier</option>
+            </select>
           </div>
           <div class="po-form-group">
             <label class="po-form-label">Expected Delivery</label>
@@ -774,16 +852,71 @@
           </div>
 
           <hr class="po-form-divider">
+          <div class="po-form-section"><i class="fas fa-boxes" style="opacity:.6"></i> Order Items</div>
+
+          <div class="po-form-group full">
+            <div id="poItemsSection" style="border: 1px solid rgba(0,0,0,.08); border-radius: 10px; padding: 16px;">
+              <div id="poItemsList" style="margin-bottom: 12px;">
+                <!-- Items will be added here dynamically -->
+                <div class="po-item-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 100px 40px; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px dashed rgba(0,0,0,.08);">
+                  <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">Product</div>
+                  <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">UOM</div>
+                  <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">Qty</div>
+                  <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">Unit Cost</div>
+                  <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">Total</div>
+                  <div></div>
+                </div>
+              </div>
+              <button type="button" onclick="openAddItemModal('add')" class="po-btn" style="font-size: 12px; padding: 6px 12px;">
+                <i class="fas fa-plus"></i> Add Item
+              </button>
+              <div id="poTotals" style="display: flex; justify-content: flex-end; gap: 24px; margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,.08);">
+                <div><span style="font-size: 12px; color: var(--color-text-secondary);">Total:</span> <span id="poTotal" style="font-weight: 600; color: var(--po-blue);">₱0.00</span></div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="po-form-divider">
           <div class="po-form-section"><i class="fas fa-credit-card" style="opacity:.6"></i> Payment & Delivery</div>
 
           <div class="po-form-group">
             <label class="po-form-label">Payment Terms</label>
-            <input type="text" name="payment_terms" class="po-form-input" placeholder="e.g., Net 30, COD">
+            <select name="payment_terms" id="addPoPaymentTerms" class="po-form-select">
+              <option value="">Select Terms</option>
+              <option value="COD">COD - Cash on Delivery</option>
+              <option value="Net 15">Net 15 - Due in 15 days</option>
+              <option value="Net 30">Net 30 - Due in 30 days</option>
+              <option value="Net 45">Net 45 - Due in 45 days</option>
+              <option value="Net 60">Net 60 - Due in 60 days</option>
+              <option value="Prepaid">Prepaid - Full payment before delivery</option>
+              <option value="50/50">50/50 - 50% down, 50% on delivery</option>
+            </select>
           </div>
-          <div class="po-form-group">
+
+          <!-- Geocode Delivery Address -->
+          <div class="po-form-group full">
             <label class="po-form-label">Delivery Address</label>
-            <input type="text" name="delivery_address" class="po-form-input" placeholder="Delivery address">
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+              <div>
+                <input type="text" list="region_list" id="po_region_display" class="po-form-input" placeholder="Region" onchange="onPORegionChange()">
+                <input type="hidden" name="delivery_region_code" id="po_region_code">
+              </div>
+              <div>
+                <input type="text" list="province_list" id="po_province_display" class="po-form-input" placeholder="Province" onchange="onPOProvinceChange()">
+                <input type="hidden" name="delivery_province_code" id="po_province_code">
+              </div>
+              <div>
+                <input type="text" list="city_list" id="po_city_display" class="po-form-input" placeholder="City/Municipality" onchange="onPOCityChange()">
+                <input type="hidden" name="delivery_city_code" id="po_city_code">
+              </div>
+              <div>
+                <input type="text" list="barangay_list" id="po_barangay_display" class="po-form-input" placeholder="Barangay" onchange="onPOBarangayChange()">
+                <input type="hidden" name="delivery_barangay_code" id="po_barangay_code">
+              </div>
+            </div>
+            <input type="text" name="delivery_address" id="po_full_address" class="po-form-input" style="margin-top: 8px;" placeholder="Street/Building/House No.">
           </div>
+
           <div class="po-form-group full">
             <label class="po-form-label">Notes</label>
             <textarea name="notes" rows="2" class="po-form-textarea" placeholder="Additional notes…"></textarea>
@@ -848,16 +981,61 @@
           </div>
 
           <hr class="po-form-divider">
+          <div class="po-form-section"><i class="fas fa-boxes" style="opacity:.6"></i> Order Items</div>
+
+          <div class="po-form-group full">
+            <div id="editPoItemsSection" style="border: 1px solid rgba(0,0,0,.08); border-radius: 10px; padding: 16px;">
+              <div id="editPoItemsList" style="margin-bottom: 12px;">
+                <div class="po-item-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 100px 40px; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px dashed rgba(0,0,0,.08);">
+                  <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">Product</div>
+                  <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">UOM</div>
+                  <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">Qty</div>
+                  <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">Unit Cost</div>
+                  <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">Total</div>
+                  <div></div>
+                </div>
+              </div>
+              <button type="button" onclick="openAddItemModal('edit')" class="po-btn" style="font-size: 12px; padding: 6px 12px;">
+                <i class="fas fa-plus"></i> Add Item
+              </button>
+              <div id="editPoTotals" style="display: flex; justify-content: flex-end; gap: 24px; margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,.08);">
+                <div><span style="font-size: 12px; color: var(--color-text-secondary);">Total:</span> <span id="editPoTotal" style="font-weight: 600; color: var(--po-blue);">₱0.00</span></div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="po-form-divider">
           <div class="po-form-section"><i class="fas fa-credit-card" style="opacity:.6"></i> Payment & Delivery</div>
 
           <div class="po-form-group">
             <label class="po-form-label">Payment Terms</label>
             <input type="text" name="payment_terms" class="po-form-input" placeholder="e.g., Net 30, COD">
           </div>
-          <div class="po-form-group">
+
+          <!-- Geocode Delivery Address -->
+          <div class="po-form-group full">
             <label class="po-form-label">Delivery Address</label>
-            <input type="text" name="delivery_address" class="po-form-input" placeholder="Delivery address">
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+              <div>
+                <input type="text" list="region_list" id="edit_po_region_display" class="po-form-input" placeholder="Region" onchange="onEditPORegionChange()">
+                <input type="hidden" name="delivery_region_code" id="edit_po_region_code">
+              </div>
+              <div>
+                <input type="text" list="province_list" id="edit_po_province_display" class="po-form-input" placeholder="Province" onchange="onEditPOProvinceChange()">
+                <input type="hidden" name="delivery_province_code" id="edit_po_province_code">
+              </div>
+              <div>
+                <input type="text" list="city_list" id="edit_po_city_display" class="po-form-input" placeholder="City/Municipality" onchange="onEditPOCityChange()">
+                <input type="hidden" name="delivery_city_code" id="edit_po_city_code">
+              </div>
+              <div>
+                <input type="text" list="barangay_list" id="edit_po_barangay_display" class="po-form-input" placeholder="Barangay" onchange="onEditPOBarangayChange()">
+                <input type="hidden" name="delivery_barangay_code" id="edit_po_barangay_code">
+              </div>
+            </div>
+            <input type="text" name="delivery_address" id="edit_po_full_address" class="po-form-input" style="margin-top: 8px;" placeholder="Street/Building/House No.">
           </div>
+
           <div class="po-form-group full">
             <label class="po-form-label">Notes</label>
             <textarea name="notes" rows="2" class="po-form-textarea" placeholder="Additional notes…"></textarea>
@@ -872,10 +1050,140 @@
   </div>
 </div>
 
+<!-- Geocode Datalists -->
+<datalist id="region_list"></datalist>
+<datalist id="province_list"></datalist>
+<datalist id="city_list"></datalist>
+<datalist id="barangay_list"></datalist>
+
+<!-- Product Datalist for search -->
+<datalist id="product_search_list"></datalist>
+
+<!-- Add PO Item Modal -->
+<div class="po-overlay" id="addItemModal" onclick="if(event.target===this)closeAddItemModal()">
+  <div class="po-modal" role="dialog" aria-modal="true" style="max-width: 500px;">
+    <div class="po-modal-header">
+      <div>
+        <div class="po-modal-title">Add Item to Purchase Order</div>
+      </div>
+      <button class="po-modal-close" onclick="closeAddItemModal()" aria-label="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="po-modal-body">
+      <input type="hidden" id="addItemModalContext" value="add">
+      <div class="po-form-group">
+        <label class="po-form-label">Product <span class="req">*</span></label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="poItemProduct" list="product_search_list" class="po-form-input" style="flex: 1;" placeholder="Search product..." onchange="onProductSelectChange()">
+          <input type="hidden" id="poItemProductId">
+          <button type="button" onclick="openQuickProductModal()" class="po-btn" style="padding: 8px 12px;" title="Add New Product">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+      </div>
+      <div class="po-form-group">
+        <label class="po-form-label">UOM <span class="req">*</span></label>
+        <select id="poItemUom" class="po-form-select" onchange="onUomChange()">
+          <option value="">Select UOM</option>
+        </select>
+        <input type="hidden" id="poItemUomId">
+      </div>
+      <div class="po-form-group">
+        <label class="po-form-label">Quantity <span class="req">*</span></label>
+        <input type="number" id="poItemQty" class="po-form-input" min="0.001" step="0.001" placeholder="0.00" onchange="calculateItemTotal()">
+      </div>
+      <div class="po-form-group">
+        <label class="po-form-label">Unit Cost <span class="req">*</span></label>
+        <input type="number" id="poItemCost" class="po-form-input" min="0" step="0.01" placeholder="0.00" onchange="calculateItemTotal()">
+      </div>
+      <div class="po-form-group" style="background: var(--po-blue-pale); padding: 12px; border-radius: 8px;">
+        <label class="po-form-label">Total Cost</label>
+        <div id="poItemTotal" style="font-size: 18px; font-weight: 600; color: var(--po-blue);">₱0.00</div>
+      </div>
+    </div>
+    <div class="po-modal-footer">
+      <button type="button" class="po-btn" onclick="closeAddItemModal()"><i class="fas fa-times"></i> Cancel</button>
+      <button type="button" onclick="addItemToPO()" class="po-btn po-btn-primary"><i class="fas fa-plus"></i> Add to PO</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Add Product Modal -->
+<div class="po-overlay" id="quickProductModal" onclick="if(event.target===this)closeQuickProductModal()">
+  <div class="po-modal" role="dialog" aria-modal="true" style="max-width: 500px;">
+    <div class="po-modal-header">
+      <div>
+        <div class="po-modal-title">Quick Add Product</div>
+        <div class="po-modal-subtitle">Create a new product for this purchase order</div>
+      </div>
+      <button class="po-modal-close" onclick="closeQuickProductModal()" aria-label="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="po-modal-body">
+      <div class="po-form-group">
+        <label class="po-form-label">Product Name <span class="req">*</span></label>
+        <input type="text" id="quickProductName" class="po-form-input" placeholder="e.g., Shampoo 500ml">
+      </div>
+      <div class="po-form-group">
+        <label class="po-form-label">Product Code</label>
+        <input type="text" id="quickProductCode" class="po-form-input" placeholder="Auto-generated if empty">
+      </div>
+      <div class="po-form-group">
+        <label class="po-form-label">Category <span class="req">*</span></label>
+        <select id="quickProductCategory" class="po-form-select">
+          <option value="">Select Category</option>
+        </select>
+      </div>
+      <div class="po-form-group">
+        <label class="po-form-label">Base UOM <span class="req">*</span></label>
+        <select id="quickProductUom" class="po-form-select">
+          <option value="">Select UOM</option>
+        </select>
+      </div>
+      <div class="po-form-group">
+        <label class="po-form-label">Product Type</label>
+        <select id="quickProductType" class="po-form-select">
+          <option value="consumable">Consumable</option>
+          <option value="non_consumable">Non-Consumable</option>
+          <option value="food">Food</option>
+          <option value="beverage">Beverage</option>
+          <option value="amenity">Amenity</option>
+          <option value="cleaning">Cleaning Supply</option>
+          <option value="linen">Linen</option>
+          <option value="equipment">Equipment</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="po-modal-footer">
+      <button type="button" class="po-btn" onclick="closeQuickProductModal()"><i class="fas fa-times"></i> Cancel</button>
+      <button type="button" onclick="saveQuickProduct()" class="po-btn po-btn-primary"><i class="fas fa-save"></i> Save Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Alert Modal -->
+<div class="po-alert-overlay" id="poAlertModal">
+  <div class="po-alert-box">
+    <div class="po-alert-title" id="poAlertTitle">Confirm Action</div>
+    <div class="po-alert-message" id="poAlertMessage">Are you sure you want to proceed?</div>
+    <div class="po-alert-actions">
+      <button class="po-alert-btn-cancel" onclick="closePOAlert()">Cancel</button>
+      <button class="po-alert-btn-confirm" id="poAlertConfirmBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <script>
+  const csrfToken = '<?php echo CSRF_TOKEN; ?>';
+  const userPermissions = <?php echo isset($_SESSION['permissions']) ? json_encode($_SESSION['permissions']) : '[]'; ?>;
+  const userRole = '<?php echo $_SESSION['role_code'] ?? ''; ?>';
   let purchaseOrdersData = [];
   let suppliersData      = [];
   let propertiesData     = [];
+  let productsData       = [];
+  let uomsData           = [];
+  let categoriesData     = [];
+  let poItems            = []; // Items for create modal
+  let editPoItems        = []; // Items for edit modal
 
   // Pagination & filter state
   let currentPage    = 1;
@@ -903,9 +1211,59 @@
       if (json.success) {
         suppliersData  = json.data.suppliers;
         propertiesData = json.data.properties;
+        productsData   = json.data.products || [];
+        uomsData       = json.data.uoms || [];
         populateDropdowns();
+        populateProductDropdown();
+        populateUomDropdowns();
       }
     } catch (e) { console.error('Error fetching related data:', e); }
+
+    // Fetch categories for quick product modal
+    try {
+      const catRes = await fetch('../api/inventory_categories.php?action=list');
+      const catJson = await catRes.json();
+      if (catJson.success) {
+        categoriesData = catJson.data || [];
+        populateCategoryDropdown();
+      }
+    } catch (e) { console.error('Error fetching categories:', e); }
+
+    // Initialize geocode datalists
+    await initGeocodeDatalists();
+  }
+
+  function populateProductDropdown() {
+    const datalist = document.getElementById('product_search_list');
+    if (!datalist) return;
+    datalist.innerHTML = '';
+    productsData.forEach(p => {
+      const option = document.createElement('option');
+      option.value = `${p.product_name} (${p.product_code || 'No Code'})`;
+      option.dataset.productId = p.product_id;
+      option.dataset.uomId = p.uom_id;
+      option.dataset.uomName = p.uom_name || '';
+      option.dataset.uomCode = p.uom_code || '';
+      datalist.appendChild(option);
+    });
+  }
+
+  function populateUomDropdowns() {
+    const opts = '<option value="">Select UOM</option>' +
+      uomsData.map(u => `<option value="${u.uom_id}">${u.uom_name} (${u.uom_code})</option>`).join('');
+    document.getElementById('poItemUom').innerHTML = opts;
+    document.getElementById('quickProductUom').innerHTML = opts;
+  }
+
+  function populateCategoryDropdown() {
+    const opts = '<option value="">Select Category</option>' +
+      categoriesData.map(c => `<option value="${c.category_id}">${c.category_name}</option>`).join('');
+    document.getElementById('quickProductCategory').innerHTML = opts;
+  }
+
+  async function initGeocodeDatalists() {
+    const regions = await fetchRegions();
+    populateDatalist('region_list', regions, 'region_name');
   }
 
   function renderStats() {
@@ -1078,14 +1436,65 @@
   }
 
   /* ── View Modal ────────────────────────────── */
-  function viewPODetails(poId) {
-    const po = purchaseOrdersData.find(p => p.po_id == poId);
-    if (!po) return;
+  async function viewPODetails(poId) {
+    try {
+      const res = await fetch(`../api/purchase_orders.php?action=single&id=${poId}`);
+      const json = await res.json();
+      if (!json.success) return;
 
-    document.getElementById('poModalTitle').textContent    = po.po_number;
-    document.getElementById('poModalSubtitle').textContent = po.company_name + ' · ' + fmtDate(po.po_date);
+      const po = json.data;
+      document.getElementById('poModalTitle').textContent    = po.po_number;
+      document.getElementById('poModalSubtitle').textContent = po.company_name + ' · ' + fmtDate(po.po_date);
 
-    document.getElementById('poModalContent').innerHTML = `
+      let itemsHtml = '';
+      if (po.items && po.items.length > 0) {
+        itemsHtml = `
+          <div class="po-detail-section-title" style="margin-top:24px">Order Items</div>
+          <div style="overflow-x:auto">
+            <table style="width:100%; border-collapse:collapse; font-size:13px;">
+              <thead>
+                <tr style="background:var(--po-slate-pale); text-align:left;">
+                  <th style="padding:10px 12px; font-weight:600; color:var(--color-text-secondary);">Product</th>
+                  <th style="padding:10px 12px; font-weight:600; color:var(--color-text-secondary);">UOM</th>
+                  <th style="padding:10px 12px; font-weight:600; color:var(--color-text-secondary); text-align:right;">Qty</th>
+                  <th style="padding:10px 12px; font-weight:600; color:var(--color-text-secondary); text-align:right;">Unit Cost</th>
+                  <th style="padding:10px 12px; font-weight:600; color:var(--color-text-secondary); text-align:right;">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${po.items.map(item => `
+                  <tr style="border-bottom:1px solid rgba(0,0,0,.05);">
+                    <td style="padding:10px 12px;">
+                      <div style="font-weight:500;">${item.product_name||'—'}</div>
+                      <div style="font-size:11px; color:var(--color-text-secondary);">${item.product_code||''}</div>
+                    </td>
+                    <td style="padding:10px 12px;">${item.uom_name||'—'}</td>
+                    <td style="padding:10px 12px; text-align:right;">${parseFloat(item.ordered_qty||0).toFixed(3)}</td>
+                    <td style="padding:10px 12px; text-align:right;">₱${parseFloat(item.unit_cost||0).toFixed(2)}</td>
+                    <td style="padding:10px 12px; text-align:right; font-weight:600;">₱${parseFloat(item.total_cost||0).toFixed(2)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } else {
+        itemsHtml = `<div class="po-detail-section-title" style="margin-top:24px">Order Items</div><div style="padding:20px; text-align:center; color:var(--color-text-secondary);">No items in this purchase order</div>`;
+      }
+
+      const canApprove = userPermissions.includes('approve_purchase_order') || ['super_admin', 'admin', 'manager', 'ceo'].includes(userRole);
+      const canEdit = userPermissions.includes('edit_purchase_order') || ['super_admin', 'admin'].includes(userRole);
+      const isApprovable = ['draft', 'submitted'].includes(po.po_status);
+
+      let actionButtons = '';
+      if (canApprove && isApprovable) {
+        actionButtons = `<button class="po-btn po-btn-primary" onclick="approvePO('${po.po_id}')" style="margin-right:8px;"><i class="fas fa-check"></i> Approve</button>`;
+      }
+      if (canEdit) {
+        actionButtons += `<button class="po-btn" onclick="closePODetailsModal(); openEditPOModal('${po.po_id}')" style="margin-right:8px;"><i class="fas fa-edit"></i> Edit</button>`;
+      }
+
+      document.getElementById('poModalContent').innerHTML = `
       <div class="po-detail-grid">
         <div>
           <div class="po-detail-section-title">Order Information</div>
@@ -1103,94 +1512,737 @@
           <div class="po-detail-row"><div class="po-detail-key">Payment Status</div><div class="po-detail-val">${po.payment_status||'—'}</div></div>
           <div class="po-detail-section-title" style="margin-top:20px">Delivery & Notes</div>
           <div class="po-detail-row"><div class="po-detail-key">Delivery Address</div><div class="po-detail-val">${po.delivery_address||'—'}</div></div>
+          <div class="po-detail-row"><div class="po-detail-key">Region</div><div class="po-detail-val">${po.region_name||'—'}</div></div>
+          <div class="po-detail-row"><div class="po-detail-key">Province</div><div class="po-detail-val">${po.province_name||'—'}</div></div>
+          <div class="po-detail-row"><div class="po-detail-key">City/Municipality</div><div class="po-detail-val">${po.city_municipality_name||'—'}</div></div>
+          <div class="po-detail-row"><div class="po-detail-key">Barangay</div><div class="po-detail-val">${po.barangay_name||'—'}</div></div>
           <div class="po-detail-row"><div class="po-detail-key">Notes</div><div class="po-detail-val">${po.notes||'—'}</div></div>
           <div class="po-detail-row"><div class="po-detail-key">Created</div><div class="po-detail-val">${po.created_at ? new Date(po.created_at).toLocaleString() : '—'}</div></div>
         </div>
-      </div>`;
+      </div>
+      ${itemsHtml}
+      ${actionButtons ? `<div style="margin-top:24px; padding-top:16px; border-top:1px solid rgba(0,0,0,.08); display:flex; justify-content:flex-end;">${actionButtons}</div>` : ''}`;
 
-    document.getElementById('poDetailsModal').classList.add('open');
+      document.getElementById('poDetailsModal').classList.add('open');
+    } catch (e) { console.error('Error fetching PO details:', e); }
   }
 
   function closePODetailsModal() { document.getElementById('poDetailsModal').classList.remove('open'); }
 
+  function approvePO(poId) {
+    showPOAlert('Confirm Approval', 'Approve this purchase order?', async () => {
+      const fd = new FormData();
+      fd.append('action', 'approve');
+      fd.append('po_id', poId);
+      fd.append('csrf_token', csrfToken);
+
+      try {
+        const res = await fetch('../api/purchase_orders.php', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.success) {
+          closePODetailsModal();
+          fetchPurchaseOrders();
+          showPOAlert('Success', 'Purchase order approved successfully');
+        } else {
+          showPOAlert('Error', data.message || 'Error approving purchase order');
+        }
+      } catch (e) {
+        showPOAlert('Error', 'Error approving purchase order');
+      }
+    });
+  }
+
   /* ── Add Modal ─────────────────────────────── */
-  function openAddPOModal()  { document.getElementById('addPOModal').classList.add('open'); }
+  async function generateNextPONumber() {
+    const year = new Date().getFullYear();
+    try {
+      const res = await fetch(`../api/purchase_orders.php?action=next_number&year=${year}`);
+      const json = await res.json();
+      if (json.success) {
+        return json.po_number;
+      }
+    } catch (e) { console.error('Error generating PO number:', e); }
+    // Fallback: generate locally
+    const random = Math.floor(100000 + Math.random() * 900000);
+    return `PO-${year}-${random}`;
+  }
+
+  async function openAddPOModal()  {
+    document.getElementById('addPOModal').classList.add('open');
+
+    // Set default date to today
+    document.getElementById('addPoDate').value = new Date().toISOString().split('T')[0];
+
+    // Generate PO number
+    const poNumber = await generateNextPONumber();
+    document.getElementById('addPoNumber').value = poNumber;
+
+    // Clear items
+    poItems = [];
+    renderPoItems();
+
+    // Reset payment terms
+    document.getElementById('addPoPaymentTerms').value = '';
+  }
+
+  function onAddSupplierChange() {
+    const supplierId = document.getElementById('addPoSupplier').value;
+    const supplier = suppliersData.find(s => s.supplier_id === supplierId);
+    if (supplier && supplier.payment_terms) {
+      document.getElementById('addPoPaymentTerms').value = supplier.payment_terms;
+    }
+  }
+
   function closeAddPOModal() {
     document.getElementById('addPOModal').classList.remove('open');
     document.getElementById('addPOForm').reset();
+    poItems = [];
+    renderPoItems();
+  }
+
+  function buildDeliveryAddress(prefix) {
+    const region = document.getElementById(prefix + 'region_display').value;
+    const province = document.getElementById(prefix + 'province_display').value;
+    const city = document.getElementById(prefix + 'city_display').value;
+    const barangay = document.getElementById(prefix + 'barangay_display').value;
+    const street = document.getElementById(prefix + 'full_address').value;
+    let addr = '';
+    if (street) addr += street;
+    if (barangay) addr += (addr ? ', ' : '') + barangay;
+    if (city) addr += (addr ? ', ' : '') + city;
+    if (province) addr += (addr ? ', ' : '') + province;
+    if (region) addr += (addr ? ', ' : '') + region;
+    return addr;
   }
 
   function submitAddPO(event) {
     event.preventDefault();
     const formData = new FormData(document.getElementById('addPOForm'));
     formData.append('action', 'add');
+    formData.append('csrf_token', csrfToken);
+
+    // Add items as JSON
+    formData.append('items_json', JSON.stringify(poItems));
+
+    // Delivery address codes are already in hidden fields
+
+    // Add totals
+    const total = parseFloat(document.getElementById('poTotal').textContent.replace('₱', '').replace(',', '')) || 0;
+    formData.append('subtotal', total);
+    formData.append('tax_amount', 0);
+    formData.append('total_amount', total);
+
     fetch('../api/purchase_orders.php', { method: 'POST', body: formData })
       .then(r => r.json())
       .then(data => {
         closeAddPOModal();
+        poItems = [];
+        renderPoItems();
         if (data.success) fetchPurchaseOrders();
-        else alert(data.message || 'Error creating purchase order');
+        else showPOAlert('Error', data.message || 'Error creating purchase order');
       })
-      .catch(() => { closeAddPOModal(); alert('Error creating purchase order'); });
+      .catch(() => { closeAddPOModal(); showPOAlert('Error', 'Error creating purchase order'); });
   }
 
   /* ── Edit Modal ────────────────────────────── */
-  function openEditPOModal(poId) {
-    const po = purchaseOrdersData.find(p => p.po_id == poId);
-    if (!po) return;
+  async function openEditPOModal(poId) {
+    try {
+      const res = await fetch(`../api/purchase_orders.php?action=single&id=${poId}`);
+      const json = await res.json();
+      if (!json.success) return;
 
-    const form = document.getElementById('editPOForm');
-    document.getElementById('editPOId').value          = po.po_id;
-    document.getElementById('editPOModalSubtitle').textContent = `Editing ${po.po_number}`;
-    form.elements['po_number'].value                   = po.po_number;
-    form.elements['property_id'].value                 = po.property_id;
-    form.elements['supplier_id'].value                 = po.supplier_id;
-    form.elements['po_date'].value                     = (po.po_date||'').split(' ')[0];
-    form.elements['expected_delivery'].value           = (po.expected_delivery||'').split(' ')[0];
-    form.elements['po_status'].value                   = po.po_status;
-    form.elements['payment_terms'].value               = po.payment_terms || '';
-    form.elements['delivery_address'].value            = po.delivery_address || '';
-    form.elements['notes'].value                       = po.notes || '';
+      const po = json.data;
+      const form = document.getElementById('editPOForm');
+      document.getElementById('editPOId').value          = po.po_id;
+      document.getElementById('editPOModalSubtitle').textContent = `Editing ${po.po_number}`;
+      form.elements['po_number'].value                   = po.po_number;
+      form.elements['property_id'].value                 = po.property_id;
+      form.elements['supplier_id'].value                 = po.supplier_id;
+      form.elements['po_date'].value                     = (po.po_date||'').split(' ')[0];
+      form.elements['expected_delivery'].value           = (po.expected_delivery||'').split(' ')[0];
+      form.elements['po_status'].value                   = po.po_status;
+      form.elements['payment_terms'].value               = po.payment_terms || '';
+      form.elements['notes'].value                       = po.notes || '';
 
-    document.getElementById('editPOModal').classList.add('open');
+      // Load delivery address codes
+      document.getElementById('edit_po_full_address').value = po.delivery_address || '';
+      document.getElementById('edit_po_region_code').value = po.delivery_region_code || '';
+      document.getElementById('edit_po_province_code').value = po.delivery_province_code || '';
+      document.getElementById('edit_po_city_code').value = po.delivery_city_code || '';
+      document.getElementById('edit_po_barangay_code').value = po.delivery_barangay_code || '';
+
+      // Load display fields with actual names from geo tables
+      document.getElementById('edit_po_region_display').value = po.region_name || '';
+      document.getElementById('edit_po_province_display').value = po.province_name || '';
+      document.getElementById('edit_po_city_display').value = po.city_municipality_name || '';
+      document.getElementById('edit_po_barangay_display').value = po.barangay_name || '';
+
+      // Populate geo datalists for dropdowns
+      if (po.delivery_region_code) {
+        const provinces = await fetchProvinces(po.delivery_region_code);
+        populateDatalist('province_list', provinces, 'province_name');
+      }
+      if (po.delivery_province_code) {
+        const cities = await fetchCitiesMunicipalities(po.delivery_province_code);
+        populateDatalist('city_list', cities, 'city_municipality_name');
+      }
+      if (po.delivery_city_code) {
+        const barangays = await fetchBarangays(po.delivery_city_code);
+        populateDatalist('barangay_list', barangays, 'barangay_name');
+      }
+
+      // Load items
+      editPoItems = po.items ? po.items.map(item => ({
+        product_id: item.product_id,
+        product_name: item.product_name,
+        uom_id: item.uom_id,
+        uom_name: item.uom_name,
+        uom_code: item.uom_code,
+        quantity_ordered: parseFloat(item.ordered_qty),
+        unit_cost: parseFloat(item.unit_cost),
+        total_cost: parseFloat(item.total_cost)
+      })) : [];
+      renderEditPoItems();
+
+      document.getElementById('editPOModal').classList.add('open');
+    } catch (e) { console.error('Error fetching PO for edit:', e); }
   }
 
   function closeEditPOModal() {
     document.getElementById('editPOModal').classList.remove('open');
     document.getElementById('editPOForm').reset();
+    editPoItems = [];
+    renderEditPoItems();
   }
 
   function submitEditPO(event) {
     event.preventDefault();
     const formData = new FormData(document.getElementById('editPOForm'));
     formData.append('action', 'edit');
+    formData.append('csrf_token', csrfToken);
+
+    // Add items as JSON
+    formData.append('items_json', JSON.stringify(editPoItems));
+
+    // Build full delivery address
+    const fullAddr = buildDeliveryAddress('edit_po_');
+    if (fullAddr) formData.set('delivery_address', fullAddr);
+
+    // Add totals
+    const total = parseFloat(document.getElementById('editPoTotal').textContent.replace('₱', '').replace(',', '')) || 0;
+    formData.append('subtotal', total);
+    formData.append('tax_amount', 0);
+    formData.append('total_amount', total);
+
     fetch('../api/purchase_orders.php', { method: 'POST', body: formData })
       .then(r => r.json())
       .then(data => {
         closeEditPOModal();
         if (data.success) fetchPurchaseOrders();
-        else alert(data.message || 'Error updating purchase order');
+        else showPOAlert('Error', data.message || 'Error updating purchase order');
       })
-      .catch(() => { closeEditPOModal(); alert('Error updating purchase order'); });
+      .catch(() => { closeEditPOModal(); showPOAlert('Error', 'Error updating purchase order'); });
   }
 
   /* ── Delete ────────────────────────────────── */
   function deletePO(btn) {
     const poId     = btn.dataset.id;
     const poNumber = btn.dataset.number;
-    if (!confirm(`Delete PO "${poNumber}"? This cannot be undone.`)) return;
+    showPOAlert('Confirm Delete', `Delete PO "${poNumber}"? This cannot be undone.`, () => {
+      const fd = new FormData();
+      fd.append('action', 'delete');
+      fd.append('po_id', poId);
+      fd.append('csrf_token', csrfToken);
 
-    const fd = new FormData();
-    fd.append('action', 'delete');
-    fd.append('po_id', poId);
+      fetch('../api/purchase_orders.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) fetchPurchaseOrders();
+          else showPOAlert('Error', data.message || 'Error deleting purchase order');
+        })
+        .catch(() => showPOAlert('Error', 'Error deleting purchase order'));
+    });
+  }
 
-    fetch('../api/purchase_orders.php', { method: 'POST', body: fd })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) fetchPurchaseOrders();
-        else alert(data.message || 'Error deleting purchase order');
-      })
-      .catch(() => alert('Error deleting purchase order'));
+  /* ── PO Items Management ────────────────────── */
+  function openAddItemModal(context) {
+    document.getElementById('addItemModalContext').value = context;
+    document.getElementById('poItemProduct').value = '';
+    document.getElementById('poItemUom').value = '';
+    document.getElementById('poItemQty').value = '';
+    document.getElementById('poItemCost').value = '';
+    document.getElementById('poItemTotal').textContent = '₱0.00';
+    document.getElementById('addItemModal').classList.add('open');
+  }
+
+  function closeAddItemModal() {
+    document.getElementById('addItemModal').classList.remove('open');
+  }
+
+  async function onProductSelectChange() {
+    const productInput = document.getElementById('poItemProduct');
+    const selectedValue = productInput.value;
+
+    // Find the matching product from datalist
+    const datalist = document.getElementById('product_search_list');
+    const selectedOption = Array.from(datalist.options).find(opt => opt.value === selectedValue);
+
+    if (selectedOption) {
+      const productId = selectedOption.dataset.productId;
+      const uomId = selectedOption.dataset.uomId;
+      const uomName = selectedOption.dataset.uomName;
+      const uomCode = selectedOption.dataset.uomCode;
+
+      document.getElementById('poItemProductId').value = productId;
+
+      // Fetch UOM conversions for this product
+      await fetchProductUOMs(productId, uomId);
+    } else {
+      // Clear if no match
+      document.getElementById('poItemProductId').value = '';
+      document.getElementById('poItemUomId').value = '';
+      document.getElementById('poItemUom').innerHTML = '<option value="">Select UOM</option>';
+    }
+  }
+
+  async function fetchProductUOMs(productId, defaultUomId) {
+    try {
+      const res = await fetch(`../api/product_uom_conversions.php?action=list&product_id=${productId}`);
+      const json = await res.json();
+      if (json.success) {
+        const uomSelect = document.getElementById('poItemUom');
+        uomSelect.innerHTML = '<option value="">Select UOM</option>';
+
+        // Add base UOM and conversion UOMs
+        const uniqueUOMs = new Map();
+        json.data.forEach(conv => {
+          const key = conv.to_uom_id;
+          if (!uniqueUOMs.has(key)) {
+            uniqueUOMs.set(key, {
+              uom_id: conv.to_uom_id,
+              uom_name: conv.to_uom_name,
+              uom_code: conv.to_uom_code,
+              conversion_factor: conv.conversion_factor,
+              is_default: conv.is_default
+            });
+          }
+        });
+
+        // Also add the base UOM if not in conversions
+        const baseUom = productsData.find(p => p.product_id === productId);
+        if (baseUom && baseUom.uom_id && !uniqueUOMs.has(baseUom.uom_id)) {
+          uniqueUOMs.set(baseUom.uom_id, {
+            uom_id: baseUom.uom_id,
+            uom_name: baseUom.uom_name,
+            uom_code: baseUom.uom_code || '',
+            conversion_factor: 1,
+            is_default: 1
+          });
+        }
+
+        // Populate dropdown
+        uniqueUOMs.forEach((uom, id) => {
+          const option = document.createElement('option');
+          option.value = uom.uom_id;
+          option.textContent = `${uom.uom_name} (${uom.uom_code})`;
+          option.dataset.conversionFactor = uom.conversion_factor;
+          if (uom.uom_id === defaultUomId || uom.is_default) {
+            option.selected = true;
+            document.getElementById('poItemUomId').value = uom.uom_id;
+          }
+          uomSelect.appendChild(option);
+        });
+
+        // Call onUomChange to populate dataset for auto-selected UOM
+        if (uomSelect.value) {
+          onUomChange();
+        }
+      }
+    } catch (e) { console.error('Error fetching UOM conversions:', e); }
+  }
+
+  function onUomChange() {
+    const uomSelect = document.getElementById('poItemUom');
+    const selectedOption = uomSelect.options[uomSelect.selectedIndex];
+    if (selectedOption && selectedOption.value) {
+      document.getElementById('poItemUomId').value = selectedOption.value;
+      // Store UOM name and code in hidden fields for later use
+      const textParts = selectedOption.textContent.match(/(.+?)\s*\((.+?)\)/);
+      if (textParts) {
+        document.getElementById('poItemUom').dataset.uomName = textParts[1];
+        document.getElementById('poItemUom').dataset.uomCode = textParts[2];
+      } else {
+        document.getElementById('poItemUom').dataset.uomName = selectedOption.textContent;
+        document.getElementById('poItemUom').dataset.uomCode = '';
+      }
+    } else {
+      document.getElementById('poItemUomId').value = '';
+      delete document.getElementById('poItemUom').dataset.uomName;
+      delete document.getElementById('poItemUom').dataset.uomCode;
+    }
+  }
+
+  function calculateItemTotal() {
+    const qty = parseFloat(document.getElementById('poItemQty').value) || 0;
+    const cost = parseFloat(document.getElementById('poItemCost').value) || 0;
+    const total = qty * cost;
+    document.getElementById('poItemTotal').textContent = '₱' + total.toFixed(2);
+  }
+
+  function addItemToPO() {
+    const productId = document.getElementById('poItemProductId').value;
+    const uomId = document.getElementById('poItemUomId').value;
+    const productInput = document.getElementById('poItemProduct').value;
+    const qty = parseFloat(document.getElementById('poItemQty').value) || 0;
+    const cost = parseFloat(document.getElementById('poItemCost').value) || 0;
+
+    if (!productId || !uomId || qty <= 0 || cost <= 0) {
+      showPOAlert('Validation Error', 'Please fill in all required fields');
+      return;
+    }
+
+    const product = productsData.find(p => p.product_id === productId);
+    const uomSelect = document.getElementById('poItemUom');
+    const uomName = uomSelect.dataset.uomName || '';
+    const uomCode = uomSelect.dataset.uomCode || '';
+
+    const item = {
+      product_id: productId,
+      product_name: product ? product.product_name : productInput,
+      uom_id: uomId,
+      uom_name: uomName,
+      uom_code: uomCode,
+      quantity_ordered: qty,
+      unit_cost: cost,
+      total_cost: qty * cost
+    };
+
+    const context = document.getElementById('addItemModalContext').value;
+    if (context === 'add') {
+      poItems.push(item);
+      renderPoItems();
+    } else {
+      editPoItems.push(item);
+      renderEditPoItems();
+    }
+
+    closeAddItemModal();
+  }
+
+  function removePoItem(index, context) {
+    if (context === 'add') {
+      poItems.splice(index, 1);
+      renderPoItems();
+    } else {
+      editPoItems.splice(index, 1);
+      renderEditPoItems();
+    }
+  }
+
+  function renderPoItems() {
+    const list = document.getElementById('poItemsList');
+    let html = `<div class="po-item-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 100px 40px; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px dashed rgba(0,0,0,.08);">
+      <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">Product</div>
+      <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">UOM</div>
+      <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">Qty</div>
+      <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">Unit Cost</div>
+      <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">Total</div>
+      <div></div>
+    </div>`;
+
+    let subtotal = 0;
+    poItems.forEach((item, index) => {
+      subtotal += item.total_cost;
+      html += `<div class="po-item-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 100px 40px; gap: 8px; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,.05);">
+        <div style="font-weight: 500;">${item.product_name}</div>
+        <div>${item.uom_code || item.uom_name}</div>
+        <div>${item.quantity_ordered.toFixed(3)}</div>
+        <div>₱${item.unit_cost.toFixed(2)}</div>
+        <div style="font-weight: 600;">₱${item.total_cost.toFixed(2)}</div>
+        <div><button type="button" onclick="removePoItem(${index}, 'add')" class="po-action-btn danger" style="padding: 4px 8px; font-size: 11px;"><i class="fas fa-trash"></i></button></div>
+      </div>`;
+    });
+
+    list.innerHTML = html;
+
+    document.getElementById('poTotal').textContent = '₱' + subtotal.toFixed(2);
+  }
+
+  function renderEditPoItems() {
+    const list = document.getElementById('editPoItemsList');
+    let html = `<div class="po-item-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 100px 40px; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px dashed rgba(0,0,0,.08);">
+      <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">Product</div>
+      <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">UOM</div>
+      <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">Qty</div>
+      <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">Unit Cost</div>
+      <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">Total</div>
+      <div></div>
+    </div>`;
+
+    let subtotal = 0;
+    editPoItems.forEach((item, index) => {
+      subtotal += item.total_cost;
+      html += `<div class="po-item-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 100px 40px; gap: 8px; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,.05);">
+        <div style="font-weight: 500;">${item.product_name}</div>
+        <div>${item.uom_code || item.uom_name}</div>
+        <div>${item.quantity_ordered.toFixed(3)}</div>
+        <div>₱${item.unit_cost.toFixed(2)}</div>
+        <div style="font-weight: 600;">₱${item.total_cost.toFixed(2)}</div>
+        <div><button type="button" onclick="removePoItem(${index}, 'edit')" class="po-action-btn danger" style="padding: 4px 8px; font-size: 11px;"><i class="fas fa-trash"></i></button></div>
+      </div>`;
+    });
+
+    list.innerHTML = html;
+
+    document.getElementById('editPoTotal').textContent = '₱' + subtotal.toFixed(2);
+  }
+
+  /* ── Quick Product Modal ─────────────────────── */
+  function openQuickProductModal() {
+    document.getElementById('quickProductName').value = '';
+    document.getElementById('quickProductCode').value = '';
+    document.getElementById('quickProductCategory').value = '';
+    document.getElementById('quickProductUom').value = '';
+    document.getElementById('quickProductType').value = 'consumable';
+    document.getElementById('quickProductModal').classList.add('open');
+  }
+
+  function closeQuickProductModal() {
+    document.getElementById('quickProductModal').classList.remove('open');
+  }
+
+  async function saveQuickProduct() {
+    const name = document.getElementById('quickProductName').value.trim();
+    const code = document.getElementById('quickProductCode').value.trim();
+    const categoryId = document.getElementById('quickProductCategory').value;
+    const uomId = document.getElementById('quickProductUom').value;
+    const type = document.getElementById('quickProductType').value;
+
+    if (!name || !categoryId || !uomId) {
+      showPOAlert('Validation Error', 'Please fill in all required fields');
+      return;
+    }
+
+    try {
+      const res = await fetch('../api/products.php?action=create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_name: name,
+          product_code: code,
+          category_id: categoryId,
+          uom_id: uomId,
+          product_type: type,
+          is_active: 1,
+          csrf_token: csrfToken
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        // Refresh products and select the new one
+        await fetchRelated();
+        if (json.product_id) {
+          document.getElementById('poItemProduct').value = json.product_id;
+          onProductSelectChange();
+        }
+        closeQuickProductModal();
+        showPOAlert('Success', 'Product created successfully');
+      } else {
+        showPOAlert('Error', json.message || 'Error creating product');
+      }
+    } catch (e) {
+      console.error(e);
+      showPOAlert('Error', 'Error creating product');
+    }
+  }
+
+  /* ── Geocode Functions ───────────────────────── */
+  async function fetchRegions() {
+    try {
+      const res = await fetch('../api/geocode.php?action=regions');
+      const json = await res.json();
+      if (json.success) return json.data;
+    } catch (e) { console.error('fetchRegions:', e); }
+    return [];
+  }
+
+  async function fetchProvinces(regionCode) {
+    try {
+      const res = await fetch(`../api/geocode.php?action=provinces&region_code=${encodeURIComponent(regionCode)}`);
+      const json = await res.json();
+      if (json.success) return json.data;
+    } catch (e) { console.error('fetchProvinces:', e); }
+    return [];
+  }
+
+  async function fetchCitiesMunicipalities(provinceCode) {
+    try {
+      const res = await fetch(`../api/geocode.php?action=cities_municipalities&province_code=${encodeURIComponent(provinceCode)}`);
+      const json = await res.json();
+      if (json.success) return json.data;
+    } catch (e) { console.error('fetchCities:', e); }
+    return [];
+  }
+
+  async function fetchBarangays(cityMunicipalityCode) {
+    try {
+      const res = await fetch(`../api/geocode.php?action=barangays&city_municipality_code=${encodeURIComponent(cityMunicipalityCode)}`);
+      const json = await res.json();
+      if (json.success) return json.data;
+    } catch (e) { console.error('fetchBarangays:', e); }
+    return [];
+  }
+
+  function populateDatalist(datalistId, data, textField) {
+    const datalist = document.getElementById(datalistId);
+    if (!datalist) return;
+    datalist.innerHTML = '';
+    data.forEach(item => {
+      const option = document.createElement('option');
+      option.value = item[textField];
+      if (item.region_code) option.dataset.code = item.region_code;
+      if (item.province_code) option.dataset.code = item.province_code;
+      if (item.city_municipality_code) option.dataset.code = item.city_municipality_code;
+      if (item.barangay_code) option.dataset.code = item.barangay_code;
+      datalist.appendChild(option);
+    });
+  }
+
+  // Add Modal Geocode Handlers
+  async function onPORegionChange() {
+    const regionInput = document.getElementById('po_region_display');
+    const regionName = regionInput.value;
+    const regions = await fetchRegions();
+    const region = regions.find(r => r.region_name === regionName);
+    if (region) {
+      regionInput.dataset.code = region.region_code;
+      document.getElementById('po_region_code').value = region.region_code;
+      const provinces = await fetchProvinces(region.region_code);
+      populateDatalist('province_list', provinces, 'province_name');
+    }
+  }
+
+  async function onPOProvinceChange() {
+    const provinceInput = document.getElementById('po_province_display');
+    const provinceName = provinceInput.value;
+    const regionCode = document.getElementById('po_region_code').value;
+    if (regionCode) {
+      const provinces = await fetchProvinces(regionCode);
+      const province = provinces.find(p => p.province_name === provinceName);
+      if (province) {
+        provinceInput.dataset.code = province.province_code;
+        document.getElementById('po_province_code').value = province.province_code;
+        const cities = await fetchCitiesMunicipalities(province.province_code);
+        populateDatalist('city_list', cities, 'city_municipality_name');
+      }
+    }
+  }
+
+  async function onPOCityChange() {
+    const cityInput = document.getElementById('po_city_display');
+    const cityName = cityInput.value;
+    const provinceCode = document.getElementById('po_province_code').value;
+    if (provinceCode) {
+      const cities = await fetchCitiesMunicipalities(provinceCode);
+      const city = cities.find(c => c.city_municipality_name === cityName);
+      if (city) {
+        cityInput.dataset.code = city.city_municipality_code;
+        document.getElementById('po_city_code').value = city.city_municipality_code;
+        const barangays = await fetchBarangays(city.city_municipality_code);
+        populateDatalist('barangay_list', barangays, 'barangay_name');
+      }
+    }
+  }
+
+  async function onPOBarangayChange() {
+    const barangayInput = document.getElementById('po_barangay_display');
+    const barangayName = barangayInput.value;
+    const cityCode = document.getElementById('po_city_code').value;
+    if (cityCode) {
+      const barangays = await fetchBarangays(cityCode);
+      const barangay = barangays.find(b => b.barangay_name === barangayName);
+      if (barangay) {
+        barangayInput.dataset.code = barangay.barangay_code;
+        document.getElementById('po_barangay_code').value = barangay.barangay_code;
+      }
+    }
+  }
+
+  // Edit Modal Geocode Handlers
+  async function onEditPORegionChange() {
+    const regionInput = document.getElementById('edit_po_region_display');
+    const regionName = regionInput.value;
+    const regions = await fetchRegions();
+    const region = regions.find(r => r.region_name === regionName);
+    if (region) {
+      regionInput.dataset.code = region.region_code;
+      document.getElementById('edit_po_region_code').value = region.region_code;
+      const provinces = await fetchProvinces(region.region_code);
+      populateDatalist('province_list', provinces, 'province_name');
+    }
+  }
+
+  async function onEditPOProvinceChange() {
+    const provinceInput = document.getElementById('edit_po_province_display');
+    const provinceName = provinceInput.value;
+    const regionCode = document.getElementById('edit_po_region_code').value;
+    if (regionCode) {
+      const provinces = await fetchProvinces(regionCode);
+      const province = provinces.find(p => p.province_name === provinceName);
+      if (province) {
+        provinceInput.dataset.code = province.province_code;
+        document.getElementById('edit_po_province_code').value = province.province_code;
+        const cities = await fetchCitiesMunicipalities(province.province_code);
+        populateDatalist('city_list', cities, 'city_municipality_name');
+      }
+    }
+  }
+
+  async function onEditPOCityChange() {
+    const cityInput = document.getElementById('edit_po_city_display');
+    const cityName = cityInput.value;
+    const provinceCode = document.getElementById('edit_po_province_code').value;
+    if (provinceCode) {
+      const cities = await fetchCitiesMunicipalities(provinceCode);
+      const city = cities.find(c => c.city_municipality_name === cityName);
+      if (city) {
+        cityInput.dataset.code = city.city_municipality_code;
+        document.getElementById('edit_po_city_code').value = city.city_municipality_code;
+        const barangays = await fetchBarangays(city.city_municipality_code);
+        populateDatalist('barangay_list', barangays, 'barangay_name');
+      }
+    }
+  }
+
+  async function onEditPOBarangayChange() {
+    const barangayInput = document.getElementById('edit_po_barangay_display');
+    const barangayName = barangayInput.value;
+    const cityCode = document.getElementById('edit_po_city_code').value;
+    if (cityCode) {
+      const barangays = await fetchBarangays(cityCode);
+      const barangay = barangays.find(b => b.barangay_name === barangayName);
+      if (barangay) {
+        barangayInput.dataset.code = barangay.barangay_code;
+        document.getElementById('edit_po_barangay_code').value = barangay.barangay_code;
+      }
+    }
+  }
+
+  /* ── Custom Alert Functions ─────────────────────── */
+  function showPOAlert(title, message, onConfirm) {
+    document.getElementById('poAlertTitle').textContent = title;
+    document.getElementById('poAlertMessage').textContent = message;
+    document.getElementById('poAlertModal').classList.add('open');
+
+    const confirmBtn = document.getElementById('poAlertConfirmBtn');
+    confirmBtn.onclick = function() {
+      closePOAlert();
+      if (onConfirm) onConfirm();
+    };
+  }
+
+  function closePOAlert() {
+    document.getElementById('poAlertModal').classList.remove('open');
   }
 
   /* ── Init ──────────────────────────────────── */

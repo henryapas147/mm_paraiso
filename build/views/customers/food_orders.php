@@ -285,6 +285,88 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || ($_SESS
     color: white;
 }
 
+/* ── Status History ── */
+.status-history {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.status-history-header {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-history-header i {
+    color: var(--gold);
+}
+
+.status-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.status-history-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    font-size: 0.8rem;
+}
+
+.status-history-time {
+    color: #9CA3AF;
+    font-size: 0.75rem;
+    min-width: 80px;
+}
+
+.status-history-change {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-history-old {
+    color: #9CA3AF;
+    text-decoration: line-through;
+}
+
+.status-history-new {
+    color: var(--ink);
+    font-weight: 500;
+}
+
+.status-history-user {
+    color: #6B7280;
+    font-size: 0.75rem;
+}
+
+.btn-toggle-history {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--gold-dark);
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.btn-toggle-history:hover {
+    background: var(--parchment);
+    border-color: var(--gold);
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
     .page-header {
@@ -361,6 +443,7 @@ async function loadFoodOrders() {
         orders.forEach(order => {
             const orderStatus = order.order_status || 'pending';
             const statusLabel = orderStatus.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            const historyId = `history-${order.order_id}`;
 
             html += `
                 <div class="order-item">
@@ -394,6 +477,15 @@ async function loadFoodOrders() {
                     </div>
 
                     ${order.notes ? `<div style="margin-top: 1rem; font-size: 0.8rem; color: #6B7280; font-style: italic;"><i class="ni ni-tag"></i> Note: ${escapeHtml(order.notes)}</div>` : ''}
+
+                    <div class="status-history">
+                        <button class="btn-toggle-history" onclick="toggleStatusHistory('${order.order_id}')">
+                            <i class="ni ni-time-alarm"></i> View Status History
+                        </button>
+                        <div id="${historyId}" class="status-history-list" style="display:none;">
+                            <div style="padding: 0.5rem; color: #9CA3AF; font-size: 0.8rem;">Loading...</div>
+                        </div>
+                    </div>
                 </div>
             `;
         });
@@ -403,6 +495,44 @@ async function loadFoodOrders() {
     } catch (error) {
         console.error('Error loading food orders:', error);
         container.innerHTML = '<div class="empty-state"><i class="ni ni-fat-remove"></i><h3>Error loading orders</h3><p>Please try again later.</p></div>';
+    }
+}
+
+async function toggleStatusHistory(orderId) {
+    const historyContainer = document.getElementById(`history-${orderId}`);
+    const button = historyContainer.previousElementSibling;
+    
+    if (historyContainer.style.display === 'none') {
+        historyContainer.style.display = 'flex';
+        button.innerHTML = '<i class="ni ni-fat-delete"></i> Hide Status History';
+        
+        // Fetch status history
+        try {
+            const response = await fetch(`../api/food_orders.php?action=status_history&id=${orderId}`);
+            const result = await response.json();
+            
+            if (result.success && result.data.length > 0) {
+                historyContainer.innerHTML = result.data.map(h => `
+                    <div class="status-history-item">
+                        <div class="status-history-time">${formatDate(h.created_at)}</div>
+                        <div class="status-history-change">
+                            <span class="status-history-old">${h.old_status || '—'}</span>
+                            <i class="ni ni-bold-right" style="font-size: 10px; color: #9CA3AF;"></i>
+                            <span class="status-history-new">${h.new_status}</span>
+                        </div>
+                        <div class="status-history-user">${h.first_name ? h.first_name + ' ' + h.last_name : 'System'}</div>
+                    </div>
+                `).join('');
+            } else {
+                historyContainer.innerHTML = '<div style="padding: 0.5rem; color: #9CA3AF; font-size: 0.8rem;">No status history yet.</div>';
+            }
+        } catch (error) {
+            console.error('Error loading status history:', error);
+            historyContainer.innerHTML = '<div style="padding: 0.5rem; color: #991B1B; font-size: 0.8rem;">Error loading history.</div>';
+        }
+    } else {
+        historyContainer.style.display = 'none';
+        button.innerHTML = '<i class="ni ni-time-alarm"></i> View Status History';
     }
 }
 

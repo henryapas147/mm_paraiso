@@ -50,6 +50,7 @@
     .dash-page .stat-card.rose::after   { background: linear-gradient(90deg, #f43f5e, #fb7185); }
     .dash-page .stat-card.green::after  { background: linear-gradient(90deg, #10b981, #34d399); }
     .dash-page .stat-card.orange::after { background: linear-gradient(90deg, #f97316, #fbbf24); }
+    .dash-page .stat-card.red::after    { background: linear-gradient(90deg, #ef4444, #f87171); }
 
     .dash-page .stat-header { display: flex; align-items: center; justify-content: space-between; }
     .dash-page .stat-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--dash-text-muted); }
@@ -63,6 +64,7 @@
     .dash-page .stat-icon.rose   { background: linear-gradient(135deg,#f43f5e,#fb923c); }
     .dash-page .stat-icon.green  { background: linear-gradient(135deg,#10b981,#34d399); }
     .dash-page .stat-icon.orange { background: linear-gradient(135deg,#f97316,#fbbf24); }
+    .dash-page .stat-icon.red    { background: linear-gradient(135deg,#ef4444,#f87171); }
 
     .dash-page .stat-value { font-size: 26px; font-weight: 800; color: var(--dash-text-primary); font-family: 'DM Mono', monospace; }
     .dash-page .stat-footer { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--dash-text-muted); }
@@ -315,16 +317,15 @@
         </div>
       </div>
 
-      <!-- Sales -->
-      <div class="stat-card orange">
+      <!-- Low Stock Alert -->
+      <div class="stat-card red" id="lowStockCard">
         <div class="stat-header">
-          <span class="stat-label">Sales</span>
-          <div class="stat-icon orange">🛒</div>
+          <span class="stat-label">Low Stock Alert</span>
+          <div class="stat-icon red">⚠️</div>
         </div>
-        <div class="stat-value">$103,430</div>
+        <div class="stat-value" id="lowStockCount">0</div>
         <div class="stat-footer">
-          <span class="stat-badge up">▲ +5%</span>
-          than last month
+          <span class="stat-badge down">items below threshold</span>
         </div>
       </div>
     </div>
@@ -761,6 +762,29 @@
 </div><!-- /dash-page -->
 
 <script>
+/* ─────────────────────────────────────────
+   LOW STOCK ALERT
+───────────────────────────────────────── */
+async function fetchLowStockCount() {
+  try {
+    const response = await fetch('api/inventory_transactions.php?action=low_stock_count');
+    const result = await response.json();
+    if (result.success) {
+      document.getElementById('lowStockCount').textContent = result.count;
+      if (result.count > 0) {
+        document.getElementById('lowStockCard').style.cursor = 'pointer';
+        document.getElementById('lowStockCard').onclick = () => {
+          window.location.href = 'inventory/inventory-transactions';
+        };
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching low stock count:', error);
+  }
+}
+
+fetchLowStockCount();
+
 /* ─────────────────────────────────────────
    CHART INITIALIZATION
 ───────────────────────────────────────── */

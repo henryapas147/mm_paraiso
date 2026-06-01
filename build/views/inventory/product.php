@@ -307,6 +307,49 @@
     box-shadow: 0 2px 6px rgba(26, 107, 191, .35);
   }
 
+  /* ── Toast Notifications ── */
+  .prod-toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .prod-toast {
+    background: var(--color-background-primary, #fff);
+    border: 1px solid rgba(0, 0, 0, .12);
+    border-radius: var(--prod-radius-md);
+    padding: 14px 18px;
+    box-shadow: var(--prod-shadow-md);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 280px;
+    max-width: 400px;
+    animation: prodToastIn .3s cubic-bezier(.34,1.35,.64,1);
+  }
+  @keyframes prodToastIn {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .prod-toast.success { border-left: 4px solid var(--prod-green); }
+  .prod-toast.error { border-left: 4px solid var(--prod-red); }
+  .prod-toast.info { border-left: 4px solid var(--prod-blue); }
+  .prod-toast-icon {
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; flex-shrink: 0;
+  }
+  .prod-toast.success .prod-toast-icon { background: var(--prod-green-pale); color: var(--prod-green); }
+  .prod-toast.error .prod-toast-icon { background: var(--prod-red-pale); color: var(--prod-red); }
+  .prod-toast.info .prod-toast-icon { background: var(--prod-blue-pale); color: var(--prod-blue); }
+  .prod-toast-message {
+    font-size: 13px; font-weight: 500;
+    color: var(--color-text-primary);
+  }
+
   /* ── Table ──────────────────────────────────────────── */
   .prod-table-wrap {
     overflow-x: auto;
@@ -1042,6 +1085,9 @@
   </div>
 </div>
 
+<!-- Toast Container -->
+<div id="toastContainer" class="prod-toast-container"></div>
+
 <!-- Product Details Modal -->
 <div class="prod-overlay" id="productDetailsModal" onclick="handleProductDetailsOverlayClick(event)">
   <div class="prod-modal wide" role="dialog" aria-modal="true" aria-labelledby="modalProductName">
@@ -1055,6 +1101,53 @@
       </button>
     </div>
     <div class="prod-modal-body" id="modalProductContent"></div>
+  </div>
+</div>
+
+<!-- Quick Stock Adjustment Modal -->
+<div class="prod-overlay" id="quickStockModal" onclick="handleQuickStockOverlayClick(event)">
+  <div class="prod-modal" role="dialog" aria-modal="true">
+    <div class="prod-modal-header">
+      <div>
+        <div class="prod-modal-title">Quick Stock Adjustment</div>
+        <div class="prod-modal-subtitle" id="quickStockProductName"></div>
+      </div>
+      <button class="prod-modal-close" onclick="closeQuickStockModal()" aria-label="Close">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form id="quickStockForm" onsubmit="submitQuickStockAdjust(event)">
+      <div class="prod-modal-body">
+        <div class="prod-form-group">
+          <label class="prod-form-label">Current Stock</label>
+          <input type="text" class="prod-form-input" id="quickStockCurrent" readonly style="background:var(--color-background-secondary)">
+        </div>
+        <div class="prod-form-group">
+          <label class="prod-form-label">Adjustment Type</label>
+          <select class="prod-form-select" id="quickStockType" required>
+            <option value="add">Add Stock (+)</option>
+            <option value="deduct">Deduct Stock (-)</option>
+          </select>
+        </div>
+        <div class="prod-form-group">
+          <label class="prod-form-label">Quantity</label>
+          <input type="number" class="prod-form-input" id="quickStockQuantity" step="0.001" min="0.001" required>
+        </div>
+        <div class="prod-form-group">
+          <label class="prod-form-label">Reason</label>
+          <input type="text" class="prod-form-input" id="quickStockReason" placeholder="e.g., Stock count, Damaged items, etc.">
+        </div>
+        <input type="hidden" id="quickStockProductId">
+      </div>
+      <div class="prod-modal-footer">
+        <button type="button" class="prod-btn" onclick="closeQuickStockModal()">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="submit" class="prod-btn prod-btn-primary">
+          <i class="fas fa-save"></i> Adjust Stock
+        </button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -1199,12 +1292,52 @@
     uoms: [],
     suppliers: []
   };
+  let csrfToken = '';
+
+  async function fetchCsrfToken() {
+    try {
+      const res = await fetch('../api/users.php?action=csrf_token');
+      const json = await res.json();
+      if (json.success) csrfToken = json.csrf_token;
+    } catch (e) {
+      console.error('Error fetching CSRF token:', e);
+    }
+  }
+
+  // Toast notification function
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `prod-toast ${type}`;
+    
+    const iconMap = {
+      success: 'fa-check',
+      error: 'fa-times',
+      info: 'fa-info'
+    };
+    
+    toast.innerHTML = `
+      <div class="prod-toast-icon">
+        <i class="fas ${iconMap[type] || iconMap.info}"></i>
+      </div>
+      <div class="prod-toast-message">${message}</div>
+    `;
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(30px)';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
 
   document.addEventListener('DOMContentLoaded', function() {
-    ['productDetailsModal', 'addProductModal'].forEach(function(id) {
+    ['productDetailsModal', 'addProductModal', 'quickStockModal'].forEach(function(id) {
       var el = document.getElementById(id);
       if (el) document.body.appendChild(el);
     });
+    fetchCsrfToken();
     fetchProducts();
   });
 
@@ -1248,7 +1381,7 @@
     document.getElementById('statTotal').textContent = productsData.length;
     document.getElementById('statCategories').textContent = rel.categories ? rel.categories.length : '—';
     document.getElementById('statSuppliers').textContent = rel.suppliers ? rel.suppliers.length : '—';
-    document.getElementById('statLowStock').textContent = productsData.filter(p => parseFloat(p.current_stock) <= parseFloat(p.reorder_point)).length;
+    document.getElementById('statLowStock').textContent = productsData.filter(p => parseFloat(p.stock_on_hand) <= parseFloat(p.low_stock_threshold)).length;
   }
 
   function populateDropdowns() {
@@ -1301,7 +1434,7 @@
     }
 
     tbody.innerHTML = paginatedData.map(p => {
-      const isLow = parseFloat(p.current_stock) <= parseFloat(p.reorder_point);
+      const isLow = parseFloat(p.stock_on_hand) <= parseFloat(p.low_stock_threshold);
       return `
       <tr class="product-row">
         <td>
@@ -1318,9 +1451,15 @@
           <div class="prod-name-secondary">${p.category_code || ''}</div>
         </td>
         <td>
-          <span class="prod-stock-val">${parseFloat(p.current_stock).toFixed(3)}</span>
-          <span class="prod-stock-uom">${p.uom_code || ''}</span>
-          ${isLow ? '<br><span class="prod-status-badge low" style="margin-top:4px">Low Stock</span>' : ''}
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="prod-stock-val">${parseFloat(p.stock_on_hand).toFixed(3)}</span>
+            <span class="prod-stock-uom">${p.uom_code || ''}</span>
+            <button onclick="openQuickStockAdjust('${p.product_id}', '${p.product_name}', ${p.stock_on_hand})" style="background:var(--prod-blue-pale);color:var(--prod-blue);border:none;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;font-weight:500">+/-</button>
+          </div>
+          <div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px">
+            Current: ${parseFloat(p.current_stock).toFixed(3)} ${p.uom_code || ''}
+          </div>
+          ${isLow ? '<span class="prod-status-badge low" style="margin-top:4px;display:inline-block">Low Stock</span>' : ''}
         </td>
         <td>
           <span class="prod-price"><span class="prod-price-currency">PHP</span>${parseFloat(p.unit_cost).toFixed(2)}</span>
@@ -1417,7 +1556,7 @@
     document.getElementById('modalProductName').textContent = product.product_name;
     document.getElementById('modalProductCode').textContent = product.product_code;
 
-    const isLow = parseFloat(product.current_stock) <= parseFloat(product.reorder_point);
+    const isLow = parseFloat(product.stock_on_hand) <= parseFloat(product.low_stock_threshold);
 
     document.getElementById('modalProductContent').innerHTML = `
       <div class="prod-details-grid">
@@ -1435,8 +1574,8 @@
           <div class="prod-details-section-title">Costing &amp; Stock</div>
           <div class="prod-detail-row"><div class="prod-detail-key">Unit Cost</div><div class="prod-detail-val">PHP ${parseFloat(product.unit_cost).toFixed(2)}</div></div>
           <div class="prod-detail-row"><div class="prod-detail-key">Selling Price</div><div class="prod-detail-val">PHP ${parseFloat(product.selling_price).toFixed(2)}</div></div>
-          <div class="prod-detail-row"><div class="prod-detail-key">Current Stock</div><div class="prod-detail-val">${parseFloat(product.current_stock).toFixed(3)} ${product.uom_code || ''} ${isLow ? '<span class="prod-status-badge low" style="margin-left:6px">Low</span>':''}</div></div>
-          <div class="prod-detail-row"><div class="prod-detail-key">Reorder Point</div><div class="prod-detail-val">${parseFloat(product.reorder_point).toFixed(3)}</div></div>
+          <div class="prod-detail-row"><div class="prod-detail-key">Stock on Hand</div><div class="prod-detail-val">${parseFloat(product.stock_on_hand).toFixed(3)} ${product.uom_code || ''} ${isLow ? '<span class="prod-status-badge low" style="margin-left:6px">Low</span>':''}</div></div>
+          <div class="prod-detail-row"><div class="prod-detail-key">Low Stock Threshold</div><div class="prod-detail-val">${parseFloat(product.low_stock_threshold).toFixed(3)}</div></div>
           <div class="prod-detail-row"><div class="prod-detail-key">Min / Max Stock</div><div class="prod-detail-val">${parseFloat(product.minimum_stock).toFixed(3)} / ${product.maximum_stock ? parseFloat(product.maximum_stock).toFixed(3) : '—'}</div></div>
           <div class="prod-details-section-title" style="margin-top:20px">Supplier</div>
           <div class="prod-detail-row"><div class="prod-detail-key">Preferred Supplier</div><div class="prod-detail-val">${product.supplier_name || '—'}</div></div>
@@ -1540,6 +1679,56 @@
   function closeAddProductModal() {
     document.getElementById('addProductModal').classList.remove('open');
     document.getElementById('addProductForm').reset();
+  }
+
+  function openQuickStockAdjust(productId, productName, currentStock) {
+    document.getElementById('quickStockProductId').value = productId;
+    document.getElementById('quickStockProductName').textContent = productName;
+    document.getElementById('quickStockCurrent').value = currentStock;
+    document.getElementById('quickStockQuantity').value = '';
+    document.getElementById('quickStockReason').value = '';
+    document.getElementById('quickStockModal').classList.add('open');
+  }
+
+  function closeQuickStockModal() {
+    document.getElementById('quickStockModal').classList.remove('open');
+    document.getElementById('quickStockForm').reset();
+  }
+
+  function handleQuickStockOverlayClick(e) {
+    if (e.target === document.getElementById('quickStockModal')) closeQuickStockModal();
+  }
+
+  function submitQuickStockAdjust(event) {
+    event.preventDefault();
+    const form = document.getElementById('quickStockForm');
+    const payload = {
+      product_id: document.getElementById('quickStockProductId').value,
+      transaction_type: document.getElementById('quickStockType').value,
+      quantity: parseFloat(document.getElementById('quickStockQuantity').value),
+      reason: document.getElementById('quickStockReason').value || 'Quick adjustment',
+      csrf_token: typeof csrfToken !== 'undefined' ? csrfToken : ''
+    };
+
+    fetch('../api/inventory_transactions.php?action=adjust', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(data => {
+      closeQuickStockModal();
+      if (data.success) {
+        showToast(data.message, 'success');
+        fetchProducts();
+      } else {
+        showToast(data.message, 'error');
+      }
+    })
+    .catch(() => {
+      closeQuickStockModal();
+      showToast('An error occurred while adjusting stock.', 'error');
+    });
   }
 
   function submitAddProduct(event) {

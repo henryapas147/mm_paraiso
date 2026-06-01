@@ -65,6 +65,8 @@ $router->add('inventory/units-of-measure', ['controller' => 'InventoryController
 $router->add('inventory/inventory-locations', ['controller' => 'InventoryController', 'action' => 'inventoryLocations']);
 $router->add('inventory/suppliers', ['controller' => 'InventoryController', 'action' => 'suppliers']);
 $router->add('inventory/product-stock-per-location', ['controller' => 'InventoryController', 'action' => 'productStockPerLocation']);
+$router->add('inventory/product-uom-conversions', ['controller' => 'InventoryController', 'action' => 'productUomConversions']);
+$router->add('inventory/inventory-transactions', ['controller' => 'InventoryController', 'action' => 'inventoryTransactions']);
 $router->add('inventory/purchase-orders', ['controller' => 'InventoryController', 'action' => 'purchaseOrders']);
 $router->add('inventory/stock-transactions', ['controller' => 'InventoryController', 'action' => 'stockTransactions']);
 $router->add('inventory/stock-transfers', ['controller' => 'InventoryController', 'action' => 'stockTransfers']);
@@ -76,6 +78,7 @@ $router->add('inventory/pos', ['controller' => 'InventoryController', 'action' =
 $router->add('food-canteen', ['controller' => 'FoodCanteenController', 'action' => 'index']);
 $router->add('food-canteen/food-categories', ['controller' => 'FoodCanteenController', 'action' => 'foodCategories']);
 $router->add('food-canteen/menu-items', ['controller' => 'FoodCanteenController', 'action' => 'menuItems']);
+$router->add('food-canteen/recipes', ['controller' => 'FoodCanteenController', 'action' => 'recipes']);
 $router->add('food-canteen/food-orders', ['controller' => 'FoodCanteenController', 'action' => 'foodOrders']);
 
 // Reservations

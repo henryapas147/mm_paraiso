@@ -422,6 +422,86 @@
   .fo-modal::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
 
   .fo-card *, .fo-modal * { box-sizing: border-box; }
+
+  /* ── Status History ── */
+  .fo-history-row {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .fo-history-row:last-child { border-bottom: none; }
+  .fo-history-time {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .fo-history-change {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .fo-history-old {
+    color: var(--text-muted);
+    text-decoration: line-through;
+  }
+  .fo-history-new {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+  .fo-history-user {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .fo-history-reason {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* ── Toast Notifications ── */
+  .fo-toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .fo-toast {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    box-shadow: var(--shadow-modal);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 280px;
+    max-width: 400px;
+    animation: foToastIn .3s cubic-bezier(.34,1.35,.64,1);
+  }
+  @keyframes foToastIn {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .fo-toast.success { border-left: 4px solid var(--success); }
+  .fo-toast.error { border-left: 4px solid var(--danger); }
+  .fo-toast.info { border-left: 4px solid var(--info); }
+  .fo-toast-icon {
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; flex-shrink: 0;
+  }
+  .fo-toast.success .fo-toast-icon { background: var(--success-bg); color: var(--success); }
+  .fo-toast.error .fo-toast-icon { background: var(--danger-bg); color: var(--danger); }
+  .fo-toast.info .fo-toast-icon { background: var(--info-bg); color: var(--info); }
+  .fo-toast-message {
+    font-size: 13px; font-weight: 500;
+    color: var(--text-primary);
+  }
 </style>
 
 <script>
@@ -828,7 +908,68 @@
         </div>
       </div>
 
+      <!-- Update Status Modal -->
+      <div id="updateStatusModal" class="fo-modal-overlay" style="display:none" onclick="if(event.target===this)closeUpdateStatusModal()">
+        <div class="fo-modal">
+          <div class="fo-modal-header">
+            <h3 class="fo-modal-title">Update Order Status</h3>
+            <button onclick="closeUpdateStatusModal()" class="fo-modal-close"><i class="fas fa-times"></i></button>
+          </div>
+          <form id="updateStatusForm" onsubmit="submitUpdateStatus(event)">
+            <div class="fo-modal-body">
+              <input type="hidden" name="order_id" id="updateStatusOrderId">
+              <div class="fo-form-group">
+                <label class="fo-label">Select New Status</label>
+                <select name="order_status" required class="fo-select">
+                  <option value="pending">Pending</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="preparing">Preparing</option>
+                  <option value="ready">Ready</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
+            <div class="fo-modal-footer">
+              <button type="button" onclick="closeUpdateStatusModal()" class="fo-btn-cancel">Cancel</button>
+              <button type="submit" class="fo-btn-primary"><i class="fas fa-sync-alt"></i> Update Status</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Toast Container -->
+      <div id="toastContainer" class="fo-toast-container"></div>
+
 <script>
+  // Toast notification function
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `fo-toast ${type}`;
+    
+    const iconMap = {
+      success: 'fa-check',
+      error: 'fa-times',
+      info: 'fa-info'
+    };
+    
+    toast.innerHTML = `
+      <div class="fo-toast-icon">
+        <i class="fas ${iconMap[type] || iconMap.info}"></i>
+      </div>
+      <div class="fo-toast-message">${message}</div>
+    `;
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(30px)';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
   // Filter table
   function filterTable() {
     const filter = document.getElementById('searchInput').value.toLowerCase();
@@ -847,6 +988,11 @@
       if (!json.success || !json.data) return;
       const order = json.data;
 
+      // Fetch status history
+      const historyRes = await fetch(`../api/food_orders.php?action=status_history&id=${orderId}`);
+      const historyJson = await historyRes.json();
+      const statusHistory = historyJson.success ? historyJson.data : [];
+
       const stCls   = (order.order_status || 'pending').replace(/_/g, '-');
       const stLabel = (order.order_status || '').replace(/_/g, ' ');
       const payCls   = (order.payment_status || 'unpaid').replace(/_/g, '-');
@@ -863,6 +1009,20 @@
             <div class="fo-item-total">₱${parseFloat(i.total_price).toFixed(2)}</div>
           </div>`).join('')
         : `<div class="fo-item-row" style="color:var(--text-muted);font-style:italic;font-size:13px">No items on this order.</div>`;
+
+      const historyHtml = statusHistory.length > 0
+        ? statusHistory.map(h => `
+          <div class="fo-history-row">
+            <div class="fo-history-time">${new Date(h.created_at).toLocaleString()}</div>
+            <div class="fo-history-change">
+              <span class="fo-history-old">${h.old_status || '—'}</span>
+              <i class="fas fa-arrow-right" style="font-size:10px;margin:0 6px;color:var(--text-muted)"></i>
+              <span class="fo-history-new">${h.new_status}</span>
+            </div>
+            <div class="fo-history-user">${h.first_name ? h.first_name + ' ' + h.last_name : 'System'}</div>
+            ${h.change_reason ? `<div class="fo-history-reason">${h.change_reason}</div>` : ''}
+          </div>`).join('')
+        : `<div style="color:var(--text-muted);font-style:italic;font-size:13px;padding:12px 0">No status history yet.</div>`;
 
       document.getElementById('orderModalTitle').textContent = `Order #${order.order_number}`;
       document.getElementById('orderModalContent').innerHTML = `
@@ -908,6 +1068,10 @@
         <div class="fo-items-section">
           <div class="fo-items-header">Order Items</div>
           ${itemsHtml}
+        </div>
+        <div class="fo-items-section">
+          <div class="fo-items-header">Status History</div>
+          ${historyHtml}
         </div>`;
 
       document.getElementById('orderDetailsModal').style.display = 'flex';
@@ -960,6 +1124,44 @@
         }
       })
       .catch(() => { closeAddOrderModal(); Swal.fire({ icon:'error', title:'Error', text:'An error occurred while creating the order.', confirmButtonColor:'#d33', customClass:{popup:'swal2-popup-high-z'} }); });
+  }
+
+  // ── Inventory Stock Checking ───────────────────────────────────────────────
+  async function checkRecipeStock(itemId, quantity = 1) {
+    try {
+      const response = await fetch(`../api/inventory_transactions.php?action=check_recipe_stock&item_id=${itemId}&quantity=${quantity}`);
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error checking stock:', error);
+      return { success: false, available: true, issues: [] };
+    }
+  }
+
+  function showStockWarning(issues) {
+    if (!issues || issues.length === 0) return;
+    
+    const warningHtml = issues.map(i => 
+      `<div style="margin-bottom: 8px;">
+        <strong>${i.product_name}</strong>: Required ${i.required} ${i.uom}, Available ${i.available} ${i.uom}
+      </div>`
+    ).join('');
+    
+    Swal.fire({
+      icon: 'warning',
+      title: 'Insufficient Stock',
+      html: `<div style="text-align:left;">${warningHtml}</div>`,
+      confirmButtonText: 'Proceed Anyway',
+      showCancelButton: true,
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      customClass: { popup: 'swal2-popup-high-z' }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Proceed with order despite low stock
+      }
+    });
   }
 
   // Edit Order Modal
@@ -1046,25 +1248,45 @@
 
   // Update Order Status
   function updateOrderStatus(orderId) {
-    Swal.fire({
-      title: 'Update Status', input: 'select',
-      inputOptions: { pending:'Pending', confirmed:'Confirmed', preparing:'Preparing', ready:'Ready', delivered:'Delivered', cancelled:'Cancelled' },
-      inputPlaceholder: 'Select new status',
-      showCancelButton: true, confirmButtonText: 'Update', cancelButtonText: 'Cancel',
-      customClass: { popup: 'swal2-popup-high-z' }
-    }).then(result => {
-      if (!result.isConfirmed || !result.value) return;
-      fetch('../api/food_orders.php?action=update_status', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ order_id: orderId, order_status: result.value, csrf_token: csrfToken }) })
-        .then(r => r.json())
-        .then(data => {
-          if (data.success) {
-            Swal.fire({ icon:'success', title:'Status Updated!', text: data.message, confirmButtonColor:'#3085d6', customClass:{popup:'swal2-popup-high-z'} }).then(() => fetchOrders());
-          } else {
-            Swal.fire({ icon:'error', title:'Error', text: data.message, confirmButtonColor:'#d33', customClass:{popup:'swal2-popup-high-z'} });
-          }
-        })
-        .catch(() => Swal.fire({ icon:'error', title:'Error', text:'An error occurred while updating status.', confirmButtonColor:'#d33', customClass:{popup:'swal2-popup-high-z'} }));
-    });
+    const order = foodOrdersData.find(o => o.order_id === orderId);
+    document.getElementById('updateStatusOrderId').value = orderId;
+    document.getElementById('updateStatusForm').reset();
+    
+    // Set current status in dropdown
+    if (order && order.order_status) {
+      const statusSelect = document.querySelector('#updateStatusForm select[name="order_status"]');
+      statusSelect.value = order.order_status;
+    }
+    
+    document.getElementById('updateStatusModal').style.display = 'flex';
+  }
+
+  function closeUpdateStatusModal() {
+    document.getElementById('updateStatusModal').style.display = 'none';
+  }
+
+  function submitUpdateStatus(event) {
+    event.preventDefault();
+    const form = document.getElementById('updateStatusForm');
+    const payload = {
+      order_id: form.elements['order_id'].value,
+      order_status: form.elements['order_status'].value,
+      csrf_token: csrfToken
+    };
+
+    closeUpdateStatusModal();
+
+    fetch('../api/food_orders.php?action=update_status', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          showToast(data.message, 'success');
+          fetchOrders();
+        } else {
+          showToast(data.message, 'error');
+        }
+      })
+      .catch(() => showToast('An error occurred while updating status.', 'error'));
   }
 
   // Update Payment Status (alias for updateOrderPayment referenced in old code)

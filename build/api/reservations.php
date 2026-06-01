@@ -2,6 +2,7 @@
 header('Content-Type: application/json');
 require_once '../config/middleware.php';
 require_once '../services/EmailService.php';
+require_once 'inventory_functions.php';
 applyAuthMiddleware();
 
 use App\Services\EmailService;
@@ -445,6 +446,69 @@ try {
           WHERE reservation_id = ?
         ");
         $stmt->execute([$data['status'], $data['reservation_id']]);
+        
+        // Handle inventory deduction/rollback based on status change
+        if ($data['status'] === 'confirmed') {
+          // Deduct inventory for food orders linked to this reservation
+          $stmt = $pdo->prepare("SELECT order_id FROM food_orders WHERE reservation_id = ?");
+          $stmt->execute([$data['reservation_id']]);
+          $foodOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+          
+          foreach ($foodOrders as $order) {
+            // Get food order items
+            $stmt = $pdo->prepare("SELECT item_id, quantity FROM food_order_items WHERE order_id = ?");
+            $stmt->execute([$order['order_id']]);
+            $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            foreach ($items as $item) {
+              // Call inventory deduction directly
+              deductInventoryForOrder($pdo, $order['order_id'], $item['item_id'], $item['quantity'], $_SESSION['user_id'] ?? null);
+            }
+          }
+        } elseif ($data['status'] === 'cancelled') {
+          // Rollback inventory for food orders linked to this reservation
+          $stmt = $pdo->prepare("SELECT transaction_id FROM inventory_transactions WHERE reference_type = 'reservation' AND reference_id = ?");
+          $stmt->execute([$data['reservation_id']]);
+          $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+          
+          foreach ($transactions as $trans) {
+            // Get original transaction
+            $stmt2 = $pdo->prepare("SELECT * FROM inventory_transactions WHERE transaction_id = ?");
+            $stmt2->execute([$trans['transaction_id']]);
+            $originalTrans = $stmt2->fetch(PDO::FETCH_ASSOC);
+            
+            if ($originalTrans) {
+              // Reverse the stock change
+              $newStock = $originalTrans['stock_before'];
+              $updateStmt = $pdo->prepare("UPDATE products SET stock_on_hand = ? WHERE product_id = ?");
+              $updateStmt->execute([$newStock, $originalTrans['product_id']]);
+              
+              // Record rollback transaction
+              $rollbackId = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+                mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
+                mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
+                mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
+              
+              $transStmt = $pdo->prepare("
+                INSERT INTO inventory_transactions
+                (transaction_id, product_id, transaction_type, quantity, uom_id, reference_type, reason, stock_before, stock_after, created_by, rollback_transaction_id)
+                VALUES (?, ?, 'rollback', ?, ?, ?, ?, ?, ?, ?, ?)
+              ");
+              $transStmt->execute([
+                $rollbackId,
+                $originalTrans['product_id'],
+                $originalTrans['quantity'],
+                $originalTrans['uom_id'],
+                $originalTrans['reference_type'],
+                'Reservation cancelled',
+                $originalTrans['stock_after'],
+                $newStock,
+                $_SESSION['user_id'] ?? null,
+                $trans['transaction_id']
+              ]);
+            }
+          }
+        }
         
         // Send email notification if requested
         if (isset($data['send_notification']) && $data['send_notification']) {

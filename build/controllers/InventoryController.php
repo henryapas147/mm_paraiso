@@ -41,6 +41,16 @@ class InventoryController extends Controller
         $this->view('inventory/product_stock_per_location');
     }
 
+    public function productUomConversions()
+    {
+        $this->view('inventory/product_uom_conversions');
+    }
+
+    public function inventoryTransactions()
+    {
+        $this->view('inventory/inventory_transactions');
+    }
+
     public function purchaseOrders()
     {
         $this->view('inventory/purchase_orders');
