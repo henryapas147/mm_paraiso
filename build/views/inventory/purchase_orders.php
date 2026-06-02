@@ -430,6 +430,11 @@
   .po-page-btn:disabled { opacity: .35; cursor: not-allowed; }
 
   /* ── Modals ──────────────────────────────────────── */
+  /*
+   * Overlays are always moved to <body> via poModalOpen() so position:fixed
+   * is always relative to the true viewport — never a transformed/scrollable
+   * ancestor inside a dashboard shell.
+   */
   .po-overlay {
     display: none;
     position: fixed;
@@ -441,6 +446,8 @@
     align-items: center;
     justify-content: center;
     padding: 20px;
+    /* prevent the overlay itself from scrolling */
+    overflow: hidden;
   }
 
   .po-overlay.open { display: flex; }
@@ -452,7 +459,10 @@
     width: 100%;
     max-width: 720px;
     max-height: 92vh;
-    overflow-y: auto;
+    /* flex column so header/footer stay sticky and only body scrolls */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     box-shadow: var(--po-shadow-lg);
     animation: poModalIn .2s cubic-bezier(.22,.68,0,1.2);
   }
@@ -471,11 +481,9 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    position: sticky;
-    top: 0;
+    flex-shrink: 0;
     background: var(--color-background-primary, #fff);
     border-radius: var(--po-r-xl) var(--po-r-xl) 0 0;
-    z-index: 1;
   }
 
   .po-modal-title { font-size: 17px; font-weight: 600; color: var(--color-text-primary); letter-spacing: -.3px; }
@@ -496,7 +504,15 @@
 
   .po-modal-close:hover { background: var(--po-red-pale); color: var(--po-red); }
 
-  .po-modal-body { padding: 26px; }
+  /* This is the ONLY element that scrolls inside the modal */
+  .po-modal-body {
+    padding: 26px;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+  }
 
   .po-modal-footer {
     padding: 18px 26px;
@@ -504,8 +520,7 @@
     display: flex;
     justify-content: flex-end;
     gap: 8px;
-    position: sticky;
-    bottom: 0;
+    flex-shrink: 0;
     background: var(--color-background-primary, #fff);
     border-radius: 0 0 var(--po-r-xl) var(--po-r-xl);
   }
@@ -1160,6 +1175,142 @@
   </div>
 </div>
 
+<!-- Receive PO Modal -->
+<div class="po-overlay" id="receivePOModal" onclick="if(event.target===this)closeReceiveModal()">
+  <div class="po-modal wide" role="dialog" aria-modal="true">
+    <div class="po-modal-header">
+      <div>
+        <div class="po-modal-title">Receive Purchase Order</div>
+        <div class="po-modal-subtitle" id="receivePOModalSubtitle">Receiving items</div>
+      </div>
+      <button class="po-modal-close" onclick="closeReceiveModal()" aria-label="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="po-modal-body">
+      <input type="hidden" id="receivePOId">
+      <div class="po-form-group full">
+        <label class="po-form-label">Notes</label>
+        <textarea id="receiveNotes" rows="2" class="po-form-textarea" placeholder="Optional notes about this receiving..."></textarea>
+      </div>
+      <div class="po-detail-section-title" style="margin-top:16px">Items to Receive</div>
+      <div id="receiveItemsList" style="margin-top:12px;"></div>
+    </div>
+    <div class="po-modal-footer">
+      <button type="button" class="po-btn" onclick="closeReceiveModal()"><i class="fas fa-times"></i> Cancel</button>
+      <button type="button" onclick="submitReceive()" class="po-btn po-btn-primary"><i class="fas fa-check"></i> Confirm Receive</button>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="po-overlay" id="paymentModal" onclick="if(event.target===this)closePaymentModal()">
+  <div class="po-modal" role="dialog" aria-modal="true" style="max-width: 500px;">
+    <div class="po-modal-header">
+      <div>
+        <div class="po-modal-title">Record Payment</div>
+        <div class="po-modal-subtitle" id="paymentModalSubtitle">Payment for PO</div>
+      </div>
+      <button class="po-modal-close" onclick="closePaymentModal()" aria-label="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="po-modal-body">
+      <input type="hidden" id="paymentPOId">
+      <div class="po-form-group">
+        <label class="po-form-label">Total Amount</label>
+        <div id="paymentTotalAmount" style="font-size:18px; font-weight:600; color:var(--po-blue);">₱0.00</div>
+      </div>
+      <div class="po-form-group">
+        <label class="po-form-label">Amount Paid</label>
+        <div id="paymentAmountPaid" style="font-size:14px; color:var(--color-text-secondary);">₱0.00</div>
+      </div>
+      <div class="po-form-group">
+        <label class="po-form-label">Remaining Balance</label>
+        <div id="paymentBalance" style="font-size:18px; font-weight:600; color:var(--color-error);">₱0.00</div>
+      </div>
+      <div class="po-form-group">
+        <label class="po-form-label">Payment Amount <span class="req">*</span></label>
+        <input type="number" id="paymentAmount" class="po-form-input" min="0.01" step="0.01" placeholder="0.00">
+      </div>
+      <div class="po-form-group">
+        <label class="po-form-label">Payment Method</label>
+        <select id="paymentMethod" class="po-form-select" onchange="onPaymentMethodChange()">
+          <option value="">Select Method</option>
+        </select>
+      </div>
+
+      <!-- Dynamic payment method fields -->
+      <div id="paymentMethodFields" style="display:none;">
+        <!-- Bank Transfer Fields -->
+        <div id="bankFields" style="display:none;">
+          <div class="po-form-group">
+            <label class="po-form-label">Bank Account Number</label>
+            <input type="text" id="paymentBankAccount" class="po-form-input" placeholder="Account number">
+          </div>
+          <div class="po-form-group">
+            <label class="po-form-label">Account Name</label>
+            <input type="text" id="paymentAccountName" class="po-form-input" placeholder="Account holder name">
+          </div>
+        </div>
+
+        <!-- Digital Wallet Fields -->
+        <div id="walletFields" style="display:none;">
+          <div class="po-form-group">
+            <label class="po-form-label">Wallet Number</label>
+            <input type="text" id="paymentWalletNumber" class="po-form-input" placeholder="Mobile number">
+          </div>
+          <div class="po-form-group">
+            <label class="po-form-label">Account Name</label>
+            <input type="text" id="paymentWalletName" class="po-form-input" placeholder="Account holder name">
+          </div>
+        </div>
+
+        <!-- Card Fields -->
+        <div id="cardFields" style="display:none;">
+          <div class="po-form-group">
+            <label class="po-form-label">Card Last 4 Digits</label>
+            <input type="text" id="paymentCardLast4" class="po-form-input" maxlength="4" placeholder="XXXX">
+          </div>
+          <div class="po-form-group">
+            <label class="po-form-label">Cardholder Name</label>
+            <input type="text" id="paymentCardholderName" class="po-form-input" placeholder="Name on card">
+          </div>
+        </div>
+
+        <!-- Check Fields -->
+        <div id="checkFields" style="display:none;">
+          <div class="po-form-group">
+            <label class="po-form-label">Check Number</label>
+            <input type="text" id="paymentCheckNumber" class="po-form-input" placeholder="Check #">
+          </div>
+          <div class="po-form-group">
+            <label class="po-form-label">Bank Name</label>
+            <input type="text" id="paymentCheckBank" class="po-form-input" placeholder="Issuing bank">
+          </div>
+          <div class="po-form-group">
+            <label class="po-form-label">Check Date</label>
+            <input type="date" id="paymentCheckDate" class="po-form-input">
+          </div>
+        </div>
+      </div>
+
+      <div class="po-form-group">
+        <label class="po-form-label">Reference Number</label>
+        <input type="text" id="paymentReference" class="po-form-input" placeholder="e.g., OR #12345">
+      </div>
+      <div class="po-form-group">
+        <label class="po-form-label">Payment Date</label>
+        <input type="date" id="paymentDate" class="po-form-input">
+      </div>
+      <div class="po-form-group full">
+        <label class="po-form-label">Notes</label>
+        <textarea id="paymentNotes" rows="2" class="po-form-textarea" placeholder="Optional notes..."></textarea>
+      </div>
+    </div>
+    <div class="po-modal-footer">
+      <button type="button" class="po-btn" onclick="closePaymentModal()"><i class="fas fa-times"></i> Cancel</button>
+      <button type="button" onclick="submitPayment()" class="po-btn po-btn-primary"><i class="fas fa-save"></i> Record Payment</button>
+    </div>
+  </div>
+</div>
+
 <!-- Custom Alert Modal -->
 <div class="po-alert-overlay" id="poAlertModal">
   <div class="po-alert-box">
@@ -1484,11 +1635,21 @@
 
       const canApprove = userPermissions.includes('approve_purchase_order') || ['super_admin', 'admin', 'manager', 'ceo'].includes(userRole);
       const canEdit = userPermissions.includes('edit_purchase_order') || ['super_admin', 'admin'].includes(userRole);
+      const canReceive = userPermissions.includes('receive_purchase_order') || ['super_admin', 'admin', 'manager', 'ceo'].includes(userRole);
+      const canPay = userPermissions.includes('pay_purchase_order') || ['super_admin', 'admin', 'manager', 'ceo'].includes(userRole);
       const isApprovable = ['draft', 'submitted'].includes(po.po_status);
+      const isReceivable = ['approved', 'partially_received'].includes(po.po_status);
+      const isPayable = ['approved', 'partially_received', 'fully_received'].includes(po.po_status) && (po.balance || 0) > 0;
 
       let actionButtons = '';
       if (canApprove && isApprovable) {
         actionButtons = `<button class="po-btn po-btn-primary" onclick="approvePO('${po.po_id}')" style="margin-right:8px;"><i class="fas fa-check"></i> Approve</button>`;
+      }
+      if (canReceive && isReceivable) {
+        actionButtons += `<button class="po-btn po-btn-primary" onclick="openReceiveModal('${po.po_id}')" style="margin-right:8px;"><i class="fas fa-box"></i> Receive</button>`;
+      }
+      if (canPay && isPayable) {
+        actionButtons += `<button class="po-btn po-btn-primary" onclick="openPaymentModal('${po.po_id}')" style="margin-right:8px;"><i class="fas fa-credit-card"></i> Pay</button>`;
       }
       if (canEdit) {
         actionButtons += `<button class="po-btn" onclick="closePODetailsModal(); openEditPOModal('${po.po_id}')" style="margin-right:8px;"><i class="fas fa-edit"></i> Edit</button>`;
@@ -1508,8 +1669,10 @@
         <div>
           <div class="po-detail-section-title">Financial Details</div>
           <div class="po-detail-row"><div class="po-detail-key">Total Amount</div><div class="po-detail-val big">₱${parseFloat(po.total_amount||0).toFixed(2)}</div></div>
+          <div class="po-detail-row"><div class="po-detail-key">Amount Paid</div><div class="po-detail-val" style="color:var(--po-green); font-weight:600;">₱${parseFloat(po.amount_paid||0).toFixed(2)}</div></div>
+          <div class="po-detail-row"><div class="po-detail-key">Balance</div><div class="po-detail-val" style="color:${(po.balance||0) > 0 ? 'var(--po-red)' : 'var(--po-green)'}; font-weight:600;">₱${parseFloat(po.balance||0).toFixed(2)}</div></div>
           <div class="po-detail-row"><div class="po-detail-key">Payment Terms</div><div class="po-detail-val">${po.payment_terms||'—'}</div></div>
-          <div class="po-detail-row"><div class="po-detail-key">Payment Status</div><div class="po-detail-val">${po.payment_status||'—'}</div></div>
+          <div class="po-detail-row"><div class="po-detail-key">Payment Status</div><div class="po-detail-val"><span class="po-badge ${po.payment_status === 'paid' ? 'green' : po.payment_status === 'partial' ? 'amber' : 'red'}">${po.payment_status||'—'}</span></div></div>
           <div class="po-detail-section-title" style="margin-top:20px">Delivery & Notes</div>
           <div class="po-detail-row"><div class="po-detail-key">Delivery Address</div><div class="po-detail-val">${po.delivery_address||'—'}</div></div>
           <div class="po-detail-row"><div class="po-detail-key">Region</div><div class="po-detail-val">${po.region_name||'—'}</div></div>
@@ -1517,17 +1680,60 @@
           <div class="po-detail-row"><div class="po-detail-key">City/Municipality</div><div class="po-detail-val">${po.city_municipality_name||'—'}</div></div>
           <div class="po-detail-row"><div class="po-detail-key">Barangay</div><div class="po-detail-val">${po.barangay_name||'—'}</div></div>
           <div class="po-detail-row"><div class="po-detail-key">Notes</div><div class="po-detail-val">${po.notes||'—'}</div></div>
-          <div class="po-detail-row"><div class="po-detail-key">Created</div><div class="po-detail-val">${po.created_at ? new Date(po.created_at).toLocaleString() : '—'}</div></div>
+          <div class="po-detail-row"><div class="po-detail-key">Created</div><div class="po-detail-val">${po.created_at ? new Date(po.created_at).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}</div></div>
         </div>
       </div>
       ${itemsHtml}
+
+      ${po.payments && po.payments.length > 0 ? `
+        <div class="po-detail-section-title" style="margin-top:24px">Payment History</div>
+        <div style="margin-top:12px; background:var(--color-background-secondary, #F8FAFC); border-radius:var(--po-r-md); overflow:hidden;">
+          <table style="width:100%; border-collapse:collapse; font-size:13px;">
+            <thead>
+              <tr style="background:rgba(0,0,0,.03);">
+                <th style="padding:10px 12px; text-align:left; font-weight:600; color:var(--color-text-secondary);">Date</th>
+                <th style="padding:10px 12px; text-align:left; font-weight:600; color:var(--color-text-secondary);">Method</th>
+                <th style="padding:10px 12px; text-align:right; font-weight:600; color:var(--color-text-secondary);">Amount</th>
+                <th style="padding:10px 12px; text-align:left; font-weight:600; color:var(--color-text-secondary);">Reference</th>
+                <th style="padding:10px 12px; text-align:left; font-weight:600; color:var(--color-text-secondary);">Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${po.payments.map(pay => {
+                let details = '—';
+                if (pay.payment_details) {
+                  try {
+                    const pd = JSON.parse(pay.payment_details);
+                    if (pd.bank_account) details = `Account: ${pd.bank_account}`;
+                    else if (pd.wallet_number) details = `Wallet: ${pd.wallet_number}`;
+                    else if (pd.card_last4) details = `Card: ****${pd.card_last4}`;
+                    else if (pd.check_number) details = `Check #${pd.check_number}`;
+                  } catch (e) { details = '—'; }
+                }
+                return `
+                <tr style="border-bottom:1px solid rgba(0,0,0,.05);">
+                  <td style="padding:10px 12px;">${pay.payment_date ? new Date(pay.payment_date).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: '2-digit' }) : '—'}</td>
+                  <td style="padding:10px 12px;">${pay.method_label || '—'}</td>
+                  <td style="padding:10px 12px; text-align:right; font-weight:600; color:var(--po-green);">₱${parseFloat(pay.amount||0).toFixed(2)}</td>
+                  <td style="padding:10px 12px;">${pay.reference_number || 'None'}</td>
+                  <td style="padding:10px 12px; font-size:12px; color:var(--color-text-secondary);">${details}</td>
+                </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : ''}
+
       ${actionButtons ? `<div style="margin-top:24px; padding-top:16px; border-top:1px solid rgba(0,0,0,.08); display:flex; justify-content:flex-end;">${actionButtons}</div>` : ''}`;
 
-      document.getElementById('poDetailsModal').classList.add('open');
+      poModalOpen(document.getElementById('poDetailsModal'));
     } catch (e) { console.error('Error fetching PO details:', e); }
   }
 
-  function closePODetailsModal() { document.getElementById('poDetailsModal').classList.remove('open'); }
+  function closePODetailsModal() {
+    poModalClose(document.getElementById('poDetailsModal'));
+  }
 
   function approvePO(poId) {
     showPOAlert('Confirm Approval', 'Approve this purchase order?', async () => {
@@ -1552,6 +1758,286 @@
     });
   }
 
+  let receiveItems = [];
+
+  async function openReceiveModal(poId) {
+    try {
+      const res = await fetch(`../api/purchase_orders.php?action=single&id=${poId}`);
+      const json = await res.json();
+      if (!json.success) return;
+
+      const po = json.data;
+      document.getElementById('receivePOId').value = po.po_id;
+      document.getElementById('receivePOModalSubtitle').textContent = `Receiving: ${po.po_number}`;
+      document.getElementById('receiveNotes').value = '';
+
+      receiveItems = po.items ? po.items.map(item => ({
+        po_item_id: item.po_item_id,
+        product_id: item.product_id,
+        product_name: item.product_name,
+        uom_id: item.uom_id,
+        uom_name: item.uom_name,
+        ordered_qty: parseFloat(item.ordered_qty),
+        received_qty: parseFloat(item.received_qty || 0),
+        unit_cost: parseFloat(item.unit_cost)
+      })) : [];
+
+      renderReceiveItems();
+      poModalOpen(document.getElementById('receivePOModal'));
+    } catch (e) { console.error('Error fetching PO for receive:', e); }
+  }
+
+  function closeReceiveModal() {
+    poModalClose(document.getElementById('receivePOModal'));
+    receiveItems = [];
+  }
+
+  function renderReceiveItems() {
+    const list = document.getElementById('receiveItemsList');
+    if (receiveItems.length === 0) {
+      list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--color-text-secondary);">No items to receive</div>';
+      return;
+    }
+
+    let html = '<div style="overflow-x:auto"><table style="width:100%; border-collapse:collapse; font-size:13px;">';
+    html += '<thead><tr style="background:var(--po-slate-pale); text-align:left;">';
+    html += '<th style="padding:10px 12px; font-weight:600; color:var(--color-text-secondary);">Product</th>';
+    html += '<th style="padding:10px 12px; font-weight:600; color:var(--color-text-secondary);">UOM</th>';
+    html += '<th style="padding:10px 12px; font-weight:600; color:var(--color-text-secondary); text-align:right;">Ordered</th>';
+    html += '<th style="padding:10px 12px; font-weight:600; color:var(--color-text-secondary); text-align:right;">Already Received</th>';
+    html += '<th style="padding:10px 12px; font-weight:600; color:var(--color-text-secondary); text-align:right;">To Receive</th>';
+    html += '</tr></thead><tbody>';
+
+    receiveItems.forEach((item, index) => {
+      const remaining = item.ordered_qty - item.received_qty;
+      html += `<tr style="border-bottom:1px solid rgba(0,0,0,.05);">
+        <td style="padding:10px 12px;">${item.product_name}</td>
+        <td style="padding:10px 12px;">${item.uom_name}</td>
+        <td style="padding:10px 12px; text-align:right;">${item.ordered_qty.toFixed(3)}</td>
+        <td style="padding:10px 12px; text-align:right;">${item.received_qty.toFixed(3)}</td>
+        <td style="padding:10px 12px; text-align:right;">
+          <input type="number" id="receiveQty_${index}" class="po-form-input" style="width:100px; text-align:right;" min="0" step="0.001" max="${remaining}" value="${remaining}" onchange="validateReceiveQty(${index}, ${remaining})">
+        </td>
+      </tr>`;
+    });
+
+    html += '</tbody></table></div>';
+    list.innerHTML = html;
+  }
+
+  function validateReceiveQty(index, maxQty) {
+    const input = document.getElementById(`receiveQty_${index}`);
+    const val = parseFloat(input.value) || 0;
+    if (val < 0) input.value = 0;
+    if (val > maxQty) input.value = maxQty;
+  }
+
+  async function submitReceive() {
+    const itemsToReceive = receiveItems.map((item, index) => {
+      const qtyInput = document.getElementById(`receiveQty_${index}`);
+      const qty = parseFloat(qtyInput.value) || 0;
+      return {
+        po_item_id: item.po_item_id,
+        product_id: item.product_id,
+        uom_id: item.uom_id,
+        ordered_qty: item.ordered_qty,
+        received_qty: item.received_qty + qty
+      };
+    });
+
+    const totalToReceive = itemsToReceive.reduce((sum, item) => sum + (item.received_qty - (receiveItems.find(i => i.po_item_id === item.po_item_id)?.received_qty || 0)), 0);
+
+    if (totalToReceive <= 0) {
+      showPOAlert('Validation Error', 'Please enter quantities to receive');
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append('action', 'receive');
+    fd.append('po_id', document.getElementById('receivePOId').value);
+    fd.append('notes', document.getElementById('receiveNotes').value);
+    fd.append('items_json', JSON.stringify(itemsToReceive));
+    fd.append('csrf_token', csrfToken);
+
+    try {
+      const res = await fetch('../api/purchase_orders.php', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.success) {
+        closeReceiveModal();
+        closePODetailsModal();
+        fetchPurchaseOrders();
+        showPOAlert('Success', 'Items received successfully');
+      } else {
+        showPOAlert('Error', data.message || 'Error receiving items');
+      }
+    } catch (e) {
+      showPOAlert('Error', 'Error receiving items');
+    }
+  }
+
+  async function openPaymentModal(poId) {
+    try {
+      const res = await fetch(`../api/purchase_orders.php?action=single&id=${poId}`);
+      const json = await res.json();
+      if (!json.success) return;
+
+      const po = json.data;
+      document.getElementById('paymentPOId').value = po.po_id;
+      document.getElementById('paymentModalSubtitle').textContent = `Payment for ${po.po_number}`;
+      document.getElementById('paymentTotalAmount').textContent = '₱' + parseFloat(po.total_amount || 0).toFixed(2);
+      document.getElementById('paymentAmountPaid').textContent = '₱' + parseFloat(po.amount_paid || 0).toFixed(2);
+      document.getElementById('paymentBalance').textContent = '₱' + parseFloat(po.balance || 0).toFixed(2);
+      document.getElementById('paymentAmount').value = '';
+      document.getElementById('paymentAmount').max = po.balance || 0;
+      document.getElementById('paymentReference').value = '';
+      document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('paymentNotes').value = '';
+
+      // Reset dynamic fields
+      document.getElementById('paymentMethodFields').style.display = 'none';
+      document.getElementById('bankFields').style.display = 'none';
+      document.getElementById('walletFields').style.display = 'none';
+      document.getElementById('cardFields').style.display = 'none';
+      document.getElementById('checkFields').style.display = 'none';
+      document.getElementById('paymentBankAccount').value = '';
+      document.getElementById('paymentAccountName').value = '';
+      document.getElementById('paymentWalletNumber').value = '';
+      document.getElementById('paymentWalletName').value = '';
+      document.getElementById('paymentCardLast4').value = '';
+      document.getElementById('paymentCardholderName').value = '';
+      document.getElementById('paymentCheckNumber').value = '';
+      document.getElementById('paymentCheckBank').value = '';
+      document.getElementById('paymentCheckDate').value = '';
+
+      // Fetch payment methods
+      const methodsRes = await fetch('../api/payment_methods.php?action=list');
+      const methodsJson = await methodsRes.json();
+      const methodSelect = document.getElementById('paymentMethod');
+      methodSelect.innerHTML = '<option value="">Select Method</option>';
+      if (methodsJson.success && methodsJson.data) {
+        methodsJson.data.forEach(method => {
+          methodSelect.innerHTML += `<option value="${method.method_id}" data-type="${method.method_type}">${method.method_label}</option>`;
+        });
+      }
+
+      poModalOpen(document.getElementById('paymentModal'));
+    } catch (e) { console.error('Error fetching PO for payment:', e); }
+  }
+
+  function onPaymentMethodChange() {
+    const methodSelect = document.getElementById('paymentMethod');
+    const selectedOption = methodSelect.options[methodSelect.selectedIndex];
+    const methodType = selectedOption.dataset.type;
+
+    // Hide all dynamic fields
+    document.getElementById('paymentMethodFields').style.display = 'none';
+    document.getElementById('bankFields').style.display = 'none';
+    document.getElementById('walletFields').style.display = 'none';
+    document.getElementById('cardFields').style.display = 'none';
+    document.getElementById('checkFields').style.display = 'none';
+
+    if (!methodType) return;
+
+    // Show relevant fields based on method type
+    document.getElementById('paymentMethodFields').style.display = 'block';
+
+    switch (methodType) {
+      case 'bank_transfer':
+        document.getElementById('bankFields').style.display = 'block';
+        break;
+      case 'digital_wallet':
+        document.getElementById('walletFields').style.display = 'block';
+        break;
+      case 'card':
+        document.getElementById('cardFields').style.display = 'block';
+        break;
+      case 'check':
+        document.getElementById('checkFields').style.display = 'block';
+        break;
+      case 'cash':
+        // Cash doesn't need additional fields
+        document.getElementById('paymentMethodFields').style.display = 'none';
+        break;
+    }
+  }
+
+  function closePaymentModal() {
+    poModalClose(document.getElementById('paymentModal'));
+  }
+
+  async function submitPayment() {
+    const amount = parseFloat(document.getElementById('paymentAmount').value) || 0;
+    const methodId = document.getElementById('paymentMethod').value;
+    const reference = document.getElementById('paymentReference').value.trim();
+    const paymentDate = document.getElementById('paymentDate').value;
+    const notes = document.getElementById('paymentNotes').value.trim();
+
+    if (amount <= 0) {
+      showPOAlert('Validation Error', 'Please enter a valid payment amount');
+      return;
+    }
+
+    // Collect method-specific details
+    const methodSelect = document.getElementById('paymentMethod');
+    const selectedOption = methodSelect.options[methodSelect.selectedIndex];
+    const methodType = selectedOption.dataset.type;
+    let paymentDetails = {};
+
+    switch (methodType) {
+      case 'bank_transfer':
+        paymentDetails = {
+          bank_account: document.getElementById('paymentBankAccount').value.trim(),
+          account_name: document.getElementById('paymentAccountName').value.trim()
+        };
+        break;
+      case 'digital_wallet':
+        paymentDetails = {
+          wallet_number: document.getElementById('paymentWalletNumber').value.trim(),
+          account_name: document.getElementById('paymentWalletName').value.trim()
+        };
+        break;
+      case 'card':
+        paymentDetails = {
+          card_last4: document.getElementById('paymentCardLast4').value.trim(),
+          cardholder_name: document.getElementById('paymentCardholderName').value.trim()
+        };
+        break;
+      case 'check':
+        paymentDetails = {
+          check_number: document.getElementById('paymentCheckNumber').value.trim(),
+          bank_name: document.getElementById('paymentCheckBank').value.trim(),
+          check_date: document.getElementById('paymentCheckDate').value
+        };
+        break;
+    }
+
+    const fd = new FormData();
+    fd.append('action', 'payment');
+    fd.append('po_id', document.getElementById('paymentPOId').value);
+    fd.append('amount', amount);
+    fd.append('method_id', methodId || null);
+    fd.append('reference_number', reference || null);
+    fd.append('payment_date', paymentDate);
+    fd.append('payment_details', JSON.stringify(paymentDetails));
+    fd.append('notes', notes || null);
+    fd.append('csrf_token', csrfToken);
+
+    try {
+      const res = await fetch('../api/purchase_orders.php', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.success) {
+        closePaymentModal();
+        closePODetailsModal();
+        fetchPurchaseOrders();
+        showPOAlert('Success', 'Payment recorded successfully');
+      } else {
+        showPOAlert('Error', data.message || 'Error recording payment');
+      }
+    } catch (e) {
+      showPOAlert('Error', 'Error recording payment');
+    }
+  }
+
   /* ── Add Modal ─────────────────────────────── */
   async function generateNextPONumber() {
     const year = new Date().getFullYear();
@@ -1568,7 +2054,7 @@
   }
 
   async function openAddPOModal()  {
-    document.getElementById('addPOModal').classList.add('open');
+    poModalOpen(document.getElementById('addPOModal'));
 
     // Set default date to today
     document.getElementById('addPoDate').value = new Date().toISOString().split('T')[0];
@@ -1594,7 +2080,7 @@
   }
 
   function closeAddPOModal() {
-    document.getElementById('addPOModal').classList.remove('open');
+    poModalClose(document.getElementById('addPOModal'));
     document.getElementById('addPOForm').reset();
     poItems = [];
     renderPoItems();
@@ -1704,12 +2190,12 @@
       })) : [];
       renderEditPoItems();
 
-      document.getElementById('editPOModal').classList.add('open');
+      poModalOpen(document.getElementById('editPOModal'));
     } catch (e) { console.error('Error fetching PO for edit:', e); }
   }
 
   function closeEditPOModal() {
-    document.getElementById('editPOModal').classList.remove('open');
+    poModalClose(document.getElementById('editPOModal'));
     document.getElementById('editPOForm').reset();
     editPoItems = [];
     renderEditPoItems();
@@ -1772,11 +2258,11 @@
     document.getElementById('poItemQty').value = '';
     document.getElementById('poItemCost').value = '';
     document.getElementById('poItemTotal').textContent = '₱0.00';
-    document.getElementById('addItemModal').classList.add('open');
+    poModalOpen(document.getElementById('addItemModal'));
   }
 
   function closeAddItemModal() {
-    document.getElementById('addItemModal').classList.remove('open');
+    poModalClose(document.getElementById('addItemModal'));
   }
 
   async function onProductSelectChange() {
@@ -2004,11 +2490,11 @@
     document.getElementById('quickProductCategory').value = '';
     document.getElementById('quickProductUom').value = '';
     document.getElementById('quickProductType').value = 'consumable';
-    document.getElementById('quickProductModal').classList.add('open');
+    poModalOpen(document.getElementById('quickProductModal'));
   }
 
   function closeQuickProductModal() {
-    document.getElementById('quickProductModal').classList.remove('open');
+    poModalClose(document.getElementById('quickProductModal'));
   }
 
   async function saveQuickProduct() {
@@ -2232,7 +2718,7 @@
   function showPOAlert(title, message, onConfirm) {
     document.getElementById('poAlertTitle').textContent = title;
     document.getElementById('poAlertMessage').textContent = message;
-    document.getElementById('poAlertModal').classList.add('open');
+    poModalOpen(document.getElementById('poAlertModal'));
 
     const confirmBtn = document.getElementById('poAlertConfirmBtn');
     confirmBtn.onclick = function() {
@@ -2242,7 +2728,108 @@
   }
 
   function closePOAlert() {
-    document.getElementById('poAlertModal').classList.remove('open');
+    poModalClose(document.getElementById('poAlertModal'));
+  }
+
+  /* ── Modal Portal Manager ───────────────────────────
+   * Moves every overlay to <body> before opening so that
+   * position:fixed always anchors to the real viewport,
+   * not a transformed/scrollable dashboard ancestor.
+   * Also locks the nearest scrollable parent (not just body).
+   * ─────────────────────────────────────────────────── */
+  let _poScrollLockTarget = null;
+  let _poScrollLockSaved  = '';
+  let _poOpenCount        = 0;
+
+  function _findScrollParent(el) {
+    // Walk up from the overlay's original location to find the scrolling ancestor
+    let node = el.parentElement;
+    while (node && node !== document.body) {
+      const style = window.getComputedStyle(node);
+      if (/auto|scroll/.test(style.overflow + style.overflowY)) return node;
+      node = node.parentElement;
+    }
+    return document.body;
+  }
+
+  function poModalOpen(overlayEl) {
+    // Teleport to <body> if not already there (portal pattern)
+    if (overlayEl.parentElement !== document.body) {
+      // Remember original location so we can restore on close
+      if (!overlayEl._poOrigParent) {
+        overlayEl._poOrigParent    = overlayEl.parentElement;
+        overlayEl._poOrigNextSibling = overlayEl.nextSibling;
+      }
+      document.body.appendChild(overlayEl);
+    }
+
+    overlayEl.classList.add('open');
+    _poOpenCount++;
+
+    // Lock scroll — find the real scrolling container
+    if (_poOpenCount === 1) {
+      _poScrollLockTarget = _findScrollParent(overlayEl._poOrigParent || overlayEl);
+      _poScrollLockSaved  = _poScrollLockTarget.style.overflow;
+      _poScrollLockTarget.style.overflow = 'hidden';
+      // Always lock body too as a fallback
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function poModalClose(overlayEl) {
+    if (!overlayEl) return;
+    overlayEl.classList.remove('open');
+    // Reset internal scroll position of the modal body
+    const body = overlayEl.querySelector('.po-modal-body');
+    if (body) body.scrollTop = 0;
+
+    _poOpenCount = Math.max(0, _poOpenCount - 1);
+
+    // Release scroll lock when no modals remain open
+    if (_poOpenCount === 0) {
+      if (_poScrollLockTarget) {
+        _poScrollLockTarget.style.overflow = _poScrollLockSaved;
+        _poScrollLockTarget = null;
+        _poScrollLockSaved  = '';
+      }
+      document.body.style.overflow = '';
+    }
+  }
+
+  /* ── Refactored open/close functions ─────────────── */
+  function closePODetailsModal() {
+    poModalClose(document.getElementById('poDetailsModal'));
+  }
+
+  function closeReceiveModal() {
+    poModalClose(document.getElementById('receivePOModal'));
+    receiveItems = [];
+  }
+
+  function closePaymentModal() {
+    poModalClose(document.getElementById('paymentModal'));
+  }
+
+  function closeAddPOModal() {
+    poModalClose(document.getElementById('addPOModal'));
+    document.getElementById('addPOForm').reset();
+    poItems = [];
+    renderPoItems();
+  }
+
+  function closeEditPOModal() {
+    poModalClose(document.getElementById('editPOModal'));
+    document.getElementById('editPOForm').reset();
+    editPoItems = [];
+    renderEditPoItems();
+  }
+
+  function closeAddItemModal() {
+    poModalClose(document.getElementById('addItemModal'));
+  }
+
+  function closeQuickProductModal() {
+    poModalClose(document.getElementById('quickProductModal'));
   }
 
   /* ── Init ──────────────────────────────────── */

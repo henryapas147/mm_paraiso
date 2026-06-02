@@ -487,6 +487,14 @@
     from { opacity: 0; transform: translateX(30px); }
     to { opacity: 1; transform: translateX(0); }
   }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
   .fo-toast.success { border-left: 4px solid var(--success); }
   .fo-toast.error { border-left: 4px solid var(--danger); }
   .fo-toast.info { border-left: 4px solid var(--info); }
@@ -947,27 +955,79 @@
     const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
     toast.className = `fo-toast ${type}`;
-    
+
     const iconMap = {
       success: 'fa-check',
       error: 'fa-times',
       info: 'fa-info'
     };
-    
+
     toast.innerHTML = `
       <div class="fo-toast-icon">
         <i class="fas ${iconMap[type] || iconMap.info}"></i>
       </div>
       <div class="fo-toast-message">${message}</div>
     `;
-    
+
     container.appendChild(toast);
-    
+
     setTimeout(() => {
       toast.style.opacity = '0';
       toast.style.transform = 'translateX(30px)';
       setTimeout(() => toast.remove(), 300);
     }, 3000);
+  }
+
+  // Custom confirm dialog
+  function showConfirm(title, message, onConfirm) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); z-index: 10000;
+      display: flex; align-items: center; justify-content: center;
+      animation: fadeIn 0.2s ease-out;
+    `;
+
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      background: #fff; border-radius: 12px; padding: 24px;
+      max-width: 400px; width: 90%;
+      box-shadow: 0 20px 64px rgba(0,0,0,0.18);
+      animation: slideUp 0.2s ease-out;
+    `;
+
+    modal.innerHTML = `
+      <h3 style="margin: 0 0 12px; font-size: 18px; font-weight: 600; color: #1A1410;">${title}</h3>
+      <p style="margin: 0 0 20px; font-size: 14px; color: #6B6460; line-height: 1.5;">${message}</p>
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button id="confirmCancel" style="
+          padding: 8px 16px; border: 1px solid #EDEAE6; background: #fff;
+          border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer;
+          color: #6B6460; transition: all 0.15s;
+        ">Cancel</button>
+        <button id="confirmOk" style="
+          padding: 8px 16px; border: none; background: #C84B31;
+          border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+          color: #fff; transition: all 0.15s;
+        ">Confirm</button>
+      </div>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    document.getElementById('confirmCancel').onclick = () => {
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.remove(), 200);
+    };
+
+    document.getElementById('confirmOk').onclick = () => {
+      overlay.style.opacity = '0';
+      setTimeout(() => {
+        overlay.remove();
+        onConfirm();
+      }, 200);
+    };
   }
 
   // Filter table
@@ -1111,19 +1171,21 @@
       subtotal: 0, total_amount: 0, items: []
     };
 
-    Swal.fire({ title: 'Creating…', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass: { popup: 'swal2-popup-high-z' } });
-
     fetch('../api/food_orders.php?action=create', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({...payload, csrf_token: csrfToken}) })
       .then(r => r.json())
       .then(data => {
         closeAddOrderModal();
         if (data.success) {
-          Swal.fire({ icon:'success', title:'Success!', text: data.message, confirmButtonColor:'#3085d6', customClass:{popup:'swal2-popup-high-z'} }).then(() => fetchOrders());
+          showToast(data.message || 'Order created successfully', 'success');
+          fetchOrders();
         } else {
-          Swal.fire({ icon:'error', title:'Error', text: data.message, confirmButtonColor:'#d33', customClass:{popup:'swal2-popup-high-z'} });
+          showToast(data.message || 'Error creating order', 'error');
         }
       })
-      .catch(() => { closeAddOrderModal(); Swal.fire({ icon:'error', title:'Error', text:'An error occurred while creating the order.', confirmButtonColor:'#d33', customClass:{popup:'swal2-popup-high-z'} }); });
+      .catch(() => {
+        closeAddOrderModal();
+        showToast('An error occurred while creating the order', 'error');
+      });
   }
 
   // ── Inventory Stock Checking ───────────────────────────────────────────────
@@ -1140,27 +1202,15 @@
 
   function showStockWarning(issues) {
     if (!issues || issues.length === 0) return;
-    
-    const warningHtml = issues.map(i => 
+
+    const warningHtml = issues.map(i =>
       `<div style="margin-bottom: 8px;">
         <strong>${i.product_name}</strong>: Required ${i.required} ${i.uom}, Available ${i.available} ${i.uom}
       </div>`
     ).join('');
-    
-    Swal.fire({
-      icon: 'warning',
-      title: 'Insufficient Stock',
-      html: `<div style="text-align:left;">${warningHtml}</div>`,
-      confirmButtonText: 'Proceed Anyway',
-      showCancelButton: true,
-      cancelButtonText: 'Cancel',
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      customClass: { popup: 'swal2-popup-high-z' }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Proceed with order despite low stock
-      }
+
+    showConfirm('Insufficient Stock', `<div style="text-align:left;">${warningHtml}</div>`, () => {
+      // Proceed with order despite low stock
     });
   }
 
@@ -1206,43 +1256,37 @@
       notes:          form.elements['notes'].value
     };
 
-    Swal.fire({ title: 'Updating…', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass: { popup: 'swal2-popup-high-z' } });
-
     fetch('../api/food_orders.php?action=update', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({...payload, csrf_token: csrfToken}) })
       .then(r => r.json())
       .then(data => {
         closeEditOrderModal();
         if (data.success) {
-          Swal.fire({ icon:'success', title:'Success!', text: data.message, confirmButtonColor:'#3085d6', customClass:{popup:'swal2-popup-high-z'} }).then(() => fetchOrders());
+          showToast(data.message || 'Order updated successfully', 'success');
+          fetchOrders();
         } else {
-          Swal.fire({ icon:'error', title:'Error', text: data.message, confirmButtonColor:'#d33', customClass:{popup:'swal2-popup-high-z'} });
+          showToast(data.message || 'Error updating order', 'error');
         }
       })
-      .catch(() => { closeEditOrderModal(); Swal.fire({ icon:'error', title:'Error', text:'An error occurred while updating the order.', confirmButtonColor:'#d33', customClass:{popup:'swal2-popup-high-z'} }); });
+      .catch(() => {
+        closeEditOrderModal();
+        showToast('An error occurred while updating the order', 'error');
+      });
   }
 
   // Delete Order
   function deleteOrder(orderId, orderNumber) {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: `You are about to delete order "${orderNumber}". This action cannot be undone.`,
-      icon: 'warning', showCancelButton: true,
-      confirmButtonColor: '#3085d6', cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!', cancelButtonText: 'Cancel',
-      customClass: { popup: 'swal2-popup-high-z' }
-    }).then(result => {
-      if (!result.isConfirmed) return;
-      Swal.fire({ title: 'Deleting…', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass: { popup: 'swal2-popup-high-z' } });
+    showConfirm('Delete Order', `You are about to delete order "${orderNumber}". This action cannot be undone.`, () => {
       fetch('../api/food_orders.php?action=delete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ order_id: orderId, csrf_token: csrfToken }) })
         .then(r => r.json())
         .then(data => {
           if (data.success) {
-            Swal.fire({ icon:'success', title:'Deleted!', text: data.message, confirmButtonColor:'#3085d6', customClass:{popup:'swal2-popup-high-z'} }).then(() => fetchOrders());
+            showToast(data.message || 'Order deleted successfully', 'success');
+            fetchOrders();
           } else {
-            Swal.fire({ icon:'error', title:'Error', text: data.message, confirmButtonColor:'#d33', customClass:{popup:'swal2-popup-high-z'} });
+            showToast(data.message || 'Error deleting order', 'error');
           }
         })
-        .catch(() => Swal.fire({ icon:'error', title:'Error', text:'An error occurred while deleting the order.', confirmButtonColor:'#d33', customClass:{popup:'swal2-popup-high-z'} }));
+        .catch(() => showToast('An error occurred while deleting the order', 'error'));
     });
   }
 
@@ -1297,37 +1341,82 @@
   }
 
   function changePaymentStatus(orderId, orderNumber) {
-    Swal.fire({
-      title: 'Change Payment Status',
-      text: `Update payment for order "${orderNumber}"`,
-      icon: 'question', input: 'select',
-      inputOptions: { unpaid:'Unpaid', charged_to_room:'Charged to Room', paid:'Paid' },
-      inputPlaceholder: 'Select payment status',
-      showCancelButton: true, confirmButtonColor: '#3085d6', cancelButtonColor: '#d33',
-      confirmButtonText: 'Update', cancelButtonText: 'Cancel',
-      customClass: { popup: 'swal2-popup-high-z' }
-    }).then(result => {
-      if (!result.isConfirmed || !result.value) return;
-      fetch('../api/food_orders.php?action=update_payment', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ order_id: orderId, payment_status: result.value, csrf_token: csrfToken }) })
-        .then(r => r.json())
-        .then(data => {
-          if (data.success) {
-            Swal.fire({ icon:'success', title:'Payment Updated!', text: data.message, confirmButtonColor:'#3085d6', customClass:{popup:'swal2-popup-high-z'} }).then(() => fetchOrders());
-          } else {
-            Swal.fire({ icon:'error', title:'Error', text: data.message, confirmButtonColor:'#d33', customClass:{popup:'swal2-popup-high-z'} });
-          }
-        })
-        .catch(() => Swal.fire({ icon:'error', title:'Error', text:'An error occurred while updating payment status.', confirmButtonColor:'#d33', customClass:{popup:'swal2-popup-high-z'} }));
-    });
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); z-index: 10000;
+      display: flex; align-items: center; justify-content: center;
+      animation: fadeIn 0.2s ease-out;
+    `;
+
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      background: #fff; border-radius: 12px; padding: 24px;
+      max-width: 400px; width: 90%;
+      box-shadow: 0 20px 64px rgba(0,0,0,0.18);
+      animation: slideUp 0.2s ease-out;
+    `;
+
+    modal.innerHTML = `
+      <h3 style="margin: 0 0 12px; font-size: 18px; font-weight: 600; color: #1A1410;">Change Payment Status</h3>
+      <p style="margin: 0 0 20px; font-size: 14px; color: #6B6460;">Update payment for order "${orderNumber}"</p>
+      <select id="paymentStatusSelect" style="
+        width: 100%; padding: 10px; border: 1px solid #EDEAE6;
+        border-radius: 8px; font-size: 14px; margin-bottom: 20px;
+      ">
+        <option value="unpaid">Unpaid</option>
+        <option value="charged_to_room">Charged to Room</option>
+        <option value="paid">Paid</option>
+      </select>
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button id="paymentCancel" style="
+          padding: 8px 16px; border: 1px solid #EDEAE6; background: #fff;
+          border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer;
+          color: #6B6460; transition: all 0.15s;
+        ">Cancel</button>
+        <button id="paymentConfirm" style="
+          padding: 8px 16px; border: none; background: #C84B31;
+          border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+          color: #fff; transition: all 0.15s;
+        ">Update</button>
+      </div>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    document.getElementById('paymentCancel').onclick = () => {
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.remove(), 200);
+    };
+
+    document.getElementById('paymentConfirm').onclick = () => {
+      const newStatus = document.getElementById('paymentStatusSelect').value;
+      overlay.style.opacity = '0';
+      setTimeout(() => {
+        overlay.remove();
+        fetch('../api/food_orders.php?action=update_payment', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ order_id: orderId, payment_status: newStatus, csrf_token: csrfToken }) })
+          .then(r => r.json())
+          .then(data => {
+            if (data.success) {
+              showToast(data.message || 'Payment status updated', 'success');
+              fetchOrders();
+            } else {
+              showToast(data.message || 'Error updating payment', 'error');
+            }
+          })
+          .catch(() => showToast('An error occurred while updating payment status', 'error'));
+      }, 200);
+    };
   }
 
   // Add Items to Order (stub)
   function addOrderItems(orderId, orderNumber) {
-    Swal.fire({ title: 'Add Items to Order', text: `Add items to order "${orderNumber}"`, icon: 'info', confirmButtonColor: '#3085d6' });
+    showToast('Add items to order feature coming soon', 'info');
   }
 
   // Print Order (stub)
   function printOrder(orderId, orderNumber) {
-    Swal.fire({ title: 'Print Order', text: `Print order "${orderNumber}"`, icon: 'info', confirmButtonColor: '#3085d6' });
+    showToast('Print order feature coming soon', 'info');
   }
 </script>

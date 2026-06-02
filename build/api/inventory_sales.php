@@ -11,7 +11,7 @@ try {
     case 'GET':
       if ($action === 'list') {
         $stmt = $pdo->query("
-          SELECT isale.*, p.property_name, pm.method_name as payment_method_name
+          SELECT isale.*, p.property_name, pm.method_label as payment_method_name
           FROM inventory_sales isale
           LEFT JOIN properties p ON isale.property_id = p.property_id
           LEFT JOIN payment_methods pm ON isale.payment_method_id = pm.method_id
@@ -26,11 +26,11 @@ try {
           WHERE p.is_active = 1 AND (p.is_for_sale = 1 OR p.selling_price > 0)
           ORDER BY p.product_name ASC
         ")->fetchAll(PDO::FETCH_ASSOC);
-        $paymentMethods = $pdo->query("SELECT method_id, method_name FROM payment_methods WHERE is_active = 1 ORDER BY method_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $paymentMethods = $pdo->query("SELECT method_id, method_label as method_name FROM payment_methods WHERE is_active = 1 ORDER BY method_label ASC")->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => ['properties' => $properties, 'products' => $products, 'payment_methods' => $paymentMethods]]);
       } elseif ($action === 'single' && isset($_GET['id'])) {
         $stmt = $pdo->prepare("
-          SELECT isale.*, p.property_name, pm.method_name as payment_method_name
+          SELECT isale.*, p.property_name, pm.method_label as payment_method_name
           FROM inventory_sales isale
           LEFT JOIN properties p ON isale.property_id = p.property_id
           LEFT JOIN payment_methods pm ON isale.payment_method_id = pm.method_id
@@ -54,9 +54,27 @@ try {
       break;
 
     case 'POST':
-      $data = json_decode(file_get_contents('php://input'), true);
+      // Support both JSON and FormData
+      $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+      if (strpos($contentType, 'application/json') !== false) {
+        $data = json_decode(file_get_contents('php://input'), true);
+      } else {
+        $data = $_POST;
+      }
 
-      if ($action === 'create') {
+      // Get action from POST data if not in query string
+      $postAction = $data['action'] ?? '';
+      if ($postAction) {
+        $action = $postAction;
+      }
+
+      // CSRF validation
+      if (empty($data['csrf_token']) || $data['csrf_token'] !== CSRF_TOKEN) {
+        echo json_encode(['success' => false, 'message' => 'Invalid CSRF token']);
+        break;
+      }
+
+      if ($action === 'create' || $action === 'add_inventory_sale') {
         $saleId = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
           mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
           mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
@@ -69,14 +87,14 @@ try {
           INSERT INTO inventory_sales (
             sale_id, sale_number, property_id, sale_date, sale_type,
             customer_name, subtotal, tax_amount, total_amount,
-            payment_method_id, payment_status, notes, created_by
+            payment_method_id, payment_status, notes, staff_member_id, created_by
           ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
         ");
         
         // Get payment_method_id from name or use provided ID
         $paymentMethodId = null;
         if (!empty($data['payment_method'])) {
-          $pmStmt = $pdo->prepare("SELECT method_id FROM payment_methods WHERE method_name = ? OR method_id = ? LIMIT 1");
+          $pmStmt = $pdo->prepare("SELECT method_id FROM payment_methods WHERE method_label = ? OR method_id = ? LIMIT 1");
           $pmStmt->execute([$data['payment_method'], $data['payment_method']]);
           $pmResult = $pmStmt->fetch(PDO::FETCH_ASSOC);
           if ($pmResult) {
@@ -91,7 +109,7 @@ try {
           $data['customer_name'] ?? null, $data['subtotal'] ?? 0,
           $data['tax_amount'] ?? 0, $data['total_amount'] ?? 0,
           $paymentMethodId, $data['payment_status'] ?? 'paid',
-          $data['notes'] ?? null, $userId
+          $data['notes'] ?? null, $data['staff_member_id'] ?? null, $userId
         ]);
         
         // Process each sale item
@@ -101,16 +119,50 @@ try {
             mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
             mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
           
-          // Get product cost for margin calculation
-          $costStmt = $pdo->prepare("SELECT unit_cost, current_stock FROM products WHERE product_id = ?");
+          // Get product cost, base UOM, and current stock
+          $costStmt = $pdo->prepare("SELECT unit_cost, current_stock, uom_id as base_uom_id FROM products WHERE product_id = ?");
           $costStmt->execute([$item['product_id']]);
           $productData = $costStmt->fetch(PDO::FETCH_ASSOC);
           $unitCost = $productData ? $productData['unit_cost'] : 0;
           $currentStock = $productData ? floatval($productData['current_stock']) : 0;
+          $baseUomId = $productData ? intval($productData['base_uom_id']) : null;
+          $inputUomId = intval($item['uom_id']);
           $quantity = floatval($item['quantity']);
-          
-          // Check stock availability
-          if ($currentStock < $quantity) {
+
+          // Convert quantity to base UOM
+          $quantityInBaseUom = $quantity;
+          if ($inputUomId !== $baseUomId && $baseUomId !== null) {
+            // Try direct conversion (input UOM -> base UOM)
+            $convStmt = $pdo->prepare("
+              SELECT conversion_factor FROM product_uom_conversions
+              WHERE product_id = ? AND from_uom_id = ? AND to_uom_id = ? AND is_active = 1
+              LIMIT 1
+            ");
+            $convStmt->execute([$item['product_id'], $inputUomId, $baseUomId]);
+            $conv = $convStmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($conv) {
+              // Direct conversion: qtyInBase = qty * factor
+              $quantityInBaseUom = $quantity * floatval($conv['conversion_factor']);
+            } else {
+              // Try reverse conversion (base UOM -> input UOM)
+              $convStmt = $pdo->prepare("
+                SELECT conversion_factor FROM product_uom_conversions
+                WHERE product_id = ? AND from_uom_id = ? AND to_uom_id = ? AND is_active = 1
+                LIMIT 1
+              ");
+              $convStmt->execute([$item['product_id'], $baseUomId, $inputUomId]);
+              $conv = $convStmt->fetch(PDO::FETCH_ASSOC);
+
+              if ($conv) {
+                // Reverse conversion: qtyInBase = qty * factor
+                $quantityInBaseUom = $quantity * floatval($conv['conversion_factor']);
+              }
+            }
+          }
+
+          // Check stock availability (in base UOM)
+          if ($currentStock < $quantityInBaseUom) {
             throw new Exception('Insufficient stock for product: ' . $item['product_name']);
           }
           
@@ -120,7 +172,7 @@ try {
             mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
             mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
           
-          $newStock = $currentStock - $quantity;
+          $newStock = $currentStock - $quantityInBaseUom;
           $stmtTxn = $pdo->prepare("
             INSERT INTO stock_transactions (
               txn_id, product_id, location_id, transaction_type, quantity,
@@ -131,16 +183,16 @@ try {
           ");
           $stmtTxn->execute([
             $txnId, $item['product_id'], null, 'stock_out_sale',
-            $quantity, $item['uom_id'], $unitCost,
+            $quantityInBaseUom, $baseUomId, $unitCost,
             $currentStock, $newStock,
             'inventory_sales', $saleId, $data['sale_number'],
             $data['sale_date'] ?? date('Y-m-d'),
             'POS Sale - ' . $data['sale_number'], $userId
           ]);
-          
-          // Deduct stock from product
+
+          // Deduct stock from product (in base UOM)
           $updateStock = $pdo->prepare("UPDATE products SET current_stock = current_stock - ? WHERE product_id = ?");
-          $updateStock->execute([$quantity, $item['product_id']]);
+          $updateStock->execute([$quantityInBaseUom, $item['product_id']]);
           
           // Create sale item with transaction link
           $si = $pdo->prepare("
@@ -159,7 +211,7 @@ try {
         $pdo->commit();
         echo json_encode(['success' => true, 'message' => 'Sale created successfully', 'sale_id' => $saleId]);
 
-      } elseif ($action === 'update') {
+      } elseif ($action === 'update' || $action === 'edit_inventory_sale') {
         $stmt = $pdo->prepare("
           UPDATE inventory_sales SET
             sale_number=?, property_id=?, sale_type=?, customer_name=?,
@@ -176,7 +228,7 @@ try {
         ]);
         echo json_encode(['success' => true, 'message' => 'Sale updated']);
 
-      } elseif ($action === 'delete') {
+      } elseif ($action === 'delete' || $action === 'delete_inventory_sale') {
         $pdo->beginTransaction();
         
         // Get all transaction IDs associated with this sale
@@ -184,18 +236,55 @@ try {
         $txnStmt->execute([$data['sale_id']]);
         $txns = $txnStmt->fetchAll(PDO::FETCH_COLUMN);
         
-        // Restore stock for each item
+        // Restore stock for each item with UOM conversion
         $itemsStmt = $pdo->prepare("
-          SELECT product_id, quantity FROM inventory_sale_items WHERE sale_id = ?
+          SELECT isi.product_id, isi.quantity, isi.uom_id, p.uom_id as base_uom_id
+          FROM inventory_sale_items isi
+          INNER JOIN products p ON isi.product_id = p.product_id
+          WHERE isi.sale_id = ?
         ");
         $itemsStmt->execute([$data['sale_id']]);
         $items = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
-        
+
         foreach ($items as $item) {
+          $quantity = floatval($item['quantity']);
+          $inputUomId = intval($item['uom_id']);
+          $baseUomId = intval($item['base_uom_id']);
+
+          // Convert quantity to base UOM
+          $quantityInBaseUom = $quantity;
+          if ($inputUomId !== $baseUomId && $baseUomId !== null) {
+            // Try direct conversion (input UOM -> base UOM)
+            $convStmt = $pdo->prepare("
+              SELECT conversion_factor FROM product_uom_conversions
+              WHERE product_id = ? AND from_uom_id = ? AND to_uom_id = ? AND is_active = 1
+              LIMIT 1
+            ");
+            $convStmt->execute([$item['product_id'], $inputUomId, $baseUomId]);
+            $conv = $convStmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($conv) {
+              $quantityInBaseUom = $quantity * floatval($conv['conversion_factor']);
+            } else {
+              // Try reverse conversion (base UOM -> input UOM)
+              $convStmt = $pdo->prepare("
+                SELECT conversion_factor FROM product_uom_conversions
+                WHERE product_id = ? AND from_uom_id = ? AND to_uom_id = ? AND is_active = 1
+                LIMIT 1
+              ");
+              $convStmt->execute([$item['product_id'], $baseUomId, $inputUomId]);
+              $conv = $convStmt->fetch(PDO::FETCH_ASSOC);
+
+              if ($conv) {
+                $quantityInBaseUom = $quantity * floatval($conv['conversion_factor']);
+              }
+            }
+          }
+
           $restoreStmt = $pdo->prepare("
             UPDATE products SET current_stock = current_stock + ? WHERE product_id = ?
           ");
-          $restoreStmt->execute([$item['quantity'], $item['product_id']]);
+          $restoreStmt->execute([$quantityInBaseUom, $item['product_id']]);
         }
         
         // Delete stock transactions

@@ -39,18 +39,41 @@ foreach ($required as $field) {
 // For room_service, property_id can be derived from the room_id
 $orderType = $data['order_type'] ?? '';
 $propertyId = $data['property_id'] ?? null;
+$reservationId = $data['reservation_id'] ?? null;
 
-// If room_service with room_id provided, fetch property_id from room
-if ($orderType === 'room_service' && empty($propertyId) && !empty($data['room_id'])) {
+// If room_service with room_id provided, fetch property_id and reservation_id from room
+if ($orderType === 'room_service' && !empty($data['room_id'])) {
     try {
-        $stmt = $pdo->prepare("SELECT property_id FROM rooms WHERE room_id = ?");
-        $stmt->execute([$data['room_id']]);
-        $roomPropertyId = $stmt->fetchColumn();
-        if ($roomPropertyId) {
-            $propertyId = $roomPropertyId;
+        // Get property_id from room
+        if (empty($propertyId)) {
+            $stmt = $pdo->prepare("SELECT property_id FROM rooms WHERE room_id = ?");
+            $stmt->execute([$data['room_id']]);
+            $roomPropertyId = $stmt->fetchColumn();
+            if ($roomPropertyId) {
+                $propertyId = $roomPropertyId;
+            }
+        }
+
+        // Get active reservation_id from reservation_rooms for this room
+        if (empty($reservationId)) {
+            $stmt = $pdo->prepare("
+                SELECT rr.reservation_id
+                FROM reservation_rooms rr
+                INNER JOIN reservations r ON rr.reservation_id = r.reservation_id
+                WHERE rr.room_id = ?
+                  AND rr.room_status IN ('checked_in', 'reserved')
+                  AND r.reservation_status IN ('confirmed', 'checked_in')
+                ORDER BY rr.actual_check_in_at DESC, rr.created_at DESC
+                LIMIT 1
+            ");
+            $stmt->execute([$data['room_id']]);
+            $roomReservationId = $stmt->fetchColumn();
+            if ($roomReservationId) {
+                $reservationId = $roomReservationId;
+            }
         }
     } catch (Exception $e) {
-        error_log("Error fetching property from room: " . $e->getMessage());
+        error_log("Error fetching property/reservation from room: " . $e->getMessage());
     }
 }
 
@@ -90,10 +113,10 @@ try {
     
     $sql = "
         INSERT INTO food_orders (
-            order_id, property_id, order_number, order_type, table_number, room_id,
+            order_id, property_id, reservation_id, order_number, order_type, table_number, room_id,
             customer_name, order_status, subtotal, tax_amount, total_amount,
             payment_status, notes, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, 'unpaid', ?, NOW())
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, 'unpaid', ?, NOW())
     ";
     
     $customerName = null;
@@ -111,6 +134,7 @@ try {
     $stmt->execute([
         $orderId,
         $propertyId, // Use resolved property_id (from request or room lookup)
+        $reservationId, // Use resolved reservation_id (from request or room lookup)
         $orderNumber,
         $data['order_type'],
         $data['table_number'] ?? null,

@@ -577,6 +577,34 @@
     border-color: var(--pos-blue);
   }
 
+  .pos-form-group {
+    margin-bottom: 16px;
+  }
+
+  .pos-form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--pos-gray);
+    margin-bottom: 6px;
+  }
+
+  .pos-form-select {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    background: #fff;
+    color: var(--pos-dark);
+    outline: none;
+    font-family: var(--pos-font);
+  }
+
+  .pos-form-select:focus {
+    border-color: var(--pos-blue);
+  }
+
   .pos-checkout-btn {
     width: 100%;
     padding: 16px 24px;
@@ -919,6 +947,20 @@
       <p class="pos-modal-subtitle">Enter payment details to finalize the sale</p>
     </div>
     <div class="pos-modal-body">
+      <div class="pos-form-group">
+        <label class="pos-form-label">Sale Type</label>
+        <select class="pos-form-select" id="saleTypeSelect">
+          <option value="pos">Regular Sale (POS)</option>
+          <option value="canteen">Canteen Sale</option>
+          <option value="staff_purchase">Staff Purchase</option>
+        </select>
+      </div>
+      <div class="pos-form-group" id="staffMemberGroup" style="display:none;">
+        <label class="pos-form-label">Staff Member</label>
+        <select class="pos-form-select" id="staffMemberSelect">
+          <option value="">Select Staff Member</option>
+        </select>
+      </div>
       <div class="pos-payment-amount" id="modalTotal">₱0.00</div>
       <input type="number" class="pos-amount-received" id="amountReceived" placeholder="Amount received" min="0" step="0.01">
       <div class="pos-change-display" id="changeDisplay" style="display:none;">
@@ -1244,6 +1286,17 @@
       document.getElementById('cancelCheckout').addEventListener('click', closeCheckoutModal);
       document.getElementById('confirmCheckout').addEventListener('click', processSale);
 
+      // Sale type change
+      document.getElementById('saleTypeSelect').addEventListener('change', function() {
+        const staffGroup = document.getElementById('staffMemberGroup');
+        if (this.value === 'staff_purchase') {
+          staffGroup.style.display = 'block';
+          loadStaffMembers();
+        } else {
+          staffGroup.style.display = 'none';
+        }
+      });
+
       // Amount received input
       document.getElementById('amountReceived').addEventListener('input', calculateChange);
 
@@ -1283,6 +1336,23 @@
       document.getElementById('checkoutModal').classList.remove('open');
     }
 
+    // Load staff members
+    async function loadStaffMembers() {
+      try {
+        const response = await fetch('../api/users.php?action=list_staff');
+        const result = await response.json();
+        if (result.success && result.data) {
+          const select = document.getElementById('staffMemberSelect');
+          select.innerHTML = '<option value="">Select Staff Member</option>' +
+            result.data.map(staff =>
+              `<option value="${staff.user_id}">${staff.first_name} ${staff.last_name}</option>`
+            ).join('');
+        }
+      } catch (error) {
+        console.error('Error loading staff members:', error);
+      }
+    }
+
     // Calculate change
     function calculateChange() {
       const total = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0) * 1.12;
@@ -1305,6 +1375,8 @@
     // Process sale
     async function processSale() {
       const customerName = document.getElementById('customerName').value.trim();
+      const saleType = document.getElementById('saleTypeSelect').value;
+      const staffMemberId = document.getElementById('staffMemberSelect').value;
       const subtotal = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
       const tax = subtotal * 0.12;
       const total = subtotal + tax;
@@ -1316,14 +1388,15 @@
         sale_number: saleNumber,
         property_id: propertyId || null,
         sale_date: new Date().toISOString().split('T')[0],
-        sale_type: 'pos',
+        sale_type: saleType,
         customer_name: customerName || null,
         subtotal: subtotal.toFixed(2),
         tax_amount: tax.toFixed(2),
         total_amount: total.toFixed(2),
         payment_method: paymentMethod,
         payment_status: 'paid',
-        notes: 'POS Sale',
+        notes: saleType === 'staff_purchase' ? 'Staff Purchase' : 'POS Sale',
+        staff_member_id: staffMemberId || null,
         items: cart.map(item => ({
           product_id: item.product_id,
           uom_id: item.uom_id,

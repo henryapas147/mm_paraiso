@@ -238,6 +238,7 @@ CREATE TABLE IF NOT EXISTS po_payments (
     amount              DECIMAL(12,2)   NOT NULL,
     reference_number    VARCHAR(100)    NULL,
     payment_date        DATE            NOT NULL,
+    payment_details     JSON            NULL                                  COMMENT 'Method-specific details (bank account, card last4, wallet number, etc.)',
     notes               TEXT            NULL,
     processed_by        CHAR(36)        NULL,
     created_at          TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -339,7 +340,7 @@ CREATE TABLE IF NOT EXISTS stock_transfer_items (
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS inventory_sales (
     sale_id             CHAR(36)        NOT NULL                              COMMENT 'PK – UUID v4',
-    property_id         CHAR(36)        NOT NULL,
+    property_id         CHAR(36)        NULL                                 COMMENT 'FK → properties.property_id (NULL for takeout/canteen)',
     sale_number         VARCHAR(30)     NOT NULL,
     sale_date           DATE            NOT NULL,
     sale_type           ENUM('pos','canteen','room_charge','staff_purchase')  NOT NULL DEFAULT 'pos',
@@ -352,13 +353,17 @@ CREATE TABLE IF NOT EXISTS inventory_sales (
     payment_method_id   SMALLINT        NULL,
     payment_status      ENUM('unpaid','paid','charged_to_room')               NOT NULL DEFAULT 'paid',
     notes               TEXT            NULL,
+    reference_type      VARCHAR(50)     NULL                                      COMMENT 'Source: food_order, pos, etc.',
+    reference_id        CHAR(36)        NULL                                      COMMENT 'ID of the source record (e.g., food_order.order_id)',
+    staff_member_id     CHAR(36)        NULL                                      COMMENT 'FK → user_accounts.user_id (for staff_purchase)',
     created_by          CHAR(36)        NULL,
     created_at          TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (sale_id),
     UNIQUE KEY uk_sale_number (sale_number),
     KEY idx_property_id (property_id),
     KEY idx_sale_date (sale_date),
-    KEY idx_sale_type (sale_type)
+    KEY idx_sale_type (sale_type),
+    KEY idx_staff_member_id (staff_member_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Direct inventory sales — POS, canteen, room charges';
 

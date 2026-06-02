@@ -571,6 +571,118 @@
       grid-template-columns: 1fr;
     }
   }
+
+  /* Custom Alert Modal */
+  .stk-alert-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+  }
+
+  .stk-alert-overlay.open { display: flex; }
+
+  .stk-alert-box {
+    background: var(--color-background-primary, #fff);
+    border-radius: var(--prod-radius-lg);
+    box-shadow: var(--prod-shadow-lg);
+    max-width: 400px;
+    width: 100%;
+    padding: 24px;
+    animation: stkAlertIn .2s cubic-bezier(.22,.68,0,1.2);
+  }
+
+  @keyframes stkAlertIn {
+    from { opacity: 0; transform: scale(.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .stk-alert-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 8px;
+  }
+
+  .stk-alert-message {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+
+  .stk-alert-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  .stk-alert-btn-cancel,
+  .stk-alert-btn-confirm {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: var(--prod-radius-md);
+    border: 1px solid rgba(0,0,0,.12);
+    background: var(--color-background-primary, #fff);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: all .15s;
+  }
+
+  .stk-alert-btn-cancel:hover { background: var(--color-background-secondary, #F8FAFC); }
+
+  .stk-alert-btn-confirm {
+    background: var(--prod-blue);
+    color: #fff;
+    border-color: var(--prod-blue);
+  }
+
+  .stk-alert-btn-confirm:hover {
+    background: var(--prod-blue-dark);
+    border-color: var(--prod-blue-dark);
+  }
+
+  /* Searchable Dropdown */
+  .stk-searchable-dropdown {
+    position: relative;
+  }
+
+  .stk-dropdown-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    background: var(--color-background-primary, #fff);
+    border: 1px solid rgba(0,0,0,.12);
+    border-radius: var(--prod-radius-md);
+    box-shadow: var(--prod-shadow-md);
+    z-index: 10;
+    margin-top: 4px;
+  }
+
+  .stk-dropdown-option {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--color-text-primary);
+    transition: background .15s;
+  }
+
+  .stk-dropdown-option:hover {
+    background: var(--color-background-secondary, #F8FAFC);
+  }
+
+  .stk-dropdown-option.selected {
+    background: var(--prod-blue-pale);
+    color: var(--prod-blue);
+  }
 </style>
 
 <div class="stk-page">
@@ -676,14 +788,22 @@
       <div class="stk-modal-body">
         <div class="stk-form-group">
           <label class="stk-form-label">Product <span class="req">*</span></label>
-          <select name="product_id" id="addProductSelect" required class="stk-form-select">
-            <option value="">Select Product</option>
-          </select>
+          <div class="stk-searchable-dropdown" id="addProductDropdown">
+            <input type="text" id="addProductInput" class="stk-form-input" placeholder="Search product..." oninput="filterProductDropdown('add')" onfocus="showProductDropdown('add')" autocomplete="off">
+            <input type="hidden" name="product_id" id="addProductId" required>
+            <div class="stk-dropdown-options" id="addProductOptions" style="display:none"></div>
+          </div>
         </div>
         <div class="stk-form-group">
           <label class="stk-form-label">Location <span class="req">*</span></label>
           <select name="location_id" id="addLocationSelect" required class="stk-form-select">
             <option value="">Select Location</option>
+          </select>
+        </div>
+        <div class="stk-form-group">
+          <label class="stk-form-label">UOM <span class="req">*</span></label>
+          <select name="uom_id" id="addUomSelect" required class="stk-form-select">
+            <option value="">Select UOM</option>
           </select>
         </div>
         <div class="stk-form-group">
@@ -696,10 +816,6 @@
         <div class="stk-form-group">
           <label class="stk-form-label">Quantity <span class="req">*</span></label>
           <input type="number" name="quantity" step="0.001" min="0" required class="stk-form-input" placeholder="0.000">
-        </div>
-        <div class="stk-form-group">
-          <label class="stk-form-label">Notes</label>
-          <textarea name="notes" rows="2" class="stk-form-textarea" placeholder="Reason for adjustment..."></textarea>
         </div>
       </div>
       <div class="stk-modal-footer">
@@ -733,6 +849,12 @@
           <input type="text" id="editCurrentQuantity" readonly class="stk-form-input" style="background:var(--color-background-secondary)">
         </div>
         <div class="stk-form-group">
+          <label class="stk-form-label">UOM <span class="req">*</span></label>
+          <select name="uom_id" id="editUomSelect" required class="stk-form-select">
+            <option value="">Select UOM</option>
+          </select>
+        </div>
+        <div class="stk-form-group">
           <label class="stk-form-label">Adjustment Type <span class="req">*</span></label>
           <select name="adjustment_type" required class="stk-form-select">
             <option value="add">Add Stock (+)</option>
@@ -742,10 +864,6 @@
         <div class="stk-form-group">
           <label class="stk-form-label">Quantity <span class="req">*</span></label>
           <input type="number" name="quantity" step="0.001" min="0" required class="stk-form-input" placeholder="0.000">
-        </div>
-        <div class="stk-form-group">
-          <label class="stk-form-label">Notes</label>
-          <textarea name="notes" rows="2" class="stk-form-textarea" placeholder="Reason for adjustment..."></textarea>
         </div>
       </div>
       <div class="stk-modal-footer">
@@ -763,6 +881,45 @@
   let entriesPerPage = 25;
   let productsData = [];
   let locationsData = [];
+  let uomsData = [];
+
+  const csrfToken = '<?php echo htmlspecialchars(CSRF_TOKEN, ENT_QUOTES, 'UTF-8'); ?>';
+
+  function showStkAlert(title, message, onConfirm) {
+    document.getElementById('stkAlertTitle').textContent = title;
+    document.getElementById('stkAlertMessage').textContent = message;
+    document.getElementById('stkAlertModal').classList.add('open');
+
+    const confirmBtn = document.getElementById('stkAlertConfirmBtn');
+    confirmBtn.onclick = function() {
+      closeStkAlert();
+      if (onConfirm) onConfirm();
+    };
+  }
+
+  function closeStkAlert() {
+    document.getElementById('stkAlertModal').classList.remove('open');
+  }
+
+  function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position: fixed; top: 20px; right: 20px; z-index: 10000;
+      padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 500;
+      color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: slideIn 0.3s ease-out;
+    `;
+    toast.textContent = message;
+    if (type === 'success') toast.style.background = 'var(--prod-green, #2E7D32)';
+    else if (type === 'error') toast.style.background = 'var(--prod-red, #C62828)';
+    else toast.style.background = 'var(--prod-blue, #1A6BBF)';
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.3s';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
 
   document.addEventListener('DOMContentLoaded', () => {
     fetchStock();
@@ -793,6 +950,7 @@
       if (json.success) {
         productsData = json.data.products;
         locationsData = json.data.locations;
+        uomsData = json.data.uoms;
         populateDropdowns();
       }
     } catch (e) {
@@ -953,10 +1111,83 @@
   }
 
   function populateDropdowns() {
-    document.getElementById('addProductSelect').innerHTML = '<option value="">Select Product</option>' +
-      productsData.map(p => `<option value="${p.product_id}">${p.product_name} (${p.product_code})</option>`).join('');
     document.getElementById('addLocationSelect').innerHTML = '<option value="">Select Location</option>' +
       locationsData.map(l => `<option value="${l.location_id}">${l.property_name} - ${l.location_name}</option>`).join('');
+    document.getElementById('addUomSelect').innerHTML = '<option value="">Select UOM</option>';
+    document.getElementById('editUomSelect').innerHTML = '<option value="">Select UOM</option>';
+  }
+
+  function showProductDropdown(type) {
+    const optionsDiv = document.getElementById(type === 'add' ? 'addProductOptions' : 'editProductOptions');
+    const input = document.getElementById(type === 'add' ? 'addProductInput' : 'editProductInput');
+    const filter = input.value.toLowerCase();
+
+    const filteredProducts = productsData.filter(p =>
+      p.product_name.toLowerCase().includes(filter) ||
+      p.product_code.toLowerCase().includes(filter)
+    );
+
+    optionsDiv.innerHTML = filteredProducts.map(p =>
+      `<div class="stk-dropdown-option" onclick="selectProductOption('${type}', '${p.product_id}', '${p.product_name} (${p.product_code})')">${p.product_name} (${p.product_code})</div>`
+    ).join('');
+
+    optionsDiv.style.display = filteredProducts.length ? 'block' : 'none';
+  }
+
+  function filterProductDropdown(type) {
+    showProductDropdown(type);
+  }
+
+  function selectProductOption(type, productId, productName) {
+    const input = document.getElementById(type === 'add' ? 'addProductInput' : 'editProductInput');
+    const hiddenInput = document.getElementById(type === 'add' ? 'addProductId' : 'editProductId');
+    const optionsDiv = document.getElementById(type === 'add' ? 'addProductOptions' : 'editProductOptions');
+
+    input.value = productName;
+    hiddenInput.value = productId;
+    optionsDiv.style.display = 'none';
+    updateUomDropdown(type);
+  }
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.stk-searchable-dropdown')) {
+      document.querySelectorAll('.stk-dropdown-options').forEach(el => el.style.display = 'none');
+    }
+  });
+
+  function updateUomDropdown(type) {
+    const productId = type === 'add'
+      ? document.getElementById('addProductId').value
+      : document.getElementById('editProductName').dataset.productId;
+    const uomSelect = document.getElementById(type === 'add' ? 'addUomSelect' : 'editUomSelect');
+
+    if (!productId) {
+      uomSelect.innerHTML = '<option value="">Select UOM</option>';
+      return;
+    }
+
+    const product = productsData.find(p => p.product_id === productId);
+    if (!product) {
+      uomSelect.innerHTML = '<option value="">Select UOM</option>';
+      return;
+    }
+
+    // Get base UOM from uomsData
+    const baseUom = uomsData.find(u => u.uom_id == product.base_uom_id);
+    let options = `<option value="${product.base_uom_id}">${baseUom ? baseUom.uom_name : 'Base UOM'}</option>`;
+
+    // Add conversion UOMs
+    if (product.uom_conversions && product.uom_conversions.length) {
+      product.uom_conversions.forEach(conv => {
+        const fromUom = uomsData.find(u => u.uom_id == conv.from_uom_id);
+        if (fromUom) {
+          options += `<option value="${conv.from_uom_id}">${fromUom.uom_name}</option>`;
+        }
+      });
+    }
+
+    uomSelect.innerHTML = options;
   }
 
   function filterTable() {
@@ -1033,22 +1264,15 @@
 
   function submitAddStock(event) {
     event.preventDefault();
-    Swal.fire({
-      title: 'Processing...',
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
-      customClass: {
-        popup: 'swal2-popup-high-z'
-      }
-    });
 
     const form = document.getElementById('addStockForm');
     const payload = {
+      csrf_token: csrfToken,
       product_id: form.elements['product_id'].value,
       location_id: form.elements['location_id'].value,
+      uom_id: form.elements['uom_id'].value,
       adjustment_type: form.elements['adjustment_type'].value,
-      quantity: form.elements['quantity'].value,
-      notes: form.elements['notes'].value
+      quantity: form.elements['quantity'].value
     };
 
     fetch('../api/product_stock_per_location.php?action=create', {
@@ -1062,29 +1286,15 @@
       .then(data => {
         closeAddStockModal();
         if (data.success) {
-          Swal.fire({
-            icon: 'success',
-            title: 'Added!',
-            text: data.message,
-            confirmButtonColor: '#1A6BBF'
-          }).then(() => fetchStock());
+          showToast(data.message, 'success');
+          fetchStock();
         } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: data.message,
-            confirmButtonColor: '#C62828'
-          });
+          showToast(data.message, 'error');
         }
       })
       .catch(() => {
         closeAddStockModal();
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'An error occurred.',
-          confirmButtonColor: '#C62828'
-        });
+        showToast('An error occurred.', 'error');
       });
   }
 
@@ -1093,8 +1303,10 @@
     if (!stock) return;
     document.getElementById('editStockLocId').value = stock.stock_loc_id;
     document.getElementById('editProductName').value = `${stock.product_name} (${stock.product_code})`;
+    document.getElementById('editProductName').dataset.productId = stock.product_id;
     document.getElementById('editLocationName').value = `${stock.property_name} - ${stock.location_name}`;
     document.getElementById('editCurrentQuantity').value = parseFloat(stock.quantity).toFixed(3);
+    updateUomDropdown('edit');
     document.getElementById('editStockModal').classList.add('open');
   }
 
@@ -1105,21 +1317,14 @@
 
   function submitEditStock(event) {
     event.preventDefault();
-    Swal.fire({
-      title: 'Processing...',
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
-      customClass: {
-        popup: 'swal2-popup-high-z'
-      }
-    });
 
     const form = document.getElementById('editStockForm');
     const payload = {
+      csrf_token: csrfToken,
       stock_loc_id: form.elements['stock_loc_id'].value,
+      uom_id: form.elements['uom_id'].value,
       adjustment_type: form.elements['adjustment_type'].value,
-      quantity: form.elements['quantity'].value,
-      notes: form.elements['notes'].value
+      quantity: form.elements['quantity'].value
     };
 
     fetch('../api/product_stock_per_location.php?action=adjust', {
@@ -1133,29 +1338,15 @@
       .then(data => {
         closeEditStockModal();
         if (data.success) {
-          Swal.fire({
-            icon: 'success',
-            title: 'Updated!',
-            text: data.message,
-            confirmButtonColor: '#1A6BBF'
-          }).then(() => fetchStock());
+          showToast(data.message, 'success');
+          fetchStock();
         } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: data.message,
-            confirmButtonColor: '#C62828'
-          });
+          showToast(data.message, 'error');
         }
       })
       .catch(() => {
         closeEditStockModal();
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'An error occurred.',
-          confirmButtonColor: '#C62828'
-        });
+        showToast('An error occurred.', 'error');
       });
   }
 
@@ -1163,62 +1354,39 @@
     const stockLocId = el.dataset.id;
     const productName = el.dataset.product;
     const locationName = el.dataset.location;
-    Swal.fire({
-      title: 'Delete stock record?',
-      html: `<span style="font-size:14px">You're about to delete stock for <strong>${productName}</strong> at <strong>${locationName}</strong>. This cannot be undone.</span>`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#C62828',
-      cancelButtonColor: '#64748B',
-      confirmButtonText: 'Yes, delete',
-      cancelButtonText: 'Cancel',
-      customClass: {
-        popup: 'swal2-popup-high-z'
-      }
-    }).then(result => {
-      if (result.isConfirmed) {
-        Swal.fire({
-          title: 'Deleting...',
-          allowOutsideClick: false,
-          didOpen: () => Swal.showLoading(),
-          customClass: {
-            popup: 'swal2-popup-high-z'
+    showStkAlert('Delete stock record?', `You're about to delete stock for ${productName} at ${locationName}. This cannot be undone.`, () => {
+      fetch('../api/product_stock_per_location.php?action=delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            csrf_token: csrfToken,
+            stock_loc_id: stockLocId
+          })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            showToast(data.message, 'success');
+            fetchStock();
+          } else {
+            showToast(data.message, 'error');
           }
-        });
-        fetch('../api/product_stock_per_location.php?action=delete', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              stock_loc_id: stockLocId
-            })
-          })
-          .then(r => r.json())
-          .then(data => {
-            if (data.success) {
-              Swal.fire({
-                icon: 'success',
-                title: 'Deleted!',
-                text: data.message,
-                confirmButtonColor: '#1A6BBF'
-              }).then(() => fetchStock());
-            } else {
-              Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: data.message,
-                confirmButtonColor: '#C62828'
-              });
-            }
-          })
-          .catch(() => Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'An error occurred.',
-            confirmButtonColor: '#C62828'
-          }));
-      }
+        })
+        .catch(() => showToast('An error occurred.', 'error'));
     });
   }
 </script>
+
+<!-- Custom Alert Modal -->
+<div class="stk-alert-overlay" id="stkAlertModal">
+  <div class="stk-alert-box">
+    <div class="stk-alert-title" id="stkAlertTitle">Confirm Action</div>
+    <div class="stk-alert-message" id="stkAlertMessage">Are you sure you want to proceed?</div>
+    <div class="stk-alert-actions">
+      <button class="stk-alert-btn-cancel" onclick="closeStkAlert()">Cancel</button>
+      <button class="stk-alert-btn-confirm" id="stkAlertConfirmBtn">Confirm</button>
+    </div>
+  </div>
+</div>

@@ -7,14 +7,15 @@ $propertyId = $_GET['property'] ?? '';
 // Fetch properties for selector
 $properties = [];
 try {
-    $stmt = $pdo->query("SELECT property_id, property_name FROM properties WHERE is_active = 1 ORDER BY property_name");
-    $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  $stmt = $pdo->query("SELECT property_id, property_name FROM properties WHERE is_active = 1 ORDER BY property_name");
+  $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    error_log("Failed to fetch properties: " . $e->getMessage());
+  error_log("Failed to fetch properties: " . $e->getMessage());
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <?php include('structure/head.php'); ?>
   <meta charset="utf-8">
@@ -23,45 +24,259 @@ try {
   <title><?php echo htmlspecialchars($companyName); ?> - Food Menu</title>
   <style>
     /* Toast Notifications */
-    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
-    .custom-toast { background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 16px 20px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; min-width: 300px; animation: slideIn 0.3s ease; }
-    .custom-toast.error { border-left: 4px solid #ef4444; }
-    .custom-toast.success { border-left: 4px solid #22c55e; }
-    .custom-toast.info { border-left: 4px solid #3b82f6; }
-    .custom-toast i { font-size: 20px; }
-    .custom-toast.error i { color: #ef4444; }
-    .custom-toast.success i { color: #22c55e; }
-    .custom-toast.info i { color: #3b82f6; }
-    .toast-message { flex: 1; font-size: 14px; color: #374151; }
-    .toast-close { background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 18px; padding: 0; }
-    .toast-close:hover { color: #6b7280; }
-    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-    
-    .food-card { transition: transform 0.2s, box-shadow 0.2s; border: none; border-radius: 15px; overflow: hidden; }
-    .food-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
-    .food-img { height: 200px; object-fit: cover; }
-    .category-pill { cursor: pointer; transition: all 0.3s; }
-    .category-pill.active { background: #f35525 !important; color: white !important; }
-    .cart-badge { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: #f35525; color: white; border: none; box-shadow: 0 5px 20px rgba(243,85,37,0.4); z-index: 1000; font-size: 20px; }
-    .cart-count { position: absolute; top: -5px; right: -5px; background: #fff; color: #f35525; border-radius: 50%; width: 24px; height: 24px; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; }
-    .qty-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid #ddd; background: #fff; font-weight: bold; }
-    .qty-input { width: 50px; text-align: center; border: 1px solid #ddd; border-radius: 8px; }
-    .add-to-cart-btn { background: #f35525; color: white; border: none; padding: 8px 20px; border-radius: 25px; font-weight: 500; transition: all 0.3s; }
-    .add-to-cart-btn:hover { background: #e14a1f; transform: scale(1.05); }
-    .menu-item-price { color: #f35525; font-weight: 700; font-size: 1.1rem; }
-    .empty-state { text-align: center; padding: 60px 20px; }
-    .empty-state i { font-size: 64px; color: #ddd; margin-bottom: 20px; }
-    .loading-skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: loading 1.5s infinite; }
-    @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-    .cart-item-img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
-    .order-type-selector { display: flex; gap: 10px; margin-bottom: 20px; }
-    .order-type-btn { flex: 1; padding: 15px; border: 2px solid #ddd; border-radius: 10px; background: white; cursor: pointer; transition: all 0.3s; text-align: center; }
-    .order-type-btn:hover { border-color: #f35525; }
-    .order-type-btn.active { border-color: #f35525; background: #fff5f2; }
-    .order-type-btn i { font-size: 24px; margin-bottom: 5px; display: block; color: #f35525; }
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+
+    .custom-toast {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      padding: 16px 20px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 300px;
+      animation: slideIn 0.3s ease;
+    }
+
+    .custom-toast.error {
+      border-left: 4px solid #ef4444;
+    }
+
+    .custom-toast.success {
+      border-left: 4px solid #22c55e;
+    }
+
+    .custom-toast.info {
+      border-left: 4px solid #3b82f6;
+    }
+
+    .custom-toast i {
+      font-size: 20px;
+    }
+
+    .custom-toast.error i {
+      color: #ef4444;
+    }
+
+    .custom-toast.success i {
+      color: #22c55e;
+    }
+
+    .custom-toast.info i {
+      color: #3b82f6;
+    }
+
+    .toast-message {
+      flex: 1;
+      font-size: 14px;
+      color: #374151;
+    }
+
+    .toast-close {
+      background: none;
+      border: none;
+      color: #9ca3af;
+      cursor: pointer;
+      font-size: 18px;
+      padding: 0;
+    }
+
+    .toast-close:hover {
+      color: #6b7280;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+      }
+
+      to {
+        opacity: 0;
+      }
+    }
+
+    .food-card {
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: none;
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
+    .food-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .food-img {
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .category-pill {
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .category-pill.active {
+      background: #f35525 !important;
+      color: white !important;
+    }
+
+    .cart-badge {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #f35525;
+      color: white;
+      border: none;
+      box-shadow: 0 5px 20px rgba(243, 85, 37, 0.4);
+      z-index: 1000;
+      font-size: 20px;
+    }
+
+    .cart-count {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #fff;
+      color: #f35525;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      font-size: 12px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qty-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      background: #fff;
+      font-weight: bold;
+    }
+
+    .qty-input {
+      width: 50px;
+      text-align: center;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+
+    .add-to-cart-btn {
+      background: #f35525;
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 25px;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+
+    .add-to-cart-btn:hover {
+      background: #e14a1f;
+      transform: scale(1.05);
+    }
+
+    .menu-item-price {
+      color: #f35525;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .empty-state i {
+      font-size: 64px;
+      color: #ddd;
+      margin-bottom: 20px;
+    }
+
+    .loading-skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+    }
+
+    @keyframes loading {
+      0% {
+        background-position: 200% 0;
+      }
+
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    .cart-item-img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .order-type-selector {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .order-type-btn {
+      flex: 1;
+      padding: 15px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+
+    .order-type-btn:hover {
+      border-color: #f35525;
+    }
+
+    .order-type-btn.active {
+      border-color: #f35525;
+      background: #fff5f2;
+    }
+
+    .order-type-btn i {
+      font-size: 24px;
+      margin-bottom: 5px;
+      display: block;
+      color: #f35525;
+    }
   </style>
 </head>
+
 <body>
   <?php include('structure/preloader.php'); ?>
   <?php include('structure/subheader.php'); ?>
@@ -230,7 +445,11 @@ try {
     let categories = [];
     let currentProperty = '<?php echo $propertyId; ?>';
     let currentCategory = 'all';
-    let foodSettings = { tax_rate_percent: 12, currency: 'PHP', currency_symbol: '₱' };
+    let foodSettings = {
+      tax_rate_percent: 12,
+      currency: 'PHP',
+      currency_symbol: '₱'
+    };
 
     // Load food settings (tax rate, etc.)
     async function loadSettings() {
@@ -251,10 +470,10 @@ try {
     document.addEventListener('DOMContentLoaded', async function() {
       // Load settings first
       await loadSettings();
-      
+
       // Update cart UI
       updateCartUI();
-      
+
       // Auto-select if only one property
       const propSelector = document.getElementById('propertySelector');
       if (!currentProperty && propSelector.options.length === 2) {
@@ -262,7 +481,7 @@ try {
         propSelector.dispatchEvent(new Event('change'));
         return;
       }
-      
+
       if (currentProperty) {
         loadCategories();
         loadMenuItems();
@@ -336,7 +555,7 @@ try {
             <p class="mt-2 text-muted">Loading menu...</p>
           </div>
         `;
-        
+
         const res = await fetch(`api/food-menu.php?action=menu&property_id=${currentProperty}`);
         const data = await res.json();
         if (data.success) {
@@ -354,9 +573,9 @@ try {
 
     function renderMenuItems() {
       const container = document.getElementById('menuContainer');
-      const filtered = currentCategory === 'all' 
-        ? menuItems 
-        : menuItems.filter(item => item.category_id == currentCategory);
+      const filtered = currentCategory === 'all' ?
+        menuItems :
+        menuItems.filter(item => item.category_id == currentCategory);
 
       if (filtered.length === 0) {
         container.innerHTML = `
@@ -393,7 +612,7 @@ try {
             imgUrl = '../uploads/foods/' + item.thumbnail_url;
           }
         }
-        
+
         return `
         <div class="col-lg-3 col-md-4 col-sm-6">
           <div class="card food-card h-100">
@@ -418,7 +637,7 @@ try {
           </div>
         </div>
       `;
-    }).join('');
+      }).join('');
     }
 
     function updateQty(itemId, delta) {
@@ -432,7 +651,7 @@ try {
     function addToCart(itemId) {
       const item = menuItems.find(i => i.item_id === itemId);
       const qty = parseInt(document.getElementById(`qty-${itemId}`).value);
-      
+
       // Fix image path for cart
       let cartImgUrl = '../uploads/foods/default-food.png';
       if (item.image_url) {
@@ -456,7 +675,7 @@ try {
           cartImgUrl = '../uploads/foods/' + item.thumbnail_url;
         }
       }
-      
+
       const existing = cart.find(c => c.item_id === itemId);
       if (existing) {
         existing.qty += qty;
@@ -469,13 +688,13 @@ try {
           qty: qty
         });
       }
-      
+
       saveCart();
       updateCartUI();
-      
+
       // Reset quantity
       document.getElementById(`qty-${itemId}`).value = 1;
-      
+
       // Show feedback
       const btn = document.querySelector(`button[onclick="addToCart('${itemId}')"]`);
       const originalText = btn.innerHTML;
@@ -513,25 +732,25 @@ try {
     function updateCartUI() {
       const count = cart.reduce((sum, item) => sum + item.qty, 0);
       document.getElementById('cartCount').textContent = count;
-      
+
       const cartItems = document.getElementById('cartItems');
       const checkoutBtn = document.getElementById('checkoutBtn');
-      
+
       if (cart.length === 0) {
         cartItems.innerHTML = '<p class="text-muted text-center py-4">Your cart is empty</p>';
         checkoutBtn.disabled = true;
         document.getElementById('cartTotal').textContent = '₱0.00';
         return;
       }
-      
+
       checkoutBtn.disabled = false;
-      
+
       // Calculate total (tax-inclusive: prices already include VAT)
       const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-      
+
       // Update display
       document.getElementById('cartTotal').textContent = '₱' + total.toFixed(2);
-      
+
       cartItems.innerHTML = cart.map(item => `
         <div class="d-flex align-items-center gap-3 mb-3 p-2 border rounded">
           <img src="${item.image}" class="cart-item-img" alt="${escapeHtml(item.name)}">
@@ -556,7 +775,7 @@ try {
       btn.addEventListener('click', function() {
         document.querySelectorAll('.order-type-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
-        
+
         const type = this.dataset.type;
         document.getElementById('tableInput').style.display = type === 'dine_in' ? 'block' : 'none';
         document.getElementById('roomSelection').style.display = type === 'room_service' ? 'block' : 'none';
@@ -573,24 +792,24 @@ try {
         const selector = document.getElementById('roomSelector');
         const roomSelectionDiv = document.getElementById('roomSelection');
         if (data.success && data.data.length > 0) {
-          selector.innerHTML = '<option value="">Select Room</option>' + 
+          selector.innerHTML = '<option value="">Select Room</option>' +
             data.data.map(r => {
               // Get guest name from walk-in reservation
               const guestName = (r.guest_name && r.guest_name.trim()) ? r.guest_name : '';
-              
+
               // Build room label with guest name
-              let roomLabel = currentProperty 
-                ? `${escapeHtml(r.room_number)} - ${escapeHtml(r.room_name || 'Room')}`
-                : `${escapeHtml(r.property_name)} - ${escapeHtml(r.room_number)}`;
-              
+              let roomLabel = currentProperty ?
+                `${escapeHtml(r.room_number)} - ${escapeHtml(r.room_name || 'Room')}` :
+                `${escapeHtml(r.property_name)} - ${escapeHtml(r.room_number)}`;
+
               // Add guest name if available
               if (guestName) {
                 roomLabel += ` (${escapeHtml(guestName)})`;
               }
-              
+
               // Add notes indicator if notes exist
               const notesIndicator = r.notes ? ' 📝' : '';
-              
+
               return `<option value="${r.room_id}" data-notes="${escapeHtml(r.notes || '')}" data-guest="${escapeHtml(guestName)}">${roomLabel}${notesIndicator}</option>`;
             }).join('');
           // Remove any existing info message if rooms are available
@@ -622,17 +841,17 @@ try {
         const data = await res.json();
         const selector = document.getElementById('tableSelector');
         const tableInfo = document.getElementById('tableInfo');
-        
+
         if (data.success && data.data.length > 0) {
-          selector.innerHTML = '<option value="">Select a table</option>' + 
+          selector.innerHTML = '<option value="">Select a table</option>' +
             data.data.map(t => {
-              const label = t.table_name 
-                ? `${escapeHtml(t.table_number)} - ${escapeHtml(t.table_name)}`
-                : `Table ${escapeHtml(t.table_number)}`;
+              const label = t.table_name ?
+                `${escapeHtml(t.table_number)} - ${escapeHtml(t.table_name)}` :
+                `Table ${escapeHtml(t.table_number)}`;
               const occupiedBadge = t.is_occupied == 1 ? ' 🔴' : ' 🟢';
               return `<option value="${t.table_id}" data-capacity="${t.capacity}" data-location="${escapeHtml(t.location || '')}" data-occupied="${t.is_occupied}">${label}${occupiedBadge}</option>`;
             }).join('');
-          
+
           // Add change event to show table info
           selector.onchange = function() {
             const selected = this.options[this.selectedIndex];
@@ -665,21 +884,21 @@ try {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
       toast.className = `custom-toast ${type}`;
-      
+
       const icons = {
         error: 'fa-exclamation-circle',
         success: 'fa-check-circle',
         info: 'fa-info-circle'
       };
-      
+
       toast.innerHTML = `
         <i class="fa ${icons[type]}"></i>
         <span class="toast-message">${message}</span>
         <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
       `;
-      
+
       container.appendChild(toast);
-      
+
       setTimeout(() => {
         toast.style.animation = 'fadeOut 0.3s ease';
         setTimeout(() => toast.remove(), 300);
@@ -693,17 +912,17 @@ try {
       const roomId = document.getElementById('roomSelector').value;
       const customerEmail = document.getElementById('customerEmail').value;
       const notes = document.getElementById('specialRequests').value;
-      
+
       if (orderType === 'dine_in' && !tableId) {
         showToast('Please select a table', 'error');
         return;
       }
-      
+
       if (orderType === 'room_service' && !roomId) {
         showToast('Please select your room', 'error');
         return;
       }
-      
+
       // Get table number for display if dine-in
       let tableNumber = null;
       if (orderType === 'dine_in' && tableId) {
@@ -711,7 +930,7 @@ try {
         const selectedOption = tableSelect.options[tableSelect.selectedIndex];
         tableNumber = selectedOption.text.split(' ')[0].replace('Table ', '');
       }
-      
+
       const orderData = {
         property_id: currentProperty || null, // null for takeout when no property selected
         order_type: orderType,
@@ -726,22 +945,24 @@ try {
           unit_price: item.price
         }))
       };
-      
+
       try {
         const res = await fetch('api/food-order.php', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify(orderData)
         });
-        
+
         const data = await res.json();
-        
+
         if (data.success) {
           // Clear cart
           cart = [];
           saveCart();
           updateCartUI();
-          
+
           // Show success
           document.getElementById('orderNumber').textContent = data.order_number;
           bootstrap.Modal.getInstance(document.getElementById('cartModal')).hide();
@@ -763,4 +984,5 @@ try {
     }
   </script>
 </body>
+
 </html>

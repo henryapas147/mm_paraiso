@@ -21,7 +21,8 @@ function deductInventoryForOrder($pdo, $orderId, $itemId, $quantity, $userId) {
     foreach ($ingredients as $ing) {
       $requiredQty = $ing['quantity'] * $quantity;
       $stockBefore = $ing['stock_on_hand'];
-      $baseUomId = $ing['base_uom_id'];
+      $itemUomId = intval($ing['uom_id']);
+      $baseUomId = intval($ing['base_uom_id']);
 
       // Handle NULL stock
       if ($stockBefore === null) {
@@ -29,15 +30,30 @@ function deductInventoryForOrder($pdo, $orderId, $itemId, $quantity, $userId) {
       }
 
       // Convert to base UOM if needed
-      if ($ing['uom_id'] != $baseUomId) {
+      if ($itemUomId !== $baseUomId) {
+        // Try direct conversion first (recipe UOM → base UOM)
         $convStmt = $pdo->prepare("
           SELECT conversion_factor FROM product_uom_conversions
-          WHERE product_id = ? AND from_uom_id = ? AND to_uom_id = ?
+          WHERE product_id = ? AND from_uom_id = ? AND to_uom_id = ? AND is_active = 1
         ");
-        $convStmt->execute([$ing['product_id'], $ing['uom_id'], $baseUomId]);
+        $convStmt->execute([$ing['product_id'], $itemUomId, $baseUomId]);
         $conv = $convStmt->fetch(PDO::FETCH_ASSOC);
-        if ($conv) {
-          $requiredQty = $requiredQty * $conv['conversion_factor'];
+
+        if (!$conv) {
+          // Try reverse: base → recipe UOM. Conversion factor means "1 base = N recipe"
+          // So: recipe_qty * factor = base_qty
+          $convStmt = $pdo->prepare("
+            SELECT conversion_factor FROM product_uom_conversions
+            WHERE product_id = ? AND from_uom_id = ? AND to_uom_id = ? AND is_active = 1
+          ");
+          $convStmt->execute([$ing['product_id'], $baseUomId, $itemUomId]);
+          $conv = $convStmt->fetch(PDO::FETCH_ASSOC);
+          if ($conv && floatval($conv['conversion_factor']) > 0) {
+            $requiredQty = $requiredQty * floatval($conv['conversion_factor']);
+          }
+        } else {
+          // Direct: recipe UOM → base UOM, multiply by factor
+          $requiredQty = $requiredQty * floatval($conv['conversion_factor']);
         }
       }
 
@@ -52,9 +68,9 @@ function deductInventoryForOrder($pdo, $orderId, $itemId, $quantity, $userId) {
         mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
         mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
 
-      // Update product stock
-      $updateStmt = $pdo->prepare("UPDATE products SET stock_on_hand = ? WHERE product_id = ?");
-      $updateStmt->execute([$stockAfter, $ing['product_id']]);
+      // Update product stock (both columns)
+      $updateStmt = $pdo->prepare("UPDATE products SET current_stock = ?, stock_on_hand = ? WHERE product_id = ?");
+      $updateStmt->execute([$stockAfter, $stockAfter, $ing['product_id']]);
 
       // Record transaction
       $transStmt = $pdo->prepare("

@@ -1,79 +1,599 @@
-<?php if (false) {} ?>
+<?php if (false) {
+} ?>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap');
-  :root { --prod-blue: #1A6BBF; --prod-blue-dark: #0F4C8A; --prod-blue-pale: #EBF3FC; --prod-green: #2E7D32; --prod-green-pale: #E8F5E9; --prod-red: #C62828; --prod-red-pale: #FFEBEE; --prod-amber: #E65100; --prod-amber-pale: #FFF3E0; --prod-purple: #6230B5; --prod-purple-pale: #F5F0FF; --prod-radius-sm: 6px; --prod-radius-md: 10px; --prod-radius-lg: 14px; --prod-radius-xl: 20px; --prod-shadow-sm: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05); --prod-shadow-md: 0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.05); --prod-shadow-lg: 0 20px 48px rgba(0,0,0,.14), 0 8px 16px rgba(0,0,0,.07); --prod-font: 'DM Sans', sans-serif; --prod-mono: 'DM Mono', monospace; }
-  .sale-page { padding: 28px 28px 40px; max-width: 100%; margin: 0 auto; background: var(--color-background-tertiary, #F4F5F7); min-height: 100%; border-radius: var(--border-radius-xl, 18px); font-family: var(--prod-font); }
-  .sale-page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; gap: 16px; flex-wrap: wrap; }
-  .sale-page-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--prod-blue); margin-bottom: 4px; }
-  .sale-page-title { font-size: 24px; font-weight: 600; color: var(--color-text-primary); letter-spacing: -.4px; line-height: 1.2; }
-  .sale-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 24px; }
-  .sale-stat-card { background: var(--color-background-primary, #fff); border: 1px solid rgba(0,0,0,.07); border-radius: var(--prod-radius-lg); padding: 20px 22px; box-shadow: var(--prod-shadow-sm); position: relative; overflow: hidden; }
-  .sale-stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: var(--prod-radius-lg) var(--prod-radius-lg) 0 0; background: var(--_accent, #CBD5E1); }
-  .sale-stat-card.blue { --_accent: var(--prod-blue); } .sale-stat-card.green { --_accent: var(--prod-green); } .sale-stat-card.purple { --_accent: var(--prod-purple); } .sale-stat-card.amber { --_accent: var(--prod-amber); }
-  .sale-stat-icon { width: 36px; height: 36px; border-radius: var(--prod-radius-sm); display: flex; align-items: center; justify-content: center; font-size: 15px; margin-bottom: 14px; background: var(--prod-blue-pale); color: var(--prod-blue); }
-  .sale-stat-card.green .sale-stat-icon { background: var(--prod-green-pale); color: var(--prod-green); }
-  .sale-stat-card.purple .sale-stat-icon { background: var(--prod-purple-pale); color: var(--prod-purple); }
-  .sale-stat-card.amber .sale-stat-icon { background: var(--prod-amber-pale); color: var(--prod-amber); }
-  .sale-stat-label { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 6px; }
-  .sale-stat-value { font-size: 32px; font-weight: 600; color: var(--color-text-primary); font-family: var(--prod-mono); }
-  .sale-card { background: var(--color-background-primary, #fff); border: 1px solid rgba(0,0,0,.07); border-radius: var(--prod-radius-lg); box-shadow: var(--prod-shadow-sm); overflow: hidden; }
-  .sale-card-header { padding: 18px 22px; border-bottom: 1px solid rgba(0,0,0,.06); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  .sale-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .sale-search-wrap { position: relative; }
-  .sale-search-wrap i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--color-text-secondary); font-size: 12px; pointer-events: none; }
-  .sale-search { padding: 8px 14px 8px 34px; font-size: 13px; border: 1px solid rgba(0,0,0,.12); border-radius: var(--prod-radius-md); background: var(--color-background-secondary, #F8FAFC); color: var(--color-text-primary); outline: none; width: 230px; }
-  .sale-search:focus { border-color: var(--prod-blue); box-shadow: 0 0 0 3px rgba(26,107,191,.12); }
-  .sale-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; font-size: 13px; font-weight: 500; border-radius: var(--prod-radius-md); border: 1px solid rgba(0,0,0,.12); background: var(--color-background-primary, #fff); color: var(--color-text-primary); cursor: pointer; transition: all .15s; }
-  .sale-btn:hover { background: var(--color-background-secondary, #F8FAFC); }
-  .sale-btn-primary { background: var(--prod-blue); color: #fff; border-color: var(--prod-blue); box-shadow: 0 1px 3px rgba(26,107,191,.3); }
-  .sale-btn-primary:hover { background: var(--prod-blue-dark); }
-  .sale-table-wrap { overflow-x: auto; }
-  .sale-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .sale-table thead tr { background: var(--color-background-secondary, #F8FAFC); }
-  .sale-table th { padding: 11px 18px; text-align: left; font-size: 11px; font-weight: 600; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: .08em; border-bottom: 1px solid rgba(0,0,0,.07); }
-  .sale-table td { padding: 13px 18px; vertical-align: middle; }
-  .sale-name-cell { display: flex; align-items: center; }
-  .sale-avatar { width: 36px; height: 36px; border-radius: var(--prod-radius-sm); background: var(--prod-blue-pale); color: var(--prod-blue); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; margin-right: 10px; }
-  .sale-name-primary { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
-  .sale-name-secondary { font-size: 11px; color: var(--color-text-secondary); }
-  .sale-badge { display: inline-flex; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
-  .sale-badge.paid { background: var(--prod-green-pale); color: var(--prod-green); }
-  .sale-badge.unpaid { background: var(--prod-red-pale); color: var(--prod-red); }
-  .sale-badge.charged { background: var(--prod-blue-pale); color: var(--prod-blue); }
-  .sale-actions { display: flex; gap: 5px; justify-content: flex-end; }
-  .sale-action-btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; font-size: 12px; font-weight: 500; border-radius: var(--prod-radius-sm); border: 1px solid rgba(0,0,0,.1); background: transparent; cursor: pointer; transition: all .15s; }
-  .sale-action-btn.view:hover { background: var(--prod-blue-pale); color: var(--prod-blue); }
-  .sale-action-btn.edit:hover { background: var(--prod-amber-pale); color: var(--prod-amber); }
-  .sale-action-btn.danger:hover { background: var(--prod-red-pale); color: var(--prod-red); }
-  .sale-empty { padding: 64px; text-align: center; color: var(--color-text-secondary); }
-  .sale-empty-icon { font-size: 32px; opacity: .25; margin-bottom: 12px; }
-  .sale-pagination-wrap { display: flex; align-items: center; justify-content: space-between; padding: 16px 22px; border-top: 1px solid rgba(0,0,0,.06); background: var(--color-background-primary, #fff); gap: 16px; flex-wrap: wrap; }
-  .sale-pagination-info { font-size: 12px; color: var(--color-text-secondary); }
-  .sale-pagination { display: flex; align-items: center; gap: 4px; }
-  .sale-page-btn { min-width: 32px; height: 32px; padding: 0 8px; border: 1px solid rgba(0,0,0,.12); border-radius: var(--prod-radius-sm); background: var(--color-background-primary, #fff); color: var(--color-text-primary); font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; }
-  .sale-page-btn:hover:not(:disabled) { background: var(--prod-blue-pale); border-color: var(--prod-blue); color: var(--prod-blue); }
-  .sale-page-btn.active { background: var(--prod-blue); border-color: var(--prod-blue); color: #fff; }
-  .sale-page-btn:disabled { opacity: .4; cursor: not-allowed; }
-  .sale-entries-select { padding: 6px 28px 6px 12px; font-size: 13px; border: 1px solid rgba(0,0,0,.12); border-radius: var(--prod-radius-md); background: var(--color-background-secondary, #F8FAFC); color: var(--color-text-primary); cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
-  .sale-entries-select:focus { border-color: var(--prod-blue); box-shadow: 0 0 0 3px rgba(26,107,191,.12); outline: none; }
-  .sale-entries-label { font-size: 12px; color: var(--color-text-secondary); margin-right: 8px; }
-  .sale-entries-wrap { display: flex; align-items: center; }
-  .sale-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.5); backdrop-filter: blur(4px); z-index: 9000; align-items: center; justify-content: center; padding: 20px; }
-  .sale-overlay.open { display: flex; }
-  .sale-modal { background: var(--color-background-primary, #fff); border-radius: var(--prod-radius-xl); border: 1px solid rgba(0,0,0,.08); width: 100%; max-width: 700px; max-height: 92vh; overflow-y: auto; box-shadow: var(--prod-shadow-lg); }
-  .sale-modal-header { padding: 22px 26px 18px; border-bottom: 1px solid rgba(0,0,0,.06); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .sale-modal-title { font-size: 17px; font-weight: 600; color: var(--color-text-primary); }
-  .sale-modal-close { width: 30px; height: 30px; border-radius: 50%; background: var(--color-background-secondary, #F1F5F9); border: none; cursor: pointer; color: var(--color-text-secondary); font-size: 16px; display: flex; align-items: center; justify-content: center; }
-  .sale-modal-close:hover { background: var(--prod-red-pale); color: var(--prod-red); }
-  .sale-modal-body { padding: 26px; }
-  .sale-modal-footer { padding: 18px 26px; border-top: 1px solid rgba(0,0,0,.06); display: flex; justify-content: flex-end; gap: 8px; }
-  .sale-form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
-  .sale-form-group.half { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .sale-form-label { font-size: 11px; font-weight: 700; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: .07em; }
-  .sale-form-label .req { color: var(--prod-red); margin-left: 2px; }
-  .sale-form-input, .sale-form-select, .sale-form-textarea { font-family: var(--prod-font); font-size: 13.5px; color: var(--color-text-primary); background: var(--color-background-secondary, #F8FAFC); border: 1px solid rgba(0,0,0,.12); border-radius: var(--prod-radius-md); padding: 9px 13px; outline: none; width: 100%; }
-  .sale-form-input:focus, .sale-form-select:focus, .sale-form-textarea:focus { border-color: var(--prod-blue); box-shadow: 0 0 0 3px rgba(26,107,191,.12); background: var(--color-background-primary, #fff); }
-  @media (max-width: 600px) { .sale-search { width: 160px; } .sale-form-group.half { grid-template-columns: 1fr; } }
+
+  :root {
+    --prod-blue: #1A6BBF;
+    --prod-blue-dark: #0F4C8A;
+    --prod-blue-pale: #EBF3FC;
+    --prod-green: #2E7D32;
+    --prod-green-pale: #E8F5E9;
+    --prod-red: #C62828;
+    --prod-red-pale: #FFEBEE;
+    --prod-amber: #E65100;
+    --prod-amber-pale: #FFF3E0;
+    --prod-purple: #6230B5;
+    --prod-purple-pale: #F5F0FF;
+    --prod-radius-sm: 6px;
+    --prod-radius-md: 10px;
+    --prod-radius-lg: 14px;
+    --prod-radius-xl: 20px;
+    --prod-shadow-sm: 0 1px 3px rgba(0, 0, 0, .07), 0 1px 2px rgba(0, 0, 0, .05);
+    --prod-shadow-md: 0 4px 12px rgba(0, 0, 0, .08), 0 2px 4px rgba(0, 0, 0, .05);
+    --prod-shadow-lg: 0 20px 48px rgba(0, 0, 0, .14), 0 8px 16px rgba(0, 0, 0, .07);
+    --prod-font: 'DM Sans', sans-serif;
+    --prod-mono: 'DM Mono', monospace;
+  }
+
+  .sale-page {
+    padding: 28px 28px 40px;
+    max-width: 100%;
+    margin: 0 auto;
+    background: var(--color-background-tertiary, #F4F5F7);
+    min-height: 100%;
+    border-radius: var(--border-radius-xl, 18px);
+    font-family: var(--prod-font);
+  }
+
+  .sale-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .sale-page-eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--prod-blue);
+    margin-bottom: 4px;
+  }
+
+  .sale-page-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    letter-spacing: -.4px;
+    line-height: 1.2;
+  }
+
+  .sale-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .sale-stat-card {
+    background: var(--color-background-primary, #fff);
+    border: 1px solid rgba(0, 0, 0, .07);
+    border-radius: var(--prod-radius-lg);
+    padding: 20px 22px;
+    box-shadow: var(--prod-shadow-sm);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sale-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: var(--prod-radius-lg) var(--prod-radius-lg) 0 0;
+    background: var(--_accent, #CBD5E1);
+  }
+
+  .sale-stat-card.blue {
+    --_accent: var(--prod-blue);
+  }
+
+  .sale-stat-card.green {
+    --_accent: var(--prod-green);
+  }
+
+  .sale-stat-card.purple {
+    --_accent: var(--prod-purple);
+  }
+
+  .sale-stat-card.amber {
+    --_accent: var(--prod-amber);
+  }
+
+  .sale-stat-card.red {
+    --_accent: var(--prod-red);
+  }
+
+  .sale-stat-card.red .sale-stat-icon {
+    background: var(--prod-red-pale);
+    color: var(--prod-red);
+  }
+
+  .sale-stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--prod-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    margin-bottom: 14px;
+    background: var(--prod-blue-pale);
+    color: var(--prod-blue);
+  }
+
+  .sale-stat-card.green .sale-stat-icon {
+    background: var(--prod-green-pale);
+    color: var(--prod-green);
+  }
+
+  .sale-stat-card.purple .sale-stat-icon {
+    background: var(--prod-purple-pale);
+    color: var(--prod-purple);
+  }
+
+  .sale-stat-card.amber .sale-stat-icon {
+    background: var(--prod-amber-pale);
+    color: var(--prod-amber);
+  }
+
+  .sale-stat-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    margin-bottom: 6px;
+  }
+
+  .sale-stat-value {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    font-family: var(--prod-mono);
+  }
+
+  .sale-card {
+    background: var(--color-background-primary, #fff);
+    border: 1px solid rgba(0, 0, 0, .07);
+    border-radius: var(--prod-radius-lg);
+    box-shadow: var(--prod-shadow-sm);
+    overflow: hidden;
+  }
+
+  .sale-card-header {
+    padding: 18px 22px;
+    border-bottom: 1px solid rgba(0, 0, 0, .06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .sale-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .sale-search-wrap {
+    position: relative;
+  }
+
+  .sale-search-wrap i {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    pointer-events: none;
+  }
+
+  .sale-search {
+    padding: 8px 14px 8px 34px;
+    font-size: 13px;
+    border: 1px solid rgba(0, 0, 0, .12);
+    border-radius: var(--prod-radius-md);
+    background: var(--color-background-secondary, #F8FAFC);
+    color: var(--color-text-primary);
+    outline: none;
+    width: 230px;
+  }
+
+  .sale-search:focus {
+    border-color: var(--prod-blue);
+    box-shadow: 0 0 0 3px rgba(26, 107, 191, .12);
+  }
+
+  .sale-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: var(--prod-radius-md);
+    border: 1px solid rgba(0, 0, 0, .12);
+    background: var(--color-background-primary, #fff);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: all .15s;
+  }
+
+  .sale-btn:hover {
+    background: var(--color-background-secondary, #F8FAFC);
+  }
+
+  .sale-btn-primary {
+    background: var(--prod-blue);
+    color: #fff;
+    border-color: var(--prod-blue);
+    box-shadow: 0 1px 3px rgba(26, 107, 191, .3);
+  }
+
+  .sale-btn-primary:hover {
+    background: var(--prod-blue-dark);
+  }
+
+  .sale-table-wrap {
+    overflow-x: auto;
+  }
+
+  .sale-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .sale-table thead tr {
+    background: var(--color-background-secondary, #F8FAFC);
+  }
+
+  .sale-table th {
+    padding: 11px 18px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    border-bottom: 1px solid rgba(0, 0, 0, .07);
+  }
+
+  .sale-table td {
+    padding: 13px 18px;
+    vertical-align: middle;
+  }
+
+  .sale-name-cell {
+    display: flex;
+    align-items: center;
+  }
+
+  .sale-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--prod-radius-sm);
+    background: var(--prod-blue-pale);
+    color: var(--prod-blue);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    margin-right: 10px;
+  }
+
+  .sale-name-primary {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+
+  .sale-name-secondary {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+  }
+
+  .sale-badge {
+    display: inline-flex;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .sale-badge.paid {
+    background: var(--prod-green-pale);
+    color: var(--prod-green);
+  }
+
+  .sale-badge.unpaid {
+    background: var(--prod-red-pale);
+    color: var(--prod-red);
+  }
+
+  .sale-badge.charged {
+    background: var(--prod-blue-pale);
+    color: var(--prod-blue);
+  }
+
+  .sale-actions {
+    display: flex;
+    gap: 5px;
+    justify-content: flex-end;
+  }
+
+  .sale-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: var(--prod-radius-sm);
+    border: 1px solid rgba(0, 0, 0, .1);
+    background: transparent;
+    cursor: pointer;
+    transition: all .15s;
+  }
+
+  .sale-action-btn.view:hover {
+    background: var(--prod-blue-pale);
+    color: var(--prod-blue);
+  }
+
+  .sale-action-btn.edit:hover {
+    background: var(--prod-amber-pale);
+    color: var(--prod-amber);
+  }
+
+  .sale-action-btn.danger:hover {
+    background: var(--prod-red-pale);
+    color: var(--prod-red);
+  }
+
+  .sale-empty {
+    padding: 64px;
+    text-align: center;
+    color: var(--color-text-secondary);
+  }
+
+  .sale-empty-icon {
+    font-size: 32px;
+    opacity: .25;
+    margin-bottom: 12px;
+  }
+
+  .sale-pagination-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 22px;
+    border-top: 1px solid rgba(0, 0, 0, .06);
+    background: var(--color-background-primary, #fff);
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .sale-pagination-info {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  .sale-pagination {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .sale-page-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid rgba(0, 0, 0, .12);
+    border-radius: var(--prod-radius-sm);
+    background: var(--color-background-primary, #fff);
+    color: var(--color-text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sale-page-btn:hover:not(:disabled) {
+    background: var(--prod-blue-pale);
+    border-color: var(--prod-blue);
+    color: var(--prod-blue);
+  }
+
+  .sale-page-btn.active {
+    background: var(--prod-blue);
+    border-color: var(--prod-blue);
+    color: #fff;
+  }
+
+  .sale-page-btn:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+  }
+
+  .sale-entries-select {
+    padding: 6px 28px 6px 12px;
+    font-size: 13px;
+    border: 1px solid rgba(0, 0, 0, .12);
+    border-radius: var(--prod-radius-md);
+    background: var(--color-background-secondary, #F8FAFC);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+
+  .sale-entries-select:focus {
+    border-color: var(--prod-blue);
+    box-shadow: 0 0 0 3px rgba(26, 107, 191, .12);
+    outline: none;
+  }
+
+  .sale-entries-label {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-right: 8px;
+  }
+
+  .sale-entries-wrap {
+    display: flex;
+    align-items: center;
+  }
+
+  .sale-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, .5);
+    backdrop-filter: blur(4px);
+    z-index: 9000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .sale-overlay.open {
+    display: flex;
+  }
+
+  .sale-modal {
+    background: var(--color-background-primary, #fff);
+    border-radius: var(--prod-radius-xl);
+    border: 1px solid rgba(0, 0, 0, .08);
+    width: 100%;
+    max-width: 700px;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: var(--prod-shadow-lg);
+  }
+
+  .sale-modal-header {
+    padding: 22px 26px 18px;
+    border-bottom: 1px solid rgba(0, 0, 0, .06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .sale-modal-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  .sale-modal-close {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--color-background-secondary, #F1F5F9);
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sale-modal-close:hover {
+    background: var(--prod-red-pale);
+    color: var(--prod-red);
+  }
+
+  .sale-modal-body {
+    padding: 26px;
+  }
+
+  .sale-modal-footer {
+    padding: 18px 26px;
+    border-top: 1px solid rgba(0, 0, 0, .06);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .sale-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+
+  .sale-form-group.half {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .sale-form-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+  }
+
+  .sale-form-label .req {
+    color: var(--prod-red);
+    margin-left: 2px;
+  }
+
+  .sale-form-input,
+  .sale-form-select,
+  .sale-form-textarea {
+    font-family: var(--prod-font);
+    font-size: 13.5px;
+    color: var(--color-text-primary);
+    background: var(--color-background-secondary, #F8FAFC);
+    border: 1px solid rgba(0, 0, 0, .12);
+    border-radius: var(--prod-radius-md);
+    padding: 9px 13px;
+    outline: none;
+    width: 100%;
+  }
+
+  .sale-form-input:focus,
+  .sale-form-select:focus,
+  .sale-form-textarea:focus {
+    border-color: var(--prod-blue);
+    box-shadow: 0 0 0 3px rgba(26, 107, 191, .12);
+    background: var(--color-background-primary, #fff);
+  }
+
+  @keyframes slideOut {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(100%); }
+  }
+
+  @media (max-width: 600px) {
+    .sale-search {
+      width: 160px;
+    }
+
+    .sale-form-group.half {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 
 <div class="sale-page">
@@ -87,23 +607,28 @@
   <div class="sale-stats-grid">
     <div class="sale-stat-card blue">
       <div class="sale-stat-icon"><i class="fas fa-money-bill-wave"></i></div>
-      <div class="sale-stat-label">Total Sales</div>
+      <div class="sale-stat-label">Total Revenue</div>
       <div class="sale-stat-value" id="statTotal">—</div>
     </div>
     <div class="sale-stat-card green">
       <div class="sale-stat-icon"><i class="fas fa-cash-register"></i></div>
-      <div class="sale-stat-label">POS Sales</div>
+      <div class="sale-stat-label">POS Revenue</div>
       <div class="sale-stat-value" id="statPos">—</div>
     </div>
     <div class="sale-stat-card purple">
       <div class="sale-stat-icon"><i class="fas fa-utensils"></i></div>
-      <div class="sale-stat-label">Canteen Sales</div>
+      <div class="sale-stat-label">Canteen Revenue</div>
       <div class="sale-stat-value" id="statCanteen">—</div>
     </div>
     <div class="sale-stat-card amber">
       <div class="sale-stat-icon"><i class="fas fa-bed"></i></div>
-      <div class="sale-stat-label">Room Charges</div>
+      <div class="sale-stat-label">Room Charge Revenue</div>
       <div class="sale-stat-value" id="statRoom">—</div>
+    </div>
+    <div class="sale-stat-card red">
+      <div class="sale-stat-icon"><i class="fas fa-user-tie"></i></div>
+      <div class="sale-stat-label">Staff Purchase Revenue</div>
+      <div class="sale-stat-value" id="statStaff">—</div>
     </div>
   </div>
 
@@ -194,7 +719,9 @@
           </div>
           <div>
             <label class="sale-form-label">Property <span class="req">*</span></label>
-            <select name="property_id" class="sale-form-select" required><option value="">Select Property</option></select>
+            <select name="property_id" class="sale-form-select" required>
+              <option value="">Select Property</option>
+            </select>
           </div>
         </div>
         <div class="sale-form-group half">
@@ -260,7 +787,9 @@
           </div>
           <div>
             <label class="sale-form-label">Property <span class="req">*</span></label>
-            <select name="property_id" class="sale-form-select" required><option value="">Select Property</option></select>
+            <select name="property_id" class="sale-form-select" required>
+              <option value="">Select Property</option>
+            </select>
           </div>
         </div>
         <div class="sale-form-group half">
@@ -316,6 +845,32 @@
   let entriesPerPage = 25;
   let propertiesData = [];
 
+  const csrfToken = '<?php echo htmlspecialchars(CSRF_TOKEN, ENT_QUOTES, 'UTF-8'); ?>';
+  const userPermissions = <?php echo isset($_SESSION['permissions']) ? json_encode($_SESSION['permissions']) : '[]'; ?>;
+  const userRole = '<?php echo $_SESSION['role_code'] ?? ''; ?>';
+
+  function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position: fixed; top: 20px; right: 20px; z-index: 10000;
+      padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 500;
+      color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: slideIn 0.3s ease-out;
+      ${type === 'success' ? 'background: #2E7D32;' : type === 'error' ? 'background: #C62828;' : 'background: #1A6BBF;'}
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.animation = 'slideOut 0.3s ease-out';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  function hasPermission(permission) {
+    if (userRole === 'super_admin' || userRole === 'admin') return true;
+    return Array.isArray(userPermissions) && userPermissions.includes(permission);
+  }
+
   async function fetchSales() {
     try {
       const res = await fetch('../api/inventory_sales.php?action=list');
@@ -347,26 +902,32 @@
   }
 
   function renderStats() {
-    const total = salesData.length;
-    const pos = salesData.filter(s => s.sale_type === 'pos').length;
-    const canteen = salesData.filter(s => s.sale_type === 'canteen').length;
-    const room = salesData.filter(s => s.sale_type === 'room_charge').length;
+    const totalRevenue = salesData.reduce((sum, s) => sum + parseFloat(s.total_amount || 0), 0);
+    const posRevenue = salesData.filter(s => s.sale_type === 'pos').reduce((sum, s) => sum + parseFloat(s.total_amount || 0), 0);
+    const canteenRevenue = salesData.filter(s => s.sale_type === 'canteen').reduce((sum, s) => sum + parseFloat(s.total_amount || 0), 0);
+    const roomRevenue = salesData.filter(s => s.sale_type === 'room_charge').reduce((sum, s) => sum + parseFloat(s.total_amount || 0), 0);
+    const staffRevenue = salesData.filter(s => s.sale_type === 'staff_purchase').reduce((sum, s) => sum + parseFloat(s.total_amount || 0), 0);
 
     const pairs = [
-      ['statTotal', total],
-      ['statPos', pos],
-      ['statCanteen', canteen],
-      ['statRoom', room]
+      ['statTotal', totalRevenue],
+      ['statPos', posRevenue],
+      ['statCanteen', canteenRevenue],
+      ['statRoom', roomRevenue],
+      ['statStaff', staffRevenue]
     ];
 
     pairs.forEach(([id, end]) => {
       const el = document.getElementById(id);
       if (!el) return;
-      if (end === 0) { el.textContent = '0'; return; }
-      let start = 0, step = Math.max(1, Math.ceil(end / 20));
+      if (end === 0) {
+        el.textContent = '₱0.00';
+        return;
+      }
+      let start = 0,
+        step = Math.max(0.01, end / 20);
       const timer = setInterval(() => {
         start = Math.min(start + step, end);
-        el.textContent = start;
+        el.textContent = '₱' + start.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         if (start >= end) clearInterval(timer);
       }, 25);
     });
@@ -407,7 +968,11 @@
 
     tbody.innerHTML = paginatedData.map(sale => {
       const badgeClass = badgeClasses[sale.payment_status] || 'unpaid';
-      const dateStr = sale.sale_date ? new Date(sale.sale_date).toLocaleDateString('en-US', {month:'short', day:'2-digit', year:'numeric'}) : '—';
+      const dateStr = sale.sale_date ? new Date(sale.sale_date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric'
+      }) : '—';
       const saleType = sale.sale_type ? sale.sale_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '—';
       return `
       <tr class="sale-row">
@@ -512,7 +1077,11 @@
     if (!sale) return;
 
     const badgeClass = badgeClasses[sale.payment_status] || 'unpaid';
-    const dateStr = sale.sale_date ? new Date(sale.sale_date).toLocaleDateString('en-US', {month:'short', day:'2-digit', year:'numeric'}) : '—';
+    const dateStr = sale.sale_date ? new Date(sale.sale_date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric'
+    }) : '—';
     const saleType = sale.sale_type ? sale.sale_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '—';
 
     const overlay = document.getElementById('viewSaleOverlay');
@@ -557,18 +1126,27 @@
     const form = document.getElementById('addSaleForm');
     const formData = new FormData(form);
     formData.append('action', 'add_inventory_sale');
+    formData.append('csrf_token', csrfToken);
 
-    fetch('../api/inventory_sales.php', { method: 'POST', body: formData })
+    fetch('../api/inventory_sales.php', {
+        method: 'POST',
+        body: formData
+      })
       .then(r => r.json())
       .then(data => {
         closeAddSaleModal();
         if (data.success) {
+          showToast('Sale created successfully', 'success');
           fetchSales();
         } else {
-          alert(data.message || 'Error creating sale');
+          showToast(data.message || 'Error creating sale', 'error');
         }
       })
-      .catch(e => { closeAddSaleModal(); alert('Error creating sale'); console.error(e); });
+      .catch(e => {
+        closeAddSaleModal();
+        showToast('Error creating sale', 'error');
+        console.error(e);
+      });
   }
 
   // Edit Sale Modal
@@ -600,18 +1178,27 @@
     const form = document.getElementById('editSaleForm');
     const formData = new FormData(form);
     formData.append('action', 'edit_inventory_sale');
+    formData.append('csrf_token', csrfToken);
 
-    fetch('../api/inventory_sales.php', { method: 'POST', body: formData })
+    fetch('../api/inventory_sales.php', {
+        method: 'POST',
+        body: formData
+      })
       .then(r => r.json())
       .then(data => {
         closeEditSaleModal();
         if (data.success) {
+          showToast('Sale updated successfully', 'success');
           fetchSales();
         } else {
-          alert(data.message || 'Error updating sale');
+          showToast(data.message || 'Error updating sale', 'error');
         }
       })
-      .catch(e => { closeEditSaleModal(); alert('Error updating sale'); console.error(e); });
+      .catch(e => {
+        closeEditSaleModal();
+        showToast('Error updating sale', 'error');
+        console.error(e);
+      });
   }
 
   // Delete Sale
@@ -623,17 +1210,25 @@
     const formData = new FormData();
     formData.append('action', 'delete_inventory_sale');
     formData.append('sale_id', saleId);
+    formData.append('csrf_token', csrfToken);
 
-    fetch('../api/inventory_sales.php', { method: 'POST', body: formData })
+    fetch('../api/inventory_sales.php', {
+        method: 'POST',
+        body: formData
+      })
       .then(r => r.json())
       .then(data => {
         if (data.success) {
+          showToast('Sale deleted successfully', 'success');
           fetchSales();
         } else {
-          alert(data.message || 'Error deleting sale');
+          showToast(data.message || 'Error deleting sale', 'error');
         }
       })
-      .catch(e => { alert('Error deleting sale'); console.error(e); });
+      .catch(e => {
+        showToast('Error deleting sale', 'error');
+        console.error(e);
+      });
   }
 
   document.addEventListener('DOMContentLoaded', () => {

@@ -574,9 +574,9 @@
 
   function renderStats() {
     const total = transactionsData.length;
-    const stockIn = transactionsData.filter(t => ['stock_in', 'stock_in_manual', 'adjustment_add'].includes(t.transaction_type)).length;
-    const stockOut = transactionsData.filter(t => ['stock_out_sale', 'stock_out_use', 'stock_out_damage', 'adjustment_deduct'].includes(t.transaction_type)).length;
-    const transfers = transactionsData.filter(t => ['transfer_out', 'transfer_in'].includes(t.transaction_type)).length;
+    const stockIn = transactionsData.filter(t => ['add', 'rollback', 'stock_in', 'stock_in_manual', 'adjustment_add'].includes(t.transaction_type)).length;
+    const stockOut = transactionsData.filter(t => ['deduct', 'stock_out_sale', 'stock_out_use', 'stock_out_damage', 'adjustment_deduct'].includes(t.transaction_type)).length;
+    const transfers = transactionsData.filter(t => ['transfer_out', 'transfer_in', 'transfer'].includes(t.transaction_type)).length;
 
     const pairs = [
       ['statTotal', total],
@@ -603,27 +603,35 @@
   }
 
   const badgeClasses = {
+    'add': 'in',
     'stock_in': 'in',
     'stock_in_manual': 'in',
     'adjustment_add': 'in',
+    'deduct': 'out',
+    'rollback': 'in',
     'stock_out_sale': 'out',
     'stock_out_use': 'out',
     'stock_out_damage': 'out',
     'adjustment_deduct': 'out',
     'transfer_out': 'transfer',
-    'transfer_in': 'transfer'
+    'transfer_in': 'transfer',
+    'transfer': 'transfer'
   };
 
   const directionLabels = {
+    'add': 'In',
     'stock_in': 'In',
     'stock_in_manual': 'In',
     'adjustment_add': 'In',
+    'deduct': 'Out',
+    'rollback': 'In',
     'stock_out_sale': 'Out',
     'stock_out_use': 'Out',
     'stock_out_damage': 'Out',
     'adjustment_deduct': 'Out',
     'transfer_out': 'Transfer',
-    'transfer_in': 'Transfer'
+    'transfer_in': 'Transfer',
+    'transfer': 'Transfer'
   };
 
   function renderTable() {
@@ -674,7 +682,7 @@
             </div>
           </div>
         </td>
-        <td><span class="txn-name-primary">${txn.location_name}</span></td>
+        <td><span class="txn-name-primary">${txn.location_name || (txn.reference_type ? txn.reference_type.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) : '—')}</span></td>
         <td style="text-align:right"><span class="txn-name-primary" style="font-family:var(--prod-mono)">${parseFloat(txn.quantity).toFixed(3)}</span></td>
         <td style="text-align:center"><span class="txn-badge ${badgeClass}">${direction}</span></td>
         <td>
@@ -741,9 +749,11 @@
       filteredData = [...transactionsData];
     } else {
       filteredData = transactionsData.filter(t =>
-        t.product_name.toLowerCase().includes(filter) ||
-        t.location_name.toLowerCase().includes(filter) ||
-        t.transaction_type.toLowerCase().includes(filter)
+        (t.product_name || '').toLowerCase().includes(filter) ||
+        (t.location_name || '').toLowerCase().includes(filter) ||
+        (t.transaction_type || '').toLowerCase().includes(filter) ||
+        (t.reference_type || '').toLowerCase().includes(filter) ||
+        (t.created_by_name || '').toLowerCase().includes(filter)
       );
     }
 
@@ -774,7 +784,21 @@
 
     let referenceInfo = '';
     if (txn.reference_type && txn.reference_id) {
-      referenceInfo = `<div style="margin-bottom:12px"><strong style="color:var(--color-text-secondary);font-size:11px;text-transform:uppercase">Reference</strong><div>${txn.reference_type} #${txn.reference_id}</div></div>`;
+      referenceInfo = `<div style="margin-bottom:12px"><strong style="color:var(--color-text-secondary);font-size:11px;text-transform:uppercase">Reference</strong><div>${txn.reference_type.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())} — ${txn.reference_id}</div></div>`;
+    }
+
+    let stockChangeInfo = '';
+    if (txn.stock_before !== null && txn.stock_after !== null) {
+      stockChangeInfo = `
+        <div style="margin-bottom:12px;padding:12px;background:var(--color-background-secondary,#F8FAFC);border-radius:8px">
+          <strong style="color:var(--color-text-secondary);font-size:11px;text-transform:uppercase;display:block;margin-bottom:8px">Stock Change</strong>
+          <div style="display:flex;align-items:center;gap:12px;font-family:var(--prod-mono);font-size:14px">
+            <span>${parseFloat(txn.stock_before).toFixed(3)}</span>
+            <span style="color:var(--color-text-secondary)">→</span>
+            <span style="font-weight:600;color:${parseFloat(txn.stock_after) >= parseFloat(txn.stock_before) ? 'var(--prod-green)' : 'var(--prod-red)'}">${parseFloat(txn.stock_after).toFixed(3)}</span>
+            <span style="font-size:12px;color:var(--color-text-secondary)">${txn.uom_name || ''}</span>
+          </div>
+        </div>`;
     }
 
     let notesInfo = '';
@@ -808,15 +832,14 @@
               <strong style="color:var(--color-text-secondary);font-size:11px;text-transform:uppercase">Product</strong>
               <div>${txn.product_name}</div>
             </div>
-            <div style="margin-bottom:12px">
-              <strong style="color:var(--color-text-secondary);font-size:11px;text-transform:uppercase">Location</strong>
-              <div>${txn.location_name}</div>
-            </div>
+            ${txn.location_name ? `<div style="margin-bottom:12px"><strong style="color:var(--color-text-secondary);font-size:11px;text-transform:uppercase">Location</strong><div>${txn.location_name}</div></div>` : ''}
             <div style="margin-bottom:12px">
               <strong style="color:var(--color-text-secondary);font-size:11px;text-transform:uppercase">Quantity</strong>
               <div style="font-family:var(--prod-mono);font-size:18px;font-weight:600">${parseFloat(txn.quantity).toFixed(3)}</div>
             </div>
+            ${stockChangeInfo}
             ${referenceInfo}
+            ${txn.created_by_name ? `<div style="margin-bottom:12px"><strong style="color:var(--color-text-secondary);font-size:11px;text-transform:uppercase">Performed By</strong><div>${txn.created_by_name}</div></div>` : ''}
             ${notesInfo}
           </div>
         </div>

@@ -509,7 +509,7 @@
           <i class="fas fa-search"></i>
           <input type="text" id="searchInput" class="trf-search" placeholder="Search transfers…" oninput="filterTable()">
         </div>
-        <button onclick="openAddTransferModal()" class="trf-btn trf-btn-primary">
+        <button onclick="openAddTransferModal()" class="trf-btn trf-btn-primary" id="addTransferBtn">
           <i class="fas fa-plus"></i> New Transfer
         </button>
       </div>
@@ -584,6 +584,14 @@
     }
   }
 
+  function applyPermissions() {
+    const canCreate = userPermissions.includes('create_stock_transfer') || ['super_admin', 'admin', 'manager'].includes(userRole);
+    const addBtn = document.getElementById('addTransferBtn');
+    if (addBtn) {
+      addBtn.style.display = canCreate ? 'inline-flex' : 'none';
+    }
+  }
+
   function renderStats() {
     const total = transfersData.length;
     const pending = transfersData.filter(t => t.transfer_status === 'pending').length;
@@ -621,6 +629,46 @@
     'cancelled': 'cancelled'
   };
 
+  const csrfToken = '<?php echo htmlspecialchars(CSRF_TOKEN, ENT_QUOTES, 'UTF-8'); ?>';
+  const userPermissions = <?php echo isset($_SESSION['permissions']) ? json_encode($_SESSION['permissions']) : '[]'; ?>;
+  const userRole = '<?php echo $_SESSION['role_code'] ?? ''; ?>';
+
+  function showTrfAlert(title, message, onConfirm) {
+    document.getElementById('trfAlertTitle').textContent = title;
+    document.getElementById('trfAlertMessage').textContent = message;
+    document.getElementById('trfAlertModal').classList.add('open');
+
+    const confirmBtn = document.getElementById('trfAlertConfirmBtn');
+    confirmBtn.onclick = function() {
+      closeTrfAlert();
+      if (onConfirm) onConfirm();
+    };
+  }
+
+  function closeTrfAlert() {
+    document.getElementById('trfAlertModal').classList.remove('open');
+  }
+
+  function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position: fixed; top: 20px; right: 20px; z-index: 10000;
+      padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 500;
+      color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: slideIn 0.3s ease-out;
+    `;
+    toast.textContent = message;
+    if (type === 'success') toast.style.background = 'var(--prod-green, #2E7D32)';
+    else if (type === 'error') toast.style.background = 'var(--prod-red, #C62828)';
+    else toast.style.background = 'var(--prod-blue, #1A6BBF)';
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.3s';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
   function renderTable() {
     const tbody = document.getElementById('transfersTableBody');
     const count = document.getElementById('tableCount');
@@ -657,6 +705,25 @@
       }) : '—';
       const transferLabel = trf.transfer_number || trf.transfer_id.substring(0, 8).toUpperCase();
       const productNames = (trf.items && trf.items.length) ? trf.items.map(i => i.product_name).join(', ') : '—';
+
+      // Permission checks
+      const canEdit = userPermissions.includes('edit_stock_transfer') || ['super_admin', 'admin'].includes(userRole);
+      const canUpdateStatus = userPermissions.includes('update_stock_transfer_status') || ['super_admin', 'admin', 'manager'].includes(userRole);
+
+      let actionsHtml = '<button onclick="viewTransferDetails(\'' + trf.transfer_id + '\')" class="trf-action-btn view"><i class="fas fa-eye"></i> View</button>';
+      if (canEdit) {
+        actionsHtml += '<button onclick="openEditTransferModal(\'' + trf.transfer_id + '\')" class="trf-action-btn edit"><i class="fas fa-pen"></i> Edit</button>';
+      }
+      if (canUpdateStatus) {
+        actionsHtml += `<select onchange="updateTransferStatus('${trf.transfer_id}', this.value)" class="trf-status-select" style="margin-left:5px;padding:4px 8px;font-size:11px;border-radius:4px;border:1px solid rgba(0,0,0,.12);">
+              <option value="">Status...</option>
+              <option value="pending">Pending</option>
+              <option value="in_transit">In Transit</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>`;
+      }
+
       return `
       <tr class="trf-row">
         <td>
@@ -672,10 +739,7 @@
         <td><span class="trf-name-secondary">${dateStr}</span></td>
         <td style="text-align:center"><span class="trf-badge ${badgeClass}">${trf.transfer_status.replace(/_/g, ' ')}</span></td>
         <td>
-          <div class="trf-actions">
-            <button onclick="viewTransferDetails('${trf.transfer_id}')" class="trf-action-btn view"><i class="fas fa-eye"></i> View</button>
-            <button onclick="openEditTransferModal('${trf.transfer_id}')" class="trf-action-btn edit"><i class="fas fa-pen"></i> Edit</button>
-          </div>
+          <div class="trf-actions">${actionsHtml}</div>
         </td>
       </tr>`;
     }).join('');
@@ -692,6 +756,33 @@
     if (page < 1 || page > totalPages) return;
     currentPage = page;
     renderTable();
+  }
+
+  function updateTransferStatus(transferId, newStatus) {
+    if (!newStatus) return;
+
+    showTrfAlert('Confirm Status Change', `Are you sure you want to change the transfer status to "${newStatus.replace(/_/g, ' ')}"?`, () => {
+      fetch('../api/stock_transfers.php?action=update_status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_status',
+          csrf_token: csrfToken,
+          transfer_id: transferId,
+          transfer_status: newStatus
+        })
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            showToast('Transfer status updated successfully', 'success');
+            fetchTransfers();
+          } else {
+            showToast(data.message || 'Error updating status', 'error');
+          }
+        })
+        .catch(e => { showToast('Error updating status', 'error'); console.error(e); });
+    });
   }
 
   function renderPagination(totalPages, start, end, total) {
@@ -749,14 +840,102 @@
   }
 
   function populateDropdowns() {
-    const productSelects = document.querySelectorAll('select[name="product_id"]');
     const fromLocSelects = document.querySelectorAll('select[name="from_location_id"]');
     const toLocSelects = document.querySelectorAll('select[name="to_location_id"]');
-    const prodOptions = '<option value="">Select Product</option>' + productsData.map(p => `<option value="${p.product_id}">${p.product_name}</option>`).join('');
-    const locOptions = '<option value="">Select Location</option>' + locationsData.map(l => `<option value="${l.location_id}">${l.location_name}</option>`).join('');
-    productSelects.forEach(sel => sel.innerHTML = prodOptions);
+    const uomSelects = document.querySelectorAll('select[name="uom_id"]');
+
+    // Populate product datalists (value = product_id, label = product_name only)
+    const productDatalistAdd = document.getElementById('product_search_list');
+    const productDatalistEdit = document.getElementById('product_search_list_edit');
+    const prodOptions = productsData.map(p => `<option value="${p.product_name}" data-id="${p.product_id}"></option>`).join('');
+    if (productDatalistAdd) productDatalistAdd.innerHTML = prodOptions;
+    if (productDatalistEdit) productDatalistEdit.innerHTML = prodOptions;
+
+    // Populate location dropdowns
+    const locOptions = '<option value="">Select Location</option>' + locationsData.map(l => `<option value="${l.location_id}">${l.location_name} (${l.property_name || ''})</option>`).join('');
     fromLocSelects.forEach(sel => sel.innerHTML = locOptions);
     toLocSelects.forEach(sel => sel.innerHTML = locOptions);
+
+    // Populate UOM dropdowns (initially all UOMs)
+    const uomOptions = '<option value="">Select UOM</option>' + uomsData.map(u => `<option value="${u.uom_id}">${u.uom_name}</option>`).join('');
+    uomSelects.forEach(sel => sel.innerHTML = uomOptions);
+  }
+
+  function updateProductIdFromName(input, modalType) {
+    const productName = input.value;
+    const hiddenInput = document.getElementById(`${modalType}_product_id`);
+    const uomSelect = input.closest('form').querySelector('select[name="uom_id"]');
+
+    const product = productsData.find(p => p.product_name === productName);
+
+    if (product) {
+      hiddenInput.value = product.product_id;
+
+      // Filter UOM dropdown to only show base UOM and product's conversions
+      if (uomSelect) {
+        const allowedUomIds = new Set();
+        allowedUomIds.add(product.base_uom_id);
+
+        // Add all UOMs from conversions
+        if (product.uom_conversions && product.uom_conversions.length) {
+          product.uom_conversions.forEach(conv => {
+            allowedUomIds.add(conv.from_uom_id);
+            allowedUomIds.add(conv.to_uom_id);
+          });
+        }
+
+        // Filter and sort UOMs (base first, then others)
+        const baseUom = uomsData.find(u => u.uom_id == product.base_uom_id);
+        const otherUoms = uomsData.filter(u => allowedUomIds.has(u.uom_id) && u.uom_id != product.base_uom_id);
+        const sortedUoms = baseUom ? [baseUom, ...otherUoms] : otherUoms;
+        const options = '<option value="">Select UOM</option>' + sortedUoms.map(u => `<option value="${u.uom_id}">${u.uom_name}</option>`).join('');
+        uomSelect.innerHTML = options;
+        if (baseUom) uomSelect.value = baseUom.uom_id;
+      }
+
+      // Update location stock displays
+      const fromLocSelect = input.closest('form').querySelector('select[name="from_location_id"]');
+      const toLocSelect = input.closest('form').querySelector('select[name="to_location_id"]');
+      if (fromLocSelect) updateLocationStock(fromLocSelect, modalType, 'from');
+      if (toLocSelect) updateLocationStock(toLocSelect, modalType, 'to');
+    } else {
+      hiddenInput.value = '';
+      // Reset UOM dropdown to all UOMs if no product selected
+      if (uomSelect) {
+        const uomOptions = '<option value="">Select UOM</option>' + uomsData.map(u => `<option value="${u.uom_id}">${u.uom_name}</option>`).join('');
+        uomSelect.innerHTML = uomOptions;
+      }
+      // Clear stock displays
+      document.getElementById(`${modalType}_from_location_stock`).textContent = '';
+      document.getElementById(`${modalType}_to_location_stock`).textContent = '';
+    }
+  }
+
+  function updateLocationStock(select, modalType, direction) {
+    const locationId = parseInt(select.value);
+    const productId = document.getElementById(`${modalType}_product_id`).value;
+    const stockDisplay = document.getElementById(`${modalType}_${direction}_location_stock`);
+
+    if (!productId || !locationId) {
+      stockDisplay.textContent = '';
+      return;
+    }
+
+    const product = productsData.find(p => p.product_id === productId);
+    if (!product) return;
+
+    // Get location-specific stock from product_stock_per_location
+    const stock = (product.location_stock && product.location_stock[locationId]) ? product.location_stock[locationId] : 0;
+    const uom = uomsData.find(u => u.uom_id == product.base_uom_id);
+    const uomName = uom ? uom.uom_name : '';
+
+    if (stock > 0) {
+      stockDisplay.innerHTML = `<span style="color:var(--prod-green)">Current Stock: ${parseFloat(stock).toFixed(3)} ${uomName}</span>`;
+    } else if (stock === 0) {
+      stockDisplay.innerHTML = `<span style="color:var(--prod-amber)">Current Stock: 0 ${uomName}</span>`;
+    } else {
+      stockDisplay.innerHTML = `<span style="color:var(--prod-red)">Current Stock: ${parseFloat(stock).toFixed(3)} ${uomName}</span>`;
+    }
   }
 
   // View Transfer Details
@@ -810,19 +989,42 @@
     event.preventDefault();
     const form = document.getElementById('addTransferForm');
     const formData = new FormData(form);
-    formData.append('action', 'add');
+    formData.append('action', 'create');
 
-    fetch('../api/stock_transfers.php', { method: 'POST', body: formData })
+    // Build items array
+    const items = [{
+      product_id: form.elements['product_id'].value,
+      uom_id: form.elements['uom_id'].value,
+      quantity_requested: parseFloat(form.elements['quantity'].value) || 0
+    }];
+
+    const payload = {
+      action: 'create',
+      csrf_token: csrfToken,
+      from_location_id: form.elements['from_location_id'].value,
+      to_location_id: form.elements['to_location_id'].value,
+      transfer_date: form.elements['transfer_date'].value,
+      transfer_status: form.elements['transfer_status'].value || 'pending',
+      notes: form.elements['notes'].value,
+      items: items
+    };
+
+    fetch('../api/stock_transfers.php?action=create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
       .then(r => r.json())
       .then(data => {
         closeAddTransferModal();
         if (data.success) {
+          showToast('Transfer created successfully', 'success');
           fetchTransfers();
         } else {
-          alert(data.message || 'Error creating transfer');
+          showToast(data.message || 'Error creating transfer', 'error');
         }
       })
-      .catch(e => { closeAddTransferModal(); alert('Error creating transfer'); console.error(e); });
+      .catch(e => { closeAddTransferModal(); showToast('Error creating transfer', 'error'); console.error(e); });
   }
 
   // Edit Transfer Modal
@@ -833,13 +1035,25 @@
     document.getElementById('editTransferId').value = trf.transfer_id;
     const form = document.getElementById('editTransferForm');
     const firstItem = (trf.items && trf.items.length) ? trf.items[0] : {};
-    form.elements['product_id'].value = firstItem.product_id || '';
+
+    // Populate product fields
+    document.getElementById('edit_product_id').value = firstItem.product_id || '';
+    const product = productsData.find(p => p.product_id === firstItem.product_id);
+    document.getElementById('edit_product_name').value = product ? product.product_name : '';
+
+    form.elements['uom_id'].value = firstItem.uom_id || '';
     form.elements['from_location_id'].value = trf.from_location_id || '';
     form.elements['to_location_id'].value = trf.to_location_id || '';
     form.elements['quantity'].value = firstItem.quantity || '';
     form.elements['transfer_date'].value = (trf.transfer_date || '').split(' ')[0];
     form.elements['transfer_status'].value = trf.transfer_status;
     form.elements['notes'].value = trf.notes || '';
+
+    // Update stock displays
+    const fromLocSelect = form.querySelector('select[name="from_location_id"]');
+    const toLocSelect = form.querySelector('select[name="to_location_id"]');
+    if (fromLocSelect) updateLocationStock(fromLocSelect, 'edit', 'from');
+    if (toLocSelect) updateLocationStock(toLocSelect, 'edit', 'to');
 
     document.getElementById('editTransferOverlay').classList.add('open');
   }
@@ -855,20 +1069,45 @@
     const formData = new FormData(form);
     formData.append('action', 'edit');
 
-    fetch('../api/stock_transfers.php', { method: 'POST', body: formData })
+    // Build items array
+    const items = [{
+      product_id: form.elements['product_id'].value,
+      uom_id: form.elements['uom_id'].value,
+      quantity_requested: parseFloat(form.elements['quantity'].value) || 0
+    }];
+
+    const payload = {
+      action: 'edit',
+      csrf_token: csrfToken,
+      transfer_id: form.elements['transfer_id'].value,
+      from_location_id: form.elements['from_location_id'].value,
+      to_location_id: form.elements['to_location_id'].value,
+      transfer_date: form.elements['transfer_date'].value,
+      transfer_status: form.elements['transfer_status'].value,
+      notes: form.elements['notes'].value,
+      items: items
+    };
+
+    fetch('../api/stock_transfers.php?action=edit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
       .then(r => r.json())
       .then(data => {
         closeEditTransferModal();
         if (data.success) {
+          showToast('Transfer updated successfully', 'success');
           fetchTransfers();
         } else {
-          alert(data.message || 'Error updating transfer');
+          showToast(data.message || 'Error updating transfer', 'error');
         }
       })
-      .catch(e => { closeEditTransferModal(); alert('Error updating transfer'); console.error(e); });
+      .catch(e => { closeEditTransferModal(); showToast('Error updating transfer', 'error'); console.error(e); });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    applyPermissions();
     fetchTransfers();
     fetchRelated();
   });
@@ -900,7 +1139,9 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
           <div style="display:flex;flex-direction:column;gap:6px;">
             <label style="font-size:11px;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.07em;">Product <span style="color:var(--prod-red)">*</span></label>
-            <select name="product_id" class="trf-search" style="width:100%;padding-left:13px;" required><option value="">Select Product</option></select>
+            <input type="hidden" name="product_id" id="add_product_id">
+            <input type="text" id="add_product_name" class="trf-search" list="product_search_list" style="width:100%;padding-left:13px;" placeholder="Search product..." required oninput="updateProductIdFromName(this, 'add')">
+            <datalist id="product_search_list"></datalist>
           </div>
           <div style="display:flex;flex-direction:column;gap:6px;">
             <label style="font-size:11px;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.07em;">Quantity <span style="color:var(--prod-red)">*</span></label>
@@ -909,12 +1150,21 @@
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
           <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:11px;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.07em;">UOM <span style="color:var(--prod-red)">*</span></label>
+            <select name="uom_id" class="trf-search" style="width:100%;padding-left:13px;" required><option value="">Select UOM</option></select>
+          </div>
+          <div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+          <div style="display:flex;flex-direction:column;gap:6px;">
             <label style="font-size:11px;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.07em;">From Location <span style="color:var(--prod-red)">*</span></label>
-            <select name="from_location_id" class="trf-search" style="width:100%;padding-left:13px;" required><option value="">Select Location</option></select>
+            <select name="from_location_id" class="trf-search" style="width:100%;padding-left:13px;" required onchange="updateLocationStock(this, 'add', 'from')"><option value="">Select Location</option></select>
+            <div id="add_from_location_stock" style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;"></div>
           </div>
           <div style="display:flex;flex-direction:column;gap:6px;">
             <label style="font-size:11px;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.07em;">To Location <span style="color:var(--prod-red)">*</span></label>
-            <select name="to_location_id" class="trf-search" style="width:100%;padding-left:13px;" required><option value="">Select Location</option></select>
+            <select name="to_location_id" class="trf-search" style="width:100%;padding-left:13px;" required onchange="updateLocationStock(this, 'add', 'to')"><option value="">Select Location</option></select>
+            <div id="add_to_location_stock" style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;"></div>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
@@ -957,7 +1207,9 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
           <div style="display:flex;flex-direction:column;gap:6px;">
             <label style="font-size:11px;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.07em;">Product <span style="color:var(--prod-red)">*</span></label>
-            <select name="product_id" class="trf-search" style="width:100%;padding-left:13px;" required><option value="">Select Product</option></select>
+            <input type="hidden" name="product_id" id="edit_product_id">
+            <input type="text" id="edit_product_name" class="trf-search" list="product_search_list_edit" style="width:100%;padding-left:13px;" placeholder="Search product..." required oninput="updateProductIdFromName(this, 'edit')">
+            <datalist id="product_search_list_edit"></datalist>
           </div>
           <div style="display:flex;flex-direction:column;gap:6px;">
             <label style="font-size:11px;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.07em;">Quantity <span style="color:var(--prod-red)">*</span></label>
@@ -966,12 +1218,21 @@
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
           <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:11px;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.07em;">UOM <span style="color:var(--prod-red)">*</span></label>
+            <select name="uom_id" class="trf-search" style="width:100%;padding-left:13px;" required><option value="">Select UOM</option></select>
+          </div>
+          <div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+          <div style="display:flex;flex-direction:column;gap:6px;">
             <label style="font-size:11px;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.07em;">From Location <span style="color:var(--prod-red)">*</span></label>
-            <select name="from_location_id" class="trf-search" style="width:100%;padding-left:13px;" required><option value="">Select Location</option></select>
+            <select name="from_location_id" class="trf-search" style="width:100%;padding-left:13px;" required onchange="updateLocationStock(this, 'edit', 'from')"><option value="">Select Location</option></select>
+            <div id="edit_from_location_stock" style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;"></div>
           </div>
           <div style="display:flex;flex-direction:column;gap:6px;">
             <label style="font-size:11px;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.07em;">To Location <span style="color:var(--prod-red)">*</span></label>
-            <select name="to_location_id" class="trf-search" style="width:100%;padding-left:13px;" required><option value="">Select Location</option></select>
+            <select name="to_location_id" class="trf-search" style="width:100%;padding-left:13px;" required onchange="updateLocationStock(this, 'edit', 'to')"><option value="">Select Location</option></select>
+            <div id="edit_to_location_stock" style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;"></div>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
@@ -1004,4 +1265,91 @@
 
 <style>
   .trf-overlay.open { display: flex !important; }
+
+  /* Custom Alert Modal */
+  .trf-alert-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+  }
+
+  .trf-alert-overlay.open { display: flex; }
+
+  .trf-alert-box {
+    background: var(--color-background-primary, #fff);
+    border-radius: var(--prod-radius-lg);
+    box-shadow: var(--prod-shadow-lg);
+    max-width: 400px;
+    width: 100%;
+    padding: 24px;
+    animation: trfAlertIn .2s cubic-bezier(.22,.68,0,1.2);
+  }
+
+  @keyframes trfAlertIn {
+    from { opacity: 0; transform: scale(.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .trf-alert-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 8px;
+  }
+
+  .trf-alert-message {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+
+  .trf-alert-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  .trf-alert-btn-cancel,
+  .trf-alert-btn-confirm {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: var(--prod-radius-md);
+    border: 1px solid rgba(0,0,0,.12);
+    background: var(--color-background-primary, #fff);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: all .15s;
+  }
+
+  .trf-alert-btn-cancel:hover { background: var(--color-background-secondary, #F8FAFC); }
+
+  .trf-alert-btn-confirm {
+    background: var(--prod-blue);
+    color: #fff;
+    border-color: var(--prod-blue);
+  }
+
+  .trf-alert-btn-confirm:hover {
+    background: var(--prod-blue-dark);
+    border-color: var(--prod-blue-dark);
+  }
 </style>
+
+<!-- Custom Alert Modal -->
+<div class="trf-alert-overlay" id="trfAlertModal">
+  <div class="trf-alert-box">
+    <div class="trf-alert-title" id="trfAlertTitle">Confirm Action</div>
+    <div class="trf-alert-message" id="trfAlertMessage">Are you sure you want to proceed?</div>
+    <div class="trf-alert-actions">
+      <button class="trf-alert-btn-cancel" onclick="closeTrfAlert()">Cancel</button>
+      <button class="trf-alert-btn-confirm" id="trfAlertConfirmBtn">Confirm</button>
+    </div>
+  </div>
+</div>

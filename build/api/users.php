@@ -30,6 +30,21 @@ try {
                 ");
                 echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
 
+            } elseif ($action === 'list_staff') {
+                $stmt = $pdo->query("
+                    SELECT ua.user_id, ua.email, ua.phone_number, ua.account_status,
+                           ua.role_id, ur.role_label, ur.role_code,
+                           up.first_name, up.last_name, up.profile_photo_url
+                    FROM user_accounts ua
+                    LEFT JOIN user_profiles up ON ua.user_id = up.user_id
+                    LEFT JOIN user_roles ur ON ua.role_id = ur.role_id
+                    WHERE ua.deleted_at IS NULL
+                      AND ua.account_status = 'active'
+                      AND ur.role_code != 'customer'
+                    ORDER BY up.first_name ASC, up.last_name ASC
+                ");
+                echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+
             } elseif ($action === 'roles') {
                 $stmt = $pdo->query("SELECT role_id, role_code, role_label FROM user_roles WHERE is_active = 1 ORDER BY role_id ASC");
                 echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);

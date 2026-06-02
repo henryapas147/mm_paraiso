@@ -233,7 +233,7 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
       // Get current stock and product UOM
-      $stmt = $pdo->prepare("SELECT stock_on_hand, uom_id FROM products WHERE product_id = ?");
+      $stmt = $pdo->prepare("SELECT current_stock, stock_on_hand, uom_id FROM products WHERE product_id = ?");
       $stmt->execute([$productId]);
       $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -241,15 +241,18 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
         throw new Exception('Product not found');
       }
 
-      $stockBefore = $product['stock_on_hand'];
+      $currentStockBefore = $product['current_stock'];
+      $stockOnHandBefore = $product['stock_on_hand'];
       $uomId = $product['uom_id'];
 
       // Calculate new stock
       if ($transactionType === 'add') {
-        $stockAfter = $stockBefore + $quantity;
+        $currentStockAfter = $currentStockBefore + $quantity;
+        $stockOnHandAfter = $stockOnHandBefore + $quantity;
       } else {
-        $stockAfter = $stockBefore - $quantity;
-        if ($stockAfter < 0) {
+        $currentStockAfter = $currentStockBefore - $quantity;
+        $stockOnHandAfter = $stockOnHandBefore - $quantity;
+        if ($stockOnHandAfter < 0) {
           throw new Exception('Insufficient stock for deduction');
         }
       }
@@ -260,9 +263,9 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
         mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
         mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
 
-      // Update product stock
-      $updateStmt = $pdo->prepare("UPDATE products SET stock_on_hand = ? WHERE product_id = ?");
-      $updateStmt->execute([$stockAfter, $productId]);
+      // Update product stock (both columns)
+      $updateStmt = $pdo->prepare("UPDATE products SET current_stock=?, stock_on_hand=? WHERE product_id = ?");
+      $updateStmt->execute([$currentStockAfter, $stockOnHandAfter, $productId]);
 
       // Record transaction
       $transStmt = $pdo->prepare("
@@ -270,7 +273,7 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
         (transaction_id, product_id, transaction_type, quantity, uom_id, reference_type, reason, stock_before, stock_after, created_by)
         VALUES (?, ?, ?, ?, ?, 'manual_adjustment', ?, ?, ?, ?)
       ");
-      $transStmt->execute([$transactionId, $productId, $transactionType, $quantity, $uomId, $reason, $stockBefore, $stockAfter, $userId]);
+      $transStmt->execute([$transactionId, $productId, $transactionType, $quantity, $uomId, $reason, $currentStockBefore, $currentStockAfter, $userId]);
 
       $pdo->commit();
       echo json_encode(['success' => true, 'message' => 'Stock adjusted successfully', 'transaction_id' => $transactionId]);
@@ -296,7 +299,7 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
       // Get recipe ingredients
       $stmt = $pdo->prepare("
-        SELECT ri.product_id, ri.quantity, ri.uom_id, p.stock_on_hand, p.uom_id as base_uom_id
+        SELECT ri.product_id, ri.quantity, ri.uom_id, p.current_stock, p.stock_on_hand, p.uom_id as base_uom_id
         FROM recipe_ingredients ri
         JOIN products p ON ri.product_id = p.product_id
         WHERE ri.recipe_id = (SELECT recipe_id FROM recipes WHERE item_id = ?)
@@ -310,13 +313,13 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       foreach ($ingredients as $ing) {
         $requiredQty = $ing['quantity'] * $quantity;
-        $stockBefore = $ing['stock_on_hand'];
+        $currentStockBefore = $ing['current_stock'];
+        $stockOnHandBefore = $ing['stock_on_hand'];
         $baseUomId = $ing['base_uom_id'];
 
         // Handle NULL stock
-        if ($stockBefore === null) {
-          $stockBefore = 0;
-        }
+        if ($currentStockBefore === null) $currentStockBefore = 0;
+        if ($stockOnHandBefore === null) $stockOnHandBefore = 0;
 
         // Convert to base UOM if needed
         if ($ing['uom_id'] != $baseUomId) {
@@ -331,8 +334,9 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
           }
         }
 
-        $stockAfter = $stockBefore - $requiredQty;
-        if ($stockAfter < 0) {
+        $currentStockAfter = $currentStockBefore - $requiredQty;
+        $stockOnHandAfter = $stockOnHandBefore - $requiredQty;
+        if ($stockOnHandAfter < 0) {
           throw new Exception('Insufficient stock for product: ' . $ing['product_id']);
         }
 
@@ -342,9 +346,9 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
           mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
           mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
 
-        // Update product stock
-        $updateStmt = $pdo->prepare("UPDATE products SET stock_on_hand = ? WHERE product_id = ?");
-        $updateStmt->execute([$stockAfter, $ing['product_id']]);
+        // Update product stock (both columns)
+        $updateStmt = $pdo->prepare("UPDATE products SET current_stock=?, stock_on_hand=? WHERE product_id = ?");
+        $updateStmt->execute([$currentStockAfter, $stockOnHandAfter, $ing['product_id']]);
 
         // Record transaction
         $transStmt = $pdo->prepare("
@@ -352,7 +356,7 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
           (transaction_id, product_id, transaction_type, quantity, uom_id, reference_type, reference_id, stock_before, stock_after, created_by)
           VALUES (?, ?, 'deduct', ?, ?, 'food_order', ?, ?, ?, ?)
         ");
-        $transStmt->execute([$transactionId, $ing['product_id'], $requiredQty, $baseUomId, $orderId, $stockBefore, $stockAfter, $_SESSION['user_id'] ?? null]);
+        $transStmt->execute([$transactionId, $ing['product_id'], $requiredQty, $baseUomId, $orderId, $currentStockBefore, $currentStockAfter, $_SESSION['user_id'] ?? null]);
       }
 
       $pdo->commit();
@@ -394,10 +398,13 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $uomId = $originalTrans['uom_id'];
 
       // Get current stock
-      $stockStmt = $pdo->prepare("SELECT stock_on_hand FROM products WHERE product_id = ?");
+      $stockStmt = $pdo->prepare("SELECT current_stock, stock_on_hand FROM products WHERE product_id = ?");
       $stockStmt->execute([$productId]);
-      $stockBefore = $stockStmt->fetchColumn();
+      $stockRow = $stockStmt->fetch(PDO::FETCH_ASSOC);
+      $stockBefore = $stockRow['stock_on_hand'];
+      $currentStockBefore = $stockRow['current_stock'];
       $stockAfter = $stockBefore + $quantity;
+      $currentStockAfter = $currentStockBefore + $quantity;
 
       // Generate UUID for rollback transaction
       $rollbackTransactionId = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
@@ -405,9 +412,9 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
         mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
         mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
 
-      // Update product stock
-      $updateStmt = $pdo->prepare("UPDATE products SET stock_on_hand = ? WHERE product_id = ?");
-      $updateStmt->execute([$stockAfter, $productId]);
+      // Update product stock (both columns)
+      $updateStmt = $pdo->prepare("UPDATE products SET current_stock = ?, stock_on_hand = ? WHERE product_id = ?");
+      $updateStmt->execute([$currentStockAfter, $stockAfter, $productId]);
 
       // Record rollback transaction
       $transStmt = $pdo->prepare("
