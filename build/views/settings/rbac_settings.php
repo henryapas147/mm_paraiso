@@ -520,6 +520,265 @@
     0%, 100% { opacity: 1 }
     50% { opacity: 0.5 }
   }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media (max-width: 640px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-card {
+      padding: 14px 16px;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-label {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-value {
+      font-size: 24px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .toolbar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    thead th {
+      padding: 8px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    td {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .status-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .role-name {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .role-meta {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .placeholder {
+      padding: 40px 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .placeholder i {
+      font-size: 28px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .panel-header {
+      padding: 14px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .panel-title {
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .panel-subtitle {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .perm-manager {
+      padding: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .perm-manager-title {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    label {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: 12px;
+      padding: 7px 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .search-input {
+      font-size: 12px;
+      padding: 7px 12px 7px 32px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .category-header {
+      padding: 6px 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .category-label {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .category-count {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .category-toggle {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .category-toggle input {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .category-row {
+      cursor: pointer;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .category-label i {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .perm-row {
+      cursor: default;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .perm-checkbox {
+      gap: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .perm-checkbox input {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .perm-code {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .perm-label {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .perm-action {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .toast {
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      font-size: 12px;
+      min-width: auto;
+    }
+  }
 </style>
 
 <!-- Toast -->

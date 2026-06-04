@@ -594,6 +594,228 @@
       grid-template-columns: 1fr;
     }
   }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media (max-width: 640px) {
+    .sale-page {
+      padding: 20px 16px 32px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-page-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-page-eyebrow {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-page-title {
+      font-size: 20px;
+    }
+  }
+
+  @media (max-width: 1200px) {
+    .sale-stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-stats-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-stat-card {
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-stat-icon {
+      width: 32px;
+      height: 32px;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-stat-label {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-stat-value {
+      font-size: 26px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .sale-card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .sale-toolbar {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .sale-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .sale-search {
+      width: 100%;
+      flex: 1;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .sale-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-table th {
+      padding: 10px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-table td {
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-avatar {
+      width: 32px;
+      height: 32px;
+      font-size: 12px;
+      margin-right: 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-name-primary {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-name-secondary {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-badge {
+      font-size: 10px;
+      padding: 3px 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-action-btn {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-empty {
+      padding: 48px 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-empty-icon {
+      font-size: 28px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-pagination-wrap {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      padding: 12px 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sale-pagination {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .sale-modal {
+      max-width: 90vw;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .sale-modal {
+      max-width: none;
+      max-height: 95vh;
+      border-radius: var(--prod-radius-lg);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .sale-modal-body {
+      padding: 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .sale-modal-body {
+      padding: 18px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .sale-modal-footer {
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .sale-modal-footer .sale-btn {
+      width: 100%;
+    }
+  }
 </style>
 
 <div class="sale-page">

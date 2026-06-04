@@ -25,7 +25,36 @@ try {
           INNER JOIN properties p ON po.property_id = p.property_id
           ORDER BY po.po_date DESC, po.po_number DESC
         ");
-        echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+        $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Fetch all items and attach to their respective POs
+        if (!empty($orders)) {
+          $poIds = array_column($orders, 'po_id');
+          $placeholders = implode(',', array_fill(0, count($poIds), '?'));
+          $itemStmt = $pdo->prepare("
+            SELECT poi.*, pr.product_name, pr.product_code, u.uom_name
+            FROM purchase_order_items poi
+            INNER JOIN products pr ON poi.product_id = pr.product_id
+            INNER JOIN units_of_measure u ON poi.uom_id = u.uom_id
+            WHERE poi.po_id IN ($placeholders)
+          ");
+          $itemStmt->execute($poIds);
+          $allItems = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
+
+          // Group items by po_id
+          $itemsByPo = [];
+          foreach ($allItems as $item) {
+            $itemsByPo[$item['po_id']][] = $item;
+          }
+
+          // Attach items to each order
+          foreach ($orders as &$order) {
+            $order['items'] = $itemsByPo[$order['po_id']] ?? [];
+          }
+          unset($order);
+        }
+
+        echo json_encode(['success' => true, 'data' => $orders]);
       } elseif ($action === 'related') {
         $suppliers = $pdo->query("SELECT supplier_id, company_name, supplier_code, payment_terms FROM suppliers WHERE is_active = 1 ORDER BY company_name ASC")->fetchAll(PDO::FETCH_ASSOC);
         $properties = $pdo->query("SELECT property_id, property_name FROM properties ORDER BY property_name ASC")->fetchAll(PDO::FETCH_ASSOC);

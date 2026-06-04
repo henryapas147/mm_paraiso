@@ -491,6 +491,199 @@
     color: var(--text-muted);
     pointer-events: none
   }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media (max-width: 640px) {
+    .fo-stats-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-stat-card {
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-stat-icon {
+      width: 36px;
+      height: 36px;
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-stat-label {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-stat-value {
+      font-size: 24px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .fo-card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .fo-card-actions {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .fo-card-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .fo-search {
+      width: 100%;
+      flex: 1;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .fo-btn-primary,
+    .fo-btn-secondary {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-table th {
+      padding: 10px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-table td {
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-tag {
+      font-size: 10px;
+      padding: 3px 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-table-footer {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      padding: 12px 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-table-pagination {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .recipe-stats {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-box {
+      padding: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-value {
+      font-size: 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-label {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-empty {
+      padding: 48px 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-empty-icon {
+      width: 56px;
+      height: 56px;
+      font-size: 22px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-empty h4 {
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-empty p {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .alert-box {
+      max-width: 90vw;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .alert-box {
+      max-width: none;
+      padding: 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .alert-actions {
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .alert-btn-cancel,
+    .alert-btn-confirm {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .searchable-dropdown-options {
+      max-height: 200px;
+    }
+  }
 </style>
 
 <!-- Stats Cards -->

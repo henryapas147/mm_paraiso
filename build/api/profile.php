@@ -79,6 +79,146 @@ try {
                         'total_payments' => $totalPayments ?? 0
                     ]
                 ]);
+            } else if ($action === 'get_upcoming_checkins') {
+                $userId = $_SESSION['user_id'];
+                
+                $stmt = $pdo->prepare("
+                    SELECT r.reservation_code, r.check_in_date, r.check_out_date, r.reservation_status,
+                           p.property_name, r.total_amount,
+                           DATEDIFF(r.check_out_date, r.check_in_date) as nights
+                    FROM reservations r
+                    INNER JOIN properties p ON r.property_id = p.property_id
+                    WHERE r.customer_user_id = ? AND r.check_in_date >= CURDATE()
+                    ORDER BY r.check_in_date ASC
+                    LIMIT 5
+                ");
+                $stmt->execute([$userId]);
+                $checkins = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                echo json_encode(['success' => true, 'data' => $checkins]);
+            } else if ($action === 'get_recent_activity') {
+                $userId = $_SESSION['user_id'];
+                
+                $activities = [];
+                
+                // Get recent payments
+                $stmt = $pdo->prepare("
+                    SELECT 'payment' as type, p.payment_date as created_at, 
+                           CONCAT('₱', FORMAT(p.amount, 2)) as description,
+                           CONCAT('Payment for booking #', r.reservation_code) as details
+                    FROM payments p
+                    INNER JOIN reservations r ON p.reservation_id = r.reservation_id
+                    WHERE r.customer_user_id = ?
+                    ORDER BY p.payment_date DESC
+                    LIMIT 3
+                ");
+                $stmt->execute([$userId]);
+                $payments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $activities = array_merge($activities, $payments);
+                
+                // Get recent bookings
+                $stmt = $pdo->prepare("
+                    SELECT 'booking' as type, r.created_at, 
+                           'Booking confirmed' as description,
+                           CONCAT(r.reservation_code, ' - ', p.property_name) as details
+                    FROM reservations r
+                    INNER JOIN properties p ON r.property_id = p.property_id
+                    WHERE r.customer_user_id = ?
+                    ORDER BY r.created_at DESC
+                    LIMIT 3
+                ");
+                $stmt->execute([$userId]);
+                $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $activities = array_merge($activities, $bookings);
+                
+                // Sort by date and limit
+                usort($activities, function($a, $b) {
+                    return strtotime($b['created_at']) - strtotime($a['created_at']);
+                });
+                $activities = array_slice($activities, 0, 5);
+                
+                echo json_encode(['success' => true, 'data' => $activities]);
+            } else if ($action === 'get_messages') {
+                $userId = $_SESSION['user_id'];
+                $filter = $_GET['filter'] ?? 'all';
+                
+                $whereClause = "nr.user_id = ?";
+                $params = [$userId];
+                
+                if ($filter !== 'all') {
+                    $typeMap = [
+                        'system' => ['reservation_confirmed', 'reservation_cancelled', 'check_in_reminder', 'check_out_reminder', 'payment_received', 'payment_due'],
+                        'support' => ['system_alert', 'staff_alert'],
+                        'promotional' => ['promo_announcement']
+                    ];
+                    
+                    if (isset($typeMap[$filter])) {
+                        $placeholders = str_repeat('?,', count($typeMap[$filter]) - 1) . '?';
+                        $whereClause .= " AND n.notif_type IN ($placeholders)";
+                        $params = array_merge($params, $typeMap[$filter]);
+                    }
+                }
+                
+                $stmt = $pdo->prepare("
+                    SELECT nr.recipient_id, nr.is_read, nr.read_at, nr.created_at,
+                           n.notif_id, n.notif_type, n.title, n.body, n.action_url,
+                           n.reference_type, n.reference_id
+                    FROM notification_recipients nr
+                    INNER JOIN notifications n ON nr.notif_id = n.notif_id
+                    WHERE $whereClause
+                    ORDER BY nr.created_at DESC
+                    LIMIT 20
+                ");
+                $stmt->execute($params);
+                $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Map notif_type to message category
+                $typeToCategory = [
+                    'reservation_confirmed' => 'system',
+                    'reservation_cancelled' => 'system',
+                    'check_in_reminder' => 'system',
+                    'check_out_reminder' => 'system',
+                    'payment_received' => 'system',
+                    'payment_due' => 'system',
+                    'promo_announcement' => 'promotional',
+                    'system_alert' => 'support',
+                    'staff_alert' => 'support',
+                    'custom' => 'system'
+                ];
+                
+                foreach ($messages as &$msg) {
+                    $msg['category'] = $typeToCategory[$msg['notif_type']] ?? 'system';
+                }
+                
+                echo json_encode(['success' => true, 'data' => $messages]);
+            } else if ($action === 'mark_message_read') {
+                $userId = $_SESSION['user_id'];
+                $recipientId = $_POST['recipient_id'] ?? null;
+                
+                if (!$recipientId) {
+                    echo json_encode(['success' => false, 'message' => 'Missing recipient_id']);
+                    exit;
+                }
+                
+                $stmt = $pdo->prepare("
+                    UPDATE notification_recipients
+                    SET is_read = 1, read_at = NOW()
+                    WHERE recipient_id = ? AND user_id = ?
+                ");
+                $stmt->execute([$recipientId, $userId]);
+                
+                echo json_encode(['success' => true, 'message' => 'Message marked as read']);
+            } else if ($action === 'mark_all_read') {
+                $userId = $_SESSION['user_id'];
+                
+                $stmt = $pdo->prepare("
+                    UPDATE notification_recipients
+                    SET is_read = 1, read_at = NOW()
+                    WHERE user_id = ? AND is_read = 0
+                ");
+                $stmt->execute([$userId]);
+                
+                echo json_encode(['success' => true, 'message' => 'All messages marked as read']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Unknown action']);
             }

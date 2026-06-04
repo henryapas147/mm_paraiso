@@ -487,6 +487,261 @@
     font-size: 13px;
     color: #1a1a1a
   }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media (max-width: 640px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-card {
+      padding: 14px 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-label {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-value {
+      font-size: 24px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .page-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page-title {
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page-subtitle {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+    .toolbar {
+      flex-wrap: wrap;
+      width: 100%;
+    }
+    .search-input {
+      width: 100%;
+      flex: 1;
+    }
+    .filter-select {
+      flex: 1;
+      min-width: 120px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .search-wrap {
+      width: 100%;
+    }
+    .filter-select {
+      width: 100%;
+    }
+    .btn-primary {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    thead th {
+      padding: 8px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    td {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .status-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .action-btn {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state {
+      padding: 40px 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state i {
+      font-size: 28px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .pagination-wrap {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      padding: 12px 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .pagination-controls {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modal {
+      max-width: 90vw;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal {
+      max-width: none;
+      max-height: 95vh;
+      border-radius: 12px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modal-body {
+      padding: 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-body {
+      padding: 16px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-footer {
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-footer .btn,
+    .modal-footer .btn-primary {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-group.full {
+      grid-column: auto;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-header {
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-title {
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-close {
+      font-size: 18px;
+      padding: 6px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    label {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: 12px;
+      padding: 7px 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .detail-row {
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .detail-label {
+      width: auto;
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .detail-value {
+      font-size: 12px;
+    }
+  }
 </style>
 
 <div class="page">

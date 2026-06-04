@@ -261,6 +261,148 @@
       grid-template-columns: 1fr 1fr;
     }
   }
+
+  @media (max-width: 640px) {
+    .occ-page .stat-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .occ-page .stat-card {
+      padding: 16px;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .occ-page .stat-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .occ-page .stat-label {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .occ-page .stat-value {
+      font-size: 22px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .occ-page .stat-footer {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .occ-page .stat-badge {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .occ-page .card-header {
+      padding: 14px 16px 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .occ-page .card-title {
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .occ-page .card-body {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .occ-page .data-table th {
+      padding: 8px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .occ-page .data-table td {
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .occ-page .badge {
+      padding: 3px 8px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .occ-content > div[style*="grid-template-columns: 1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .occ-page .stat-grid {
+      gap: 10px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .occ-page .stat-card {
+      padding: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .occ-page .stat-value {
+      font-size: 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .occ-page .card-header {
+      padding: 12px 14px 10px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .occ-page .card-body {
+      padding: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .occ-page .data-table th {
+      padding: 6px 10px;
+      font-size: 9px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .occ-page .data-table td {
+      padding: 8px 10px;
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .occ-page .badge {
+      padding: 2px 6px;
+      font-size: 9px;
+    }
+  }
 </style>
 
 <script>
@@ -331,7 +473,7 @@
       <div class="stat-card blue">
         <div class="stat-header">
           <span class="stat-label">Total Rooms</span>
-          <div class="stat-icon blue">🏨</div>
+          <div class="stat-icon blue"><i class="fa-solid fa-hotel"></i></div>
         </div>
         <div class="stat-value">48</div>
         <div class="stat-footer">
@@ -355,7 +497,7 @@
       <div class="stat-card orange">
         <div class="stat-header">
           <span class="stat-label">Available</span>
-          <div class="stat-icon orange">🔑</div>
+          <div class="stat-icon orange"><i class="fa-solid fa-key"></i></div>
         </div>
         <div class="stat-value">12</div>
         <div class="stat-footer">
@@ -367,7 +509,7 @@
       <div class="stat-card rose">
         <div class="stat-header">
           <span class="stat-label">Occupancy Rate</span>
-          <div class="stat-icon rose">📊</div>
+          <div class="stat-icon rose"><i class="fa-solid fa-chart-pie"></i></div>
         </div>
         <div class="stat-value">75%</div>
         <div class="stat-footer">

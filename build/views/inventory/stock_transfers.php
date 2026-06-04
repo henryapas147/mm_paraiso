@@ -455,6 +455,160 @@
       width: 160px;
     }
   }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media (max-width: 640px) {
+    .trf-page {
+      padding: 20px 16px 32px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .trf-page-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .trf-page-eyebrow {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .trf-page-title {
+      font-size: 20px;
+    }
+  }
+
+  @media (max-width: 1200px) {
+    .trf-stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .trf-stats-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .trf-stat-card {
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .trf-stat-icon {
+      width: 32px;
+      height: 32px;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .trf-stat-label {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .trf-stat-value {
+      font-size: 26px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .trf-card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .trf-toolbar {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .trf-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .trf-search {
+      width: 100%;
+      flex: 1;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .trf-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .trf-table th {
+      padding: 10px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .trf-table td {
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .trf-badge {
+      font-size: 10px;
+      padding: 3px 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .trf-empty {
+      padding: 48px 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .trf-empty-icon {
+      font-size: 28px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .trf-pagination-wrap {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      padding: 12px 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .trf-pagination {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
 </style>
 
 <div class="trf-page">

@@ -6,7 +6,10 @@
 
 header('Content-Type: application/json');
 require_once '../config/middleware.php';
+require_once '../services/NotificationService.php';
 applyAuthMiddleware();
+
+use App\Services\NotificationService;
 
 
 // Get request method and action

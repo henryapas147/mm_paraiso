@@ -243,6 +243,114 @@
   .total-value.final {
     color: #185FA5;
   }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media (max-width: 768px) {
+    .pb-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      padding: 16px 18px;
+    }
+    .pb-toolbar {
+      flex-wrap: wrap;
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .pb-title {
+      font-size: 14px;
+    }
+    .pb-subtitle {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    thead th {
+      padding: 8px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    td {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .component-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .multiplier {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .amount {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state {
+      padding: 40px 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state i {
+      font-size: 28px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .totals-summary {
+      grid-template-columns: 1fr;
+      gap: 12px;
+      padding: 12px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .total-card {
+      padding: 10px 14px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .total-label {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .total-value {
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .reservation-selector > div {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
 </style>
 
 <script>

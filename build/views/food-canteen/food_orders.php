@@ -510,6 +510,322 @@
     font-size: 13px; font-weight: 500;
     color: var(--text-primary);
   }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media (max-width: 640px) {
+    .fo-stats-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-stat-card {
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-stat-icon {
+      width: 36px;
+      height: 36px;
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-stat-label {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-stat-value {
+      font-size: 24px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .fo-card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .fo-card-actions {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .fo-card-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .fo-search {
+      width: 100%;
+      flex: 1;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .fo-btn-primary {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-table th {
+      padding: 10px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .order-row td {
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-order-num {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-order-time {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-customer-name {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-reservation-code {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-type-badge {
+      font-size: 10px;
+      padding: 3px 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-table-num {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-amount {
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-payment-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-status-badge {
+      font-size: 10px;
+      padding: 3px 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-action-btn {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-empty {
+      padding: 48px 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-empty-icon {
+      width: 56px;
+      height: 56px;
+      font-size: 22px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-empty h4 {
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-empty p {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .fo-modal {
+      max-width: 90vw;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .fo-modal.wide {
+      max-width: 90vw;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .fo-modal {
+      max-width: none;
+      max-height: 95vh;
+      border-radius: var(--radius-lg);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .fo-modal.wide {
+      max-width: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .fo-modal-body {
+      padding: 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .fo-modal-body {
+      padding: 18px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .fo-modal-footer {
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .fo-modal-footer .fo-btn-primary,
+    .fo-modal-footer .fo-btn-cancel {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-detail-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-detail-cell:nth-child(odd) {
+      border-right: none;
+      background: var(--surface);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-detail-cell {
+      padding: 10px 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-item-row {
+      padding: 10px 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-item-name {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-item-qty {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-item-total {
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-notes-box {
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-history-row {
+      padding: 8px 0;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-history-time {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-history-change {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-history-user {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fo-history-reason {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .fo-toast {
+      min-width: auto;
+      max-width: calc(100vw - 40px);
+    }
+  }
 </style>
 
 <script>

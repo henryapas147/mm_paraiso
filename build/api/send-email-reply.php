@@ -6,10 +6,12 @@
 
 header('Content-Type: application/json');
 require_once '../config/middleware.php';
+require_once '../services/NotificationService.php';
 applyAuthMiddleware();
 require_once __DIR__ . '/../services/EmailService.php';
 
 use App\Services\EmailService;
+use App\Services\NotificationService;
 
 
 // Check if user is logged in and has proper permissions
@@ -99,6 +101,36 @@ try {
     );
 
     if ($result['success']) {
+        // Try to notify the customer via in-app notification if they have an account
+        try {
+            $notificationService = new NotificationService($pdo);
+            
+            // Check if the customer has a user account by matching email
+            $userStmt = $pdo->prepare("
+                SELECT ua.user_id 
+                FROM user_accounts ua
+                WHERE ua.email = ?
+                AND ua.account_status = 'active'
+            ");
+            $userStmt->execute([$recipientEmail]);
+            $userId = $userStmt->fetchColumn();
+            
+            if ($userId) {
+                // Send in-app notification to the customer about the reply
+                $notificationService->createNotification([
+                    'type' => 'system_alert',
+                    'title' => 'Response to Your Inquiry',
+                    'body' => "We have responded to your inquiry: {$subject}",
+                    'user_ids' => $userId,
+                    'property_id' => null,
+                    'reference_type' => 'contact_inquiry',
+                    'reference_id' => $inquiryId
+                ]);
+            }
+        } catch (Exception $notifError) {
+            error_log("Failed to create notification for inquiry reply: " . $notifError->getMessage());
+        }
+        
         echo json_encode([
             'success' => true,
             'message' => 'Reply sent successfully via Gmail',

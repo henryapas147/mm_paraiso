@@ -280,6 +280,148 @@ if (!isset($base_url) || empty($base_url)) {
       grid-template-columns: 1fr;
     }
   }
+
+  @media (max-width: 640px) {
+    .dash-page .stat-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dash-page .stat-card {
+      padding: 16px;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dash-page .stat-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dash-page .stat-label {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dash-page .stat-value {
+      font-size: 22px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dash-page .stat-sub {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dash-page .card-header {
+      padding: 14px 16px 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dash-page .card-title {
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dash-page .card-body {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dash-page .report-grid {
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dash-page .report-link {
+      padding: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dash-page .report-icon {
+      width: 42px;
+      height: 42px;
+      font-size: 20px;
+      margin-right: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dash-page .report-info h6 {
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dash-page .report-info p {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .dash-content > div[style*="grid-template-columns: 1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .dash-page .stat-grid {
+      gap: 10px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .dash-page .stat-card {
+      padding: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .dash-page .stat-value {
+      font-size: 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .dash-page .card-header {
+      padding: 12px 14px 10px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .dash-page .card-body {
+      padding: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .dash-page .report-link {
+      flex-direction: column;
+      text-align: center;
+      padding: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .dash-page .report-icon {
+      margin-right: 0;
+      margin-bottom: 10px;
+    }
+  }
 </style>
 
 <script>
@@ -289,6 +431,8 @@ if (!isset($base_url) || empty($base_url)) {
   // Reports Dashboard JavaScript
   document.addEventListener('DOMContentLoaded', () => {
     loadDashboardStats();
+    loadRecentReservations();
+    loadTopMenuItems();
   });
 
   async function loadDashboardStats() {
@@ -323,6 +467,51 @@ if (!isset($base_url) || empty($base_url)) {
       console.error('Error loading dashboard stats:', e);
     }
   }
+
+  async function loadRecentReservations() {
+    const container = document.getElementById('recentReservations');
+    try {
+      const res = await fetch(API_BASE_URL + '?action=recent_reservations');
+      const result = await res.json();
+      if (!result.success || !result.data?.length) {
+        container.innerHTML = '<p style="text-align: center; color: var(--dash-text-muted);">No reservations found</p>';
+        return;
+      }
+      const statusColors = { confirmed: '#4f46e5', checked_in: '#10b981', checked_out: '#6b7280', cancelled: '#f43f5e', pending: '#f97316' };
+      container.innerHTML = '<table style="width: 100%; border-collapse: collapse;">' + result.data.slice(0, 5).map(r => {
+        const name = [r.first_name, r.last_name].filter(Boolean).join(' ') || 'Guest';
+        const color = statusColors[r.reservation_status] || '#6b7280';
+        const statusLabel = (r.reservation_status || '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        return `<tr style="border-bottom: 1px solid var(--dash-border);">
+          <td style="padding: 12px 0; font-size: 13px; font-weight: 600;">${r.reservation_code || '—'}</td>
+          <td style="padding: 12px 0; font-size: 13px;">${name}</td>
+          <td style="padding: 12px 0; font-size: 13px;">${r.check_in_date || '—'}</td>
+          <td style="padding: 12px 0;"><span style="background: ${color}20; color: ${color}; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;">${statusLabel}</span></td>
+        </tr>`;
+      }).join('') + '</table>';
+    } catch(e) { container.innerHTML = '<p style="text-align: center; color: var(--dash-text-muted);">Error loading data</p>'; }
+  }
+
+  async function loadTopMenuItems() {
+    const container = document.getElementById('topMenuItems');
+    try {
+      const res = await fetch(API_BASE_URL + '?action=top_menu_items');
+      const result = await res.json();
+      if (!result.success || !result.data?.length) {
+        container.innerHTML = '<p style="text-align: center; color: var(--dash-text-muted);">No data available</p>';
+        return;
+      }
+      container.innerHTML = result.data.slice(0, 5).map((item, i) => `
+        <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--dash-border);">
+          <div style="width: 24px; font-weight: 800; color: var(--dash-text-muted); font-family: 'DM Mono', monospace;">#${i + 1}</div>
+          <div style="flex: 1;">
+            <div style="font-size: 13px; font-weight: 600; color: var(--dash-text-primary);">${item.item_name}</div>
+            <div style="font-size: 11px; color: var(--dash-text-muted);">${item.category_name} · ${parseInt(item.total_sold || 0).toLocaleString()} sold</div>
+          </div>
+          <div style="font-size: 13px; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--dash-accent-blue);">₱${(item.revenue || 0).toLocaleString()}</div>
+        </div>`).join('');
+    } catch(e) { container.innerHTML = '<p style="text-align: center; color: var(--dash-text-muted);">Error loading data</p>'; }
+  }
 </script>
 
 <div class="dash-page">
@@ -333,7 +522,7 @@ if (!isset($base_url) || empty($base_url)) {
       <div class="stat-card green">
         <div class="stat-header">
           <span class="stat-label">Today's Revenue</span>
-          <div class="stat-icon green">💰</div>
+          <div class="stat-icon green"><i class="fa-solid fa-money-bill-wave"></i></div>
         </div>
         <div class="stat-value" id="todayRevenue">₱0</div>
         <div class="stat-sub">
@@ -345,7 +534,7 @@ if (!isset($base_url) || empty($base_url)) {
       <div class="stat-card blue">
         <div class="stat-header">
           <span class="stat-label">Today's Occupancy</span>
-          <div class="stat-icon blue">🏨</div>
+          <div class="stat-icon blue"><i class="fa-solid fa-hotel"></i></div>
         </div>
         <div class="stat-value" id="todayOccupancy">0%</div>
         <div class="stat-sub">
@@ -357,7 +546,7 @@ if (!isset($base_url) || empty($base_url)) {
       <div class="stat-card orange">
         <div class="stat-header">
           <span class="stat-label">Total Customers</span>
-          <div class="stat-icon orange">👥</div>
+          <div class="stat-icon orange"><i class="fa-solid fa-users"></i></div>
         </div>
         <div class="stat-value" id="totalCustomers">0</div>
         <div class="stat-sub">
@@ -369,7 +558,7 @@ if (!isset($base_url) || empty($base_url)) {
       <div class="stat-card rose">
         <div class="stat-header">
           <span class="stat-label">Low Stock Items</span>
-          <div class="stat-icon rose">📦</div>
+          <div class="stat-icon rose"><i class="fa-solid fa-box"></i></div>
         </div>
         <div class="stat-value" id="lowStockItems">0</div>
         <div class="stat-sub">
@@ -387,7 +576,7 @@ if (!isset($base_url) || empty($base_url)) {
       <div class="card-body">
         <div class="report-grid">
           <a href="<?php echo $base_url; ?>reports/revenue" class="report-link">
-            <div class="report-icon green">💰</div>
+            <div class="report-icon green"><i class="fa-solid fa-money-bill-wave"></i></div>
             <div class="report-info">
               <h6>Revenue Reports</h6>
               <p>Daily, monthly, yearly revenue analysis</p>
@@ -395,7 +584,7 @@ if (!isset($base_url) || empty($base_url)) {
           </a>
 
           <a href="<?php echo $base_url; ?>reports/occupancy" class="report-link">
-            <div class="report-icon blue">🏨</div>
+            <div class="report-icon blue"><i class="fa-solid fa-hotel"></i></div>
             <div class="report-info">
               <h6>Occupancy Reports</h6>
               <p>Room occupancy & utilization stats</p>
@@ -403,7 +592,7 @@ if (!isset($base_url) || empty($base_url)) {
           </a>
 
           <a href="<?php echo $base_url; ?>reports/inventory" class="report-link">
-            <div class="report-icon orange">📦</div>
+            <div class="report-icon orange"><i class="fa-solid fa-box"></i></div>
             <div class="report-info">
               <h6>Inventory Reports</h6>
               <p>Stock levels, valuations & movements</p>
@@ -411,7 +600,7 @@ if (!isset($base_url) || empty($base_url)) {
           </a>
 
           <a href="<?php echo $base_url; ?>reports/customers" class="report-link">
-            <div class="report-icon purple">📊</div>
+            <div class="report-icon purple"><i class="fa-solid fa-chart-pie"></i></div>
             <div class="report-info">
               <h6>Customer Analytics</h6>
               <p>Customer behavior & demographics</p>
@@ -419,7 +608,7 @@ if (!isset($base_url) || empty($base_url)) {
           </a>
 
           <a href="<?php echo $base_url; ?>reports/food-canteen" class="report-link">
-            <div class="report-icon rose">🍽️</div>
+            <div class="report-icon rose"><i class="fa-solid fa-utensils"></i></div>
             <div class="report-info">
               <h6>Food & Canteen</h6>
               <p>Sales reports & menu performance</p>
@@ -427,7 +616,7 @@ if (!isset($base_url) || empty($base_url)) {
           </a>
 
           <a href="<?php echo $base_url; ?>reports/financial" class="report-link">
-            <div class="report-icon cyan">📄</div>
+            <div class="report-icon cyan"><i class="fa-solid fa-file-invoice-dollar"></i></div>
             <div class="report-info">
               <h6>Financial Reports</h6>
               <p>P&L, balance sheet & cash flow</p>

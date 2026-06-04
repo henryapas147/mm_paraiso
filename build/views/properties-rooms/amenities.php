@@ -142,6 +142,38 @@ function generateUUID()
   .am-status-active { background: #dcfce7; color: #166534; }
   .am-status-inactive { background: #e5e7eb; color: #374151; }
   .am-actions { display: flex; gap: 4px; justify-content: flex-end; }
+  .am-actions-dropdown {
+    position: relative;
+    display: none;
+  }
+  .am-actions-dropdown-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    border: 0.5px solid var(--color-border-secondary);
+    background: #ffffff; color: var(--color-text-secondary);
+    cursor: pointer; font-size: 12px;
+  }
+  .am-actions-dropdown-btn:hover { background: #f1f5f9; color: var(--color-text-primary); }
+  .am-actions-dropdown-menu {
+    position: absolute; right: 0; top: calc(100% + 4px);
+    background: #ffffff;
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    min-width: 140px; z-index: 100; overflow: hidden; display: none;
+  }
+  .am-actions-dropdown-menu.open { display: block; }
+  .am-actions-dropdown-menu button {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 8px 12px; font-size: 12px;
+    background: transparent; border: none;
+    color: var(--color-text-primary); cursor: pointer; text-align: left;
+  }
+  .am-actions-dropdown-menu button:hover { background: #f8fafc; }
+  .am-actions-dropdown-menu button.del-action:hover { background: #fef2f2; color: #ef4444; }
+  .am-actions-dropdown-menu button i { width: 16px; text-align: center; font-size: 12px; color: var(--color-text-secondary); }
+  .am-actions-dropdown-menu button.del-action:hover i { color: #ef4444; }
   .am-icon-btn {
     border: 0.5px solid var(--color-border-secondary);
     border-radius: 6px;
@@ -162,18 +194,17 @@ function generateUUID()
   .am-empty-state { text-align: center; padding: 24px; color: var(--color-text-secondary); font-size: 13px; }
   .am-modal-backdrop {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: rgba(0,0,0,0.4);
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 20px;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.18s ease;
+    overflow-y: auto;
   }
   .am-modal-backdrop.open { opacity: 1; pointer-events: auto; }
   .am-modal {
@@ -186,6 +217,7 @@ function generateUUID()
     box-shadow: 0 10px 40px rgba(0,0,0,0.15);
     transform: scale(0.96) translateY(10px);
     transition: transform 0.18s ease;
+    margin: auto;
   }
   .am-modal-backdrop.open .am-modal { transform: scale(1) translateY(0); }
   .am-modal-header {
@@ -198,8 +230,17 @@ function generateUUID()
     top: 0;
     background: #ffffff;
     z-index: 1;
+    gap: 12px;
   }
-  .am-modal-title { font-size: 15px; font-weight: 500; }
+  .am-modal-title {
+    font-size: 15px;
+    font-weight: 500;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   .am-modal-close {
     border: none;
     background: none;
@@ -208,6 +249,7 @@ function generateUUID()
     font-size: 16px;
     padding: 4px;
     border-radius: 4px;
+    flex-shrink: 0;
   }
   .am-modal-close:hover { background: #f1f5f9; color: var(--color-text-primary); }
   .am-modal-body { padding: 16px 18px; }
@@ -220,6 +262,7 @@ function generateUUID()
     position: sticky;
     bottom: 0;
     background: #ffffff;
+    flex-wrap: wrap;
   }
   .am-section-label {
     font-size: 12px;
@@ -324,27 +367,132 @@ function generateUUID()
   }
   .am-toast.error { background: #ef4444; }
   .am-toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── Responsive ── */
+  @media (max-width: 1400px) {
+    .am-page { padding: 20px; }
+    .am-search-wrap { min-width: 160px; }
+  }
+
+  @media (max-width: 1200px) {
+    .am-page { padding: 18px; }
+    .am-card-header { flex-direction: column; align-items: flex-start; }
+    .am-toolbar { width: 100%; flex-wrap: wrap; }
+    .am-search-wrap { min-width: 140px; }
+    .am-btn { padding: 5px 10px; font-size: 12px; }
+  }
+
   @media (max-width: 1024px) {
     .am-table th:nth-child(3),
     .am-table td:nth-child(3) { display: none; }
+    .am-card-title { font-size: 14px; }
+    .am-table td { padding: 8px 10px; }
+    .am-table th { padding: 8px 10px; font-size: 11px; }
   }
-  @media (max-width: 768px) {
-    .am-stats-grid { grid-template-columns: repeat(2, 1fr); }
-    .am-card-header { flex-direction: column; align-items: stretch; }
-    .am-toolbar { flex-wrap: wrap; }
+
+  @media (max-width: 992px) {
+    .am-page { padding: 16px; }
+    .am-card-header { padding: 14px 16px; flex-direction: column; align-items: flex-start; gap: 10px; }
+    .am-toolbar { width: 100%; flex-wrap: wrap; gap: 6px; }
     .am-search-wrap { min-width: 100%; }
+    .am-filter-select { flex: 1 1 auto; }
+    .am-btn { padding: 5px 10px; font-size: 12px; }
+    .am-table td { padding: 8px 10px; }
+    .am-table th { padding: 8px 10px; font-size: 10px; }
+    .am-name { font-size: 12px; }
+    .am-code { font-size: 11px; }
+    .am-text { font-size: 12px; }
+    .am-status-badge { font-size: 10px; padding: 2px 8px; }
+    .am-icon-btn { width: 26px; height: 26px; font-size: 11px; }
+    .am-actions { gap: 3px; }
+    .pag-info { font-size: 11px; }
+    .pag-btn { min-width: 28px; height: 28px; font-size: 11px; }
+    /* Modal */
+    .am-modal { max-width: 96vw; }
+    .am-modal-header { padding: 12px 16px; }
+    .am-modal-body { padding: 14px 16px; }
+    .am-modal-footer { padding: 10px 16px; }
+  }
+
+  @media (max-width: 768px) {
+    .am-page { padding: 14px; }
+    .am-card-header { padding: 12px; }
+    .am-card-title { font-size: 13px; }
+    .am-toolbar { gap: 6px; }
+    .am-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .am-form-grid { grid-template-columns: 1fr; }
-    .am-modal { width: 95%; max-height: 95vh; }
+    .am-form-group.full { grid-column: 1; }
     .am-table th:nth-child(2),
     .am-table td:nth-child(2) { display: none; }
+    .am-table td { padding: 8px 10px; }
+    .am-table th { padding: 8px 10px; font-size: 9px; }
+    .am-name { font-size: 11px; }
+    .am-code { font-size: 10px; }
+    .am-status-badge { font-size: 9px; padding: 2px 6px; }
+    .am-icon-btn { width: 24px; height: 24px; font-size: 11px; }
+    .am-actions { gap: 2px; }
+    /* Slide-up modal */
+    .am-modal-backdrop { padding: 0; align-items: flex-end; }
+    .am-modal { border-radius: 16px 16px 0 0; max-width: 100%; max-height: 95vh; width: 100%; }
+    .am-modal-header { border-radius: 16px 16px 0 0; padding: 12px 16px; }
+    .am-modal-footer { border-radius: 0; padding: 10px 16px; flex-wrap: wrap; }
+    .am-modal-body { padding: 12px 16px; }
+    .am-modal-title { font-size: 13px; }
+    .pagination { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .per-page-wrap { display: none; }
   }
+
+  @media (max-width: 640px) {
+    .am-card-header { flex-direction: column; align-items: stretch; }
+    .am-toolbar { flex-direction: column; align-items: stretch; }
+    .am-search-wrap, .am-filter-select, .am-btn { width: 100%; }
+    /* Dropdown actions on small screens */
+    .am-actions .am-icon-btn { display: none; }
+    .am-actions-dropdown { display: block; }
+  }
+
   @media (max-width: 480px) {
     .am-page { padding: 12px; }
-    .am-card-header { padding: 12px; }
-    .am-toolbar { gap: 6px; }
-    .am-btn { font-size: 12px; padding: 5px 10px; }
-    .am-icon-btn { width: 26px; height: 26px; }
+    .am-card-header { padding: 10px 12px; }
+    .am-toolbar { gap: 4px; }
+    .am-btn { font-size: 11px; padding: 5px 10px; }
+    .am-icon-btn { width: 24px; height: 24px; }
     .am-stats-grid { grid-template-columns: 1fr; }
+    .am-actions .am-icon-btn { display: none; }
+    .am-actions-dropdown { display: block; }
+    .am-modal-footer { flex-direction: column; align-items: stretch; }
+    .am-modal-footer .am-btn { width: 100%; justify-content: center; }
+    .am-modal-title { font-size: 12px; }
+    .am-form-grid { gap: 10px; }
+    .am-form-group input, .am-form-group select, .am-form-group textarea { font-size: 14px; padding: 7px 10px; }
+    .am-section-label { font-size: 10px; }
+    .pag-btn { min-width: 26px; height: 26px; font-size: 10px; }
+  }
+
+  @media (max-width: 360px) {
+    .am-page { padding: 10px; }
+    .am-card-title { font-size: 12px; }
+    .am-modal-header { padding: 10px 12px; }
+    .am-modal-body { padding: 10px 12px; }
+    .am-modal-footer { padding: 8px 12px; }
+    .am-modal-title { font-size: 11px; }
+    .am-form-group input, .am-form-group select, .am-form-group textarea { font-size: 13px; padding: 6px 9px; }
+    .pag-btn { min-width: 24px; height: 24px; font-size: 9px; }
+  }
+
+  @media (max-width: 768px) and (orientation: landscape) {
+    .am-modal-backdrop { padding: 8px; align-items: center; }
+    .am-modal { border-radius: 12px; max-height: 90vh; }
+    .am-modal-header { border-radius: 12px 12px 0 0; }
+    .am-modal-body { padding: 10px 14px; }
+    .am-form-grid { grid-template-columns: 1fr 1fr; }
+    .am-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    .am-icon-btn { width: 32px; height: 32px; }
+    .am-btn { padding: 8px 14px; }
+    .am-form-group input, .am-form-group select, .am-form-group textarea { font-size: 16px; }
   }
 </style>
 
@@ -427,12 +575,42 @@ function generateUUID()
             <div class="am-actions">
               <button class="am-icon-btn edit" onclick="openEditAmenityModal('${String(amenity.amenity_id).replace(/'/g, "\\'")}')" title="Edit"><i class="fas fa-pen"></i></button>
               <button class="am-icon-btn del" onclick="confirmDeleteAmenity('${String(amenity.amenity_id).replace(/'/g, "\\'")}', '${String(amenity.amenity_name).replace(/'/g, "\\'")}')" title="Delete"><i class="fas fa-trash"></i></button>
+              <div class="am-actions-dropdown" id="amActDrop-${amenity.amenity_id}">
+                <button class="am-actions-dropdown-btn" onclick="amToggleActionsMenu('${amenity.amenity_id}', event)" title="Actions">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div class="am-actions-dropdown-menu" id="amActMenu-${amenity.amenity_id}">
+                  <button onclick="openEditAmenityModal('${String(amenity.amenity_id).replace(/'/g, "\\'")}');amCloseActionsMenu('${amenity.amenity_id}')">
+                    <i class="fas fa-pen"></i> Edit Amenity
+                  </button>
+                  <button class="del-action" onclick="confirmDeleteAmenity('${String(amenity.amenity_id).replace(/'/g, "\\'")}', '${String(amenity.amenity_name).replace(/'/g, "\\'")}');amCloseActionsMenu('${amenity.amenity_id}')">
+                    <i class="fas fa-trash"></i> Delete
+                  </button>
+                </div>
+              </div>
             </div>
           </td>
         </tr>
       `;
     }).join('');
   }
+
+  // Mobile actions dropdown helpers
+  function amToggleActionsMenu(amenityId, event) {
+    event.stopPropagation();
+    const menu = document.getElementById('amActMenu-' + amenityId);
+    document.querySelectorAll('.am-actions-dropdown-menu.open').forEach(m => { if (m !== menu) m.classList.remove('open'); });
+    menu.classList.toggle('open');
+  }
+
+  function amCloseActionsMenu(amenityId) {
+    const menu = document.getElementById('amActMenu-' + amenityId);
+    if (menu) menu.classList.remove('open');
+  }
+
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.am-actions-dropdown-menu.open').forEach(m => m.classList.remove('open'));
+  });
 
   async function confirmDeleteAmenity(amenityId, amenityName) {
     if (!confirm(`Delete "${amenityName}"? This action cannot be undone.`)) return;

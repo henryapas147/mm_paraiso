@@ -356,6 +356,202 @@
   .fc-modal::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
 
   .fc-card *, .fc-modal * { box-sizing: border-box; }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media (max-width: 640px) {
+    .fc-stats-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fc-stat-card {
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fc-stat-icon {
+      width: 36px;
+      height: 36px;
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fc-stat-label {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fc-stat-value {
+      font-size: 24px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .fc-card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .fc-card-actions {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .fc-card-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .fc-search {
+      width: 100%;
+      flex: 1;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .fc-btn-primary {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fc-table th {
+      padding: 10px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .category-row td {
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fc-cat-icon {
+      width: 36px;
+      height: 36px;
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fc-cat-name {
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fc-cat-icon-url {
+      font-size: 10px;
+      max-width: 140px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fc-desc {
+      font-size: 12px;
+      max-width: 150px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fc-status-badge {
+      font-size: 10px;
+      padding: 3px 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fc-action-btn {
+      width: 32px;
+      height: 32px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fc-empty {
+      padding: 48px 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fc-empty-icon {
+      width: 56px;
+      height: 56px;
+      font-size: 22px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fc-empty h4 {
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fc-empty p {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .fc-modal {
+      max-width: 90vw;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .fc-modal {
+      max-width: none;
+      max-height: 95vh;
+      border-radius: var(--radius-lg);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .fc-modal-body {
+      padding: 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .fc-modal-body {
+      padding: 18px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .fc-modal-footer {
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .fc-modal-footer .fc-btn-primary,
+    .fc-modal-footer .fc-btn-cancel {
+      width: 100%;
+      justify-content: center;
+    }
+  }
 </style>
 
 <script>

@@ -146,6 +146,38 @@ function generateUUID()
   .rb-status-active { background: #eaf3de; color: #27500a; }
   .rb-status-inactive { background: #fcebeb; color: #791f1f; }
   .rb-actions { display: flex; gap: 4px; justify-content: flex-end; }
+  .rb-actions-dropdown {
+    position: relative;
+    display: none;
+  }
+  .rb-actions-dropdown-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    border: 0.5px solid var(--color-border-secondary);
+    background: #ffffff; color: var(--color-text-secondary);
+    cursor: pointer; font-size: 12px;
+  }
+  .rb-actions-dropdown-btn:hover { background: #f1f5f9; color: var(--color-text-primary); }
+  .rb-actions-dropdown-menu {
+    position: absolute; right: 0; top: calc(100% + 4px);
+    background: #ffffff;
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    min-width: 140px; z-index: 100; overflow: hidden; display: none;
+  }
+  .rb-actions-dropdown-menu.open { display: block; }
+  .rb-actions-dropdown-menu button {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 8px 12px; font-size: 12px;
+    background: transparent; border: none;
+    color: var(--color-text-primary); cursor: pointer; text-align: left;
+  }
+  .rb-actions-dropdown-menu button:hover { background: #f8fafc; }
+  .rb-actions-dropdown-menu button.del-action:hover { background: #fef2f2; color: #ef4444; }
+  .rb-actions-dropdown-menu button i { width: 16px; text-align: center; font-size: 12px; color: var(--color-text-secondary); }
+  .rb-actions-dropdown-menu button.del-action:hover i { color: #ef4444; }
   .rb-icon-btn {
     border: 0.5px solid var(--color-border-secondary);
     border-radius: 6px;
@@ -166,18 +198,17 @@ function generateUUID()
   .rb-empty-state { text-align: center; padding: 24px; color: var(--color-text-secondary); font-size: 13px; }
   .rb-modal-backdrop {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: rgba(0,0,0,0.4);
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 20px;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.18s ease;
+    overflow-y: auto;
   }
   .rb-modal-backdrop.open { opacity: 1; pointer-events: auto; }
   .rb-modal {
@@ -190,6 +221,7 @@ function generateUUID()
     box-shadow: 0 10px 40px rgba(0,0,0,0.15);
     transform: scale(0.96) translateY(10px);
     transition: transform 0.18s ease;
+    margin: auto;
   }
   .rb-modal-backdrop.open .rb-modal { transform: scale(1) translateY(0); }
   .rb-modal-header {
@@ -202,8 +234,17 @@ function generateUUID()
     top: 0;
     background: #ffffff;
     z-index: 1;
+    gap: 12px;
   }
-  .rb-modal-title { font-size: 15px; font-weight: 500; }
+  .rb-modal-title {
+    font-size: 15px;
+    font-weight: 500;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   .rb-modal-close {
     border: none;
     background: none;
@@ -212,6 +253,7 @@ function generateUUID()
     font-size: 16px;
     padding: 4px;
     border-radius: 4px;
+    flex-shrink: 0;
   }
   .rb-modal-close:hover { background: #f1f5f9; color: var(--color-text-primary); }
   .rb-modal-body { padding: 16px 18px; }
@@ -224,6 +266,7 @@ function generateUUID()
     position: sticky;
     bottom: 0;
     background: #ffffff;
+    flex-wrap: wrap;
   }
   .rb-section-label {
     font-size: 12px;
@@ -359,28 +402,133 @@ function generateUUID()
     color: white;
     border-color: transparent;
   }
+
+  /* ── Responsive ── */
+  @media (max-width: 1400px) {
+    .rb-page { padding: 20px; }
+    .rb-search-wrap { min-width: 160px; }
+  }
+
+  @media (max-width: 1200px) {
+    .rb-page { padding: 18px; }
+    .rb-card-header { flex-direction: column; align-items: flex-start; }
+    .rb-toolbar { width: 100%; flex-wrap: wrap; }
+    .rb-search-wrap { min-width: 140px; }
+    .rb-btn { padding: 5px 10px; font-size: 12px; }
+  }
+
   @media (max-width: 1024px) {
     .rb-stats-grid { grid-template-columns: repeat(2, 1fr); }
     .rb-table th:nth-child(3),
     .rb-table td:nth-child(3) { display: none; }
+    .rb-card-title { font-size: 14px; }
+    .rb-table td { padding: 8px 10px; }
+    .rb-table th { padding: 8px 10px; font-size: 11px; }
   }
-  @media (max-width: 768px) {
-    .rb-stats-grid { grid-template-columns: repeat(2, 1fr); }
-    .rb-card-header { flex-direction: column; align-items: stretch; }
-    .rb-toolbar { flex-wrap: wrap; }
+
+  @media (max-width: 992px) {
+    .rb-page { padding: 16px; }
+    .rb-card-header { padding: 14px 16px; flex-direction: column; align-items: flex-start; gap: 10px; }
+    .rb-toolbar { width: 100%; flex-wrap: wrap; gap: 6px; }
     .rb-search-wrap { min-width: 100%; }
+    .rb-filter-select { flex: 1 1 auto; }
+    .rb-btn { padding: 5px 10px; font-size: 12px; }
+    .rb-table td { padding: 8px 10px; }
+    .rb-table th { padding: 8px 10px; font-size: 10px; }
+    .rb-name { font-size: 12px; }
+    .rb-code { font-size: 11px; }
+    .rb-text { font-size: 12px; }
+    .rb-status-badge { font-size: 10px; padding: 2px 8px; }
+    .rb-icon-btn { width: 26px; height: 26px; font-size: 11px; }
+    .rb-actions { gap: 3px; }
+    .pag-info { font-size: 11px; }
+    .pag-btn { min-width: 28px; height: 28px; font-size: 11px; }
+    /* Modal */
+    .rb-modal { max-width: 96vw; }
+    .rb-modal-header { padding: 12px 16px; }
+    .rb-modal-body { padding: 14px 16px; }
+    .rb-modal-footer { padding: 10px 16px; }
+  }
+
+  @media (max-width: 768px) {
+    .rb-page { padding: 14px; }
+    .rb-card-header { padding: 12px; }
+    .rb-card-title { font-size: 13px; }
+    .rb-toolbar { gap: 6px; }
+    .rb-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .rb-form-grid { grid-template-columns: 1fr; }
-    .rb-modal { width: 95%; max-height: 95vh; }
+    .rb-form-group.full { grid-column: 1; }
     .rb-table th:nth-child(2),
     .rb-table td:nth-child(2) { display: none; }
+    .rb-table td { padding: 8px 10px; }
+    .rb-table th { padding: 8px 10px; font-size: 9px; }
+    .rb-name { font-size: 11px; }
+    .rb-code { font-size: 10px; }
+    .rb-status-badge { font-size: 9px; padding: 2px 6px; }
+    .rb-icon-btn { width: 24px; height: 24px; font-size: 11px; }
+    .rb-actions { gap: 2px; }
+    /* Slide-up modal */
+    .rb-modal-backdrop { padding: 0; align-items: flex-end; }
+    .rb-modal { border-radius: 16px 16px 0 0; max-width: 100%; max-height: 95vh; width: 100%; }
+    .rb-modal-header { border-radius: 16px 16px 0 0; padding: 12px 16px; }
+    .rb-modal-footer { border-radius: 0; padding: 10px 16px; flex-wrap: wrap; }
+    .rb-modal-body { padding: 12px 16px; }
+    .rb-modal-title { font-size: 13px; }
+    .pagination { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .per-page-wrap { display: none; }
   }
+
+  @media (max-width: 640px) {
+    .rb-card-header { flex-direction: column; align-items: stretch; }
+    .rb-toolbar { flex-direction: column; align-items: stretch; }
+    .rb-search-wrap, .rb-filter-select, .rb-btn { width: 100%; }
+    /* Dropdown actions on small screens */
+    .rb-actions .rb-icon-btn { display: none; }
+    .rb-actions-dropdown { display: block; }
+  }
+
   @media (max-width: 480px) {
     .rb-page { padding: 12px; }
-    .rb-card-header { padding: 12px; }
-    .rb-toolbar { gap: 6px; }
-    .rb-btn { font-size: 12px; padding: 5px 10px; }
-    .rb-icon-btn { width: 26px; height: 26px; }
+    .rb-card-header { padding: 10px 12px; }
+    .rb-toolbar { gap: 4px; }
+    .rb-btn { font-size: 11px; padding: 5px 10px; }
+    .rb-icon-btn { width: 24px; height: 24px; }
     .rb-stats-grid { grid-template-columns: 1fr; }
+    .rb-actions .rb-icon-btn { display: none; }
+    .rb-actions-dropdown { display: block; }
+    .rb-modal-footer { flex-direction: column; align-items: stretch; }
+    .rb-modal-footer .rb-btn { width: 100%; justify-content: center; }
+    .rb-modal-title { font-size: 12px; }
+    .rb-form-grid { gap: 10px; }
+    .rb-form-group input, .rb-form-group select, .rb-form-group textarea { font-size: 14px; padding: 7px 10px; }
+    .rb-section-label { font-size: 10px; }
+    .pag-btn { min-width: 26px; height: 26px; font-size: 10px; }
+  }
+
+  @media (max-width: 360px) {
+    .rb-page { padding: 10px; }
+    .rb-card-title { font-size: 12px; }
+    .rb-modal-header { padding: 10px 12px; }
+    .rb-modal-body { padding: 10px 12px; }
+    .rb-modal-footer { padding: 8px 12px; }
+    .rb-modal-title { font-size: 11px; }
+    .rb-form-group input, .rb-form-group select, .rb-form-group textarea { font-size: 13px; padding: 6px 9px; }
+    .pag-btn { min-width: 24px; height: 24px; font-size: 9px; }
+  }
+
+  @media (max-width: 768px) and (orientation: landscape) {
+    .rb-modal-backdrop { padding: 8px; align-items: center; }
+    .rb-modal { border-radius: 12px; max-height: 90vh; }
+    .rb-modal-header { border-radius: 12px 12px 0 0; }
+    .rb-modal-body { padding: 10px 14px; }
+    .rb-form-grid { grid-template-columns: 1fr 1fr; }
+    .rb-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    .rb-icon-btn { width: 32px; height: 32px; }
+    .rb-btn { padding: 8px 14px; }
+    .rb-form-group input, .rb-form-group select, .rb-form-group textarea { font-size: 16px; }
   }
 </style>
 
@@ -573,12 +721,42 @@ function generateUUID()
             <div class="rb-actions">
               <button class="rb-icon-btn edit" onclick="openEditBlockModal('${String(block.block_id).replace(/'/g, "\\'")}')" title="Edit"><i class="fas fa-pen"></i></button>
               <button class="rb-icon-btn del" onclick="confirmDeleteBlock('${String(block.block_id).replace(/'/g, "\\'")}')" title="Delete"><i class="fas fa-trash"></i></button>
+              <div class="rb-actions-dropdown" id="rbActDrop-${block.block_id}">
+                <button class="rb-actions-dropdown-btn" onclick="rbToggleActionsMenu('${block.block_id}', event)" title="Actions">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div class="rb-actions-dropdown-menu" id="rbActMenu-${block.block_id}">
+                  <button onclick="openEditBlockModal('${String(block.block_id).replace(/'/g, "\\'")}');rbCloseActionsMenu('${block.block_id}')">
+                    <i class="fas fa-pen"></i> Edit Block
+                  </button>
+                  <button class="del-action" onclick="confirmDeleteBlock('${String(block.block_id).replace(/'/g, "\\'")}');rbCloseActionsMenu('${block.block_id}')">
+                    <i class="fas fa-trash"></i> Delete
+                  </button>
+                </div>
+              </div>
             </div>
           </td>
         </tr>
       `;
     }).join('');
   }
+
+  // Mobile actions dropdown helpers
+  function rbToggleActionsMenu(blockId, event) {
+    event.stopPropagation();
+    const menu = document.getElementById('rbActMenu-' + blockId);
+    document.querySelectorAll('.rb-actions-dropdown-menu.open').forEach(m => { if (m !== menu) m.classList.remove('open'); });
+    menu.classList.toggle('open');
+  }
+
+  function rbCloseActionsMenu(blockId) {
+    const menu = document.getElementById('rbActMenu-' + blockId);
+    if (menu) menu.classList.remove('open');
+  }
+
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.rb-actions-dropdown-menu.open').forEach(m => m.classList.remove('open'));
+  });
 
   // Delete Block Function (API-based)
   async function confirmDeleteBlock(blockId) {

@@ -68,6 +68,7 @@ $router->add('inventory/product-stock-per-location', ['controller' => 'Inventory
 $router->add('inventory/product-uom-conversions', ['controller' => 'InventoryController', 'action' => 'productUomConversions']);
 $router->add('inventory/inventory-transactions', ['controller' => 'InventoryController', 'action' => 'inventoryTransactions']);
 $router->add('inventory/purchase-orders', ['controller' => 'InventoryController', 'action' => 'purchaseOrders']);
+$router->add('inventory/purchase-orders-receiving', ['controller' => 'InventoryController', 'action' => 'purchaseOrdersReceiving']);
 $router->add('inventory/stock-transactions', ['controller' => 'InventoryController', 'action' => 'stockTransactions']);
 $router->add('inventory/stock-transfers', ['controller' => 'InventoryController', 'action' => 'stockTransfers']);
 $router->add('inventory/inventory-sales', ['controller' => 'InventoryController', 'action' => 'inventorySales']);

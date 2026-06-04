@@ -33,6 +33,11 @@
     border-radius: var(--border-radius-xl, 18px);
     font-family: var(--po-font);
   }
+  @media (max-width: 640px) {
+    .po-page {
+      padding: 20px 16px 32px;
+    }
+  }
 
   /* ── Header ──────────────────────────────────────── */
   .po-page-header {
@@ -43,6 +48,14 @@
     gap: 16px;
     flex-wrap: wrap;
   }
+  @media (max-width: 640px) {
+    .po-page-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+  }
 
   .po-eyebrow {
     font-size: 11px;
@@ -52,6 +65,11 @@
     color: var(--po-blue);
     margin-bottom: 4px;
   }
+  @media (max-width: 640px) {
+    .po-eyebrow {
+      font-size: 10px;
+    }
+  }
 
   .po-page-title {
     font-size: 24px;
@@ -60,11 +78,21 @@
     letter-spacing: -.4px;
     line-height: 1.2;
   }
+  @media (max-width: 640px) {
+    .po-page-title {
+      font-size: 20px;
+    }
+  }
 
   .po-page-subtitle {
     font-size: 13px;
     color: var(--color-text-secondary);
     margin-top: 3px;
+  }
+  @media (max-width: 640px) {
+    .po-page-subtitle {
+      font-size: 12px;
+    }
   }
 
   /* ── Stat Cards ──────────────────────────────────── */
@@ -73,6 +101,17 @@
     grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
     gap: 14px;
     margin-bottom: 24px;
+  }
+  @media (max-width: 1200px) {
+    .po-stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 640px) {
+    .po-stats-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
   }
 
   .po-stat-card {
@@ -85,7 +124,11 @@
     overflow: hidden;
     transition: box-shadow .2s, transform .2s;
   }
-
+  @media (max-width: 640px) {
+    .po-stat-card {
+      padding: 16px 18px;
+    }
+  }
   .po-stat-card:hover { box-shadow: var(--po-shadow-md); transform: translateY(-1px); }
 
   .po-stat-card::before {
@@ -112,6 +155,13 @@
     background: var(--po-blue-pale);
     color: var(--po-blue);
   }
+  @media (max-width: 640px) {
+    .po-stat-icon {
+      width: 32px; height: 32px;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+  }
 
   .po-stat-card.amber  .po-stat-icon { background: var(--po-amber-pale);  color: var(--po-amber); }
   .po-stat-card.green  .po-stat-icon { background: var(--po-green-pale);  color: var(--po-green); }
@@ -124,7 +174,11 @@
     color: var(--color-text-secondary);
     margin-bottom: 6px;
   }
-
+  @media (max-width: 640px) {
+    .po-stat-label {
+      font-size: 11px;
+    }
+  }
   .po-stat-value {
     font-size: 32px;
     font-weight: 600;
@@ -132,6 +186,11 @@
     font-family: var(--po-mono);
     letter-spacing: -.5px;
     line-height: 1;
+  }
+  @media (max-width: 640px) {
+    .po-stat-value {
+      font-size: 26px;
+    }
   }
 
   .po-stat-value.blue   { color: var(--po-blue); }
@@ -158,12 +217,36 @@
     gap: 12px;
     flex-wrap: wrap;
   }
-
+  @media (max-width: 768px) {
+    .po-card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+  }
   .po-card-title { font-size: 15px; font-weight: 600; color: var(--color-text-primary); letter-spacing: -.2px; }
+  @media (max-width: 768px) {
+    .po-card-title {
+      font-size: 14px;
+    }
+  }
   .po-card-count { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
 
   /* ── Toolbar ─────────────────────────────────────── */
   .po-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  @media (max-width: 768px) {
+    .po-toolbar {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+  @media (max-width: 480px) {
+    .po-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
 
   .po-search-wrap { position: relative; }
   .po-search-wrap i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--color-text-secondary); font-size: 12px; pointer-events: none; }
@@ -180,6 +263,12 @@
     font-family: var(--po-font);
     transition: border-color .15s, box-shadow .15s;
   }
+  @media (max-width: 768px) {
+    .po-search {
+      width: 100%;
+      flex: 1;
+    }
+  }
 
   .po-search:focus {
     border-color: var(--po-blue);
@@ -195,7 +284,12 @@
     border-radius: var(--po-r-md);
     padding: 3px;
   }
-
+  @media (max-width: 480px) {
+    .po-filter-tabs {
+      width: 100%;
+      justify-content: center;
+    }
+  }
   .po-filter-tab {
     padding: 5px 13px;
     font-size: 12px;
@@ -209,7 +303,14 @@
     font-family: var(--po-font);
     white-space: nowrap;
   }
-
+  @media (max-width: 480px) {
+    .po-filter-tab {
+      flex: 1;
+      justify-content: center;
+      font-size: 11px;
+      padding: 5px 10px;
+    }
+  }
   .po-filter-tab.active {
     background: var(--color-background-primary, #fff);
     color: var(--color-text-primary);
@@ -234,7 +335,12 @@
     font-family: var(--po-font);
     line-height: 1;
   }
-
+  @media (max-width: 480px) {
+    .po-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
   .po-btn:hover { background: var(--color-background-secondary, #F8FAFC); }
 
   .po-btn-primary {
@@ -243,7 +349,6 @@
     border-color: var(--po-blue);
     box-shadow: 0 1px 3px rgba(26,107,191,.3);
   }
-
   .po-btn-primary:hover {
     background: var(--po-blue-dark);
     border-color: var(--po-blue-dark);
@@ -273,7 +378,12 @@
     border-bottom: 1px solid rgba(0,0,0,.07);
     white-space: nowrap;
   }
-
+  @media (max-width: 640px) {
+    .po-table th {
+      padding: 10px 12px;
+      font-size: 10px;
+    }
+  }
   .po-table th.right { text-align: right; }
   .po-table th.center { text-align: center; }
 
@@ -286,6 +396,12 @@
   .po-table tbody tr:hover { background: var(--color-background-secondary, #F8FAFC); }
 
   .po-table td { padding: 13px 18px; vertical-align: middle; white-space: nowrap; }
+  @media (max-width: 640px) {
+    .po-table td {
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+  }
   .po-table td.right { text-align: right; }
   .po-table td.center { text-align: center; }
 
@@ -323,6 +439,12 @@
     font-weight: 600;
     letter-spacing: .03em;
     white-space: nowrap;
+  }
+  @media (max-width: 640px) {
+    .po-badge {
+      font-size: 10px;
+      padding: 3px 8px;
+    }
   }
 
   .po-badge::before {
@@ -367,8 +489,23 @@
 
   /* Empty state */
   .po-empty { padding: 64px 24px; text-align: center; }
+  @media (max-width: 640px) {
+    .po-empty {
+      padding: 48px 20px;
+    }
+  }
   .po-empty-icon { font-size: 32px; opacity: .2; margin-bottom: 12px; }
+  @media (max-width: 640px) {
+    .po-empty-icon {
+      font-size: 28px;
+    }
+  }
   .po-empty-text { font-size: 14px; font-weight: 500; color: var(--color-text-secondary); }
+  @media (max-width: 640px) {
+    .po-empty-text {
+      font-size: 13px;
+    }
+  }
   .po-empty-sub  { font-size: 12px; color: var(--color-text-secondary); opacity: .7; margin-top: 4px; }
 
   /* ── Pagination ──────────────────────────────────── */
@@ -381,8 +518,21 @@
     gap: 16px;
     flex-wrap: wrap;
   }
-
+  @media (max-width: 640px) {
+    .po-pagination-wrap {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      padding: 12px 16px;
+    }
+  }
   .po-pagination-left { display: flex; align-items: center; gap: 10px; }
+  @media (max-width: 640px) {
+    .po-pagination-left {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
   .po-pagination-info { font-size: 12px; color: var(--color-text-secondary); }
 
   .po-entries-wrap { display: flex; align-items: center; gap: 6px; }
@@ -407,6 +557,12 @@
   .po-entries-select:focus { border-color: var(--po-blue); box-shadow: 0 0 0 3px rgba(26,107,191,.12); }
 
   .po-pagination { display: flex; align-items: center; gap: 4px; }
+  @media (max-width: 640px) {
+    .po-pagination {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
 
   .po-page-btn {
     min-width: 32px; height: 32px;
@@ -449,7 +605,11 @@
     /* prevent the overlay itself from scrolling */
     overflow: hidden;
   }
-
+  @media (max-width: 480px) {
+    .po-overlay {
+      padding: 16px;
+    }
+  }
   .po-overlay.open { display: flex; }
 
   .po-modal {
@@ -466,8 +626,19 @@
     box-shadow: var(--po-shadow-lg);
     animation: poModalIn .2s cubic-bezier(.22,.68,0,1.2);
   }
-
+  @media (max-width: 480px) {
+    .po-modal {
+      max-width: none;
+      max-height: 95vh;
+      border-radius: var(--po-r-lg);
+    }
+  }
   .po-modal.wide { max-width: 900px; }
+  @media (max-width: 480px) {
+    .po-modal.wide {
+      max-width: none;
+    }
+  }
 
   @keyframes poModalIn {
     from { opacity: 0; transform: translateY(14px) scale(.98); }
@@ -485,8 +656,17 @@
     background: var(--color-background-primary, #fff);
     border-radius: var(--po-r-xl) var(--po-r-xl) 0 0;
   }
-
+  @media (max-width: 480px) {
+    .po-modal-header {
+      padding: 16px 18px;
+    }
+  }
   .po-modal-title { font-size: 17px; font-weight: 600; color: var(--color-text-primary); letter-spacing: -.3px; }
+  @media (max-width: 480px) {
+    .po-modal-title {
+      font-size: 15px;
+    }
+  }
   .po-modal-subtitle { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
 
   .po-modal-close {
@@ -513,7 +693,18 @@
     min-height: 0;
     -webkit-overflow-scrolling: touch;
   }
-
+  @media (max-width: 768px) {
+    .po-modal-body {
+      padding: 20px;
+    }
+  }
+  @media (max-width: 480px) {
+    .po-modal-body {
+      padding: 18px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+  }
   .po-modal-footer {
     padding: 18px 26px;
     border-top: 1px solid rgba(0,0,0,.06);
@@ -523,6 +714,15 @@
     flex-shrink: 0;
     background: var(--color-background-primary, #fff);
     border-radius: 0 0 var(--po-r-xl) var(--po-r-xl);
+  }
+  @media (max-width: 480px) {
+    .po-modal-footer {
+      padding: 16px 18px;
+      flex-direction: column;
+    }
+    .po-modal-footer .po-btn {
+      width: 100%;
+    }
   }
 
   /* ── Form grid ───────────────────────────────────── */
@@ -596,7 +796,11 @@
     z-index: 9999;
     padding: 20px;
   }
-
+  @media (max-width: 480px) {
+    .po-alert-overlay {
+      padding: 16px;
+    }
+  }
   .po-alert-overlay.open { display: flex; }
 
   .po-alert-box {
@@ -607,6 +811,12 @@
     width: 100%;
     padding: 24px;
     animation: poAlertIn .2s cubic-bezier(.22,.68,0,1.2);
+  }
+  @media (max-width: 480px) {
+    .po-alert-box {
+      padding: 20px;
+      max-width: none;
+    }
   }
 
   @keyframes poAlertIn {
@@ -632,6 +842,15 @@
     display: flex;
     gap: 10px;
     justify-content: flex-end;
+  }
+  @media (max-width: 480px) {
+    .po-alert-actions {
+      flex-direction: column;
+    }
+    .po-alert-actions .po-alert-btn-cancel,
+    .po-alert-actions .po-alert-btn-confirm {
+      width: 100%;
+    }
   }
 
   .po-alert-btn-cancel,
@@ -690,11 +909,87 @@
   .po-detail-val.big { font-size: 22px; font-family: var(--po-mono); letter-spacing: -.5px; }
 
   /* ── Responsive ──────────────────────────────────── */
-  @media (max-width: 600px) {
+  @media (max-width: 1200px) {
+    .po-form-grid, .po-detail-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
     .po-form-grid, .po-detail-grid { grid-template-columns: 1fr; }
     .po-form-group.full, .po-form-section, .po-form-divider { grid-column: 1; }
-    .po-search { width: 160px; }
-    .po-filter-tabs { display: none; }
+  }
+  @media (max-width: 640px) {
+    .po-form-grid, .po-detail-grid { grid-template-columns: 1fr; }
+    .po-form-group.full, .po-form-section, .po-form-divider { grid-column: 1; }
+  }
+  @media (max-width: 480px) {
+    .po-filter-tabs {
+      display: flex;
+    }
+  }
+
+  /* ── Add Item Modal ──────────────────────────────── */
+  .po-modal-add-item {
+    max-width: 500px;
+  }
+  @media (max-width: 768px) {
+    .po-modal-add-item {
+      max-width: 90vw;
+    }
+  }
+  @media (max-width: 480px) {
+    .po-modal-add-item {
+      max-width: none;
+      border-radius: var(--po-r-lg);
+    }
+  }
+
+  /* Product search input with button */
+  .po-product-search {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .po-product-search .po-form-input {
+    flex: 1;
+    min-width: 0;
+  }
+  .po-btn-icon {
+    padding: 8px 12px;
+    flex-shrink: 0;
+  }
+  @media (max-width: 480px) {
+    .po-product-search {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .po-btn-icon {
+      width: 100%;
+      justify-content: center;
+      margin-top: 8px;
+    }
+  }
+
+  /* Item total display */
+  .po-item-total {
+    background: var(--po-blue-pale);
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+  }
+  .po-item-total .po-form-label {
+    margin-bottom: 4px;
+  }
+  .po-item-total #poItemTotal {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--po-blue);
+  }
+  @media (max-width: 480px) {
+    .po-item-total {
+      padding: 10px;
+    }
+    .po-item-total #poItemTotal {
+      font-size: 16px;
+    }
   }
 </style>
 
@@ -830,7 +1125,7 @@
       </div>
       <button class="po-modal-close" onclick="closeAddPOModal()" aria-label="Close"><i class="fas fa-times"></i></button>
     </div>
-    <form id="addPOForm" onsubmit="submitAddPO(event)">
+    <form id="addPOForm" onsubmit="submitAddPO(event)" style="display:flex; flex-direction:column; flex:1 1 auto; min-height:0; overflow:hidden;">
       <div class="po-modal-body">
         <div class="po-form-grid">
           <div class="po-form-section"><i class="fas fa-info-circle" style="opacity:.6"></i> Order Information</div>
@@ -956,7 +1251,7 @@
       </div>
       <button class="po-modal-close" onclick="closeEditPOModal()" aria-label="Close"><i class="fas fa-times"></i></button>
     </div>
-    <form id="editPOForm" onsubmit="submitEditPO(event)">
+    <form id="editPOForm" onsubmit="submitEditPO(event)" style="display:flex; flex-direction:column; flex:1 1 auto; min-height:0; overflow:hidden;">
       <div class="po-modal-body">
         <input type="hidden" name="po_id" id="editPOId">
         <div class="po-form-grid">
@@ -1076,7 +1371,7 @@
 
 <!-- Add PO Item Modal -->
 <div class="po-overlay" id="addItemModal" onclick="if(event.target===this)closeAddItemModal()">
-  <div class="po-modal" role="dialog" aria-modal="true" style="max-width: 500px;">
+  <div class="po-modal po-modal-add-item" role="dialog" aria-modal="true">
     <div class="po-modal-header">
       <div>
         <div class="po-modal-title">Add Item to Purchase Order</div>
@@ -1085,34 +1380,38 @@
     </div>
     <div class="po-modal-body">
       <input type="hidden" id="addItemModalContext" value="add">
-      <div class="po-form-group">
-        <label class="po-form-label">Product <span class="req">*</span></label>
-        <div style="display: flex; gap: 8px;">
-          <input type="text" id="poItemProduct" list="product_search_list" class="po-form-input" style="flex: 1;" placeholder="Search product..." onchange="onProductSelectChange()">
-          <input type="hidden" id="poItemProductId">
-          <button type="button" onclick="openQuickProductModal()" class="po-btn" style="padding: 8px 12px;" title="Add New Product">
-            <i class="fas fa-plus"></i>
-          </button>
+      <div class="po-form-grid">
+        <div class="po-form-group full">
+          <label class="po-form-label">Product <span class="req">*</span></label>
+          <div class="po-product-search">
+            <input type="text" id="poItemProduct" list="product_search_list" class="po-form-input" placeholder="Search product..." onchange="onProductSelectChange()">
+            <input type="hidden" id="poItemProductId">
+            <button type="button" onclick="openQuickProductModal()" class="po-btn po-btn-icon" title="Add New Product">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
         </div>
-      </div>
-      <div class="po-form-group">
-        <label class="po-form-label">UOM <span class="req">*</span></label>
-        <select id="poItemUom" class="po-form-select" onchange="onUomChange()">
-          <option value="">Select UOM</option>
-        </select>
-        <input type="hidden" id="poItemUomId">
-      </div>
-      <div class="po-form-group">
-        <label class="po-form-label">Quantity <span class="req">*</span></label>
-        <input type="number" id="poItemQty" class="po-form-input" min="0.001" step="0.001" placeholder="0.00" onchange="calculateItemTotal()">
-      </div>
-      <div class="po-form-group">
-        <label class="po-form-label">Unit Cost <span class="req">*</span></label>
-        <input type="number" id="poItemCost" class="po-form-input" min="0" step="0.01" placeholder="0.00" onchange="calculateItemTotal()">
-      </div>
-      <div class="po-form-group" style="background: var(--po-blue-pale); padding: 12px; border-radius: 8px;">
-        <label class="po-form-label">Total Cost</label>
-        <div id="poItemTotal" style="font-size: 18px; font-weight: 600; color: var(--po-blue);">₱0.00</div>
+        <div class="po-form-group">
+          <label class="po-form-label">UOM <span class="req">*</span></label>
+          <select id="poItemUom" class="po-form-select" onchange="onUomChange()">
+            <option value="">Select UOM</option>
+          </select>
+          <input type="hidden" id="poItemUomId">
+        </div>
+        <div class="po-form-group">
+          <label class="po-form-label">Quantity <span class="req">*</span></label>
+          <input type="number" id="poItemQty" class="po-form-input" min="0.001" step="0.001" placeholder="0.00" onchange="calculateItemTotal()">
+        </div>
+        <div class="po-form-group">
+          <label class="po-form-label">Unit Cost <span class="req">*</span></label>
+          <input type="number" id="poItemCost" class="po-form-input" min="0" step="0.01" placeholder="0.00" onchange="calculateItemTotal()">
+        </div>
+        <div class="po-form-group full">
+          <div class="po-item-total">
+            <label class="po-form-label">Total Cost</label>
+            <div id="poItemTotal">₱0.00</div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="po-modal-footer">

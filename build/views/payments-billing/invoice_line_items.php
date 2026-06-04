@@ -1,165 +1,4 @@
 <?php
-if (false) {
-  try {
-    error_log("Starting line item deletion process...");
-
-    $line_item_id = $_POST['line_item_id'] ?? '';
-    error_log("Deleting line_item_id: " . $line_item_id);
-
-    if (empty($line_item_id)) {
-      throw new Exception("Line Item ID is required");
-    }
-
-    // Start transaction
-    $pdo->beginTransaction();
-
-    // Delete line item from database
-    $stmt = $pdo->prepare("DELETE FROM invoice_line_items WHERE line_item_id = ?");
-    $stmt->execute([$line_item_id]);
-    error_log("Deleted line item from database");
-
-    $pdo->commit();
-
-    // Redirect to avoid form resubmission
-    header('Location: invoice_line_items.php?success=line_item_deleted');
-    exit;
-  } catch (Exception $e) {
-    if ($pdo->inTransaction()) {
-      $pdo->rollBack();
-    }
-    error_log("Error deleting line item: " . $e->getMessage());
-    $error_message = "Failed to delete line item. Please try again. Error: " . $e->getMessage();
-  }
-}
-
-// Handle Edit Invoice Line Item Form Submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'edit_line_item') {
-  try {
-    error_log("Starting line item edit process...");
-
-    $line_item_id = $_POST['line_item_id'] ?? '';
-    error_log("Editing line_item_id: " . $line_item_id);
-
-    if (empty($line_item_id)) {
-      throw new Exception("Line Item ID is required");
-    }
-
-    // Start transaction
-    $pdo->beginTransaction();
-
-    // Update line item data
-    $stmt = $pdo->prepare("
-            UPDATE invoice_line_items SET
-                invoice_id = ?,
-                description = ?,
-                item_type = ?,
-                quantity = ?,
-                unit_price = ?,
-                total_price = ?,
-                reference_id = ?,
-                sort_order = ?
-            WHERE line_item_id = ?
-        ");
-
-    $stmt->execute([
-      $_POST['invoice_id'],
-      $_POST['description'],
-      $_POST['item_type'],
-      $_POST['quantity'],
-      $_POST['unit_price'],
-      $_POST['total_price'],
-      $_POST['reference_id'] ?? null,
-      $_POST['sort_order'] ?? 0,
-      $line_item_id
-    ]);
-
-    $pdo->commit();
-
-    // Redirect to avoid form resubmission
-    header('Location: invoice_line_items.php?success=line_item_updated');
-    exit;
-  } catch (PDOException $e) {
-    if ($pdo->inTransaction()) {
-      $pdo->rollBack();
-    }
-    error_log("PDO Error editing line item: " . $e->getMessage());
-    $error_message = "Failed to update line item. Please try again. Error: " . $e->getMessage();
-  } catch (Exception $e) {
-    if ($pdo->inTransaction()) {
-      $pdo->rollBack();
-    }
-    error_log("General Error editing line item: " . $e->getMessage());
-    $error_message = "Failed to update line item. Please try again. Error: " . $e->getMessage();
-  }
-}
-
-// Handle Add Invoice Line Item Form Submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_line_item') {
-  try {
-    error_log("Starting line item addition process...");
-
-    // Generate UUID for line_item_id
-    $line_item_id = sprintf(
-      '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-      mt_rand(0, 0xffff),
-      mt_rand(0, 0xffff),
-      mt_rand(0, 0xffff),
-      mt_rand(0, 0x0fff) | 0x4000,
-      mt_rand(0, 0x3fff) | 0x8000,
-      mt_rand(0, 0xffff),
-      mt_rand(0, 0xffff),
-      mt_rand(0, 0xffff)
-    );
-
-    // Start transaction
-    $pdo->beginTransaction();
-
-    // Insert line item data
-    $stmt = $pdo->prepare("
-            INSERT INTO invoice_line_items (
-                line_item_id, invoice_id, description, item_type, quantity, 
-                unit_price, total_price, reference_id, sort_order
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ");
-
-    $params = [
-      $line_item_id,
-      $_POST['invoice_id'],
-      $_POST['description'],
-      $_POST['item_type'],
-      $_POST['quantity'],
-      $_POST['unit_price'],
-      $_POST['total_price'],
-      $_POST['reference_id'] ?? null,
-      $_POST['sort_order'] ?? 0
-    ];
-
-    error_log("Executing line item insert with params: " . json_encode($params));
-    $stmt->execute($params);
-    error_log("Line item inserted successfully");
-
-    $pdo->commit();
-
-    // Redirect to avoid form resubmission
-    header('Location: invoice_line_items.php?success=line_item_added');
-    exit;
-  } catch (PDOException $e) {
-    if ($pdo->inTransaction()) {
-      $pdo->rollBack();
-    }
-    error_log("PDO Error adding line item: " . $e->getMessage());
-    error_log("Error code: " . $e->getCode());
-    error_log("Error info: " . print_r($e->errorInfo, true));
-    $error_message = "Failed to add line item. Please try again. Error: " . $e->getMessage();
-  } catch (Exception $e) {
-    if ($pdo->inTransaction()) {
-      $pdo->rollBack();
-    }
-    error_log("General Error adding line item: " . $e->getMessage());
-    $error_message = "Failed to add line item. Please try again. Error: " . $e->getMessage();
-  }
-}
-
 ?>
 
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
@@ -460,6 +299,181 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     flex: 1;
     font-size: 13px;
     color: #1a1a1a
+  }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media (max-width: 640px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-card {
+      padding: 14px 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-label {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-value {
+      font-size: 24px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    thead th {
+      padding: 8px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    td {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .action-btn {
+      padding: 4px 8px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state {
+      padding: 40px 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state i {
+      font-size: 28px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modal {
+      max-width: 90vw;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal {
+      max-width: none;
+      max-height: 95vh;
+      border-radius: 12px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modal-body {
+      padding: 18px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-body {
+      padding: 16px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-footer {
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-footer .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-header {
+      padding: 14px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-title {
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-close {
+      font-size: 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-label {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-input,
+    .form-select,
+    .form-textarea {
+      font-size: 12px;
+      padding: 7px 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .view-row {
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .view-label {
+      width: auto;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .view-value {
+      font-size: 12px;
+    }
   }
 </style>
 
@@ -781,7 +795,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     };
     try {
       const res = await fetch('../api/invoice_line_items.php?action=create', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': '<?php echo htmlspecialchars($_SESSION["csrf_token"] ?? "", ENT_QUOTES, "UTF-8"); ?>' }, body: JSON.stringify(data)
       });
       const result = await res.json();
       if (result.success) {
@@ -829,7 +843,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     };
     try {
       const res = await fetch('../api/invoice_line_items.php?action=update', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': '<?php echo htmlspecialchars($_SESSION["csrf_token"] ?? "", ENT_QUOTES, "UTF-8"); ?>' }, body: JSON.stringify(data)
       });
       const result = await res.json();
       if (result.success) {
@@ -876,7 +890,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
       if (result.isConfirmed) {
         try {
           const res = await fetch('../api/invoice_line_items.php?action=delete', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ line_item_id: lineItemId })
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': '<?php echo htmlspecialchars($_SESSION["csrf_token"] ?? "", ENT_QUOTES, "UTF-8"); ?>' }, body: JSON.stringify({ line_item_id: lineItemId })
           });
           const r = await res.json();
           if (r.success) {

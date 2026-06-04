@@ -1,8 +1,11 @@
 ﻿<?php
 header('Content-Type: application/json');
 require_once '../config/middleware.php';
+require_once '../services/NotificationService.php';
 applyAuthMiddleware();
 require_once 'inventory_functions.php';
+
+use App\Services\NotificationService;
 
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
@@ -160,6 +163,32 @@ try {
         }
 
         $pdo->commit();
+
+        // Send notification to customer about food order
+        try {
+          $notificationService = new NotificationService($pdo);
+          if (!empty($data['reservation_id'])) {
+            // Get customer user ID from reservation
+            $stmt = $pdo->prepare("SELECT customer_user_id FROM reservations WHERE reservation_id = ?");
+            $stmt->execute([$data['reservation_id']]);
+            $userId = $stmt->fetchColumn();
+            
+            if ($userId) {
+              $notificationService->createNotification([
+                'type' => 'system_alert',
+                'title' => 'Food Order Placed',
+                'body' => "Your food order #{$orderNumber} has been placed successfully.",
+                'user_ids' => $userId,
+                'property_id' => $data['property_id'],
+                'reference_type' => 'food_order',
+                'reference_id' => $id
+              ]);
+            }
+          }
+        } catch (Exception $notifError) {
+          error_log("Failed to create notification for food order: " . $notifError->getMessage());
+        }
+
         echo json_encode(['success' => true, 'message' => 'Order created', 'order_id' => $id, 'order_number' => $orderNumber]);
 
       } elseif ($action === 'update_status') {
@@ -224,6 +253,51 @@ try {
         }
         
         $pdo->commit();
+
+        // Send notification to customer about status update
+        try {
+          $notificationService = new NotificationService($pdo);
+          
+          // Get order details
+          $stmt = $pdo->prepare("SELECT reservation_id, order_number FROM food_orders WHERE order_id = ?");
+          $stmt->execute([$data['order_id']]);
+          $order = $stmt->fetch(PDO::FETCH_ASSOC);
+          
+          if ($order && !empty($order['reservation_id'])) {
+            // Get customer user ID from reservation
+            $stmt = $pdo->prepare("SELECT customer_user_id FROM reservations WHERE reservation_id = ?");
+            $stmt->execute([$order['reservation_id']]);
+            $userId = $stmt->fetchColumn();
+            
+            if ($userId) {
+              // Map status to notification message
+              $statusMessages = [
+                'pending' => 'Your food order is pending confirmation.',
+                'confirmed' => 'Your food order has been confirmed.',
+                'preparing' => 'Your food order is now being prepared.',
+                'ready' => 'Your food order is ready for pickup/delivery!',
+                'served' => 'Your food order has been served.',
+                'completed' => 'Your food order has been completed.',
+                'cancelled' => 'Your food order has been cancelled.'
+              ];
+              
+              $message = $statusMessages[$data['order_status']] ?? "Your food order status has been updated to: {$data['order_status']}.";
+              
+              $notificationService->createNotification([
+                'type' => 'system_alert',
+                'title' => 'Food Order Status Update',
+                'body' => "Order #{$order['order_number']}: {$message}",
+                'user_ids' => $userId,
+                'property_id' => null,
+                'reference_type' => 'food_order',
+                'reference_id' => $data['order_id']
+              ]);
+            }
+          }
+        } catch (Exception $notifError) {
+          error_log("Failed to create notification for food order status update: " . $notifError->getMessage());
+        }
+
         echo json_encode(['success' => true, 'message' => 'Order status updated']);
 
       } elseif ($action === 'update_payment') {

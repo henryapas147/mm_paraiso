@@ -2,10 +2,12 @@
 header('Content-Type: application/json');
 require_once '../config/middleware.php';
 require_once '../services/EmailService.php';
+require_once '../services/NotificationService.php';
 require_once 'inventory_functions.php';
 applyAuthMiddleware();
 
 use App\Services\EmailService;
+use App\Services\NotificationService;
 
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
@@ -403,6 +405,24 @@ try {
           $data['total_amount'] ?? 0,
           $data['notes'] ?? null,
         ]);
+
+        // Send notification to customer about new reservation
+        try {
+          $notificationService = new NotificationService($pdo);
+          if (!empty($data['customer_user_id'])) {
+            $notificationService->createReservationNotification(
+              'reservation_confirmed',
+              $data['customer_user_id'],
+              $data['reservation_id'],
+              'Reservation Created',
+              "Your reservation #{$data['reservation_code']} has been created successfully.",
+              $data['property_id']
+            );
+          }
+        } catch (Exception $notifError) {
+          error_log("Failed to create notification for reservation: " . $notifError->getMessage());
+        }
+
         echo json_encode(['success' => true, 'message' => 'Reservation created successfully']);
       } else if ($action === 'update') {
         $stmt = $pdo->prepare("
@@ -510,6 +530,62 @@ try {
           }
         }
         
+        // Send in-app notification to customer about status update
+        try {
+          $notificationService = new NotificationService($pdo);
+          
+          // Get reservation details
+          $stmt = $pdo->prepare("
+            SELECT r.reservation_id, r.reservation_code, r.customer_user_id,
+                   r.check_in_date, r.check_in_time, r.check_out_date
+            FROM reservations r
+            WHERE r.reservation_id = ?
+          ");
+          $stmt->execute([$data['reservation_id']]);
+          $reservation = $stmt->fetch(PDO::FETCH_ASSOC);
+          
+          if ($reservation && !empty($reservation['customer_user_id'])) {
+            // Map status to notification type and message
+            $statusConfig = [
+              'confirmed' => [
+                'type' => 'reservation_confirmed',
+                'title' => 'Reservation Confirmed',
+                'body' => "Your reservation #{$reservation['reservation_code']} has been confirmed. Check-in: {$reservation['check_in_date']}"
+              ],
+              'cancelled' => [
+                'type' => 'reservation_cancelled',
+                'title' => 'Reservation Cancelled',
+                'body' => "Your reservation #{$reservation['reservation_code']} has been cancelled."
+              ],
+              'checked_in' => [
+                'type' => 'check_in_reminder',
+                'title' => 'Checked In',
+                'body' => "You have been checked in for reservation #{$reservation['reservation_code']}."
+              ],
+              'checked_out' => [
+                'type' => 'check_out_reminder',
+                'title' => 'Checked Out',
+                'body' => "You have been checked out from reservation #{$reservation['reservation_code']}."
+              ]
+            ];
+            
+            if (isset($statusConfig[$data['status']])) {
+              $config = $statusConfig[$data['status']];
+              $notificationService->createNotification([
+                'type' => $config['type'],
+                'title' => $config['title'],
+                'body' => $config['body'],
+                'user_ids' => $reservation['customer_user_id'],
+                'property_id' => null,
+                'reference_type' => 'reservation',
+                'reference_id' => $reservation['reservation_id']
+              ]);
+            }
+          }
+        } catch (Exception $notifError) {
+          error_log("Failed to create notification for reservation status update: " . $notifError->getMessage());
+        }
+
         // Send email notification if requested
         if (isset($data['send_notification']) && $data['send_notification']) {
           try {

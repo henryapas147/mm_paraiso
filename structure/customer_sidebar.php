@@ -31,6 +31,11 @@ function customerActiveClass($route, $current_url)
         ? 'bg-blue-500/13 font-semibold text-slate-700 rounded-lg'
         : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg';
 }
+
+function customerGetActiveAttribute($route, $current_url)
+{
+    return customerIsActive($route, $current_url) ? 'data-active="true"' : '';
+}
 ?>
 
 <!-- Fonts -->
@@ -298,7 +303,7 @@ function customerActiveClass($route, $current_url)
 
             <li class="mt-0.5 w-full">
                 <?php $dash_class = customerIsActive('customer/dashboard', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700 rounded-lg' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg'; ?>
-                <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors <?php echo $dash_class; ?>" href="<?php echo $base_url; ?>customer/dashboard">
+                <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors <?php echo $dash_class; ?>" href="<?php echo $base_url; ?>customer/dashboard" <?php echo customerGetActiveAttribute('customer/dashboard', $current_url); ?>>
                     <span class="flex-shrink-0 flex h-8 w-8 items-center justify-center mr-2">
                         <i class="text-sm leading-normal text-blue-500 ni ni-tv-2"></i>
                     </span>
@@ -308,7 +313,7 @@ function customerActiveClass($route, $current_url)
 
             <li class="mt-0.5 w-full">
                 <?php $res_class = customerIsActive('customer/reservations', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700 rounded-lg' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg'; ?>
-                <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors <?php echo $res_class; ?>" href="<?php echo $base_url; ?>customer/reservations">
+                <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors <?php echo $res_class; ?>" href="<?php echo $base_url; ?>customer/reservations" <?php echo customerGetActiveAttribute('customer/reservations', $current_url); ?>>
                     <span class="flex-shrink-0 flex h-8 w-8 items-center justify-center mr-2">
                         <i class="text-sm leading-normal text-emerald-500 ni ni-calendar-grid-58"></i>
                     </span>
@@ -318,7 +323,7 @@ function customerActiveClass($route, $current_url)
 
             <li class="mt-0.5 w-full">
                 <?php $food_class = customerIsActive('customer/food-orders', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700 rounded-lg' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg'; ?>
-                <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors <?php echo $food_class; ?>" href="<?php echo $base_url; ?>customer/food-orders">
+                <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors <?php echo $food_class; ?>" href="<?php echo $base_url; ?>customer/food-orders" <?php echo customerGetActiveAttribute('customer/food-orders', $current_url); ?>>
                     <span class="flex-shrink-0 flex h-8 w-8 items-center justify-center mr-2">
                         <i class="text-sm leading-normal text-amber-500 ni ni-cart"></i>
                     </span>
@@ -328,7 +333,7 @@ function customerActiveClass($route, $current_url)
 
             <li class="mt-0.5 w-full">
                 <?php $pay_class = customerIsActive('customer/payments', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700 rounded-lg' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg'; ?>
-                <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors <?php echo $pay_class; ?>" href="<?php echo $base_url; ?>customer/payments">
+                <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors <?php echo $pay_class; ?>" href="<?php echo $base_url; ?>customer/payments" <?php echo customerGetActiveAttribute('customer/payments', $current_url); ?>>
                     <span class="flex-shrink-0 flex h-8 w-8 items-center justify-center mr-2">
                         <i class="text-sm leading-normal text-violet-500 ni ni-credit-card"></i>
                     </span>
@@ -338,7 +343,7 @@ function customerActiveClass($route, $current_url)
 
             <li class="mt-0.5 w-full">
                 <?php $prof_class = customerIsActive('customer/profile', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700 rounded-lg' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg'; ?>
-                <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors <?php echo $prof_class; ?>" href="<?php echo $base_url; ?>customer/profile">
+                <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors <?php echo $prof_class; ?>" href="<?php echo $base_url; ?>customer/profile" <?php echo customerGetActiveAttribute('customer/profile', $current_url); ?>>
                     <span class="flex-shrink-0 flex h-8 w-8 items-center justify-center mr-2">
                         <i class="text-sm leading-normal text-orange-500 ni ni-single-02"></i>
                     </span>
@@ -451,5 +456,17 @@ function customerActiveClass($route, $current_url)
                 overlay.classList.remove('active');
             });
         }
+
+        // Auto-scroll active item into view on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            function scrollActiveIntoView() {
+                const activeItem = sidebar.querySelector('[data-active="true"]');
+                if (activeItem) {
+                    activeItem.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+                }
+            }
+            setTimeout(scrollActiveIntoView, 50);
+            setTimeout(scrollActiveIntoView, 250);
+        });
     })();
 </script>

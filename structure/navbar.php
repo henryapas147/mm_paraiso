@@ -324,6 +324,193 @@ $breadcrumb = getBreadcrumbInfo($current_route);
     .navbar-enhanced #navbarProfilePhoto:hover {
         border-color: var(--nb-gold) !important;
     }
+
+    /* ── RESPONSIVE NAVBAR ── */
+    @media (max-width: 1400px) {
+        .navbar-enhanced nav nav ol {
+            margin-right: 2rem !important;
+        }
+    }
+
+    @media (max-width: 1200px) {
+        .navbar-enhanced nav nav ol {
+            margin-right: 1.5rem !important;
+        }
+        .navbar-enhanced nav nav h6 {
+            font-size: 1.5rem !important;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .navbar-enhanced nav nav ol {
+            margin-right: 1rem !important;
+        }
+        .navbar-enhanced nav nav h6 {
+            font-size: 1.25rem !important;
+        }
+        .navbar-enhanced .relative.flex.flex-wrap.items-stretch.w-full {
+            width: 140px !important;
+            max-width: 140px !important;
+            flex-shrink: 0 !important;
+            flex-grow: 0 !important;
+        }
+        .navbar-enhanced input[type="text"] {
+            width: 100px !important;
+        }
+        .navbar-enhanced .flex.items-center.md:ml-auto.md:pr-4 {
+            flex-shrink: 0 !important;
+            margin-left: 0.5rem !important;
+            margin-right: 0.5rem !important;
+        }
+        .navbar-enhanced .flex.items-center.mt-2.grow.sm:mt-0.sm:mr-6.md:mr-0.lg\:flex.lg\:basis-auto {
+            flex-wrap: nowrap !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .navbar-enhanced nav nav ol {
+            margin-right: 0.5rem !important;
+        }
+        .navbar-enhanced nav nav h6 {
+            font-size: 1.1rem !important;
+        }
+        .navbar-enhanced nav.flex-shrink-0.min-w-0 {
+            margin-right: 1.5rem !important;
+            flex-shrink: 1 !important;
+        }
+        .navbar-enhanced .relative.flex.flex-wrap.items-stretch.w-full {
+            width: 120px !important;
+            max-width: 120px !important;
+            flex-shrink: 0 !important;
+            flex-grow: 0 !important;
+        }
+        .navbar-enhanced input[type="text"] {
+            width: 90px !important;
+            font-size: .75rem !important;
+        }
+        .navbar-enhanced .flex.items-center.md:ml-auto.md:pr-4 {
+            flex-shrink: 0 !important;
+            margin-left: 1rem !important;
+            margin-right: 0.75rem !important;
+        }
+        .navbar-enhanced .flex.items-center.mt-2.grow.sm:mt-0.sm:mr-6.md:mr-0.lg\:flex.lg\:basis-auto {
+            flex-wrap: nowrap !important;
+            gap: 0.75rem !important;
+        }
+        .navbar-enhanced #navbarProfilePhoto {
+            width: 32px !important;
+            height: 32px !important;
+        }
+        .navbar-enhanced [user-dropdown-menu],
+        .navbar-enhanced [dropdown-menu] {
+            min-width: 200px !important;
+            right: -10px !important;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .navbar-enhanced nav nav ol {
+            margin-right: 0.25rem !important;
+        }
+        .navbar-enhanced nav nav h6 {
+            font-size: 1rem !important;
+        }
+        .navbar-enhanced input[type="text"] {
+            width: 100px !important;
+            padding-left: 2rem !important;
+            padding-right: 0.5rem !important;
+        }
+        .navbar-enhanced input[type="text"]::placeholder {
+            font-size: 0.7rem !important;
+        }
+        .navbar-enhanced .fa-search {
+            font-size: 0.7rem !important;
+        }
+        .navbar-enhanced #navbarProfilePhoto {
+            width: 28px !important;
+            height: 28px !important;
+        }
+        .navbar-enhanced [user-dropdown-menu],
+        .navbar-enhanced [dropdown-menu] {
+            min-width: 180px !important;
+            right: -5px !important;
+        }
+        .navbar-enhanced [user-dropdown-menu] h6,
+        .navbar-enhanced [dropdown-menu] h6 {
+            font-size: .75rem !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .navbar-enhanced nav nav ol {
+            margin-right: 0 !important;
+        }
+        .navbar-enhanced nav nav ol li {
+            font-size: .75rem !important;
+        }
+        .navbar-enhanced nav nav h6 {
+            font-size: 0.9rem !important;
+        }
+        .navbar-enhanced input[type="text"] {
+            width: 80px !important;
+            padding: 0.5rem 0.5rem 0.5rem 1.75rem !important;
+            font-size: .7rem !important;
+        }
+        .navbar-enhanced input[type="text"]::placeholder {
+            font-size: 0.65rem !important;
+        }
+        .navbar-enhanced .fa-search {
+            font-size: 0.65rem !important;
+            padding: 0.5rem !important;
+        }
+        .navbar-enhanced #navbarProfilePhoto {
+            width: 26px !important;
+            height: 26px !important;
+        }
+        .navbar-enhanced #notifBadge {
+            width: 14px !important;
+            height: 14px !important;
+            font-size: 9px !important;
+        }
+        .navbar-enhanced [user-dropdown-menu],
+        .navbar-enhanced [dropdown-menu] {
+            min-width: 160px !important;
+            right: 0 !important;
+        }
+        .navbar-enhanced [user-dropdown-menu] a,
+        .navbar-enhanced [dropdown-menu] a {
+            padding: 0.5rem 0.75rem !important;
+        }
+        .navbar-enhanced [user-dropdown-menu] h6,
+        .navbar-enhanced [dropdown-menu] h6 {
+            font-size: .7rem !important;
+        }
+        .navbar-enhanced [user-dropdown-menu] i,
+        .navbar-enhanced [dropdown-menu] i {
+            font-size: 0.75rem !important;
+            margin-right: 0.5rem !important;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .navbar-enhanced nav nav h6 {
+            font-size: 0.85rem !important;
+        }
+        .navbar-enhanced input[type="text"] {
+            width: 60px !important;
+        }
+        .navbar-enhanced input[type="text"]::placeholder {
+            display: none !important;
+        }
+        .navbar-enhanced #navbarProfilePhoto {
+            width: 24px !important;
+            height: 24px !important;
+        }
+        .navbar-enhanced [user-dropdown-menu],
+        .navbar-enhanced [dropdown-menu] {
+            min-width: 140px !important;
+        }
+    }
 </style>
 
 <nav class="navbar-enhanced relative flex flex-wrap items-center justify-between px-0 py-2 mx-6 transition-all ease-in shadow-none duration-250 rounded-2xl lg:flex-nowrap lg:justify-start" navbar-main navbar-scroll="false">

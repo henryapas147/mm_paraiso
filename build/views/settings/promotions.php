@@ -564,9 +564,246 @@
     border-color: #185FA5;
     background: #fff
   }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media (max-width: 640px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-card {
+      padding: 14px 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-label {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-value {
+      font-size: 24px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .page-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .toolbar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .search-input {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    thead th {
+      padding: 8px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    td {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .status-badge,
+    .promo-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .action-btn {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .actions-cell {
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state {
+      padding: 40px 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state i {
+      font-size: 28px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modal {
+      max-width: 90vw;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal {
+      max-width: none;
+      max-height: 95vh;
+      border-radius: 12px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modal-body {
+      padding: 18px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-body {
+      padding: 16px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-footer {
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-footer .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-header {
+      padding: 14px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-title {
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-close {
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    label {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: 12px;
+      padding: 7px 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .pagination {
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .pagination-controls {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .pagination-btn {
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .entries-select {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .toast {
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      font-size: 12px;
+    }
+  }
 </style>
 
 <script>
+  let csrfToken = "<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>";
   let promotionsData = [];
   let propertiesData = [];
   let pagination = {
@@ -1028,7 +1265,7 @@
     };
     fetch('../api/promotions.php?action=create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
         body: JSON.stringify(payload)
       })
       .then(r => r.json())
@@ -1068,7 +1305,7 @@
     };
     fetch('../api/promotions.php?action=update', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
         body: JSON.stringify(payload)
       })
       .then(r => r.json())
@@ -1091,7 +1328,7 @@
     if (!confirm(`Delete promotion "${name}"? This cannot be undone.`)) return;
     fetch('../api/promotions.php?action=delete', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
         body: JSON.stringify({ promotion_id: id })
       })
       .then(r => r.json())

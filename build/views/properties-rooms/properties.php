@@ -323,6 +323,72 @@ function generateUUID()
     gap: 5px;
     justify-content: flex-end;
   }
+  .actions-dropdown {
+    position: relative;
+    display: none;
+  }
+  .actions-dropdown-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-tertiary);
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .actions-dropdown-btn:hover {
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary);
+  }
+  .actions-dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    min-width: 150px;
+    z-index: 100;
+    overflow: hidden;
+    display: none;
+  }
+  .actions-dropdown-menu.open {
+    display: block;
+  }
+  .actions-dropdown-menu button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 12px;
+    background: transparent;
+    border: none;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    text-align: left;
+  }
+  .actions-dropdown-menu button:hover {
+    background: var(--color-background-secondary);
+  }
+  .actions-dropdown-menu button.del-action:hover {
+    background: #fcebeb;
+    color: #791f1f;
+  }
+  .actions-dropdown-menu button i {
+    width: 16px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+  .actions-dropdown-menu button.del-action:hover i {
+    color: #791f1f;
+  }
   .icon-btn {
     display: inline-flex;
     align-items: center;
@@ -365,7 +431,417 @@ function generateUUID()
   .empty-state {
     padding: 48px 24px;
     text-align: center;
-    color: var(--color-text-secondary);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1400px) {
+    .page {
+      padding: 20px;
+    }
+    .stats-grid {
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+    }
+    .stat-card {
+      padding: 14px 16px;
+    }
+    .stat-value {
+      font-size: 24px;
+    }
+    .card-header {
+      padding: 14px 18px;
+    }
+    .toolbar {
+      flex-wrap: wrap;
+    }
+    .search-input {
+      width: 160px;
+    }
+  }
+
+  @media (max-width: 1200px) {
+    .page {
+      padding: 18px;
+    }
+    .page-header {
+      margin-bottom: 20px;
+    }
+    .page-title {
+      font-size: 20px;
+    }
+    .stats-grid {
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+    }
+    .stat-card {
+      padding: 12px 14px;
+    }
+    .stat-value {
+      font-size: 22px;
+    }
+    .card-header {
+      padding: 12px 16px;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .toolbar {
+      width: 100%;
+      flex-wrap: wrap;
+    }
+    .search-input {
+      width: 140px;
+    }
+    .btn {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 992px) {
+    .page {
+      padding: 16px;
+    }
+    .page-title {
+      font-size: 18px;
+    }
+    .page-sub {
+      font-size: 12px;
+    }
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .stat-card {
+      padding: 12px;
+    }
+    .stat-value {
+      font-size: 20px;
+    }
+    .card-title {
+      font-size: 14px;
+    }
+    .search-input {
+      width: 120px;
+      font-size: 12px;
+    }
+    .filter-select {
+      font-size: 12px;
+      padding: 6px 10px;
+    }
+    .btn {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+    thead th {
+      padding: 8px 12px;
+      font-size: 10px;
+    }
+    td {
+      padding: 10px 12px;
+    }
+    .prop-avatar {
+      width: 38px;
+      height: 38px;
+    }
+    .prop-avatar i {
+      font-size: 16px;
+    }
+    .prop-name {
+      font-size: 12px;
+      max-width: 140px;
+    }
+    .prop-code {
+      font-size: 10px;
+    }
+    .type-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+    }
+    .city-text {
+      font-size: 12px;
+    }
+    .date-text {
+      font-size: 11px;
+    }
+    .status-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+    }
+    .icon-btn {
+      width: 28px;
+      height: 28px;
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .page {
+      padding: 14px;
+    }
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .page-title {
+      font-size: 16px;
+    }
+    .page-sub {
+      font-size: 11px;
+    }
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .stat-card {
+      padding: 10px 12px;
+    }
+    .stat-label {
+      font-size: 11px;
+    }
+    .stat-value {
+      font-size: 18px;
+    }
+    .card-header {
+      padding: 12px;
+      gap: 10px;
+    }
+    .card-title {
+      font-size: 13px;
+    }
+    .toolbar {
+      gap: 6px;
+    }
+    .search-input {
+      width: 100%;
+      min-width: 120px;
+    }
+    .filter-select {
+      min-width: 100px;
+    }
+    .btn {
+      padding: 6px 10px;
+      font-size: 11px;
+    }
+    .btn span {
+      display: none;
+    }
+    .btn i {
+      margin-right: 0;
+    }
+    table {
+      font-size: 12px;
+    }
+    thead th {
+      padding: 8px 10px;
+      font-size: 9px;
+    }
+    td {
+      padding: 8px 10px;
+    }
+    .prop-avatar {
+      width: 36px;
+      height: 36px;
+    }
+    .prop-avatar i {
+      font-size: 14px;
+    }
+    .prop-name {
+      font-size: 11px;
+      max-width: 100px;
+    }
+    .prop-code {
+      font-size: 9px;
+    }
+    .type-badge {
+      font-size: 9px;
+      padding: 2px 6px;
+    }
+    .city-text {
+      font-size: 11px;
+    }
+    .date-text {
+      font-size: 10px;
+    }
+    .status-badge {
+      font-size: 9px;
+      padding: 2px 6px;
+    }
+    .icon-btn {
+      width: 26px;
+      height: 26px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .page {
+      padding: 12px;
+    }
+    .stats-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    .stat-card {
+      padding: 12px;
+    }
+    .stat-value {
+      font-size: 20px;
+    }
+    .card-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .search-wrap,
+    .filter-select,
+    .btn {
+      width: 100%;
+    }
+    .search-input {
+      width: 100%;
+    }
+    .table-wrap {
+      overflow-x: auto;
+    }
+    thead th:nth-child(1) {
+      width: 35%;
+    }
+    thead th:nth-child(2) {
+      width: 20%;
+    }
+    thead th:nth-child(3) {
+      width: 20%;
+    }
+    thead th:nth-child(4) {
+      width: 15%;
+    }
+    thead th:nth-child(5) {
+      width: 10%;
+    }
+    thead th:nth-child(6) {
+      width: 10%;
+    }
+    .prop-name {
+      max-width: 80px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page {
+      padding: 10px;
+    }
+    .page-title {
+      font-size: 15px;
+    }
+    .stats-grid {
+      gap: 6px;
+    }
+    .stat-card {
+      padding: 10px;
+    }
+    .stat-label {
+      font-size: 10px;
+    }
+    .stat-value {
+      font-size: 18px;
+    }
+    .card-header {
+      padding: 10px;
+    }
+    .card-title {
+      font-size: 12px;
+    }
+    .search-input {
+      padding: 6px 10px 6px 30px;
+      font-size: 11px;
+    }
+    .search-wrap i {
+      left: 8px;
+      font-size: 13px;
+    }
+    .filter-select {
+      padding: 6px 10px;
+      font-size: 11px;
+    }
+    .btn {
+      padding: 6px 10px;
+      font-size: 11px;
+    }
+    thead th {
+      padding: 6px 8px;
+      font-size: 8px;
+    }
+    td {
+      padding: 6px 8px;
+    }
+    .prop-avatar {
+      width: 32px;
+      height: 32px;
+    }
+    .prop-avatar i {
+      font-size: 12px;
+    }
+    .prop-name {
+      font-size: 10px;
+      max-width: 60px;
+    }
+    .prop-code {
+      font-size: 8px;
+    }
+    .type-badge {
+      font-size: 8px;
+      padding: 2px 5px;
+    }
+    .city-text {
+      font-size: 10px;
+    }
+    .date-text {
+      font-size: 9px;
+    }
+    .status-badge {
+      font-size: 8px;
+      padding: 2px 5px;
+    }
+    .icon-btn {
+      width: 24px;
+      height: 24px;
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .page {
+      padding: 8px;
+    }
+    .page-title {
+      font-size: 14px;
+    }
+    .stat-value {
+      font-size: 16px;
+    }
+    .card-title {
+      font-size: 11px;
+    }
+    .search-input {
+      font-size: 10px;
+    }
+    .filter-select {
+      font-size: 10px;
+    }
+    .btn {
+      font-size: 10px;
+      padding: 5px 8px;
+    }
+    .prop-avatar {
+      width: 28px;
+      height: 28px;
+    }
+    .prop-name {
+      max-width: 50px;
+    }
   }
   .empty-state i {
     font-size: 32px;
@@ -557,6 +1033,7 @@ function generateUUID()
     align-items: center;
     justify-content: center;
     padding: 20px;
+    overflow-y: auto;
   }
   .modal-backdrop.open {
     display: flex;
@@ -569,6 +1046,7 @@ function generateUUID()
     max-width: 860px;
     max-height: 90vh;
     overflow-y: auto;
+    margin: auto;
   }
   .modal-header {
     padding: 20px 24px;
@@ -580,10 +1058,16 @@ function generateUUID()
     top: 0;
     background: var(--color-background-primary);
     z-index: 1;
+    gap: 12px;
   }
   .modal-title {
     font-size: 16px;
     font-weight: 500;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .modal-close {
     background: none;
@@ -597,6 +1081,7 @@ function generateUUID()
     align-items: center;
     justify-content: center;
     border-radius: var(--border-radius-md);
+    flex-shrink: 0;
   }
   .modal-close:hover {
     color: var(--color-text-primary);
@@ -611,9 +1096,90 @@ function generateUUID()
     display: flex;
     justify-content: flex-end;
     gap: 8px;
+    flex-wrap: wrap;
     position: sticky;
     bottom: 0;
     background: var(--color-background-primary);
+  }
+
+  /* ── Modal responsive extras ── */
+  @media (max-width: 1200px) {
+    .modal { max-width: 92vw; }
+    .detail-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 992px) {
+    .modal { max-width: 96vw; }
+    .modal-header { padding: 16px 20px; }
+    .modal-body { padding: 20px; }
+    .modal-footer { padding: 14px 20px; }
+    .modal-title { font-size: 15px; }
+    .form-grid { grid-template-columns: 1fr 1fr; }
+    .detail-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .detail-images { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 768px) {
+    .modal-backdrop { padding: 0; align-items: flex-end; }
+    .modal {
+      border-radius: 20px 20px 0 0;
+      max-width: 100%;
+      max-height: 95vh;
+      overflow-y: auto;
+      margin: 0;
+    }
+    .modal-header {
+      border-radius: 20px 20px 0 0;
+      padding: 16px 18px;
+    }
+    .modal-footer {
+      border-radius: 0;
+      padding: 12px 18px;
+    }
+    .modal-body { padding: 16px 18px; }
+    .modal-title { font-size: 14px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.full { grid-column: 1; }
+    .detail-grid { grid-template-columns: 1fr; gap: 14px; }
+    .detail-images { grid-template-columns: repeat(2, 1fr); }
+    .section-label { margin-top: 14px; font-size: 10px; }
+  }
+
+  @media (max-width: 480px) {
+    .modal { max-height: 96vh; }
+    .modal-header { padding: 14px 16px; }
+    .modal-body { padding: 14px 16px; }
+    .modal-footer {
+      padding: 12px 16px;
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .modal-footer .btn { width: 100%; justify-content: center; }
+    .modal-title { font-size: 13px; }
+    .modal-close { font-size: 16px; }
+    .form-grid { gap: 10px; }
+    .detail-images { grid-template-columns: 1fr; }
+    .detail-grid { gap: 12px; }
+    input, select, textarea { font-size: 14px; padding: 8px 10px; }
+    label { font-size: 11px; }
+    .section-label { margin-top: 12px; margin-bottom: 8px; }
+  }
+
+  @media (max-width: 360px) {
+    .modal-header { padding: 12px 14px; }
+    .modal-body { padding: 12px 14px; }
+    .modal-footer { padding: 10px 14px; }
+    .modal-title { font-size: 12px; }
+    .modal-close { font-size: 14px; }
+    input, select, textarea { font-size: 13px; padding: 7px 9px; }
+  }
+
+  @media (max-width: 768px) and (orientation: landscape) {
+    .modal-backdrop { padding: 8px; align-items: center; }
+    .modal { border-radius: 16px; max-height: 90vh; margin: auto; }
+    .modal-header { border-radius: 16px 16px 0 0; }
+    .modal-body { padding: 12px 16px; }
+    .form-grid { grid-template-columns: 1fr 1fr; }
   }
   .section-label {
     font-size: 11px;
@@ -628,6 +1194,142 @@ function generateUUID()
   }
   .section-label:first-child {
     margin-top: 0;
+  }
+
+  /* ── Property View Modal Content Styles ── */
+  .prop-view-section {
+    margin-bottom: 24px;
+  }
+  .prop-view-section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 12px;
+  }
+  .prop-view-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+  .prop-view-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+  .prop-view-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .prop-view-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .prop-view-label {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+  .prop-view-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+  .prop-view-value a {
+    color: #185fa5;
+    text-decoration: none;
+  }
+  .prop-view-value a:hover {
+    text-decoration: underline;
+  }
+  .prop-view-images-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .prop-view-img-wrap {
+    position: relative;
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    background: var(--color-background-tertiary);
+  }
+  .prop-view-img-wrap img {
+    width: 100%;
+    height: 192px;
+    object-fit: cover;
+    cursor: pointer;
+  }
+  .prop-view-img-caption {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .prop-view-img-type {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #185fa5;
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .prop-view-img-wrap:hover .prop-view-img-type {
+    opacity: 1;
+  }
+
+  /* ── Property View Modal Responsive ── */
+  @media (max-width: 1200px) {
+    .prop-view-grid-3 { gap: 24px; }
+    .prop-view-grid-2 { gap: 24px; }
+  }
+
+  @media (max-width: 992px) {
+    .prop-view-grid-3 { grid-template-columns: 1fr; gap: 20px; }
+    .prop-view-grid-2 { grid-template-columns: 1fr; gap: 20px; }
+    .prop-view-images-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 768px) {
+    .prop-view-section { margin-bottom: 20px; }
+    .prop-view-section-title { font-size: 11px; margin-bottom: 10px; }
+    .prop-view-grid-3 { gap: 16px; }
+    .prop-view-grid-2 { gap: 16px; }
+    .prop-view-col { gap: 12px; }
+    .prop-view-item { gap: 3px; }
+    .prop-view-label { font-size: 11px; }
+    .prop-view-value { font-size: 13px; }
+    .prop-view-images-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .prop-view-img-wrap img { height: 160px; }
+  }
+
+  @media (max-width: 480px) {
+    .prop-view-section { margin-bottom: 16px; }
+    .prop-view-section-title { font-size: 10px; margin-bottom: 8px; }
+    .prop-view-grid-3 { gap: 12px; }
+    .prop-view-grid-2 { gap: 12px; }
+    .prop-view-col { gap: 10px; }
+    .prop-view-label { font-size: 10px; }
+    .prop-view-value { font-size: 12px; }
+    .prop-view-images-grid { grid-template-columns: 1fr; gap: 10px; }
+    .prop-view-img-wrap img { height: 180px; }
+    .prop-view-img-caption { font-size: 10px; }
+  }
+
+  @media (max-width: 360px) {
+    .prop-view-section { margin-bottom: 12px; }
+    .prop-view-grid-3 { gap: 10px; }
+    .prop-view-grid-2 { gap: 10px; }
+    .prop-view-col { gap: 8px; }
+    .prop-view-value { font-size: 11px; }
+    .prop-view-img-wrap img { height: 160px; }
   }
   .form-grid {
     display: grid;
@@ -919,6 +1621,8 @@ function generateUUID()
 
     .icon-btn { width: 26px; height: 26px; font-size: 12px; }
     .actions-cell { gap: 3px; }
+    .actions-cell .icon-btn { display: none; }
+    .actions-dropdown { display: block; }
 
     .rooms-grid { grid-template-columns: 1fr; }
     .room-list-item { flex-direction: column; align-items: flex-start; gap: 6px; }
@@ -950,6 +1654,8 @@ function generateUUID()
 
     .icon-btn   { width: 24px; height: 24px; font-size: 11px; }
     .actions-cell { gap: 2px; }
+    .actions-cell .icon-btn { display: none; }
+    .actions-dropdown { display: block; }
 
     .card-title { font-size: 14px; }
     .preview-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -1472,6 +2178,25 @@ function generateUUID()
                 <button onclick="confirmDeleteProperty('${property.property_id}', '${property.property_name}')" class="icon-btn del" title="Delete Property">
                   <i class="fas fa-trash"></i>
                 </button>
+                <div class="actions-dropdown" id="actDrop-${property.property_id}">
+                  <button class="actions-dropdown-btn" onclick="toggleActionsMenu('${property.property_id}', event)" title="Actions">
+                    <i class="fas fa-ellipsis-v"></i>
+                  </button>
+                  <div class="actions-dropdown-menu" id="actMenu-${property.property_id}">
+                    <button onclick="viewPropertyDetails('${property.property_id}');closeActionsMenu('${property.property_id}')">
+                      <i class="fas fa-eye"></i> View Details
+                    </button>
+                    <button onclick="toggleRoomsDropdown('${property.property_id}');closeActionsMenu('${property.property_id}')">
+                      <i class="fa-solid fa-door-open"></i> View Rooms
+                    </button>
+                    <button onclick="openEditPropertyModal('${property.property_id}');closeActionsMenu('${property.property_id}')">
+                      <i class="fas fa-pencil"></i> Edit Property
+                    </button>
+                    <button class="del-action" onclick="confirmDeleteProperty('${property.property_id}', '${property.property_name}');closeActionsMenu('${property.property_id}')">
+                      <i class="fas fa-trash"></i> Delete
+                    </button>
+                  </div>
+                </div>
               </div>
             </td>
           </tr>
@@ -2168,22 +2893,16 @@ function generateUUID()
     let imagesHtml = '';
     if (images.length > 0) {
       imagesHtml = `
-          <div class="mb-6">
-            <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-3">Property Images</h4>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+          <div class="prop-view-section">
+            <h4 class="prop-view-section-title">Property Images</h4>
+            <div class="prop-view-images-grid">
               ${images.map(img => {
-                // The image_url is stored as 'uploads/properties/filename.png'
-                // From build/pages/properties.php, we need to go up 2 levels to reach root
                 const imagePath = `../../${img.image_url}`;
-                console.log('Image URL from DB:', img.image_url);
-                console.log('Full image path:', imagePath);
                 return `
-                <div class="relative group">
-                  <img src="${imagePath}" alt="${img.caption || 'Property image'}" style="width: 100%; height: 12rem; object-fit: cover; border-radius: 0.5rem; cursor: pointer;" class="hover:opacity-90 transition-opacity bg-gray-200" onerror="console.log('Failed to load:', '${imagePath}'); this.style.display='none'; this.parentElement.innerHTML='<div style=\'width: 100%; height: 12rem; background: #e5e7eb; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 0.75rem;\'>Image not found: ${img.image_url}</div>'" onclick="window.open('${imagePath}', '_blank')">
-                  ${img.caption ? `<p class="text-xs text-slate-600 dark:text-white/80 mt-1 truncate">${img.caption}</p>` : ''}
-                  <span class="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                    ${img.image_type}
-                  </span>
+                <div class="prop-view-img-wrap">
+                  <img src="${imagePath}" alt="${img.caption || 'Property image'}" onerror="this.onerror=null;this.parentElement.innerHTML='<div style=\'width:100%;height:192px;background:var(--color-background-tertiary);display:flex;align-items:center;justify-content:center;color:var(--color-text-tertiary);font-size:11px;\'>Image not found</div>'" onclick="window.open('${imagePath}', '_blank')">
+                  <span class="prop-view-img-type">${img.image_type}</span>
+                  ${img.caption ? `<p class="prop-view-img-caption">${img.caption}</p>` : ''}
                 </div>
               `}).join('')}
             </div>
@@ -2191,161 +2910,151 @@ function generateUUID()
         `;
     } else {
       imagesHtml = `
-          <div class="mb-6">
-            <h4 class="text-sm font-bold text-slate-500 dark:text-white/60 uppercase mb-3">Property Images</h4>
-            <p class="text-sm text-slate-500 dark:text-white/60">No images uploaded for this property.</p>
+          <div class="prop-view-section">
+            <h4 class="prop-view-section-title">Property Images</h4>
+            <p class="prop-view-value" style="color:var(--color-text-tertiary);">No images uploaded for this property.</p>
           </div>
         `;
     }
 
     modalContent.innerHTML = `
         ${imagesHtml}
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;">
-          <div>
-            <h4 class="text-base font-bold text-slate-500 dark:text-white/60 uppercase mb-4" style="font-size: 0.875rem; font-weight: bold; text-transform: uppercase; margin-bottom: 1rem;">Basic Information</h4>
-            <div class="space-y-4">
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Property Code</p>
-                <p class="text-base font-semibold dark:text-white" style="font-size: 1rem; font-weight: 600;">${property.property_code}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Property Type</p>
-                <p class="text-base font-semibold dark:text-white" style="font-size: 1rem; font-weight: 600;">${property.property_type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Tagline</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.tagline || '-'}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Description</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.description || '-'}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Status</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.is_active ? 'Active' : 'Inactive'}</p>
-              </div>
+        <div class="prop-view-grid-3">
+          <div class="prop-view-col">
+            <h4 class="prop-view-section-title">Basic Information</h4>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Property Code</p>
+              <p class="prop-view-value">${property.property_code}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Property Type</p>
+              <p class="prop-view-value">${property.property_type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Tagline</p>
+              <p class="prop-view-value">${property.tagline || '-'}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Description</p>
+              <p class="prop-view-value">${property.description || '-'}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Status</p>
+              <p class="prop-view-value">${property.is_active ? 'Active' : 'Inactive'}</p>
             </div>
           </div>
 
-          <div>
-            <h4 class="text-base font-bold text-slate-500 dark:text-white/60 uppercase mb-4" style="font-size: 0.875rem; font-weight: bold; text-transform: uppercase; margin-bottom: 1rem;">Location</h4>
-            <div class="space-y-4">
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Address Line 1</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.address_line1 || '-'}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Address Line 2</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.address_line2 || '-'}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Region</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${regionName}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Province</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${provinceName}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">City/Municipality</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${cityName}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Barangay</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${barangayName}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Postal Code</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.postal_code || '-'}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Country</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.country}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Coordinates</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.latitude && property.longitude ? `${property.latitude}, ${property.longitude}` : '-'}</p>
-              </div>
+          <div class="prop-view-col">
+            <h4 class="prop-view-section-title">Location</h4>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Address Line 1</p>
+              <p class="prop-view-value">${property.address_line1 || '-'}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Address Line 2</p>
+              <p class="prop-view-value">${property.address_line2 || '-'}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Region</p>
+              <p class="prop-view-value">${regionName}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Province</p>
+              <p class="prop-view-value">${provinceName}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">City/Municipality</p>
+              <p class="prop-view-value">${cityName}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Barangay</p>
+              <p class="prop-view-value">${barangayName}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Postal Code</p>
+              <p class="prop-view-value">${property.postal_code || '-'}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Country</p>
+              <p class="prop-view-value">${property.country}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Coordinates</p>
+              <p class="prop-view-value">${property.latitude && property.longitude ? `${property.latitude}, ${property.longitude}` : '-'}</p>
             </div>
           </div>
 
-          <div>
-            <h4 class="text-base font-bold text-slate-500 dark:text-white/60 uppercase mb-4" style="font-size: 0.875rem; font-weight: bold; text-transform: uppercase; margin-bottom: 1rem;">Contact Information</h4>
-            <div class="space-y-4">
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Primary Phone</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.phone_primary || '-'}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Secondary Phone</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.phone_secondary || '-'}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Email</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.email || '-'}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Website</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.website_url ? `<a href="${property.website_url}" target="_blank" class="text-blue-500 hover:underline">${property.website_url}</a>` : '-'}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Facebook</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.facebook_url ? `<a href="${property.facebook_url}" target="_blank" class="text-blue-500 hover:underline">${property.facebook_url}</a>` : '-'}</p>
-              </div>
+          <div class="prop-view-col">
+            <h4 class="prop-view-section-title">Contact Information</h4>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Primary Phone</p>
+              <p class="prop-view-value">${property.phone_primary || '-'}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Secondary Phone</p>
+              <p class="prop-view-value">${property.phone_secondary || '-'}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Email</p>
+              <p class="prop-view-value">${property.email || '-'}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Website</p>
+              <p class="prop-view-value">${property.website_url ? `<a href="${property.website_url}" target="_blank">${property.website_url}</a>` : '-'}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Facebook</p>
+              <p class="prop-view-value">${property.facebook_url ? `<a href="${property.facebook_url}" target="_blank">${property.facebook_url}</a>` : '-'}</p>
             </div>
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; margin-top: 2rem;">
-          <div>
-            <h4 class="text-base font-bold text-slate-500 dark:text-white/60 uppercase mb-4" style="font-size: 0.875rem; font-weight: bold; text-transform: uppercase; margin-bottom: 1rem;">Check-in/Check-out</h4>
-            <div class="space-y-4">
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Check-in Time</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.check_in_time}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Check-out Time</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.check_out_time}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Earliest Check-in</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.earliest_check_in}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Latest Check-out</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.latest_check_out}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Late Check-out Fee</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.currency_code || 'PHP'} ${parseFloat(property.late_check_out_fee).toFixed(2)}</p>
-              </div>
+        <div class="prop-view-grid-2" style="margin-top: 32px;">
+          <div class="prop-view-col">
+            <h4 class="prop-view-section-title">Check-in/Check-out</h4>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Check-in Time</p>
+              <p class="prop-view-value">${property.check_in_time}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Check-out Time</p>
+              <p class="prop-view-value">${property.check_out_time}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Earliest Check-in</p>
+              <p class="prop-view-value">${property.earliest_check_in}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Latest Check-out</p>
+              <p class="prop-view-value">${property.latest_check_out}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Late Check-out Fee</p>
+              <p class="prop-view-value">${property.currency_code || 'PHP'} ${parseFloat(property.late_check_out_fee).toFixed(2)}</p>
             </div>
           </div>
 
-          <div>
-            <h4 class="text-base font-bold text-slate-500 dark:text-white/60 uppercase mb-4" style="font-size: 0.875rem; font-weight: bold; text-transform: uppercase; margin-bottom: 1rem;">Settings</h4>
-            <div class="space-y-4">
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Timezone</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.timezone}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Currency</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.currency_code}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Tax Rate</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.tax_rate_percent}%</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Created At</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${new Date(property.created_at).toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</p>
-              </div>
-              <div>
-                <p class="text-sm text-slate-500 dark:text-white/60">Updated At</p>
-                <p class="text-base dark:text-white" style="font-size: 1rem;">${property.updated_at ? new Date(property.updated_at).toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : '-'}</p>
-              </div>
+          <div class="prop-view-col">
+            <h4 class="prop-view-section-title">Settings</h4>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Timezone</p>
+              <p class="prop-view-value">${property.timezone}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Currency</p>
+              <p class="prop-view-value">${property.currency_code}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Tax Rate</p>
+              <p class="prop-view-value">${property.tax_rate_percent}%</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Created At</p>
+              <p class="prop-view-value">${new Date(property.created_at).toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</p>
+            </div>
+            <div class="prop-view-item">
+              <p class="prop-view-label">Updated At</p>
+              <p class="prop-view-value">${property.updated_at ? new Date(property.updated_at).toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : '-'}</p>
             </div>
           </div>
         </div>
@@ -2358,6 +3067,24 @@ function generateUUID()
     const modal = document.getElementById('propertyDetailsModal');
     modal.classList.remove('open');
   }
+
+  // Actions dropdown menu helpers
+  function toggleActionsMenu(propertyId, event) {
+    event.stopPropagation();
+    const menu = document.getElementById('actMenu-' + propertyId);
+    const allMenus = document.querySelectorAll('.actions-dropdown-menu.open');
+    allMenus.forEach(m => { if (m !== menu) m.classList.remove('open'); });
+    menu.classList.toggle('open');
+  }
+
+  function closeActionsMenu(propertyId) {
+    const menu = document.getElementById('actMenu-' + propertyId);
+    if (menu) menu.classList.remove('open');
+  }
+
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.actions-dropdown-menu.open').forEach(m => m.classList.remove('open'));
+  });
 
   // Toggle Rooms Dropdown Function
   async function toggleRoomsDropdown(propertyId) {

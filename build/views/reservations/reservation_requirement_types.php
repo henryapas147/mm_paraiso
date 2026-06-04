@@ -472,6 +472,211 @@
     background: #0C447C;
     border-color: #0C447C
   }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media (max-width: 768px) {
+    .card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+    .toolbar {
+      flex-wrap: wrap;
+      width: 100%;
+    }
+    .search-input {
+      width: 100%;
+      flex: 1;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .search-wrap {
+      width: 100%;
+    }
+    .btn-primary {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    thead th {
+      padding: 8px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    td {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .badge {
+      font-size: 10px;
+      padding: 2px 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .btn-sm {
+      padding: 3px 6px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state {
+      padding: 40px 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state i {
+      font-size: 28px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modal {
+      max-width: 90vw;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal {
+      max-width: none;
+      max-height: 95vh;
+      border-radius: 12px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modal-body {
+      padding: 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-body {
+      padding: 16px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-footer {
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-footer .btn,
+    .modal-footer .btn-primary {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-group.full {
+      grid-column: auto;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-header {
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-title {
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-close {
+      font-size: 18px;
+      padding: 6px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    label {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: 12px;
+      padding: 7px 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .checkbox-group {
+      gap: 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .checkbox-item {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .alert-modal {
+      max-width: 90vw;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .alert-modal {
+      max-width: none;
+      padding: 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .alert-footer {
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .alert-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
 </style>
 
 <!-- PAGE CONTENT -->
@@ -481,13 +686,13 @@
     <div class="card-header">
       <div class="card-title">Requirement Types</div>
       <div class="toolbar">
-        <button class="btn btn-primary" onclick="openModal()">
-          <i class="fa-solid fa-plus"></i> Add New
-        </button>
         <div class="search-wrap">
           <i class="fa-solid fa-magnifying-glass"></i>
           <input type="text" id="searchInput" class="search-input" placeholder="Search types..." onkeyup="filterTable()">
         </div>
+        <button class="btn btn-primary" onclick="openModal()">
+          <i class="fa-solid fa-plus"></i> Add New
+        </button>
       </div>
     </div>
     <div class="table-wrap">

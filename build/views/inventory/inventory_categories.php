@@ -491,9 +491,9 @@
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     z-index: 9000;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: 20px;
+    padding: 40px 24px 24px;
   }
 
   .cat-overlay.open {
@@ -506,10 +506,12 @@
     border: 1px solid rgba(0, 0, 0, .08);
     width: 100%;
     max-width: 700px;
-    max-height: 92vh;
+    max-height: 90vh;
     overflow-y: auto;
+    overflow-x: hidden;
     box-shadow: var(--prod-shadow-lg);
-    animation: modalIn .2s cubic-bezier(.22, .68, 0, 1.2);
+    animation: modalIn .25s cubic-bezier(.22, .68, 0, 1.2);
+    margin: auto;
   }
 
   @keyframes modalIn {
@@ -586,6 +588,152 @@
     bottom: 0;
     background: var(--color-background-primary, #fff);
     border-radius: 0 0 var(--prod-radius-xl) var(--prod-radius-xl);
+    flex-wrap: wrap;
+  }
+
+  /* ── Custom Alert Dialog (replaces SweetAlert) ─────────── */
+  .cat-alert-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, .5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .cat-alert-overlay.open {
+    display: flex;
+  }
+
+  .cat-alert {
+    background: var(--color-background-primary, #fff);
+    border-radius: var(--prod-radius-xl);
+    border: 1px solid rgba(0, 0, 0, .08);
+    width: 100%;
+    max-width: 420px;
+    box-shadow: var(--prod-shadow-lg);
+    animation: alertIn .2s cubic-bezier(.22, .68, 0, 1.2);
+  }
+
+  @keyframes alertIn {
+    from { opacity: 0; transform: translateY(12px) scale(.98); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .cat-alert-header {
+    padding: 22px 26px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .cat-alert-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .cat-alert-icon.success { background: var(--prod-green-pale); color: var(--prod-green); }
+  .cat-alert-icon.error { background: var(--prod-red-pale); color: var(--prod-red); }
+  .cat-alert-icon.warning { background: var(--prod-amber-pale); color: var(--prod-amber); }
+  .cat-alert-icon.info { background: var(--prod-blue-pale); color: var(--prod-blue); }
+
+  .cat-alert-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    letter-spacing: -.3px;
+  }
+
+  .cat-alert-body {
+    padding: 0 26px 20px;
+  }
+
+  .cat-alert-message {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+
+  .cat-alert-footer {
+    padding: 0 26px 22px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .cat-alert-btn {
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: var(--prod-radius-md);
+    border: 1px solid rgba(0, 0, 0, .12);
+    background: var(--color-background-primary, #fff);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: all .15s;
+    font-family: var(--prod-font);
+  }
+
+  .cat-alert-btn:hover {
+    background: var(--color-background-secondary, #F8FAFC);
+    border-color: rgba(0, 0, 0, .18);
+  }
+
+  .cat-alert-btn.primary {
+    background: var(--prod-blue);
+    color: #fff;
+    border-color: var(--prod-blue);
+  }
+
+  .cat-alert-btn.primary:hover {
+    background: var(--prod-blue-dark);
+    border-color: var(--prod-blue-dark);
+  }
+
+  .cat-alert-btn.danger {
+    background: var(--prod-red);
+    color: #fff;
+    border-color: var(--prod-red);
+  }
+
+  .cat-alert-btn.danger:hover {
+    background: #a02222;
+    border-color: #a02222;
+  }
+
+  .cat-alert-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 26px;
+    gap: 12px;
+  }
+
+  .cat-alert-loading i {
+    font-size: 24px;
+    color: var(--prod-blue);
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .cat-alert-loading-text {
+    font-size: 14px;
+    color: var(--color-text-secondary);
   }
 
   .cat-form-grid {
@@ -780,6 +928,89 @@
     align-items: center;
   }
 
+  /* ── Responsive ───────────────────────────────────────── */
+  @media (max-width: 1400px) {
+    .cat-page { padding: 24px 24px 36px; }
+    .cat-search { width: 200px; }
+  }
+
+  @media (max-width: 1200px) {
+    .cat-page { padding: 20px 20px 32px; }
+    .cat-page-header { flex-direction: column; align-items: flex-start; }
+    .cat-toolbar { width: 100%; flex-wrap: wrap; }
+    .cat-search { width: 180px; }
+    .cat-btn { padding: 7px 14px; font-size: 12px; }
+  }
+
+  @media (max-width: 1024px) {
+    .cat-page { padding: 18px 18px 28px; }
+    .cat-stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .cat-card-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .cat-toolbar { width: 100%; flex-wrap: wrap; gap: 6px; }
+    .cat-search { width: 100%; }
+    .cat-table th:nth-child(3),
+    .cat-table td:nth-child(3) { display: none; }
+  }
+
+  @media (max-width: 992px) {
+    .cat-page { padding: 16px 16px 24px; }
+    .cat-page-title { font-size: 20px; }
+    .cat-stat-value { font-size: 28px; }
+    .cat-card-header { padding: 14px 18px; }
+    .cat-table td { padding: 10px 12px; }
+    .cat-table th { padding: 10px 12px; font-size: 11px; }
+    .cat-name-primary { font-size: 12px; }
+    .cat-name-secondary { font-size: 10px; }
+    .cat-action-btn { width: 30px; height: 30px; font-size: 11px; }
+    .cat-overlay { padding: 32px 16px 16px; }
+    .cat-modal { max-width: 94vw; max-height: 88vh; }
+    .cat-modal-header { padding: 18px 22px 16px; }
+    .cat-modal-body { padding: 20px 22px; }
+    .cat-modal-footer { padding: 14px 22px; }
+  }
+
+  @media (max-width: 768px) {
+    .cat-page { padding: 14px 14px 20px; }
+    .cat-page-header { gap: 12px; margin-bottom: 20px; }
+    .cat-page-title { font-size: 18px; }
+    .cat-page-subtitle { font-size: 12px; }
+    .cat-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .cat-stat-card { padding: 16px 18px; }
+    .cat-stat-icon { width: 32px; height: 32px; font-size: 14px; }
+    .cat-stat-value { font-size: 24px; }
+    .cat-card-header { padding: 12px 16px; }
+    .cat-toolbar { gap: 6px; }
+    .cat-table th:nth-child(2),
+    .cat-table td:nth-child(2) { display: none; }
+    .cat-table td { padding: 8px 10px; }
+    .cat-table th { padding: 8px 10px; font-size: 10px; }
+    .cat-table th.right,
+    .cat-table td:last-child { text-align: right; }
+    .cat-name-primary { font-size: 11px; }
+    .cat-name-secondary { font-size: 9px; }
+    .cat-avatar { width: 32px; height: 32px; font-size: 11px; }
+    .cat-action-btn { width: 28px; height: 28px; font-size: 10px; }
+    /* Modal adjustments */
+    .cat-overlay { padding: 24px 12px 12px; align-items: flex-start; }
+    .cat-modal { max-width: 100%; max-height: 85vh; }
+    .cat-modal-header { padding: 18px 20px 14px; }
+    .cat-modal-footer { padding: 14px 20px; flex-wrap: wrap; }
+    .cat-modal-body { padding: 20px; }
+    .cat-modal-title { font-size: 16px; }
+    .cat-modal-subtitle { font-size: 11px; }
+    .cat-modal-close { width: 32px; height: 32px; font-size: 14px; }
+    .cat-form-grid { gap: 16px; }
+    .cat-form-label { font-size: 10px; }
+    .cat-form-input, .cat-form-select, .cat-form-textarea { font-size: 14px; padding: 10px 12px; }
+  }
+
+  @media (max-width: 640px) {
+    .cat-card-header { flex-direction: column; align-items: stretch; }
+    .cat-toolbar { flex-direction: column; align-items: stretch; }
+    .cat-search, .cat-btn { width: 100%; }
+    .cat-stats-grid { grid-template-columns: 1fr; }
+  }
+
   @media (max-width: 600px) {
 
     .cat-details-grid,
@@ -792,8 +1023,114 @@
     }
 
     .cat-search {
-      width: 160px;
+      width: 100%;
     }
+
+    .cat-page { padding: 12px 12px 18px; }
+    .cat-page-title { font-size: 16px; }
+    .cat-page-subtitle { font-size: 11px; }
+    .cat-stat-card { padding: 14px 16px; }
+    .cat-stat-icon { width: 30px; height: 30px; font-size: 13px; }
+    .cat-stat-value { font-size: 22px; }
+    .cat-card-header { padding: 10px 14px; }
+    .cat-card-title { font-size: 13px; }
+    .cat-table th:nth-child(3),
+    .cat-table td:nth-child(3) { display: none; }
+    /* Modal adjustments */
+    .cat-overlay { padding: 20px 10px 10px; align-items: flex-start; }
+    .cat-modal { max-width: 100%; max-height: 88vh; }
+    .cat-modal-header { padding: 16px 18px 12px; }
+    .cat-modal-body { padding: 18px; }
+    .cat-modal-footer { padding: 12px 18px; flex-direction: column; align-items: stretch; }
+    .cat-modal-footer .cat-btn { width: 100%; justify-content: center; }
+    .cat-modal-title { font-size: 15px; }
+    .cat-modal-subtitle { font-size: 10px; }
+    .cat-modal-close { width: 30px; height: 30px; font-size: 13px; }
+    .cat-form-grid { gap: 14px; }
+    .cat-form-input, .cat-form-select, .cat-form-textarea { font-size: 14px; padding: 9px 12px; }
+    .cat-form-label { font-size: 10px; }
+    /* Alert dialog adjustments */
+    .cat-alert { max-width: 90vw; }
+    .cat-alert-header { padding: 18px 20px 14px; }
+    .cat-alert-body { padding: 0 20px 16px; }
+    .cat-alert-footer { padding: 0 20px 18px; }
+    .cat-alert-icon { width: 38px; height: 38px; font-size: 18px; }
+    .cat-alert-title { font-size: 16px; }
+    .cat-alert-message { font-size: 13px; }
+  }
+
+  @media (max-width: 480px) {
+    .cat-page { padding: 10px 10px 16px; }
+    .cat-page-title { font-size: 15px; }
+    .cat-page-subtitle { font-size: 10px; }
+    .cat-stat-value { font-size: 20px; }
+    /* Modal adjustments */
+    .cat-overlay { padding: 16px 8px 8px; align-items: flex-start; }
+    .cat-modal { max-width: 100%; max-height: 90vh; }
+    .cat-modal-header { padding: 14px 16px 10px; }
+    .cat-modal-body { padding: 16px; }
+    .cat-modal-footer { padding: 10px 16px; }
+    .cat-modal-title { font-size: 14px; }
+    .cat-modal-subtitle { font-size: 10px; }
+    .cat-modal-close { width: 28px; height: 28px; font-size: 12px; }
+    .cat-form-grid { gap: 12px; }
+    .cat-form-input, .cat-form-select, .cat-form-textarea { font-size: 13px; padding: 8px 11px; }
+    .cat-form-label { font-size: 9px; }
+    .cat-btn { padding: 8px 12px; font-size: 11px; }
+    /* Alert dialog adjustments */
+    .cat-alert { max-width: 92vw; }
+    .cat-alert-header { padding: 16px 18px 12px; }
+    .cat-alert-body { padding: 0 18px 14px; }
+    .cat-alert-footer { padding: 0 18px 16px; }
+    .cat-alert-icon { width: 36px; height: 36px; font-size: 16px; }
+    .cat-alert-title { font-size: 15px; }
+    .cat-alert-message { font-size: 12px; }
+    .cat-alert-btn { padding: 8px 14px; font-size: 12px; }
+  }
+
+  @media (max-width: 360px) {
+    .cat-page { padding: 8px 8px 14px; }
+    .cat-page-title { font-size: 14px; }
+    .cat-page-subtitle { font-size: 9px; }
+    .cat-stat-card { padding: 12px 14px; }
+    .cat-stat-value { font-size: 18px; }
+    /* Modal adjustments */
+    .cat-overlay { padding: 12px 6px 6px; align-items: flex-start; }
+    .cat-modal { max-width: 100%; max-height: 92vh; }
+    .cat-modal-header { padding: 12px 14px 8px; }
+    .cat-modal-body { padding: 14px; }
+    .cat-modal-footer { padding: 8px 14px; }
+    .cat-modal-title { font-size: 13px; }
+    .cat-modal-subtitle { font-size: 9px; }
+    .cat-modal-close { width: 26px; height: 26px; font-size: 11px; }
+    .cat-form-grid { gap: 10px; }
+    .cat-form-input, .cat-form-select, .cat-form-textarea { font-size: 12px; padding: 7px 10px; }
+    .cat-form-label { font-size: 9px; }
+    .cat-btn { padding: 7px 10px; font-size: 10px; }
+    /* Alert dialog adjustments */
+    .cat-alert { max-width: 94vw; }
+    .cat-alert-header { padding: 14px 16px 10px; }
+    .cat-alert-body { padding: 0 16px 12px; }
+    .cat-alert-footer { padding: 0 16px 14px; }
+    .cat-alert-icon { width: 34px; height: 34px; font-size: 15px; }
+    .cat-alert-title { font-size: 14px; }
+    .cat-alert-message { font-size: 11px; }
+    .cat-alert-btn { padding: 7px 12px; font-size: 11px; }
+  }
+
+  @media (max-width: 768px) and (orientation: landscape) {
+    .cat-overlay { padding: 8px; align-items: center; }
+    .cat-modal { border-radius: var(--prod-radius-xl); max-height: 90vh; }
+    .cat-modal-header { border-radius: var(--prod-radius-xl) var(--prod-radius-xl) 0 0; }
+    .cat-modal-body { padding: 14px 18px; }
+    .cat-form-grid { grid-template-columns: 1fr 1fr; }
+    .cat-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    .cat-action-btn { width: 36px; height: 36px; font-size: 13px; }
+    .cat-btn { padding: 9px 16px; }
+    .cat-form-input, .cat-form-select, .cat-form-textarea { font-size: 16px; }
   }
 </style>
 
@@ -883,14 +1220,14 @@
   </div>
 
   <!-- Category Details Modal -->
-  <div class="cat-overlay" id="categoryDetailsModal" onclick="if(event.target===this)closeCategoryDetailsModal()">
+  <div class="cat-overlay" id="categoryDetailsModal">
     <div class="cat-modal" role="dialog" aria-modal="true" aria-labelledby="modalCategoryName">
       <div class="cat-modal-header">
         <div>
           <div class="cat-modal-title" id="modalCategoryName">Category Details</div>
           <div class="cat-modal-subtitle" id="modalCategoryCode"></div>
         </div>
-        <button class="cat-modal-close" onclick="closeCategoryDetailsModal()" aria-label="Close">
+        <button class="cat-modal-close" aria-label="Close">
           <i class="fas fa-times"></i>
         </button>
       </div>
@@ -899,14 +1236,14 @@
   </div>
 
   <!-- Add Category Modal -->
-  <div class="cat-overlay" id="addCategoryModal" onclick="if(event.target===this)closeAddCategoryModal()">
+  <div class="cat-overlay" id="addCategoryModal">
     <div class="cat-modal" role="dialog" aria-modal="true">
       <div class="cat-modal-header">
         <div>
           <div class="cat-modal-title">Add New Category</div>
           <div class="cat-modal-subtitle">Fill in the details to create a new category</div>
         </div>
-        <button class="cat-modal-close" onclick="closeAddCategoryModal()" aria-label="Close">
+        <button class="cat-modal-close" aria-label="Close">
           <i class="fas fa-times"></i>
         </button>
       </div>
@@ -938,7 +1275,7 @@
           </div>
         </div>
         <div class="cat-modal-footer">
-          <button type="button" class="cat-btn" onclick="closeAddCategoryModal()">
+          <button type="button" class="cat-btn cat-modal-cancel">
             <i class="fas fa-times"></i> Cancel
           </button>
           <button type="submit" class="cat-btn cat-btn-primary">
@@ -950,14 +1287,14 @@
   </div>
 
   <!-- Edit Category Modal -->
-  <div class="cat-overlay" id="editCategoryModal" onclick="if(event.target===this)closeEditCategoryModal()">
+  <div class="cat-overlay" id="editCategoryModal">
     <div class="cat-modal" role="dialog" aria-modal="true">
       <div class="cat-modal-header">
         <div>
           <div class="cat-modal-title">Edit Category</div>
           <div class="cat-modal-subtitle">Update category details</div>
         </div>
-        <button class="cat-modal-close" onclick="closeEditCategoryModal()" aria-label="Close">
+        <button class="cat-modal-close" aria-label="Close">
           <i class="fas fa-times"></i>
         </button>
       </div>
@@ -990,7 +1327,7 @@
           </div>
         </div>
         <div class="cat-modal-footer">
-          <button type="button" class="cat-btn" onclick="closeEditCategoryModal()">
+          <button type="button" class="cat-btn cat-modal-cancel">
             <i class="fas fa-times"></i> Cancel
           </button>
           <button type="submit" class="cat-btn cat-btn-primary">
@@ -1001,11 +1338,275 @@
     </div>
   </div>
 
+  <!-- Custom Alert Dialog (replaces SweetAlert) -->
+  <div class="cat-alert-overlay" id="catAlertOverlay">
+    <div class="cat-alert" id="catAlert">
+      <div class="cat-alert-header">
+        <div class="cat-alert-icon" id="catAlertIcon"><i class="fas fa-info"></i></div>
+        <div class="cat-alert-title" id="catAlertTitle">Alert</div>
+      </div>
+      <div class="cat-alert-body">
+        <div class="cat-alert-message" id="catAlertMessage">Message goes here</div>
+      </div>
+      <div class="cat-alert-footer" id="catAlertFooter">
+        <button class="cat-alert-btn" id="catAlertCancelBtn" style="display:none">Cancel</button>
+        <button class="cat-alert-btn primary" id="catAlertConfirmBtn">OK</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let categoriesData = [];
     let filteredData = [];
     let currentPage = 1;
     let entriesPerPage = 25;
+    const CSRF_TOKEN = <?php echo json_encode(CSRF_TOKEN); ?>;
+
+    // Custom Alert Dialog Helper (replaces SweetAlert)
+    function showCatAlert(options) {
+      const overlay = document.getElementById('catAlertOverlay');
+      const alertEl = document.getElementById('catAlert');
+
+      // Handle loading state
+      if (options.loading) {
+        alertEl.innerHTML = `
+          <div class="cat-alert-loading">
+            <i class="fas fa-spinner"></i>
+            <span class="cat-alert-loading-text">${options.loadingText || 'Loading...'}</span>
+          </div>
+        `;
+        overlay.classList.add('open');
+        return;
+      }
+
+      // Restore normal structure if it was in loading state
+      if (!alertEl.querySelector('.cat-alert-header')) {
+        alertEl.innerHTML = `
+          <div class="cat-alert-header">
+            <div class="cat-alert-icon" id="catAlertIcon"><i class="fas fa-info"></i></div>
+            <div class="cat-alert-title" id="catAlertTitle">Alert</div>
+          </div>
+          <div class="cat-alert-body">
+            <div class="cat-alert-message" id="catAlertMessage">Message goes here</div>
+          </div>
+          <div class="cat-alert-footer" id="catAlertFooter">
+            <button class="cat-alert-btn" id="catAlertCancelBtn" style="display:none">Cancel</button>
+            <button class="cat-alert-btn primary" id="catAlertConfirmBtn">OK</button>
+          </div>
+        `;
+      }
+
+      // Re-query elements after possible HTML restoration
+      const iconEl = document.getElementById('catAlertIcon');
+      const titleEl = document.getElementById('catAlertTitle');
+      const messageEl = document.getElementById('catAlertMessage');
+      const cancelBtn = document.getElementById('catAlertCancelBtn');
+      const confirmBtn = document.getElementById('catAlertConfirmBtn');
+
+      // Set icon
+      const iconMap = {
+        success: 'fa-check',
+        error: 'fa-times',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info'
+      };
+      const iconClass = options.icon || 'info';
+      iconEl.className = 'cat-alert-icon ' + iconClass;
+      iconEl.innerHTML = `<i class="fas ${iconMap[iconClass] || iconMap.info}"></i>`;
+
+      // Set title and message
+      titleEl.textContent = options.title || 'Alert';
+      messageEl.innerHTML = options.text || options.html || '';
+
+      // Handle buttons
+      if (options.showCancelButton) {
+        cancelBtn.style.display = 'inline-flex';
+        cancelBtn.textContent = options.cancelButtonText || 'Cancel';
+        cancelBtn.onclick = () => {
+          overlay.classList.remove('open');
+          if (options.cancelCallback) options.cancelCallback();
+        };
+      } else {
+        cancelBtn.style.display = 'none';
+      }
+
+      confirmBtn.textContent = options.confirmButtonText || 'OK';
+      confirmBtn.className = 'cat-alert-btn ' + (options.confirmButtonClass || 'primary');
+      if (options.confirmButtonColor === '#C62828') {
+        confirmBtn.className = 'cat-alert-btn danger';
+      }
+      confirmBtn.onclick = () => {
+        overlay.classList.remove('open');
+        if (options.confirmCallback) options.confirmCallback();
+      };
+
+      // Show alert
+      overlay.classList.add('open');
+
+      // Return promise-like object
+      return {
+        then: function(callback) {
+          confirmBtn.onclick = () => {
+            overlay.classList.remove('open');
+            callback({ isConfirmed: true });
+          };
+          if (options.showCancelButton) {
+            cancelBtn.onclick = () => {
+              overlay.classList.remove('open');
+              callback({ isConfirmed: false });
+            };
+          }
+        }
+      };
+    }
+
+    function closeCatAlert() {
+      document.getElementById('catAlertOverlay').classList.remove('open');
+    }
+
+    // ── Modal Manager ─────────────────────────────────────────────────────────────
+    class ModalManager {
+      constructor() {
+        this.modals = {};
+        this.init();
+      }
+
+      init() {
+        // Move all modals to body to avoid z-index issues
+        ['categoryDetailsModal', 'addCategoryModal', 'editCategoryModal', 'catAlertOverlay'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            document.body.appendChild(el);
+            this.modals[id] = el;
+          }
+        });
+
+        // Setup overlay click handlers
+        Object.values(this.modals).forEach(modal => {
+          if (modal.classList.contains('cat-overlay')) {
+            modal.addEventListener('click', (e) => {
+              if (e.target === modal) {
+                this.close(modal.id);
+              }
+            });
+          }
+        });
+
+        // Setup close button handlers
+        document.querySelectorAll('.cat-modal-close').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const modal = btn.closest('.cat-overlay');
+            if (modal) this.close(modal.id);
+          });
+        });
+
+        // Setup cancel button handlers
+        document.querySelectorAll('.cat-modal-cancel').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const modal = btn.closest('.cat-overlay');
+            if (modal) this.close(modal.id);
+          });
+        });
+
+        // ESC key to close
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            Object.values(this.modals).forEach(modal => {
+              if (modal.classList.contains('open')) {
+                this.close(modal.id);
+              }
+            });
+          }
+        });
+      }
+
+      open(modalId) {
+        const modal = this.modals[modalId];
+        if (modal) {
+          modal.classList.add('open');
+          document.body.style.overflow = 'hidden';
+        }
+      }
+
+      close(modalId) {
+        const modal = this.modals[modalId];
+        if (modal) {
+          modal.classList.remove('open');
+          document.body.style.overflow = '';
+          // Reset form if exists
+          const form = modal.querySelector('form');
+          if (form) form.reset();
+        }
+      }
+
+      isOpen(modalId) {
+        const modal = this.modals[modalId];
+        return modal ? modal.classList.contains('open') : false;
+      }
+    }
+
+    const modalManager = new ModalManager();
+
+    // ── Modal Functions (using ModalManager) ─────────────────────────────────────
+    function openAddCategoryModal() {
+      modalManager.open('addCategoryModal');
+    }
+
+    function closeAddCategoryModal() {
+      modalManager.close('addCategoryModal');
+    }
+
+    function openEditCategoryModal(categoryId) {
+      const category = categoriesData.find(c => String(c.category_id) === String(categoryId));
+      if (!category) return;
+
+      const form = document.getElementById('editCategoryForm');
+      form.querySelector('[name="category_id"]').value = category.category_id;
+      form.querySelector('[name="category_code"]').value = category.category_code;
+      form.querySelector('[name="category_name"]').value = category.category_name;
+      document.getElementById('editParentId').value = category.parent_id || '';
+      form.querySelector('[name="sort_order"]').value = category.sort_order || 0;
+      form.querySelector('[name="description"]').value = category.description || '';
+
+      modalManager.open('editCategoryModal');
+    }
+
+    function closeEditCategoryModal() {
+      modalManager.close('editCategoryModal');
+    }
+
+    function viewCategoryDetails(categoryId) {
+      const category = categoriesData.find(c => String(c.category_id) === String(categoryId));
+      if (!category) return;
+
+      document.getElementById('modalCategoryName').textContent = category.category_name;
+      document.getElementById('modalCategoryCode').textContent = category.category_code;
+
+      const isParent = !category.parent_id;
+
+      document.getElementById('modalCategoryContent').innerHTML = `
+      <div class="cat-details-grid">
+        <div>
+          <div class="cat-details-section-title"><i class="fas fa-info-circle" style="margin-right:5px;opacity:.6"></i>Basic Information</div>
+          <div class="cat-detail-row"><div class="cat-detail-key">Category Code</div><div class="cat-detail-val">${category.category_code}</div></div>
+          <div class="cat-detail-row"><div class="cat-detail-key">Category Name</div><div class="cat-detail-val">${category.category_name}</div></div>
+          <div class="cat-detail-row"><div class="cat-detail-key">Parent Category</div><div class="cat-detail-val">${isParent ? '<span class="cat-badge parent"><i class="fas fa-folder" style="margin-right:4px;font-size:9px"></i>Parent</span>' : (category.parent_name || '—')}</div></div>
+          <div class="cat-detail-row"><div class="cat-detail-key">Sort Order</div><div class="cat-detail-val">${category.sort_order || '0'}</div></div>
+          <div class="cat-detail-row"><div class="cat-detail-key">Description</div><div class="cat-detail-val">${category.description || '—'}</div></div>
+        </div>
+        <div>
+          <div class="cat-details-section-title" style="margin-top:20px"><i class="fas fa-sliders" style="margin-right:5px;opacity:.6"></i>Settings</div>
+          <div class="cat-detail-row"><div class="cat-detail-key">Status</div><div class="cat-detail-val"><span class="cat-badge active">Active</span></div></div>
+          <div class="cat-detail-row"><div class="cat-detail-key">Created At</div><div class="cat-detail-val">${new Date(category.created_at).toLocaleString()}</div></div>
+        </div>
+      </div>`;
+
+      modalManager.open('categoryDetailsModal');
+    }
+
+    function closeCategoryDetailsModal() {
+      modalManager.close('categoryDetailsModal');
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
       fetchCategories();
@@ -1137,8 +1738,8 @@
         </td>
         <td>
           <div class="cat-actions-cell">
-            <button onclick="viewCategoryDetails('${c.category_id}')" class="cat-action-btn view"><i class="fas fa-eye"></i> View</button>
-            <button onclick="openEditCategoryModal('${c.category_id}')" class="cat-action-btn edit"><i class="fas fa-pen"></i> Edit</button>
+            <button onclick="viewCategoryDetails('${c.category_id}')" class="cat-action-btn view"><i class="fas fa-eye"></i></button>
+            <button onclick="openEditCategoryModal('${c.category_id}')" class="cat-action-btn edit"><i class="fas fa-pen"></i></button>
             <button onclick="deleteCategory('${c.category_id}', '${c.category_name.replace(/'/g, "\\'")}')" class="cat-action-btn danger"><i class="fas fa-trash-alt"></i></button>
           </div>
         </td>
@@ -1210,71 +1811,15 @@
       paginationControls.innerHTML = html;
     }
 
-    function viewCategoryDetails(categoryId) {
-      const category = categoriesData.find(c => String(c.category_id) === String(categoryId));
-      if (!category) return;
-
-      document.getElementById('modalCategoryName').textContent = category.category_name;
-      document.getElementById('modalCategoryCode').textContent = category.category_code;
-
-      const isParent = !category.parent_id;
-
-      document.getElementById('modalCategoryContent').innerHTML = `
-      <div class="cat-details-grid">
-        <div>
-          <div class="cat-details-section-title"><i class="fas fa-info-circle" style="margin-right:5px;opacity:.6"></i>Basic Information</div>
-          <div class="cat-detail-row"><div class="cat-detail-key">Category Code</div><div class="cat-detail-val">${category.category_code}</div></div>
-          <div class="cat-detail-row"><div class="cat-detail-key">Category Name</div><div class="cat-detail-val">${category.category_name}</div></div>
-          <div class="cat-detail-row"><div class="cat-detail-key">Parent Category</div><div class="cat-detail-val">${isParent ? '<span class="cat-badge parent"><i class="fas fa-folder" style="margin-right:4px;font-size:9px"></i>Parent</span>' : (category.parent_name || '—')}</div></div>
-          <div class="cat-detail-row"><div class="cat-detail-key">Sort Order</div><div class="cat-detail-val">${category.sort_order || '0'}</div></div>
-          <div class="cat-detail-row"><div class="cat-detail-key">Description</div><div class="cat-detail-val">${category.description || '—'}</div></div>
-        </div>
-        <div>
-          <div class="cat-details-section-title" style="margin-top:20px"><i class="fas fa-sliders" style="margin-right:5px;opacity:.6"></i>Settings</div>
-          <div class="cat-detail-row"><div class="cat-detail-key">Status</div><div class="cat-detail-val"><span class="cat-badge active">Active</span></div></div>
-          <div class="cat-detail-row"><div class="cat-detail-key">Created At</div><div class="cat-detail-val">${new Date(category.created_at).toLocaleString()}</div></div>
-        </div>
-      </div>`;
-
-      document.getElementById('categoryDetailsModal').classList.add('open');
-    }
-
-    function closeCategoryDetailsModal() {
-      document.getElementById('categoryDetailsModal').classList.remove('open');
-    }
-
-    function openEditCategoryModal(categoryId) {
-      const category = categoriesData.find(c => String(c.category_id) === String(categoryId));
-      if (!category) return;
-
-      const form = document.getElementById('editCategoryForm');
-      form.querySelector('[name="category_id"]').value = category.category_id;
-      form.querySelector('[name="category_code"]').value = category.category_code;
-      form.querySelector('[name="category_name"]').value = category.category_name;
-      document.getElementById('editParentId').value = category.parent_id || '';
-      form.querySelector('[name="sort_order"]').value = category.sort_order || 0;
-      form.querySelector('[name="description"]').value = category.description || '';
-
-      document.getElementById('editCategoryModal').classList.add('open');
-    }
-
-    function closeEditCategoryModal() {
-      document.getElementById('editCategoryModal').classList.remove('open');
-      document.getElementById('editCategoryForm').reset();
-    }
-
     function submitEditCategory(event) {
       event.preventDefault();
       const form = document.getElementById('editCategoryForm');
       const formData = new FormData(form);
 
-      Swal.fire({
+      showCatAlert({
         title: 'Updating…',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
-        customClass: {
-          popup: 'swal2-popup-high-z'
-        }
+        loading: true,
+        loadingText: 'Updating category...'
       });
 
       const data = {
@@ -1284,6 +1829,7 @@
         parent_id: formData.get('parent_id'),
         sort_order: formData.get('sort_order'),
         description: formData.get('description'),
+        csrf_token: CSRF_TOKEN
       };
 
       fetch('../api/inventory_categories.php?action=update', {
@@ -1296,15 +1842,16 @@
         .then(r => r.json())
         .then(data => {
           closeEditCategoryModal();
+          closeCatAlert();
           if (data.success) {
-            Swal.fire({
+            showCatAlert({
               icon: 'success',
               title: 'Updated!',
               text: data.message,
               confirmButtonColor: '#1A6BBF'
             }).then(() => fetchCategories());
           } else {
-            Swal.fire({
+            showCatAlert({
               icon: 'error',
               title: 'Error',
               text: data.message,
@@ -1314,7 +1861,8 @@
         })
         .catch(() => {
           closeEditCategoryModal();
-          Swal.fire({
+          closeCatAlert();
+          showCatAlert({
             icon: 'error',
             title: 'Error',
             text: 'An error occurred.',
@@ -1324,7 +1872,7 @@
     }
 
     function deleteCategory(categoryId, categoryName) {
-      Swal.fire({
+      showCatAlert({
         title: 'Delete category?',
         html: `<span style="font-size:14px">You're about to delete <strong>${categoryName}</strong>. This action cannot be undone.</span>`,
         icon: 'warning',
@@ -1332,19 +1880,13 @@
         confirmButtonColor: '#C62828',
         cancelButtonColor: '#64748B',
         confirmButtonText: 'Yes, delete',
-        cancelButtonText: 'Cancel',
-        customClass: {
-          popup: 'swal2-popup-high-z'
-        }
+        cancelButtonText: 'Cancel'
       }).then((result) => {
         if (result.isConfirmed) {
-          Swal.fire({
+          showCatAlert({
             title: 'Deleting…',
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading(),
-            customClass: {
-              popup: 'swal2-popup-high-z'
-            }
+            loading: true,
+            loadingText: 'Deleting category...'
           });
 
           fetch('../api/inventory_categories.php?action=delete', {
@@ -1353,20 +1895,22 @@
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({
-                category_id: categoryId
+                category_id: categoryId,
+                csrf_token: CSRF_TOKEN
               })
             })
             .then(r => r.json())
             .then(data => {
+              closeCatAlert();
               if (data.success) {
-                Swal.fire({
+                showCatAlert({
                   icon: 'success',
                   title: 'Deleted!',
                   text: data.message,
                   confirmButtonColor: '#1A6BBF'
                 }).then(() => fetchCategories());
               } else {
-                Swal.fire({
+                showCatAlert({
                   icon: 'error',
                   title: 'Error',
                   text: data.message,
@@ -1374,12 +1918,15 @@
                 });
               }
             })
-            .catch(() => Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: 'An error occurred.',
-              confirmButtonColor: '#C62828'
-            }));
+            .catch(() => {
+              closeCatAlert();
+              showCatAlert({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred.',
+                confirmButtonColor: '#C62828'
+              });
+            });
         }
       });
     }
@@ -1398,13 +1945,10 @@
       const form = document.getElementById('addCategoryForm');
       const formData = new FormData(form);
 
-      Swal.fire({
+      showCatAlert({
         title: 'Adding Category…',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
-        customClass: {
-          popup: 'swal2-popup-high-z'
-        }
+        loading: true,
+        loadingText: 'Adding category...'
       });
 
       const data = {
@@ -1413,6 +1957,7 @@
         parent_id: formData.get('parent_id'),
         sort_order: formData.get('sort_order'),
         description: formData.get('description'),
+        csrf_token: CSRF_TOKEN
       };
 
       fetch('../api/inventory_categories.php?action=create', {
@@ -1425,15 +1970,16 @@
         .then(r => r.json())
         .then(data => {
           closeAddCategoryModal();
+          closeCatAlert();
           if (data.success) {
-            Swal.fire({
+            showCatAlert({
               icon: 'success',
               title: 'Category Added!',
               text: data.message,
               confirmButtonColor: '#1A6BBF'
             }).then(() => fetchCategories());
           } else {
-            Swal.fire({
+            showCatAlert({
               icon: 'error',
               title: 'Error',
               text: data.message,
@@ -1443,7 +1989,8 @@
         })
         .catch(() => {
           closeAddCategoryModal();
-          Swal.fire({
+          closeCatAlert();
+          showCatAlert({
             icon: 'error',
             title: 'Error',
             text: 'An error occurred.',

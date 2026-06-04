@@ -81,6 +81,11 @@
     overflow: hidden;
 }
 
+.table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 .res-table {
     width: 100%;
     border-collapse: collapse;
@@ -224,9 +229,144 @@
 .empty-sub { font-size: 0.82rem; }
 
 /* Responsive */
+@media (max-width: 768px) {
+    .header-card {
+        padding: 1.5rem 1.25rem;
+    }
+    
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .page-title {
+        font-size: 1.8rem;
+    }
+    
+    .res-count-badge {
+        align-self: flex-start;
+    }
+    
+    .table-card {
+        border-radius: 12px;
+    }
+    
+    .res-table thead th {
+        padding: 0.75rem 1rem;
+        font-size: 0.6rem;
+    }
+    
+    .res-table tbody td {
+        padding: 0.85rem 1rem;
+        font-size: 0.8rem;
+    }
+    
+    .property-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 0.8rem;
+    }
+    
+    .status-badge {
+        font-size: 0.68rem;
+        padding: 0.25rem 0.7rem;
+    }
+    
+    .view-btn {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.68rem;
+    }
+}
+
 @media (max-width: 680px) {
-    .res-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .page-header { flex-direction: column; align-items: flex-start; }
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .res-table {
+        min-width: 600px;
+    }
+    
+    .res-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-card {
+        padding: 1.25rem 1rem;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .page-sub {
+        font-size: 0.75rem;
+    }
+    
+    .res-count-badge {
+        font-size: 0.72rem;
+        padding: 0.35rem 0.85rem;
+    }
+    
+    .res-table thead th {
+        padding: 0.6rem 0.85rem;
+        font-size: 0.55rem;
+    }
+    
+    .res-table tbody td {
+        padding: 0.75rem 0.85rem;
+        font-size: 0.75rem;
+    }
+    
+    .property-cell {
+        gap: 0.5rem;
+    }
+    
+    .property-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+    
+    .property-name {
+        font-size: 0.85rem;
+    }
+    
+    .date-main {
+        font-size: 0.85rem;
+    }
+    
+    .date-day {
+        font-size: 0.68rem;
+    }
+    
+    .status-badge {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.6rem;
+    }
+    
+    .view-btn {
+        padding: 0.3rem 0.65rem;
+        font-size: 0.65rem;
+    }
+    
+    .empty-icon {
+        font-size: 2.5rem;
+    }
+    
+    .empty-title {
+        font-size: 1.2rem;
+    }
+    
+    .empty-sub {
+        font-size: 0.75rem;
+    }
 }
 
 /* Modal */
@@ -329,8 +469,93 @@
 }
 
 @media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        max-height: 95vh;
+        border-radius: 12px;
+    }
+    
+    .modal-header {
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .modal-title {
+        font-size: 1.2rem;
+    }
+    
+    .modal-body {
+        padding: 1.25rem 1.5rem;
+    }
+    
     .modal-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .modal-section {
+        padding: 1rem;
+    }
+    
+    .modal-section-title {
+        font-size: 1rem;
+        margin-bottom: 0.85rem;
+    }
+    
+    .detail-row {
+        padding: 0.4rem 0;
+    }
+    
+    .detail-label {
+        font-size: 0.78rem;
+    }
+    
+    .detail-value {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-content {
+        width: 98%;
+        max-height: 98vh;
+        border-radius: 8px;
+    }
+    
+    .modal-header {
+        padding: 1rem 1.25rem;
+    }
+    
+    .modal-title {
+        font-size: 1.1rem;
+    }
+    
+    .modal-close {
+        font-size: 1.3rem;
+    }
+    
+    .modal-body {
+        padding: 1rem 1.25rem;
+    }
+    
+    .modal-section {
+        padding: 0.875rem;
+        border-radius: 8px;
+    }
+    
+    .modal-section-title {
+        font-size: 0.95rem;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.6rem;
+    }
+    
+    .detail-row {
+        flex-direction: column;
+        gap: 0.25rem;
+        padding: 0.5rem 0;
+    }
+    
+    .detail-value {
+        text-align: left;
     }
 }
 </style>
@@ -824,7 +1049,7 @@
             <p class="empty-title">No reservations yet</p>
             <p class="empty-sub">Your booking history will appear here once you make a reservation.</p>
         </div>
-        <div style="overflow-x:auto;">
+        <div class="table-wrapper">
             <table class="res-table">
                 <thead>
                     <tr>

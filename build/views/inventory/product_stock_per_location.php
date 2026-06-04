@@ -570,6 +570,158 @@
     .stk-form-group.half {
       grid-template-columns: 1fr;
     }
+
+    .stk-overlay {
+      padding: 12px;
+    }
+
+    .stk-modal {
+      max-height: 95vh;
+    }
+
+    .stk-modal-header {
+      padding: 16px 18px 14px;
+    }
+
+    .stk-modal-body {
+      padding: 18px;
+    }
+
+    .stk-modal-footer {
+      padding: 14px 18px;
+      flex-direction: column;
+    }
+
+    .stk-modal-footer .stk-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .stk-view-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .stk-view-section {
+    background: var(--color-background-secondary, #F8FAFC);
+    border-radius: var(--prod-radius-md);
+    padding: 18px;
+    border: 1px solid rgba(0, 0, 0, .05);
+  }
+
+  .stk-view-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--prod-blue);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--prod-blue-pale);
+  }
+
+  .stk-view-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, .04);
+  }
+
+  .stk-view-row:last-child {
+    border-bottom: none;
+  }
+
+  .stk-view-label {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    min-width: 120px;
+  }
+
+  .stk-view-value {
+    font-size: 13px;
+    color: var(--color-text-primary);
+    font-weight: 500;
+    text-align: right;
+    flex: 1;
+  }
+
+  .stk-view-value.mono {
+    font-family: var(--prod-mono);
+  }
+
+  .stk-view-value.large {
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  @media (max-width: 600px) {
+    .stk-view-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .stk-view-row {
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stk-view-label {
+      min-width: auto;
+    }
+
+    .stk-view-value {
+      text-align: left;
+    }
+  }
+
+  @media (min-width: 601px) and (max-width: 768px) {
+    .stk-modal {
+      max-width: 90%;
+    }
+
+    .stk-modal-header {
+      padding: 18px 20px 16px;
+    }
+
+    .stk-modal-body {
+      padding: 20px;
+    }
+
+    .stk-modal-footer {
+      padding: 16px 20px;
+    }
+  }
+
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .stk-modal {
+      max-width: 650px;
+    }
+  }
+
+  @media (min-width: 1025px) and (max-width: 1200px) {
+    .stk-modal {
+      max-width: 680px;
+    }
+  }
+
+  @media (min-width: 1201px) and (max-width: 1399px) {
+    .stk-modal {
+      max-width: 700px;
+    }
+  }
+
+  @media (min-width: 1400px) {
+    .stk-modal {
+      max-width: 750px;
+    }
   }
 
   /* Custom Alert Modal */
@@ -1216,33 +1368,76 @@
 
     const qty = parseFloat(stock.quantity);
     const reorder = parseFloat(stock.reorder_point);
-    let statusBadge;
+    let statusClass, statusText;
     if (qty == 0) {
-      statusBadge = `<span class="bg-gradient-to-tl from-orange-500 to-amber-400 px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">Zero</span>`;
+      statusClass = 'zero';
+      statusText = 'Zero';
     } else if (qty < reorder && reorder > 0) {
-      statusBadge = `<span class="bg-gradient-to-tl from-red-500 to-rose-400 px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">Low Stock</span>`;
+      statusClass = 'low';
+      statusText = 'Low Stock';
     } else {
-      statusBadge = `<span class="bg-gradient-to-tl from-emerald-500 to-teal-400 px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">In Stock</span>`;
+      statusClass = 'instock';
+      statusText = 'In Stock';
     }
 
+    const locType = (stock.location_type || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
     document.getElementById('stockModalContent').innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
-      <div>
-        <div style="font-size:11px;font-weight:700;color:var(--prod-blue);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--prod-blue-pale);"><i class="fas fa-box" style="margin-right:5px;opacity:.6"></i>Product Information</div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Product Name</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${stock.product_name}</div></div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Product Code</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${stock.product_code}</div></div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Total Stock</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;font-family:var(--prod-mono)">${parseFloat(stock.total_stock).toFixed(3)}</div></div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Reorder Point</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;font-family:var(--prod-mono)">${parseFloat(stock.reorder_point).toFixed(3)}</div></div>
+    <div class="stk-view-grid">
+      <div class="stk-view-section">
+        <div class="stk-view-section-header">
+          <i class="fas fa-box"></i> Product Information
+        </div>
+        <div class="stk-view-row">
+          <div class="stk-view-label">Product Name</div>
+          <div class="stk-view-value">${stock.product_name}</div>
+        </div>
+        <div class="stk-view-row">
+          <div class="stk-view-label">Product Code</div>
+          <div class="stk-view-value">${stock.product_code}</div>
+        </div>
+        <div class="stk-view-row">
+          <div class="stk-view-label">Total Stock</div>
+          <div class="stk-view-value mono">${parseFloat(stock.total_stock).toFixed(3)}</div>
+        </div>
+        <div class="stk-view-row">
+          <div class="stk-view-label">Reorder Point</div>
+          <div class="stk-view-value mono">${parseFloat(stock.reorder_point).toFixed(3)}</div>
+        </div>
       </div>
-      <div>
-        <div style="font-size:11px;font-weight:700;color:var(--prod-blue);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--prod-blue-pale);margin-top:20px;"><i class="fas fa-map-marker-alt" style="margin-right:5px;opacity:.6"></i>Location Information</div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Property</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${stock.property_name}</div></div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Location</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${stock.location_name}</div></div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Location Type</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${(stock.location_type || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</div></div>
-        <div style="font-size:11px;font-weight:700;color:var(--prod-blue);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--prod-blue-pale);margin-top:20px;"><i class="fas fa-warehouse" style="margin-right:5px;opacity:.6"></i>Stock</div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Current Quantity</div><div style="font-size:20px;color:var(--color-text-primary);font-weight:600;text-align:right;font-family:var(--prod-mono)">${qty.toFixed(3)}</div></div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Status</div><div style="text-align:right;">${statusBadge}</div></div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Last Updated</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${stock.updated_at ? new Date(stock.updated_at).toLocaleString() : '—'}</div></div>
+      <div class="stk-view-section">
+        <div class="stk-view-section-header">
+          <i class="fas fa-map-marker-alt"></i> Location Information
+        </div>
+        <div class="stk-view-row">
+          <div class="stk-view-label">Property</div>
+          <div class="stk-view-value">${stock.property_name}</div>
+        </div>
+        <div class="stk-view-row">
+          <div class="stk-view-label">Location</div>
+          <div class="stk-view-value">${stock.location_name}</div>
+        </div>
+        <div class="stk-view-row">
+          <div class="stk-view-label">Location Type</div>
+          <div class="stk-view-value">${locType}</div>
+        </div>
+        <div class="stk-view-section-header" style="margin-top: 20px;">
+          <i class="fas fa-warehouse"></i> Stock
+        </div>
+        <div class="stk-view-row">
+          <div class="stk-view-label">Current Quantity</div>
+          <div class="stk-view-value mono large">${qty.toFixed(3)}</div>
+        </div>
+        <div class="stk-view-row">
+          <div class="stk-view-label">Status</div>
+          <div class="stk-view-value">
+            <span class="stk-badge ${statusClass}">${statusText}</span>
+          </div>
+        </div>
+        <div class="stk-view-row">
+          <div class="stk-view-label">Last Updated</div>
+          <div class="stk-view-value">${stock.updated_at ? new Date(stock.updated_at).toLocaleString() : '—'}</div>
+        </div>
       </div>
     </div>`;
 

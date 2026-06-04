@@ -285,6 +285,103 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
   .cp-page .bg-white.dark\:bg-slate-700.rounded-lg {
     border: 1px solid var(--cp-border) !important;
   }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 480px) {
+    /* Profile header */
+    .cp-page .flex.flex-wrap.-mx-3 {
+      flex-direction: column;
+      text-align: center;
+    }
+    .cp-page .flex-none.w-auto.max-w-full.px-3 {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+    .cp-page .w-full.max-w-full.px-3.mx-auto.mt-4 {
+      width: 100%;
+      margin-top: 1rem;
+    }
+    /* Tab navigation */
+    .cp-page ul[role="tablist"] {
+      flex-direction: column;
+    }
+    .cp-page ul[role="tablist"] li {
+      width: 100%;
+      margin-bottom: 0.25rem;
+    }
+    /* Stats cards */
+    .cp-page .flex.gap-3 {
+      flex-direction: column;
+    }
+    .cp-page .flex.gap-3 button {
+      width: 100%;
+    }
+    /* Stats grid */
+    .cp-page [style*="grid-template-columns: 1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+    /* Activity card */
+    .cp-page .flex.flex-wrap.-mx-3 > div {
+      width: 100% !important;
+      margin-top: 1rem;
+    }
+    /* Settings nav */
+    .cp-page .settings-nav-btn {
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+    /* Message filters */
+    .cp-page .flex.gap-2.mb-6 {
+      flex-direction: column;
+    }
+    .cp-page .message-filter-btn {
+      width: 100%;
+    }
+  }
+
+  @media (min-width: 481px) and (max-width: 768px) {
+    /* Tab navigation */
+    .cp-page ul[role="tablist"] li {
+      flex: 1 0 50%;
+    }
+    /* Stats grid */
+    .cp-page [style*="grid-template-columns: 1fr 1fr"] {
+      grid-template-columns: 1fr 1fr !important;
+    }
+    /* Activity card */
+    .cp-page .flex.flex-wrap.-mx-3 > div {
+      width: 100% !important;
+      margin-top: 1rem;
+    }
+    /* Quick actions */
+    .cp-page .flex.gap-3 {
+      flex-wrap: wrap;
+    }
+    .cp-page .flex.gap-3 button {
+      flex: 1 0 45%;
+    }
+  }
+
+  @media (min-width: 769px) and (max-width: 1024px) {
+    /* Activity card */
+    .cp-page .flex.flex-wrap.-mx-3 > div:nth-child(1) {
+      width: 100% !important;
+    }
+    .cp-page .flex.flex-wrap.-mx-3 > div:nth-child(2) {
+      width: 100% !important;
+      margin-top: 1rem;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    /* Main content padding */
+    .cp-page .w-full.p-6.mx-auto {
+      padding: 1rem;
+    }
+    .cp-page .relative.flex.flex-col.flex-auto.min-w-0.p-4 {
+      padding: 1rem;
+    }
+  }
 </style>
 
 <!-- PAGE CONTENT -->
@@ -396,23 +493,23 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
                 <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-5 mb-6">
                   <h5 class="mb-4 dark:text-white font-semibold text-sm">Quick Actions</h5>
                   <div class="flex gap-3">
-                    <button class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
+                    <button id="btnBookNew" class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
                       <i class="ni ni-bold-right text-xl text-indigo-600 mb-1"></i>
                       <p class="text-xs dark:text-white">Book New</p>
                     </button>
-                    <button class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
+                    <button id="btnCalendar" class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
                       <i class="ni ni-calendar-grid-58 text-xl text-emerald-600 mb-1"></i>
                       <p class="text-xs dark:text-white">Calendar</p>
                     </button>
-                    <button class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
+                    <button id="btnPayments" class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
                       <i class="ni ni-credit-card text-xl text-purple-600 mb-1"></i>
                       <p class="text-xs dark:text-white">Payments</p>
                     </button>
-                    <button class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
+                    <button id="btnFavorites" class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
                       <i class="ni ni-favourite-28 text-xl text-pink-600 mb-1"></i>
                       <p class="text-xs dark:text-white">Favorites</p>
                     </button>
-                    <button class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
+                    <button id="btnSupport" class="flex-1 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg p-3 text-center transition-colors shadow-sm">
                       <i class="ni ni-support-16 text-xl text-cyan-600 mb-1"></i>
                       <p class="text-xs dark:text-white">Support</p>
                     </button>
@@ -485,39 +582,10 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
                 <div id="checkins-content" class="activity-content">
                   <div class="flex items-center justify-between mb-4">
                     <h5 class="dark:text-white font-semibold text-sm">Upcoming Check-ins</h5>
-                    <a href="#" class="text-xs text-indigo-600 hover:text-indigo-700">View All</a>
+                    <a href="../customers/reservations.php" class="text-xs text-indigo-600 hover:text-indigo-700">View All</a>
                   </div>
-                  <div class="space-y-3">
-                    <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
-                      <div class="bg-blue-100 text-blue-600 rounded-lg p-2 flex-shrink-0">
-                        <i class="ni ni-building text-lg"></i>
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium dark:text-white truncate">Paradise Resort</p>
-                        <p class="text-xs text-gray-500">May 15, 2024 • 3 nights</p>
-                      </div>
-                      <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Confirmed</span>
-                    </div>
-                    <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
-                      <div class="bg-purple-100 text-purple-600 rounded-lg p-2 flex-shrink-0">
-                        <i class="ni ni-building text-lg"></i>
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium dark:text-white truncate">Beachside Villa</p>
-                        <p class="text-xs text-gray-500">Jun 20, 2024 • 5 nights</p>
-                      </div>
-                      <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">Pending</span>
-                    </div>
-                    <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
-                      <div class="bg-emerald-100 text-emerald-600 rounded-lg p-2 flex-shrink-0">
-                        <i class="ni ni-building text-lg"></i>
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium dark:text-white truncate">Mountain Retreat</p>
-                        <p class="text-xs text-gray-500">Jul 10, 2024 • 2 nights</p>
-                      </div>
-                      <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Confirmed</span>
-                    </div>
+                  <div id="checkins-list" class="space-y-3">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Loading...</p>
                   </div>
                 </div>
 
@@ -527,47 +595,8 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
                     <h5 class="dark:text-white font-semibold text-sm">Recent Activity</h5>
                     <a href="#" class="text-xs text-indigo-600 hover:text-indigo-700">View All</a>
                   </div>
-                  <div class="space-y-3">
-                    <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
-                      <div class="bg-green-100 text-green-600 rounded-full p-2 flex-shrink-0">
-                        <i class="ni ni-check-bold text-sm"></i>
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium dark:text-white">Payment received</p>
-                        <p class="text-xs text-gray-500 mt-0.5">₱5,000 for booking #BK-2024-001</p>
-                        <p class="text-xs text-gray-400 mt-1">2 hours ago</p>
-                      </div>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
-                      <div class="bg-blue-100 text-blue-600 rounded-full p-2 flex-shrink-0">
-                        <i class="ni ni-calendar-check text-sm"></i>
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium dark:text-white">Booking confirmed</p>
-                        <p class="text-xs text-gray-500 mt-0.5">Paradise Resort reservation</p>
-                        <p class="text-xs text-gray-400 mt-1">5 hours ago</p>
-                      </div>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
-                      <div class="bg-purple-100 text-purple-600 rounded-full p-2 flex-shrink-0">
-                        <i class="ni ni-single-02 text-sm"></i>
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium dark:text-white">Profile updated</p>
-                        <p class="text-xs text-gray-500 mt-0.5">Profile photo changed</p>
-                        <p class="text-xs text-gray-400 mt-1">1 day ago</p>
-                      </div>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
-                      <div class="bg-orange-100 text-orange-600 rounded-full p-2 flex-shrink-0">
-                        <i class="ni ni-gift text-sm"></i>
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium dark:text-white">Points earned</p>
-                        <p class="text-xs text-gray-500 mt-0.5">+100 loyalty points</p>
-                        <p class="text-xs text-gray-400 mt-1">3 days ago</p>
-                      </div>
-                    </div>
+                  <div id="activity-list" class="space-y-3">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Loading...</p>
                   </div>
                 </div>
               </div>
@@ -600,101 +629,7 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
 
                 <!-- Messages List -->
                 <div id="messagesList" class="space-y-4">
-                  <!-- System Notifications -->
-                  <div class="message-item bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border-l-4 border-blue-500 cursor-pointer hover:shadow-md transition-shadow" data-type="system" data-read="false">
-                    <div class="flex items-start justify-between">
-                      <div class="flex items-start gap-4">
-                        <div class="bg-blue-100 text-blue-600 rounded-full p-3 flex-shrink-0">
-                          <i class="ni ni-bell-55 text-lg"></i>
-                        </div>
-                        <div>
-                          <div class="flex items-center gap-4 mb-1">
-                            <span class="font-semibold text-sm dark:text-white">Booking Confirmation</span>
-                            <span class="bg-blue-500 text-white text-xs px-2.5 py-0.5 rounded-full" style="margin-left: 10px;">System</span>
-                          </div>
-                          <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Your booking #BK-2024-001 has been confirmed. Check-in: May 15, 2024</p>
-                          <p class="text-xs text-gray-400">2 hours ago</p>
-                        </div>
-                      </div>
-                      <div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                    </div>
-                  </div>
-
-                  <div class="message-item bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border-l-4 border-green-500 cursor-pointer hover:shadow-md transition-shadow" data-type="system" data-read="false">
-                    <div class="flex items-start justify-between">
-                      <div class="flex items-start gap-4">
-                        <div class="bg-green-100 text-green-600 rounded-full p-3 flex-shrink-0">
-                          <i class="ni ni-credit-card text-lg"></i>
-                        </div>
-                        <div>
-                          <div class="flex items-center gap-4 mb-1">
-                            <span class="font-semibold text-sm dark:text-white">Payment Receipt</span>
-                            <span class="bg-blue-500 text-white text-xs px-2.5 py-0.5 rounded-full" style="margin-left: 10px;">System</span>
-                          </div>
-                          <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Payment of ₱5,000 received for booking #BK-2024-001</p>
-                          <p class="text-xs text-gray-400">5 hours ago</p>
-                        </div>
-                      </div>
-                      <div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                    </div>
-                  </div>
-
-                  <!-- Support Messages -->
-                  <div class="message-item bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border-l-4 border-purple-500 cursor-pointer hover:shadow-md transition-shadow" data-type="support" data-read="false">
-                    <div class="flex items-start justify-between">
-                      <div class="flex items-start gap-4">
-                        <div class="bg-purple-100 text-purple-600 rounded-full p-3 flex-shrink-0">
-                          <i class="ni ni-support-16 text-lg"></i>
-                        </div>
-                        <div>
-                          <div class="flex items-center gap-4 mb-1">
-                            <span class="font-semibold text-sm dark:text-white">Support: Room Upgrade Request</span>
-                            <span class="bg-purple-500 text-white text-xs px-2.5 py-0.5 rounded-full" style="margin-left: 10px;">Support</span>
-                          </div>
-                          <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Admin: We've processed your room upgrade request to Deluxe Suite...</p>
-                          <p class="text-xs text-gray-400">1 day ago</p>
-                        </div>
-                      </div>
-                      <div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                    </div>
-                  </div>
-
-                  <!-- Promotional Updates -->
-                  <div class="message-item bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border-l-4 border-pink-500 cursor-pointer hover:shadow-md transition-shadow" data-type="promotional" data-read="true">
-                    <div class="flex items-start justify-between">
-                      <div class="flex items-start gap-4">
-                        <div class="bg-pink-100 text-pink-600 rounded-full p-3 flex-shrink-0">
-                          <i class="ni ni-tag text-lg"></i>
-                        </div>
-                        <div>
-                          <div class="flex items-center gap-4 mb-1">
-                            <span class="font-semibold text-sm dark:text-white">Special Offer: 20% Off Summer Bookings</span>
-                            <span class="bg-pink-500 text-white text-xs px-2.5 py-0.5 rounded-full" style="margin-left: 10px;">Promo</span>
-                          </div>
-                          <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Book now and get 20% off on all summer reservations!</p>
-                          <p class="text-xs text-gray-400">2 days ago</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="message-item bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border-l-4 border-orange-500 cursor-pointer hover:shadow-md transition-shadow" data-type="promotional" data-read="true">
-                    <div class="flex items-start justify-between">
-                      <div class="flex items-start gap-4">
-                        <div class="bg-orange-100 text-orange-600 rounded-full p-3 flex-shrink-0">
-                          <i class="ni ni-gift text-lg"></i>
-                        </div>
-                        <div>
-                          <div class="flex items-center gap-4 mb-1">
-                            <span class="font-semibold text-sm dark:text-white">Loyalty Reward: Free Spa Treatment</span>
-                            <span class="bg-pink-500 text-white text-xs px-2.5 py-0.5 rounded-full" style="margin-left: 10px;">Promo</span>
-                          </div>
-                          <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">As a valued guest, enjoy a complimentary spa treatment on your next visit!</p>
-                          <p class="text-xs text-gray-400">3 days ago</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Loading messages...</p>
                 </div>
 
                 <!-- Empty State -->
@@ -763,15 +698,15 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
                       </div>
                       <div class="space-y-3 mb-4">
                         <label class="flex items-center gap-3 cursor-pointer">
-                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" checked>
+                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" value="booking_confirmations" checked>
                           <span class="text-sm dark:text-white" style="margin-left: 10px;">Booking confirmations</span>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer">
-                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" checked>
+                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" value="payment_receipts" checked>
                           <span class="text-sm dark:text-white" style="margin-left: 10px;">Payment receipts</span>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer">
-                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded">
+                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" value="promotional">
                           <span class="text-sm dark:text-white" style="margin-left: 10px;">Promotional emails</span>
                         </label>
                       </div>
@@ -779,15 +714,15 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
                         <p class="text-xs font-semibold text-gray-500 mb-3">Email Notification Frequency</p>
                         <div class="space-y-2">
                           <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="radio" name="emailFreq" class="w-4 h-4 text-indigo-600">
+                            <input type="radio" name="emailFreq" class="w-4 h-4 text-indigo-600" value="immediate">
                             <span class="text-sm dark:text-white" style="margin-left: 10px;">Immediate</span>
                           </label>
                           <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="radio" name="emailFreq" class="w-4 h-4 text-indigo-600" checked>
+                            <input type="radio" name="emailFreq" class="w-4 h-4 text-indigo-600" value="daily" checked>
                             <span class="text-sm dark:text-white" style="margin-left: 10px;">Daily digest</span>
                           </label>
                           <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="radio" name="emailFreq" class="w-4 h-4 text-indigo-600">
+                            <input type="radio" name="emailFreq" class="w-4 h-4 text-indigo-600" value="weekly">
                             <span class="text-sm dark:text-white" style="margin-left: 10px;">Weekly summary</span>
                           </label>
                         </div>
@@ -807,17 +742,20 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
                       </div>
                       <div class="space-y-3">
                         <label class="flex items-center gap-3 cursor-pointer">
-                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" checked>
+                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" value="push_notifications" checked>
                           <span class="text-sm dark:text-white" style="margin-left: 10px;">Push notifications</span>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer">
-                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" checked>
+                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" value="sms_notifications" checked>
                           <span class="text-sm dark:text-white" style="margin-left: 10px;">SMS notifications</span>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer">
-                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" checked>
+                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" value="in_app_notifications" checked>
                           <span class="text-sm dark:text-white" style="margin-left: 10px;">In-app notifications</span>
                         </label>
+                      </div>
+                      <div class="mt-4">
+                        <button type="button" onclick="saveUserSettings()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-colors">Save Settings</button>
                       </div>
                     </div>
                   </div>
@@ -837,10 +775,10 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
                           <p class="text-xs text-gray-500">Control who can see your profile</p>
                         </div>
                       </div>
-                      <select class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-slate-700 dark:text-white dark:border-slate-600">
-                        <option>Public</option>
-                        <option>Friends Only</option>
-                        <option>Private</option>
+                      <select class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-slate-700 dark:text-white dark:border-slate-600" id="profileVisibility">
+                        <option value="public">Public</option>
+                        <option value="friends">Friends Only</option>
+                        <option value="private">Private</option>
                       </select>
                     </div>
 
@@ -857,17 +795,20 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
                       </div>
                       <div class="space-y-3">
                         <label class="flex items-center gap-3 cursor-pointer">
-                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded">
+                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" value="share_data_partners">
                           <span class="text-sm dark:text-white" style="margin-left: 10px;">Share data with resort partners</span>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer">
-                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" checked>
+                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" value="allow_analytics" checked>
                           <span class="text-sm dark:text-white" style="margin-left: 10px;">Allow analytics tracking</span>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer">
-                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded">
+                          <input type="checkbox" class="w-4 h-4 text-indigo-600 rounded" value="personalized_recommendations">
                           <span class="text-sm dark:text-white" style="margin-left: 10px;">Personalized recommendations</span>
                         </label>
+                      </div>
+                      <div class="mt-4">
+                        <button type="button" onclick="saveUserSettings()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-colors">Save Settings</button>
                       </div>
                     </div>
                   </div>
@@ -1031,10 +972,10 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
                           <p class="text-xs text-gray-500">Select your preferred language</p>
                         </div>
                       </div>
-                      <select class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-slate-700 dark:text-white dark:border-slate-600">
-                        <option>English</option>
-                        <option>Filipino</option>
-                        <option>Spanish</option>
+                      <select class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-slate-700 dark:text-white dark:border-slate-600" id="languageSelect">
+                        <option value="en">English</option>
+                        <option value="fil">Filipino</option>
+                        <option value="es">Spanish</option>
                       </select>
                     </div>
 
@@ -1049,10 +990,10 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
                           <p class="text-xs text-gray-500">Set your timezone</p>
                         </div>
                       </div>
-                      <select class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-slate-700 dark:text-white dark:border-slate-600">
-                        <option>UTC+8 (Philippines)</option>
-                        <option>UTC+0 (GMT)</option>
-                        <option>UTC-5 (Eastern Time)</option>
+                      <select class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-slate-700 dark:text-white dark:border-slate-600" id="timezoneSelect">
+                        <option value="Asia/Manila">UTC+8 (Philippines)</option>
+                        <option value="UTC">UTC+0 (GMT)</option>
+                        <option value="America/New_York">UTC-5 (Eastern Time)</option>
                       </select>
                     </div>
 
@@ -1067,11 +1008,14 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
                           <p class="text-xs text-gray-500">Choose your preferred currency</p>
                         </div>
                       </div>
-                      <select class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-slate-700 dark:text-white dark:border-slate-600">
-                        <option>₱ Philippine Peso (PHP)</option>
-                        <option>$ US Dollar (USD)</option>
-                        <option>€ Euro (EUR)</option>
+                      <select class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-slate-700 dark:text-white dark:border-slate-600" id="currencySelect">
+                        <option value="PHP">₱ Philippine Peso (PHP)</option>
+                        <option value="USD">$ US Dollar (USD)</option>
+                        <option value="EUR">€ Euro (EUR)</option>
                       </select>
+                    </div>
+                    <div class="mt-4">
+                      <button type="button" onclick="saveUserSettings()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-colors">Save Settings</button>
                     </div>
 
                   </div>
@@ -1929,6 +1873,121 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
           });
       }
 
+      // Fetch upcoming check-ins
+      function fetchUpcomingCheckins() {
+        fetch('../api/profile.php?action=get_upcoming_checkins')
+          .then(r => r.json())
+          .then(data => {
+            if (data.success && data.data) {
+              const list = document.getElementById('checkins-list');
+              if (!list) return;
+
+              if (data.data.length === 0) {
+                list.innerHTML = '<p class="text-xs text-gray-500 dark:text-gray-400">No upcoming check-ins</p>';
+                return;
+              }
+
+              const statusColors = {
+                'confirmed': 'bg-green-100 text-green-700',
+                'pending': 'bg-yellow-100 text-yellow-700',
+                'cancelled': 'bg-red-100 text-red-700',
+                'checked_in': 'bg-blue-100 text-blue-700',
+                'checked_out': 'bg-gray-100 text-gray-700'
+              };
+
+              list.innerHTML = data.data.map(checkin => {
+                const checkInDate = new Date(checkin.check_in_date);
+                const formattedDate = checkInDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const statusClass = statusColors[checkin.reservation_status] || 'bg-gray-100 text-gray-700';
+                const statusLabel = checkin.reservation_status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+                return `
+                  <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
+                    <div class="bg-blue-100 text-blue-600 rounded-lg p-2 flex-shrink-0">
+                      <i class="ni ni-building text-lg"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium dark:text-white truncate">${checkin.property_name}</p>
+                      <p class="text-xs text-gray-500">${formattedDate} • ${checkin.nights} night${checkin.nights > 1 ? 's' : ''}</p>
+                    </div>
+                    <span class="text-xs ${statusClass} px-2 py-1 rounded-full">${statusLabel}</span>
+                  </div>
+                `;
+              }).join('');
+            }
+          })
+          .catch(err => {
+            console.error('Error fetching check-ins:', err);
+            const list = document.getElementById('checkins-list');
+            if (list) list.innerHTML = '<p class="text-xs text-gray-500 dark:text-gray-400">Error loading check-ins</p>';
+          });
+      }
+
+      // Fetch recent activity
+      function fetchRecentActivity() {
+        fetch('../api/profile.php?action=get_recent_activity')
+          .then(r => r.json())
+          .then(data => {
+            if (data.success && data.data) {
+              const list = document.getElementById('activity-list');
+              if (!list) return;
+
+              if (data.data.length === 0) {
+                list.innerHTML = '<p class="text-xs text-gray-500 dark:text-gray-400">No recent activity</p>';
+                return;
+              }
+
+              const iconColors = {
+                'payment': 'bg-green-100 text-green-600',
+                'booking': 'bg-blue-100 text-blue-600'
+              };
+
+              const icons = {
+                'payment': 'ni-check-bold',
+                'booking': 'ni-calendar-check'
+              };
+
+              list.innerHTML = data.data.map(activity => {
+                const iconClass = iconColors[activity.type] || 'bg-gray-100 text-gray-600';
+                const icon = icons[activity.type] || 'ni-bell-55';
+                const activityDate = new Date(activity.created_at);
+                const now = new Date();
+                const diffMs = now - activityDate;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+
+                let timeAgo;
+                if (diffMins < 60) {
+                  timeAgo = `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+                } else if (diffHours < 24) {
+                  timeAgo = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+                } else {
+                  timeAgo = `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+                }
+
+                return `
+                  <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
+                    <div class="${iconClass} rounded-full p-2 flex-shrink-0">
+                      <i class="ni ${icon} text-sm"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium dark:text-white">${activity.description}</p>
+                      <p class="text-xs text-gray-500 mt-0.5">${activity.details}</p>
+                      <p class="text-xs text-gray-400 mt-1">${timeAgo}</p>
+                    </div>
+                  </div>
+                `;
+              }).join('');
+            }
+          })
+          .catch(err => {
+            console.error('Error fetching activity:', err);
+            const list = document.getElementById('activity-list');
+            if (list) list.innerHTML = '<p class="text-xs text-gray-500 dark:text-gray-400">Error loading activity</p>';
+          });
+      }
+
       // Normalize profile photo URL based on environment
       function normalizeProfilePhotoUrl(url) {
         if (!url || url.includes('default_profile')) {
@@ -2013,10 +2072,41 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
             statsLoaded = true;
           }, 500);
         }
+
+        // Quick Actions button handlers
+        document.getElementById('btnBookNew')?.addEventListener('click', function() {
+          window.location.href = '../customers/reservations.php';
+        });
+
+        document.getElementById('btnCalendar')?.addEventListener('click', function() {
+          // Navigate to reservations page which has calendar view
+          window.location.href = '../customers/reservations.php';
+        });
+
+        document.getElementById('btnPayments')?.addEventListener('click', function() {
+          window.location.href = '../customers/payments.php';
+        });
+
+        document.getElementById('btnFavorites')?.addEventListener('click', function() {
+          // Show placeholder alert for favorites
+          Swal.fire({
+            icon: 'info',
+            title: 'Favorites',
+            text: 'Favorites feature coming soon!',
+            confirmButtonColor: '#C9A96E'
+          });
+        });
+
+        document.getElementById('btnSupport')?.addEventListener('click', function() {
+          // Navigate to contact inquiries or show support modal
+          window.location.href = '../contact-inquiries/index.php';
+        });
       });
 
       /* ─── SETTINGS TAB FUNCTIONALITY ───────────────────────────────────────────────── */
       // Settings navigation functionality
+      let settingsLoaded = false;
+      
       document.addEventListener('DOMContentLoaded', function() {
         const settingsNavBtns = document.querySelectorAll('.settings-nav-btn');
         const settingsSections = document.querySelectorAll('.settings-section');
@@ -2043,6 +2133,183 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
           });
         });
       });
+
+      // Load settings when settings tab is activated
+      const tabLinks = document.querySelectorAll('[data-tab]');
+      tabLinks.forEach(link => {
+        link.addEventListener('click', function() {
+          if (this.getAttribute('data-tab') === 'settings' && !settingsLoaded) {
+            setTimeout(() => {
+              loadUserSettings();
+              settingsLoaded = true;
+            }, 100);
+          }
+        });
+      });
+
+      // Load settings on initial load if settings tab is active
+      const savedTab = localStorage.getItem('selectedProfileTab');
+      if (savedTab === 'settings') {
+        setTimeout(() => {
+          loadUserSettings();
+          settingsLoaded = true;
+        }, 500);
+      }
+
+      // Load user settings from API
+      async function loadUserSettings() {
+        try {
+          const response = await fetch('../api/user_settings.php?action=get_settings');
+          const result = await response.json();
+          
+          if (result.success && result.data) {
+            applySettings(result.data);
+          }
+        } catch (error) {
+          console.error('Error loading settings:', error);
+        }
+      }
+
+      // Apply loaded settings to form elements
+      function applySettings(settings) {
+        // Email preferences
+        if (settings.email_booking_confirmations !== undefined) {
+          const checkbox = document.querySelector('input[type="checkbox"][value="booking_confirmations"]');
+          if (checkbox) checkbox.checked = settings.email_booking_confirmations;
+        }
+        if (settings.email_payment_receipts !== undefined) {
+          const checkbox = document.querySelector('input[type="checkbox"][value="payment_receipts"]');
+          if (checkbox) checkbox.checked = settings.email_payment_receipts;
+        }
+        if (settings.email_promotional !== undefined) {
+          const checkbox = document.querySelector('input[type="checkbox"][value="promotional"]');
+          if (checkbox) checkbox.checked = settings.email_promotional;
+        }
+        
+        // Email frequency
+        if (settings.email_frequency) {
+          const radio = document.querySelector(`input[name="emailFreq"][value="${settings.email_frequency}"]`);
+          if (radio) radio.checked = true;
+        }
+        
+        // Notification settings
+        if (settings.push_notifications !== undefined) {
+          const checkbox = document.querySelector('input[type="checkbox"][value="push_notifications"]');
+          if (checkbox) checkbox.checked = settings.push_notifications;
+        }
+        if (settings.sms_notifications !== undefined) {
+          const checkbox = document.querySelector('input[type="checkbox"][value="sms_notifications"]');
+          if (checkbox) checkbox.checked = settings.sms_notifications;
+        }
+        if (settings.in_app_notifications !== undefined) {
+          const checkbox = document.querySelector('input[type="checkbox"][value="in_app_notifications"]');
+          if (checkbox) checkbox.checked = settings.in_app_notifications;
+        }
+        
+        // Privacy settings
+        if (settings.profile_visibility) {
+          const select = document.getElementById('profileVisibility');
+          if (select) select.value = settings.profile_visibility;
+        }
+        if (settings.share_data_partners !== undefined) {
+          const checkbox = document.querySelector('input[type="checkbox"][value="share_data_partners"]');
+          if (checkbox) checkbox.checked = settings.share_data_partners;
+        }
+        if (settings.allow_analytics !== undefined) {
+          const checkbox = document.querySelector('input[type="checkbox"][value="allow_analytics"]');
+          if (checkbox) checkbox.checked = settings.allow_analytics;
+        }
+        if (settings.personalized_recommendations !== undefined) {
+          const checkbox = document.querySelector('input[type="checkbox"][value="personalized_recommendations"]');
+          if (checkbox) checkbox.checked = settings.personalized_recommendations;
+        }
+        
+        // Preferences
+        if (settings.language) {
+          const select = document.getElementById('languageSelect');
+          if (select) select.value = settings.language;
+        }
+        if (settings.timezone) {
+          const select = document.getElementById('timezoneSelect');
+          if (select) select.value = settings.timezone;
+        }
+        if (settings.currency) {
+          const select = document.getElementById('currencySelect');
+          if (select) select.value = settings.currency;
+        }
+      }
+
+      // Save user settings
+      async function saveUserSettings() {
+        const settings = {};
+        
+        // Email preferences
+        const bookingConfirmations = document.querySelector('input[type="checkbox"][value="booking_confirmations"]');
+        if (bookingConfirmations) settings.email_booking_confirmations = bookingConfirmations.checked;
+        
+        const paymentReceipts = document.querySelector('input[type="checkbox"][value="payment_receipts"]');
+        if (paymentReceipts) settings.email_payment_receipts = paymentReceipts.checked;
+        
+        const promotional = document.querySelector('input[type="checkbox"][value="promotional"]');
+        if (promotional) settings.email_promotional = promotional.checked;
+        
+        const emailFreq = document.querySelector('input[name="emailFreq"]:checked');
+        if (emailFreq) settings.email_frequency = emailFreq.value;
+        
+        // Notification settings
+        const pushNotif = document.querySelector('input[type="checkbox"][value="push_notifications"]');
+        if (pushNotif) settings.push_notifications = pushNotif.checked;
+        
+        const smsNotif = document.querySelector('input[type="checkbox"][value="sms_notifications"]');
+        if (smsNotif) settings.sms_notifications = smsNotif.checked;
+        
+        const inAppNotif = document.querySelector('input[type="checkbox"][value="in_app_notifications"]');
+        if (inAppNotif) settings.in_app_notifications = inAppNotif.checked;
+        
+        // Privacy settings
+        const profileVisibility = document.getElementById('profileVisibility');
+        if (profileVisibility) settings.profile_visibility = profileVisibility.value;
+        
+        const shareData = document.querySelector('input[type="checkbox"][value="share_data_partners"]');
+        if (shareData) settings.share_data_partners = shareData.checked;
+        
+        const analytics = document.querySelector('input[type="checkbox"][value="allow_analytics"]');
+        if (analytics) settings.allow_analytics = analytics.checked;
+        
+        const recommendations = document.querySelector('input[type="checkbox"][value="personalized_recommendations"]');
+        if (recommendations) settings.personalized_recommendations = recommendations.checked;
+        
+        // Preferences
+        const language = document.getElementById('languageSelect');
+        if (language) settings.language = language.value;
+        
+        const timezone = document.getElementById('timezoneSelect');
+        if (timezone) settings.timezone = timezone.value;
+        
+        const currency = document.getElementById('currencySelect');
+        if (currency) settings.currency = currency.value;
+        
+        try {
+          const response = await fetch('../api/user_settings.php?action=save_settings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ settings: settings })
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            alert('Settings saved successfully!');
+          } else {
+            alert('Failed to save settings: ' + (result.message || 'Unknown error'));
+          }
+        } catch (error) {
+          console.error('Error saving settings:', error);
+          alert('Failed to save settings. Please try again.');
+        }
+      }
 
       /* ─── MESSAGES TAB FUNCTIONALITY ───────────────────────────────────────────────── */
       // Message filter functionality
@@ -2121,6 +2388,8 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
       document.addEventListener('DOMContentLoaded', function() {
         const activityTabBtns = document.querySelectorAll('.activity-tab-btn');
         const activityContents = document.querySelectorAll('.activity-content');
+        let checkinsLoaded = false;
+        let activityLoaded = false;
 
         activityTabBtns.forEach(btn => {
           btn.addEventListener('click', function() {
@@ -2141,8 +2410,26 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
                 content.classList.add('hidden');
               }
             });
+
+            // Fetch data when tab is switched
+            if (tab === 'checkins' && !checkinsLoaded) {
+              fetchUpcomingCheckins();
+              checkinsLoaded = true;
+            } else if (tab === 'activity' && !activityLoaded) {
+              fetchRecentActivity();
+              activityLoaded = true;
+            }
           });
         });
+
+        // Load check-ins on initial load if app tab is active
+        const savedTab = localStorage.getItem('selectedProfileTab');
+        if (!savedTab || savedTab === 'app') {
+          setTimeout(() => {
+            fetchUpcomingCheckins();
+            checkinsLoaded = true;
+          }, 600);
+        }
       });
 
       /* ─── GEOCODE DROPDOWNS ─────────────────────────────────────────────────────────── */
@@ -2223,6 +2510,190 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
         input.dataset.code = '';
         return '';
       }
+
+      /* ─── MESSAGES TAB FUNCTIONALITY ───────────────────────────────────────────────── */
+      let currentMessageFilter = 'all';
+      let messagesLoaded = false;
+
+      function fetchMessages(filter = 'all') {
+        currentMessageFilter = filter;
+        fetch(`../api/profile.php?action=get_messages&filter=${filter}`)
+          .then(r => r.json())
+          .then(data => {
+            if (data.success && data.data) {
+              renderMessages(data.data);
+            } else {
+              document.getElementById('messagesList').innerHTML = '<p class="text-xs text-gray-500 dark:text-gray-400">Error loading messages</p>';
+            }
+          })
+          .catch(err => {
+            console.error('Error fetching messages:', err);
+            document.getElementById('messagesList').innerHTML = '<p class="text-xs text-gray-500 dark:text-gray-400">Error loading messages</p>';
+          });
+      }
+
+      function renderMessages(messages) {
+        const list = document.getElementById('messagesList');
+        const emptyState = document.getElementById('emptyMessages');
+        
+        if (!list) return;
+
+        if (messages.length === 0) {
+          list.innerHTML = '';
+          emptyState.classList.remove('hidden');
+          return;
+        }
+
+        emptyState.classList.add('hidden');
+
+        const categoryColors = {
+          'system': { border: 'border-blue-500', bg: 'bg-blue-100', text: 'text-blue-600', badge: 'bg-blue-500' },
+          'support': { border: 'border-purple-500', bg: 'bg-purple-100', text: 'text-purple-600', badge: 'bg-purple-500' },
+          'promotional': { border: 'border-pink-500', bg: 'bg-pink-100', text: 'text-pink-600', badge: 'bg-pink-500' }
+        };
+
+        const categoryIcons = {
+          'system': 'ni-bell-55',
+          'support': 'ni-support-16',
+          'promotional': 'ni-tag'
+        };
+
+        const categoryLabels = {
+          'system': 'System',
+          'support': 'Support',
+          'promotional': 'Promo'
+        };
+
+        list.innerHTML = messages.map(msg => {
+          const colors = categoryColors[msg.category] || categoryColors['system'];
+          const icon = categoryIcons[msg.category] || categoryIcons['system'];
+          const label = categoryLabels[msg.category] || 'System';
+          const msgDate = new Date(msg.created_at);
+          const now = new Date();
+          const diffMs = now - msgDate;
+          const diffMins = Math.floor(diffMs / 60000);
+          const diffHours = Math.floor(diffMs / 3600000);
+          const diffDays = Math.floor(diffMs / 86400000);
+
+          let timeAgo;
+          if (diffMins < 60) {
+            timeAgo = `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+          } else if (diffHours < 24) {
+            timeAgo = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+          } else {
+            timeAgo = `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+          }
+
+          return `
+            <div class="message-item bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border-l-4 ${colors.border} cursor-pointer hover:shadow-md transition-shadow" 
+                 data-recipient-id="${msg.recipient_id}" 
+                 data-read="${msg.is_read ? 'true' : 'false'}"
+                 onclick="markAsRead('${msg.recipient_id}', this)">
+              <div class="flex items-start justify-between">
+                <div class="flex items-start gap-4">
+                  <div class="${colors.bg} ${colors.text} rounded-full p-3 flex-shrink-0">
+                    <i class="ni ${icon} text-lg"></i>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-4 mb-1">
+                      <span class="font-semibold text-sm dark:text-white">${msg.title}</span>
+                      <span class="${colors.badge} text-white text-xs px-2.5 py-0.5 rounded-full" style="margin-left: 10px;">${label}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">${msg.body}</p>
+                    <p class="text-xs text-gray-400">${timeAgo}</p>
+                  </div>
+                </div>
+                ${!msg.is_read ? '<div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>' : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function markAsRead(recipientId, element) {
+        const formData = new FormData();
+        formData.append('recipient_id', recipientId);
+        formData.append('action', 'mark_message_read');
+        formData.append('csrf_token', document.querySelector('input[name="csrf_token"]')?.value || '');
+
+        fetch('../api/profile.php', {
+          method: 'POST',
+          body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            element.dataset.read = 'true';
+            const unreadDot = element.querySelector('.w-2.h-2.bg-blue-500');
+            if (unreadDot) unreadDot.remove();
+          }
+        })
+        .catch(err => console.error('Error marking as read:', err));
+      }
+
+      function markAllAsRead() {
+        const formData = new FormData();
+        formData.append('action', 'mark_all_read');
+        formData.append('csrf_token', document.querySelector('input[name="csrf_token"]')?.value || '');
+
+        fetch('../api/profile.php', {
+          method: 'POST',
+          body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Success',
+              text: 'All messages marked as read',
+              confirmButtonColor: '#C9A96E'
+            });
+            fetchMessages(currentMessageFilter);
+          }
+        })
+        .catch(err => console.error('Error marking all as read:', err));
+      }
+
+      // Message filter functionality
+      document.addEventListener('DOMContentLoaded', function() {
+        const filterBtns = document.querySelectorAll('.message-filter-btn');
+        filterBtns.forEach(btn => {
+          btn.addEventListener('click', function() {
+            filterBtns.forEach(b => {
+              b.classList.remove('active', 'text-indigo-600', 'font-semibold');
+              b.classList.add('bg-gray-100', 'text-gray-700');
+            });
+            this.classList.add('active', 'text-indigo-600', 'font-semibold');
+            this.classList.remove('bg-gray-100', 'text-gray-700');
+            
+            const filter = this.getAttribute('data-filter');
+            fetchMessages(filter);
+          });
+        });
+
+        // Load messages when messages tab is activated
+        const tabLinks = document.querySelectorAll('[data-tab]');
+        tabLinks.forEach(link => {
+          link.addEventListener('click', function() {
+            if (this.getAttribute('data-tab') === 'messages' && !messagesLoaded) {
+              setTimeout(() => {
+                fetchMessages('all');
+                messagesLoaded = true;
+              }, 100);
+            }
+          });
+        });
+
+        // Load messages on initial load if messages tab is active
+        const savedTab = localStorage.getItem('selectedProfileTab');
+        if (savedTab === 'messages') {
+          setTimeout(() => {
+            fetchMessages('all');
+            messagesLoaded = true;
+          }, 500);
+        }
+      });
 
       function clearGeoInput(inputId, datalistId, hiddenInputId) {
         const input = document.getElementById(inputId);

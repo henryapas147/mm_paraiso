@@ -369,20 +369,197 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || ($_SESS
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
+    .header-card {
+        padding: 1.5rem 1.25rem;
+    }
+    
     .page-header {
         flex-direction: column;
         align-items: flex-start;
+        gap: 0.75rem;
     }
-
+    
+    .page-title {
+        font-size: 1.8rem;
+    }
+    
+    .btn-new-order {
+        align-self: flex-start;
+    }
+    
+    .table-card {
+        border-radius: 12px;
+    }
+    
+    .table-header {
+        padding: 1rem 1.25rem;
+    }
+    
+    .table-title {
+        font-size: 1rem;
+    }
+    
+    .order-item {
+        padding: 1.25rem;
+    }
+    
     .order-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.5rem;
     }
-
+    
+    .order-number {
+        font-size: 0.9rem;
+    }
+    
+    .order-status {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.75rem;
+    }
+    
     .order-meta {
         flex-wrap: wrap;
         gap: 0.75rem;
+        font-size: 0.75rem;
+    }
+    
+    .order-items {
+        padding: 0.875rem;
+    }
+    
+    .order-item-row {
+        padding: 0.6rem 0;
+    }
+    
+    .item-name {
+        font-size: 0.85rem;
+    }
+    
+    .item-price {
+        font-size: 0.85rem;
+    }
+    
+    .order-total {
+        font-size: 0.9rem;
+    }
+    
+    .order-total .amount {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-card {
+        padding: 1.25rem 1rem;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .page-sub {
+        font-size: 0.75rem;
+    }
+    
+    .btn-new-order {
+        padding: 0.65rem 1.25rem;
+        font-size: 0.8rem;
+    }
+    
+    .table-header {
+        padding: 0.875rem 1rem;
+    }
+    
+    .table-title {
+        font-size: 0.95rem;
+    }
+    
+    .order-item {
+        padding: 1rem;
+    }
+    
+    .order-number {
+        font-size: 0.85rem;
+    }
+    
+    .order-status {
+        font-size: 0.68rem;
+        padding: 0.25rem 0.65rem;
+    }
+    
+    .order-meta {
+        font-size: 0.72rem;
+        gap: 0.6rem;
+    }
+    
+    .order-items {
+        padding: 0.75rem;
+        border-radius: 10px;
+    }
+    
+    .order-item-row {
+        padding: 0.5rem 0;
+    }
+    
+    .item-qty {
+        width: 22px;
+        height: 22px;
+        font-size: 0.7rem;
+    }
+    
+    .item-name {
+        font-size: 0.8rem;
+    }
+    
+    .item-price {
+        font-size: 0.8rem;
+    }
+    
+    .order-total {
+        font-size: 0.85rem;
+    }
+    
+    .order-total .amount {
+        font-size: 0.95rem;
+    }
+    
+    .status-history {
+        padding-top: 0.875rem;
+    }
+    
+    .status-history-header {
+        font-size: 0.8rem;
+    }
+    
+    .status-history-item {
+        font-size: 0.75rem;
+    }
+    
+    .status-history-time {
+        font-size: 0.7rem;
+        min-width: 70px;
+    }
+    
+    .btn-toggle-history {
+        font-size: 0.7rem;
+        padding: 0.35rem 0.7rem;
+    }
+    
+    .empty-state {
+        padding: 3rem 1.5rem;
+    }
+    
+    .empty-state i {
+        font-size: 2.5rem;
+    }
+    
+    .empty-state h3 {
+        font-size: 1.3rem;
+    }
+    
+    .empty-state p {
+        font-size: 0.85rem;
     }
 }
 </style>

@@ -120,6 +120,11 @@
     overflow: hidden;
 }
 
+.table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 .pay-table {
     width: 100%;
     border-collapse: collapse;
@@ -216,9 +221,169 @@
 .empty-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 400; color: var(--ink-soft); margin-bottom: 0.4rem; }
 .empty-sub   { font-size: 0.82rem; }
 
+@media (max-width: 768px) {
+    .header-card {
+        padding: 1.5rem 1.25rem;
+    }
+    
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .page-title {
+        font-size: 1.8rem;
+    }
+    
+    .summary-strip {
+        gap: 0.875rem;
+    }
+    
+    .summary-pill {
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .summary-pill-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 0.9rem;
+    }
+    
+    .summary-pill-value {
+        font-size: 1.4rem;
+    }
+    
+    .table-card {
+        border-radius: 12px;
+    }
+    
+    .pay-table thead th {
+        padding: 0.75rem 1rem;
+        font-size: 0.6rem;
+    }
+    
+    .pay-table tbody td {
+        padding: 0.85rem 1rem;
+        font-size: 0.8rem;
+    }
+    
+    .amount-cell {
+        font-size: 1rem;
+    }
+    
+    .method-icon {
+        width: 26px;
+        height: 26px;
+        font-size: 0.75rem;
+    }
+    
+    .status-badge {
+        font-size: 0.68rem;
+        padding: 0.25rem 0.7rem;
+    }
+}
+
 @media (max-width: 680px) {
-    .pay-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .page-header { flex-direction: column; align-items: flex-start; }
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .pay-table {
+        min-width: 600px;
+    }
+    
+    .pay-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-card {
+        padding: 1.25rem 1rem;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .page-sub {
+        font-size: 0.75rem;
+    }
+    
+    .summary-strip {
+        grid-template-columns: 1fr;
+    }
+    
+    .summary-pill {
+        padding: 1rem 1.25rem;
+    }
+    
+    .summary-pill-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 0.85rem;
+    }
+    
+    .summary-pill-label {
+        font-size: 0.62rem;
+    }
+    
+    .summary-pill-value {
+        font-size: 1.2rem;
+    }
+    
+    .pay-table thead th {
+        padding: 0.6rem 0.85rem;
+        font-size: 0.55rem;
+    }
+    
+    .pay-table tbody td {
+        padding: 0.75rem 0.85rem;
+        font-size: 0.75rem;
+    }
+    
+    .amount-cell {
+        font-size: 0.9rem;
+    }
+    
+    .method-cell {
+        gap: 0.4rem;
+    }
+    
+    .method-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 0.7rem;
+    }
+    
+    .date-main {
+        font-size: 0.85rem;
+    }
+    
+    .date-day {
+        font-size: 0.68rem;
+    }
+    
+    .status-badge {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.6rem;
+    }
+    
+    .empty-icon {
+        font-size: 2.5rem;
+    }
+    
+    .empty-title {
+        font-size: 1.2rem;
+    }
+    
+    .empty-sub {
+        font-size: 0.75rem;
+    }
 }
 </style>
 
@@ -374,7 +539,7 @@
             <p class="empty-title">No payment records</p>
             <p class="empty-sub">Your payment history will appear here once transactions are processed.</p>
         </div>
-        <div style="overflow-x:auto;">
+        <div class="table-wrapper">
             <table class="pay-table">
                 <thead>
                     <tr>

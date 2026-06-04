@@ -153,18 +153,17 @@ function generateUUID()
   .rc-empty-state { text-align: center; padding: 24px; color: var(--color-text-secondary); font-size: 13px; }
   .rc-modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: rgba(0,0,0,0.4);
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.18s ease;
+  overflow-y: auto;
   }
   .rc-modal-backdrop.open { opacity: 1; pointer-events: auto; }
   .rc-modal {
@@ -177,6 +176,7 @@ function generateUUID()
   box-shadow: 0 10px 40px rgba(0,0,0,0.15);
   transform: scale(0.96) translateY(10px);
   transition: transform 0.18s ease;
+  margin: auto;
   }
   .rc-modal-wide {
   max-width: 900px !important;
@@ -192,8 +192,17 @@ function generateUUID()
   top: 0;
   background: #ffffff;
   z-index: 1;
+  gap: 12px;
   }
-  .rc-modal-title { font-size: 15px; font-weight: 500; }
+  .rc-modal-title {
+  font-size: 15px;
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  }
   .rc-modal-close {
   border: none;
   background: none;
@@ -202,6 +211,7 @@ function generateUUID()
   font-size: 16px;
   padding: 4px;
   border-radius: 4px;
+  flex-shrink: 0;
   }
   .rc-modal-close:hover { background: #f1f5f9; color: var(--color-text-primary); }
   .rc-modal-body { padding: 16px 18px; }
@@ -214,6 +224,166 @@ function generateUUID()
   position: sticky;
   bottom: 0;
   background: #ffffff;
+  flex-wrap: wrap;
+  }
+
+  /* ── View Modal Content Styles ── */
+  .rc-view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border-secondary);
+  gap: 12px;
+  }
+  .rc-view-title-group { flex: 1; min-width: 0; }
+  .rc-view-title { font-size: 18px; font-weight: 600; color: var(--color-text-primary); }
+  .rc-view-subtitle { font-size: 13px; color: var(--color-text-secondary); margin-top: 2px; }
+  .rc-view-status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  }
+  .rc-view-status.active { background: #dcfce7; color: #166534; }
+  .rc-view-status.inactive { background: #f1f5f9; color: #64748b; }
+  .rc-view-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  }
+  .rc-view-col { display: flex; flex-direction: column; gap: 20px; }
+  .rc-view-card {
+  background: var(--color-background-secondary);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-secondary);
+  }
+  .rc-view-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border-secondary);
+  }
+  .rc-view-row:last-child { border-bottom: none; }
+  .rc-view-label { font-size: 12px; color: var(--color-text-secondary); }
+  .rc-view-value { font-size: 13px; font-weight: 500; text-align: right; max-width: 60%; }
+  .rc-view-capacity-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  }
+  .rc-view-capacity-item {
+  text-align: center;
+  padding: 10px;
+  background: #ffffff;
+  border-radius: 6px;
+  border: 1px solid var(--color-border-secondary);
+  }
+  .rc-view-capacity-num { font-size: 20px; font-weight: 700; color: #185fa5; }
+  .rc-view-capacity-label { font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; }
+  .rc-view-amenities-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: var(--color-background-secondary);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-secondary);
+  }
+  .rc-view-amenity-tag {
+  background: #f0f9ff;
+  color: #0c4a6e;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #bae6fd;
+  }
+  .rc-view-rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 4px;
+  }
+  .rc-view-room-card {
+  padding: 12px;
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #ffffff;
+  transition: all 0.2s;
+  }
+  .rc-view-room-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  }
+  .rc-view-room-number { font-weight: 600; font-size: 14px; color: var(--color-text-primary); }
+  .rc-view-room-name { font-size: 12px; color: var(--color-text-secondary); }
+  .rc-view-room-meta { font-size: 11px; color: var(--color-text-tertiary); }
+  .rc-view-system-info {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border-secondary);
+  display: flex;
+  gap: 20px;
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  flex-wrap: wrap;
+  }
+
+  /* ── View Modal Responsive ── */
+  @media (max-width: 992px) {
+    .rc-view-grid { grid-template-columns: 1fr; }
+    .rc-view-capacity-grid { grid-template-columns: repeat(3, 1fr); }
+    .rc-view-rooms-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+  }
+
+  @media (max-width: 768px) {
+    .rc-view-header { flex-direction: column; align-items: flex-start; }
+    .rc-view-title { font-size: 16px; }
+    .rc-view-status { align-self: flex-start; }
+    .rc-view-card { padding: 14px; }
+    .rc-view-capacity-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .rc-view-capacity-num { font-size: 18px; }
+    .rc-view-capacity-label { font-size: 10px; }
+    .rc-view-rooms-grid { grid-template-columns: 1fr; max-height: 300px; }
+    .rc-view-system-info { flex-direction: column; gap: 8px; }
+  }
+
+  @media (max-width: 480px) {
+    .rc-view-title { font-size: 15px; }
+    .rc-view-subtitle { font-size: 12px; }
+    .rc-view-status { font-size: 11px; padding: 4px 10px; }
+    .rc-view-card { padding: 12px; }
+    .rc-view-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .rc-view-value { text-align: left; max-width: 100%; }
+    .rc-view-capacity-grid { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    .rc-view-capacity-item { padding: 8px; }
+    .rc-view-capacity-num { font-size: 16px; }
+    .rc-view-amenities-wrap { padding: 12px; }
+    .rc-view-amenity-tag { font-size: 11px; padding: 4px 10px; }
+    .rc-view-room-card { padding: 10px; }
+    .rc-view-room-number { font-size: 13px; }
+  }
+
+  @media (max-width: 360px) {
+    .rc-view-title { font-size: 14px; }
+    .rc-view-card { padding: 10px; }
+    .rc-view-capacity-grid { grid-template-columns: 1fr; }
+    .rc-view-capacity-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; }
+    .rc-view-capacity-num { font-size: 16px; }
+    .rc-view-capacity-label { font-size: 11px; }
   }
   .rc-section-label {
   font-size: 12px;
@@ -266,27 +436,161 @@ function generateUUID()
   }
   .rc-toast.error { background: #ef4444; }
   .rc-toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── Mobile actions dropdown ── */
+  .rc-actions-dropdown {
+    position: relative;
+    display: none;
+  }
+  .rc-actions-dropdown-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    border: 0.5px solid var(--color-border-secondary);
+    background: #ffffff; color: var(--color-text-secondary);
+    cursor: pointer; font-size: 12px;
+  }
+  .rc-actions-dropdown-btn:hover { background: #f1f5f9; color: var(--color-text-primary); }
+  .rc-actions-dropdown-menu {
+    position: absolute; right: 0; top: calc(100% + 4px);
+    background: #ffffff;
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    min-width: 140px; z-index: 100; overflow: hidden; display: none;
+  }
+  .rc-actions-dropdown-menu.open { display: block; }
+  .rc-actions-dropdown-menu button {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 8px 12px; font-size: 12px;
+    background: transparent; border: none;
+    color: var(--color-text-primary); cursor: pointer; text-align: left;
+  }
+  .rc-actions-dropdown-menu button:hover { background: #f8fafc; }
+  .rc-actions-dropdown-menu button.del-action:hover { background: #fef2f2; color: #ef4444; }
+  .rc-actions-dropdown-menu button i { width: 16px; text-align: center; font-size: 12px; color: var(--color-text-secondary); }
+  .rc-actions-dropdown-menu button.del-action:hover i { color: #ef4444; }
+
+  /* ── Responsive ── */
+  @media (max-width: 1400px) {
+    .rc-page { padding: 20px; }
+    .rc-search-wrap { min-width: 160px; }
+  }
+
+  @media (max-width: 1200px) {
+    .rc-page { padding: 18px; }
+    .rc-card-header { flex-direction: column; align-items: flex-start; }
+    .rc-toolbar { width: 100%; flex-wrap: wrap; }
+    .rc-search-wrap { min-width: 140px; }
+    .rc-btn { padding: 5px 10px; font-size: 12px; }
+  }
+
   @media (max-width: 1024px) {
-  .rc-table th:nth-child(3),
-  .rc-table td:nth-child(3) { display: none; }
+    .rc-table th:nth-child(3),
+    .rc-table td:nth-child(3) { display: none; }
+    .rc-card-title { font-size: 14px; }
+    .rc-table td { padding: 8px 10px; }
+    .rc-table th { padding: 8px 10px; font-size: 11px; }
   }
+
+  @media (max-width: 992px) {
+    .rc-page { padding: 16px; }
+    .rc-card-header { padding: 14px 16px; flex-direction: column; align-items: flex-start; gap: 10px; }
+    .rc-toolbar { width: 100%; flex-wrap: wrap; gap: 6px; }
+    .rc-search-wrap { min-width: 100%; }
+    .rc-filter-select { flex: 1 1 auto; }
+    .rc-btn { padding: 5px 10px; font-size: 12px; }
+    .rc-table td { padding: 8px 10px; }
+    .rc-table th { padding: 8px 10px; font-size: 10px; }
+    .rc-name { font-size: 12px; }
+    .rc-code { font-size: 11px; }
+    .rc-text { font-size: 12px; }
+    .rc-status-badge { font-size: 10px; padding: 2px 8px; }
+    .rc-icon-btn { width: 26px; height: 26px; font-size: 11px; }
+    .rc-actions { gap: 3px; }
+    /* Modal */
+    .rc-modal { max-width: 96vw; }
+    .rc-modal-header { padding: 12px 16px; }
+    .rc-modal-body { padding: 14px 16px; }
+    .rc-modal-footer { padding: 10px 16px; }
+  }
+
   @media (max-width: 768px) {
-  .rc-card-header { flex-direction: column; align-items: stretch; }
-  .rc-toolbar { flex-wrap: wrap; }
-  .rc-search-wrap { min-width: 100%; }
-  .rc-form-grid { grid-template-columns: 1fr; }
-  .rc-modal { width: 95%; max-height: 95vh; }
-  .rc-table th:nth-child(2),
-  .rc-table td:nth-child(2) { display: none; }
+    .rc-page { padding: 14px; }
+    .rc-card-header { padding: 12px; }
+    .rc-card-title { font-size: 13px; }
+    .rc-toolbar { gap: 6px; }
+    .rc-form-grid { grid-template-columns: 1fr; }
+    .rc-form-group.full { grid-column: 1; }
+    .rc-table th:nth-child(2),
+    .rc-table td:nth-child(2) { display: none; }
+    .rc-table td { padding: 8px 10px; }
+    .rc-table th { padding: 8px 10px; font-size: 9px; }
+    .rc-name { font-size: 11px; }
+    .rc-code { font-size: 10px; }
+    .rc-status-badge { font-size: 9px; padding: 2px 6px; }
+    .rc-icon-btn { width: 24px; height: 24px; font-size: 11px; }
+    .rc-actions { gap: 2px; }
+    /* Slide-up modal */
+    .rc-modal-backdrop { align-items: flex-end; }
+    .rc-modal { border-radius: 16px 16px 0 0; max-width: 100%; max-height: 95vh; width: 100%; }
+    .rc-modal-header { border-radius: 16px 16px 0 0; padding: 12px 16px; }
+    .rc-modal-footer { border-radius: 0; padding: 10px 16px; flex-wrap: wrap; }
+    .rc-modal-body { padding: 12px 16px; }
+    .rc-modal-title { font-size: 13px; }
   }
+
+  @media (max-width: 640px) {
+    .rc-card-header { flex-direction: column; align-items: stretch; }
+    .rc-toolbar { flex-direction: column; align-items: stretch; }
+    .rc-search-wrap, .rc-filter-select, .rc-btn { width: 100%; }
+    /* Dropdown actions on small screens */
+    .rc-actions .rc-icon-btn { display: none; }
+    .rc-actions-dropdown { display: block; }
+  }
+
   @media (max-width: 480px) {
-  .rc-page { padding: 12px; }
-  .rc-card-header { padding: 12px; }
-  .rc-toolbar { gap: 6px; }
-  .rc-btn { font-size: 12px; padding: 5px 10px; }
-  .rc-icon-btn { width: 26px; height: 26px; }
-  .rc-table th:nth-child(4),
-  .rc-table td:nth-child(4) { display: none; }
+    .rc-page { padding: 12px; }
+    .rc-card-header { padding: 10px 12px; }
+    .rc-toolbar { gap: 4px; }
+    .rc-btn { font-size: 11px; padding: 5px 10px; }
+    .rc-icon-btn { width: 24px; height: 24px; }
+    .rc-table th:nth-child(4),
+    .rc-table td:nth-child(4) { display: none; }
+    .rc-actions .rc-icon-btn { display: none; }
+    .rc-actions-dropdown { display: block; }
+    .rc-modal-footer { flex-direction: column; align-items: stretch; }
+    .rc-modal-footer .rc-btn { width: 100%; justify-content: center; }
+    .rc-modal-title { font-size: 12px; }
+    .rc-form-grid { gap: 10px; }
+    .rc-form-group input, .rc-form-group select, .rc-form-group textarea { font-size: 14px; padding: 7px 10px; }
+    .rc-section-label { font-size: 10px; }
+  }
+
+  @media (max-width: 360px) {
+    .rc-page { padding: 10px; }
+    .rc-card-title { font-size: 12px; }
+    .rc-modal-header { padding: 10px 12px; }
+    .rc-modal-body { padding: 10px 12px; }
+    .rc-modal-footer { padding: 8px 12px; }
+    .rc-modal-title { font-size: 11px; }
+    .rc-form-group input, .rc-form-group select, .rc-form-group textarea { font-size: 13px; padding: 6px 9px; }
+    .rc-btn { font-size: 10px; padding: 4px 8px; }
+  }
+
+  @media (max-width: 768px) and (orientation: landscape) {
+    .rc-modal-backdrop { align-items: center; }
+    .rc-modal { border-radius: 12px; max-height: 90vh; }
+    .rc-modal-header { border-radius: 12px 12px 0 0; }
+    .rc-modal-body { padding: 10px 14px; }
+    .rc-form-grid { grid-template-columns: 1fr 1fr; }
+    .rc-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    .rc-icon-btn { width: 32px; height: 32px; }
+    .rc-btn { padding: 8px 14px; }
+    .rc-form-group input, .rc-form-group select, .rc-form-group textarea { font-size: 16px; }
   }
   </style>
 
@@ -436,12 +740,45 @@ function generateUUID()
               <button class="rc-icon-btn view" onclick="viewCategoryDetails('${category.category_id}')" title="View Details"><i class="fas fa-eye"></i></button>
               <button class="rc-icon-btn edit" onclick="openEditCategoryModal('${category.category_id}')" title="Edit"><i class="fas fa-pen"></i></button>
               <button class="rc-icon-btn del" onclick="confirmDeleteCategory('${category.category_id}', '${(category.category_name).replace(/'/g, "\\'")}')" title="Delete"><i class="fas fa-trash"></i></button>
+              <div class="rc-actions-dropdown" id="rcActDrop-${category.category_id}">
+                <button class="rc-actions-dropdown-btn" onclick="rcToggleActionsMenu('${category.category_id}', event)" title="Actions">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div class="rc-actions-dropdown-menu" id="rcActMenu-${category.category_id}">
+                  <button onclick="viewCategoryDetails('${category.category_id}');rcCloseActionsMenu('${category.category_id}')">
+                    <i class="fas fa-eye"></i> View Details
+                  </button>
+                  <button onclick="openEditCategoryModal('${category.category_id}');rcCloseActionsMenu('${category.category_id}')">
+                    <i class="fas fa-pen"></i> Edit Category
+                  </button>
+                  <button class="del-action" onclick="confirmDeleteCategory('${category.category_id}', '${(category.category_name).replace(/'/g, "\\'")}');rcCloseActionsMenu('${category.category_id}')">
+                    <i class="fas fa-trash"></i> Delete
+                  </button>
+                </div>
+              </div>
             </div>
           </td>
         </tr>
       `;
       }).join('');
     }
+
+    // Mobile actions dropdown helpers
+    function rcToggleActionsMenu(categoryId, event) {
+      event.stopPropagation();
+      const menu = document.getElementById('rcActMenu-' + categoryId);
+      document.querySelectorAll('.rc-actions-dropdown-menu.open').forEach(m => { if (m !== menu) m.classList.remove('open'); });
+      menu.classList.toggle('open');
+    }
+
+    function rcCloseActionsMenu(categoryId) {
+      const menu = document.getElementById('rcActMenu-' + categoryId);
+      if (menu) menu.classList.remove('open');
+    }
+
+    document.addEventListener('click', function() {
+      document.querySelectorAll('.rc-actions-dropdown-menu.open').forEach(m => m.classList.remove('open'));
+    });
 
     // Delete Category Function (API-based)
     async function confirmDeleteCategory(categoryId, categoryName) {
@@ -948,13 +1285,13 @@ function generateUUID()
             'out_of_order': '#fff'
           };
           return `
-            <div style="padding:12px;border:0.5px solid #e2e8f0;border-radius:8px;display:flex;flex-direction:column;gap:6px;background:#fff;transition:all 0.2s;">
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div style="font-weight:600;font-size:14px;color:#1e293b;">${room.room_number}</div>
+            <div class="rc-view-room-card">
+              <div class="rc-view-room-header">
+                <div class="rc-view-room-number">${room.room_number}</div>
                 <span style="background:${statusColors[room.room_status] || '#e0e0e0'};color:${statusTextColors[room.room_status] || '#424242'};padding:3px 8px;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">${room.room_status.replace('_', ' ')}</span>
               </div>
-              ${room.room_name ? `<div style="font-size:12px;color:#64748b;">${room.room_name}</div>` : ''}
-              <div style="font-size:11px;color:#94a3b8;">${room.floor_number ? 'Floor ' + room.floor_number : ''}${room.building_block ? ' • ' + room.building_block : ''}</div>
+              ${room.room_name ? `<div class="rc-view-room-name">${room.room_name}</div>` : ''}
+              <div class="rc-view-room-meta">${room.floor_number ? 'Floor ' + room.floor_number : ''}${room.building_block ? ' • ' + room.building_block : ''}</div>
             </div>
           `;
         }).join('');
@@ -967,114 +1304,114 @@ function generateUUID()
       modalName.textContent = category.category_name;
       modalContent.innerHTML = `
       <!-- Header with Status -->
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #e2e8f0;">
-        <div>
-          <div style="font-size:18px;font-weight:600;color:#1e293b;">${category.category_name}</div>
-          <div style="font-size:13px;color:#64748b;margin-top:2px;">${category.category_code}</div>
+      <div class="rc-view-header">
+        <div class="rc-view-title-group">
+          <div class="rc-view-title">${category.category_name}</div>
+          <div class="rc-view-subtitle">${category.category_code}</div>
         </div>
-        <span style="background:${category.is_active ? '#dcfce7' : '#f1f5f9'};color:${category.is_active ? '#166534' : '#64748b'};padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">${category.is_active ? 'Active' : 'Inactive'}</span>
+        <span class="rc-view-status ${category.is_active ? 'active' : 'inactive'}">${category.is_active ? 'Active' : 'Inactive'}</span>
       </div>
 
       <!-- Main Content Grid -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div class="rc-view-grid">
         <!-- Left Column -->
-        <div style="display:flex;flex-direction:column;gap:20px;">
+        <div class="rc-view-col">
           <!-- Basic Info Card -->
-          <div style="background:#f8fafc;padding:16px;border-radius:8px;border:1px solid #e2e8f0;">
+          <div class="rc-view-card">
             <p class="rc-section-label" style="margin-bottom:12px;color:#185fa5;">Basic Information</p>
             <div style="display:flex;flex-direction:column;gap:10px;">
-              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e2e8f0;">
-                <span style="font-size:12px;color:#64748b;">Property</span>
-                <span style="font-size:13px;font-weight:500;">${property ? property.property_name : '—'}</span>
+              <div class="rc-view-row">
+                <span class="rc-view-label">Property</span>
+                <span class="rc-view-value">${property ? property.property_name : '—'}</span>
               </div>
-              <div style="display:flex;justify-content:space-between;padding:8px 0;">
-                <span style="font-size:12px;color:#64748b;">Description</span>
-                <span style="font-size:13px;font-weight:400;text-align:right;max-width:60%;">${category.description || '—'}</span>
+              <div class="rc-view-row">
+                <span class="rc-view-label">Description</span>
+                <span class="rc-view-value">${category.description || '—'}</span>
               </div>
             </div>
           </div>
 
           <!-- Pricing Card -->
-          <div style="background:#f8fafc;padding:16px;border-radius:8px;border:1px solid #e2e8f0;">
+          <div class="rc-view-card">
             <p class="rc-section-label" style="margin-bottom:12px;color:#185fa5;">Pricing</p>
             <div style="display:flex;flex-direction:column;gap:8px;">
-              <div style="display:flex;justify-content:space-between;padding:6px 0;">
-                <span style="font-size:12px;color:#64748b;">Per Night</span>
-                <span style="font-size:13px;font-weight:600;color:#185fa5;">₱${parseFloat(category.base_price_per_night || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
+              <div class="rc-view-row">
+                <span class="rc-view-label">Per Night</span>
+                <span class="rc-view-value" style="color:#185fa5;">₱${parseFloat(category.base_price_per_night || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
               </div>
-              <div style="display:flex;justify-content:space-between;padding:6px 0;">
-                <span style="font-size:12px;color:#64748b;">Per Hour</span>
-                <span style="font-size:13px;font-weight:600;color:#185fa5;">₱${parseFloat(category.base_price_per_hour || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
+              <div class="rc-view-row">
+                <span class="rc-view-label">Per Hour</span>
+                <span class="rc-view-value" style="color:#185fa5;">₱${parseFloat(category.base_price_per_hour || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
               </div>
-              <div style="display:flex;justify-content:space-between;padding:6px 0;">
-                <span style="font-size:12px;color:#64748b;">Day Use</span>
-                <span style="font-size:13px;font-weight:600;color:#185fa5;">₱${parseFloat(category.base_price_day_use || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
+              <div class="rc-view-row">
+                <span class="rc-view-label">Day Use</span>
+                <span class="rc-view-value" style="color:#185fa5;">₱${parseFloat(category.base_price_day_use || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
               </div>
-              <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid #e2e8f0;">
-                <span style="font-size:12px;color:#64748b;">Minimum Hours</span>
-                <span style="font-size:13px;font-weight:500;">${category.minimum_hours || 2} hrs</span>
+              <div class="rc-view-row">
+                <span class="rc-view-label">Minimum Hours</span>
+                <span class="rc-view-value">${category.minimum_hours || 2} hrs</span>
               </div>
             </div>
           </div>
 
           <!-- Extra Fees Card -->
-          <div style="background:#f8fafc;padding:16px;border-radius:8px;border:1px solid #e2e8f0;">
+          <div class="rc-view-card">
             <p class="rc-section-label" style="margin-bottom:12px;color:#185fa5;">Extra Fees</p>
             <div style="display:flex;flex-direction:column;gap:8px;">
-              <div style="display:flex;justify-content:space-between;padding:6px 0;">
-                <span style="font-size:12px;color:#64748b;">Adult</span>
-                <span style="font-size:13px;font-weight:500;">₱${parseFloat(category.extra_adult_fee || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
+              <div class="rc-view-row">
+                <span class="rc-view-label">Adult</span>
+                <span class="rc-view-value">₱${parseFloat(category.extra_adult_fee || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
               </div>
-              <div style="display:flex;justify-content:space-between;padding:6px 0;">
-                <span style="font-size:12px;color:#64748b;">Child</span>
-                <span style="font-size:13px;font-weight:500;">₱${parseFloat(category.extra_child_fee || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
+              <div class="rc-view-row">
+                <span class="rc-view-label">Child</span>
+                <span class="rc-view-value">₱${parseFloat(category.extra_child_fee || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
               </div>
-              <div style="display:flex;justify-content:space-between;padding:6px 0;">
-                <span style="font-size:12px;color:#64748b;">Senior</span>
-                <span style="font-size:13px;font-weight:500;">₱${parseFloat(category.extra_senior_fee || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
+              <div class="rc-view-row">
+                <span class="rc-view-label">Senior</span>
+                <span class="rc-view-value">₱${parseFloat(category.extra_senior_fee || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Right Column -->
-        <div style="display:flex;flex-direction:column;gap:20px;">
+        <div class="rc-view-col">
           <!-- Capacity Card -->
-          <div style="background:#f8fafc;padding:16px;border-radius:8px;border:1px solid #e2e8f0;">
+          <div class="rc-view-card">
             <p class="rc-section-label" style="margin-bottom:12px;color:#185fa5;">Capacity</p>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
-              <div style="text-align:center;padding:10px;background:#fff;border-radius:6px;border:1px solid #e2e8f0;">
-                <div style="font-size:20px;font-weight:700;color:#185fa5;">${category.max_adult_capacity}</div>
-                <div style="font-size:11px;color:#64748b;text-transform:uppercase;">Adults</div>
+            <div class="rc-view-capacity-grid">
+              <div class="rc-view-capacity-item">
+                <div class="rc-view-capacity-num">${category.max_adult_capacity}</div>
+                <div class="rc-view-capacity-label">Adults</div>
               </div>
-              <div style="text-align:center;padding:10px;background:#fff;border-radius:6px;border:1px solid #e2e8f0;">
-                <div style="font-size:20px;font-weight:700;color:#185fa5;">${category.max_child_capacity}</div>
-                <div style="font-size:11px;color:#64748b;text-transform:uppercase;">Children</div>
+              <div class="rc-view-capacity-item">
+                <div class="rc-view-capacity-num">${category.max_child_capacity}</div>
+                <div class="rc-view-capacity-label">Children</div>
               </div>
-              <div style="text-align:center;padding:10px;background:#fff;border-radius:6px;border:1px solid #e2e8f0;">
-                <div style="font-size:20px;font-weight:700;color:#185fa5;">${category.max_total_capacity}</div>
-                <div style="font-size:11px;color:#64748b;text-transform:uppercase;">Total</div>
+              <div class="rc-view-capacity-item">
+                <div class="rc-view-capacity-num">${category.max_total_capacity}</div>
+                <div class="rc-view-capacity-label">Total</div>
               </div>
             </div>
           </div>
 
           <!-- Policies Card -->
-          <div style="background:#f8fafc;padding:16px;border-radius:8px;border:1px solid #e2e8f0;">
+          <div class="rc-view-card">
             <p class="rc-section-label" style="margin-bottom:12px;color:#185fa5;">Policies</p>
             <div style="display:flex;flex-direction:column;gap:10px;">
-              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e2e8f0;">
-                <span style="font-size:12px;color:#64748b;">Smoking</span>
-                <span style="font-size:13px;font-weight:500;">${(category.smoking_policy || 'non_smoking').replace(/_/g, ' ').toUpperCase()}</span>
+              <div class="rc-view-row">
+                <span class="rc-view-label">Smoking</span>
+                <span class="rc-view-value">${(category.smoking_policy || 'non_smoking').replace(/_/g, ' ').toUpperCase()}</span>
               </div>
-              <div style="display:flex;justify-content:space-between;padding:8px 0;">
-                <span style="font-size:12px;color:#64748b;">Pet Friendly</span>
-                <span style="font-size:13px;font-weight:500;">${category.pet_friendly ? '<span style="color:#16a34a;">Yes</span>' : '<span style="color:#64748b;">No</span>'}</span>
+              <div class="rc-view-row">
+                <span class="rc-view-label">Pet Friendly</span>
+                <span class="rc-view-value">${category.pet_friendly ? '<span style="color:#16a34a;">Yes</span>' : '<span style="color:#64748b;">No</span>'}</span>
               </div>
             </div>
           </div>
 
           <!-- Booking Options Card -->
-          <div style="background:#f8fafc;padding:16px;border-radius:8px;border:1px solid #e2e8f0;">
+          <div class="rc-view-card">
             <p class="rc-section-label" style="margin-bottom:12px;color:#185fa5;">Booking Options</p>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               ${category.allows_hourly ? '<span style="background:#dbeafe;color:#1e40af;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;">Hourly</span>' : ''}
@@ -1088,14 +1425,14 @@ function generateUUID()
       <!-- Amenities Section -->
       <div style="margin-top:20px;">
         <p class="rc-section-label" style="margin-bottom:12px;color:#185fa5;">Amenities (${categoryAmenities.length})</p>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;background:#f8fafc;padding:16px;border-radius:8px;border:1px solid #e2e8f0;">
+        <div class="rc-view-amenities-wrap">
           ${amenitiesHtml}
         </div>
       </div>
 
       <!-- Rooms Section -->
       <div style="margin-top:20px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
           <p class="rc-section-label" style="margin:0;color:#185fa5;">Rooms (${category.room_count || 0})</p>
           <div style="font-size:12px;color:#64748b;">
             <span style="color:#16a34a;font-weight:500;">${category.available_rooms || 0} available</span>
@@ -1103,11 +1440,11 @@ function generateUUID()
             ${category.reserved_rooms > 0 ? `• <span style="color:#1565c0;">${category.reserved_rooms} reserved</span>` : ''}
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;max-height:280px;overflow-y:auto;padding:4px;">${roomsHtml}</div>
+        <div class="rc-view-rooms-grid">${roomsHtml}</div>
       </div>
 
       <!-- System Info Footer -->
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;gap:20px;font-size:12px;color:#94a3b8;">
+      <div class="rc-view-system-info">
         <span>Sort Order: ${category.sort_order || 0}</span>
         <span>Created: ${new Date(category.created_at).toLocaleDateString()}</span>
         <span>Updated: ${new Date(category.updated_at).toLocaleDateString()}</span>

@@ -6,8 +6,10 @@
 
 require_once '../../config/db.php';
 require_once '../../build/services/EmailService.php';
+require_once '../../build/services/NotificationService.php';
 
 use App\Services\EmailService;
+use App\Services\NotificationService;
 
 // Set JSON content type
 header('Content-Type: application/json; charset=utf-8');
@@ -742,6 +744,23 @@ Total: ₱' . number_format($totalAmount, 2);
         }
     } catch (Exception $e) {
         error_log("Failed to send confirmation email: " . $e->getMessage());
+    }
+
+    // Send notification to customer about new reservation
+    try {
+        $notificationService = new NotificationService($pdo);
+        if ($userId) {
+            $notificationService->createReservationNotification(
+                'reservation_confirmed',
+                $userId,
+                $reservationId,
+                'Reservation Created',
+                "Your reservation #{$reservationCode} has been created successfully. Check-in: {$_POST['visit_date']}",
+                $_POST['property_id']
+            );
+        }
+    } catch (Exception $notifError) {
+        error_log("Failed to create notification for schedule visit: " . $notifError->getMessage());
     }
 
     // Build success response

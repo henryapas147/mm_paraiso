@@ -5,7 +5,9 @@
  */
 
 require_once '../../config/db.php';
+require_once '../../build/services/NotificationService.php';
 
+use App\Services\NotificationService;
 
 // Set JSON response header
 header('Content-Type: application/json');
@@ -53,6 +55,34 @@ try {
     $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
 
     $stmt->execute([$name, $email, $subject, $message, $ip_address, $user_agent]);
+
+    // Notify admin staff about new inquiry
+    try {
+        $notificationService = new NotificationService($pdo);
+        
+        // Get admin user IDs to notify
+        $adminStmt = $pdo->prepare("
+            SELECT ua.user_id 
+            FROM user_accounts ua
+            INNER JOIN user_roles ur ON ua.role_id = ur.role_id
+            WHERE ur.role_code IN ('admin', 'manager')
+            AND ua.account_status = 'active'
+        ");
+        $adminStmt->execute();
+        $adminUsers = $adminStmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        if (!empty($adminUsers)) {
+            $notificationService->createSupportNotification(
+                $adminUsers,
+                "New Contact Inquiry: {$subject}",
+                "From: {$name} ({$email})\n\n{$message}",
+                null
+            );
+        }
+    } catch (Exception $notifError) {
+        // Log notification error but don't fail the request
+        error_log("Failed to create notification for contact inquiry: " . $notifError->getMessage());
+    }
 
     echo json_encode([
         'success' => true,

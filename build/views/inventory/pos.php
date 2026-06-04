@@ -28,33 +28,605 @@
     box-sizing: border-box;
   }
 
+  /* ═══════════════════════════════════════════════════
+     LAYOUT — mobile-first base (single column stack)
+     Breakpoints:  base < 768  |  tablet ≥ 768  |  desktop ≥ 1201
+     ═══════════════════════════════════════════════════ */
   .pos-container {
-    display: grid;
-    grid-template-columns: 1fr 420px;
-    gap: 16px;
-    padding: 16px;
-    min-height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    min-height: calc(100vh - 60px);
     max-width: 100%;
     margin: 0;
     font-family: var(--pos-font);
   }
 
-  @media (max-width: 1200px) {
-    .pos-container {
-      grid-template-columns: 1fr;
-    }
+  /* Desktop/tablet-only chrome is hidden by default (revealed on mobile) */
+  .pos-cart-fab,
+  .pos-mobile-summary,
+  .pos-cart-overlay {
+    display: none;
   }
 
-  /* Fullscreen optimization */
-  body {
-    overflow-x: hidden;
+  /* Touch ergonomics for every interactive element */
+  .pos-product-card,
+  .pos-cat-btn,
+  .pos-qty-btn,
+  .pos-payment-btn,
+  .pos-checkout-btn,
+  .pos-cart-fab,
+  .pos-mobile-summary-btn {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
   }
+
+  body { overflow-x: hidden; }
 
   main {
     width: 100% !important;
     max-width: 100% !important;
     margin-left: 0 !important;
   }
+
+  /* ═══ DESKTOP ≥ 1201px — two-column grid, wide cart ═══ */
+  @media (min-width: 1201px) {
+    .pos-container {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 16px;
+      padding: 16px;
+      min-height: calc(100vh - 80px);
+    }
+  }
+
+  /* Tablet grid (768–1200) is defined in the detailed tablet block below */
+
+  /* ── Mobile Responsive (< 768px) ──────────────────── */
+  @media (max-width: 767px) {
+    .pos-container {
+      padding: 8px;
+      padding-bottom: 72px; /* clearance for fixed bottom summary bar */
+      gap: 10px;
+      min-height: calc(100vh - 60px);
+    }
+
+    .pos-header {
+      padding: 12px 16px;
+      gap: 10px;
+    }
+
+    .pos-title {
+      font-size: 16px;
+    }
+
+    .pos-back-btn {
+      width: 32px;
+      height: 32px;
+    }
+
+    .pos-search-wrap {
+      min-width: auto;
+      flex: 1;
+    }
+
+    .pos-search {
+      padding: 10px 12px 10px 38px;
+      font-size: 13px;
+    }
+
+    .pos-category-filter {
+      padding: 10px 12px;
+      gap: 6px;
+      overflow-x: auto;
+    }
+
+    .pos-cat-btn {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .pos-products-grid {
+      padding: 12px;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      max-height: none;
+    }
+
+    .pos-product-card {
+      padding: 10px;
+    }
+
+    .pos-product-img {
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+    }
+
+    .pos-product-name {
+      font-size: 12px;
+    }
+
+    .pos-product-price {
+      font-size: 14px;
+    }
+
+    /* Cart panel becomes a bottom sheet */
+    .pos-cart-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      top: auto;
+      height: 70vh;
+      border-radius: 16px 16px 0 0;
+      z-index: 8000;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pos-cart-panel.open {
+      transform: translateY(0);
+    }
+
+    .pos-cart-header {
+      padding: 14px 16px;
+      flex-shrink: 0;
+    }
+
+    .pos-cart-title {
+      font-size: 15px;
+    }
+
+    .pos-cart-items {
+      flex: 1;
+      overflow-y: auto;
+      max-height: none;
+      padding: 10px 12px;
+    }
+
+    .pos-cart-item {
+      padding: 10px;
+      gap: 10px;
+      grid-template-columns: 40px 1fr auto auto;
+    }
+
+    .pos-cart-img {
+      width: 40px;
+      height: 40px;
+      font-size: 16px;
+    }
+
+    .pos-cart-name {
+      font-size: 13px;
+    }
+
+    .pos-cart-price {
+      font-size: 12px;
+    }
+
+    .pos-qty-btn {
+      width: 26px;
+      height: 26px;
+    }
+
+    .pos-cart-summary {
+      padding: 12px 16px;
+      flex-shrink: 0;
+    }
+
+    .pos-payment-section {
+      padding: 10px 16px 16px;
+      flex-shrink: 0;
+    }
+
+    .pos-payment-btn {
+      padding: 10px 8px;
+      font-size: 12px;
+      min-width: auto;
+      flex: 1;
+    }
+
+    .pos-checkout-btn {
+      padding: 12px;
+      font-size: 14px;
+    }
+
+    /* Cart overlay */
+    .pos-cart-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 7999;
+      backdrop-filter: blur(2px);
+    }
+
+    .pos-cart-overlay.open {
+      display: block;
+    }
+
+    /* Floating cart button */
+    .pos-cart-fab {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      z-index: 7000;
+      background: var(--pos-blue);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--pos-font);
+      box-shadow: 0 4px 16px rgba(26, 107, 191, 0.4);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .pos-cart-fab:active {
+      transform: scale(0.95);
+    }
+
+    .pos-cart-fab-badge {
+      background: var(--pos-red);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+      font-family: var(--pos-mono);
+    }
+
+    /* Mobile bottom summary bar */
+    .pos-mobile-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 6000;
+      background: #fff;
+      padding: 10px 16px;
+      border-top: 1px solid #E2E8F0;
+      box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    .pos-mobile-summary-total {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--pos-dark);
+      font-family: var(--pos-mono);
+    }
+
+    .pos-mobile-summary-total small {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--pos-gray);
+      display: block;
+      font-family: var(--pos-font);
+    }
+
+    .pos-mobile-summary-btn {
+      background: var(--pos-blue);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--pos-font);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 8px rgba(26, 107, 191, 0.3);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .pos-mobile-summary-btn:disabled {
+      background: #CBD5E1;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    /* Modal sizing for mobile */
+    .pos-modal {
+      max-width: 100%;
+      margin: 10px;
+      border-radius: 14px;
+    }
+
+    .pos-payment-amount {
+      font-size: 28px;
+    }
+  }
+
+  /* ── Tablet (768px - 1200px) ─────────────────────── */
+  @media (min-width: 768px) and (max-width: 1200px) {
+    /* Main layout: tighter gap, wider cart panel for better balance */
+    .pos-container {
+      display: grid;
+      grid-template-columns: 1fr 310px;
+      gap: 10px;
+      padding: 10px;
+      min-height: calc(100vh - 70px);
+    }
+
+    /* Product panel fills height */
+    .pos-products-panel {
+      display: flex;
+      flex-direction: column;
+      overflow-y: hidden;
+      height: calc(100vh - 90px);
+    }
+
+    /* Header: tighter, search always visible */
+    .pos-header {
+      padding: 12px 16px;
+      gap: 10px;
+      flex-wrap: nowrap;
+    }
+
+    .pos-title {
+      font-size: 16px;
+      white-space: nowrap;
+    }
+
+    .pos-back-btn {
+      width: 34px;
+      height: 34px;
+      flex-shrink: 0;
+    }
+
+    .pos-search-wrap {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .pos-search {
+      padding: 9px 12px 9px 38px;
+      font-size: 13px;
+    }
+
+    /* Category filter: compact pills */
+    .pos-category-filter {
+      padding: 8px 14px;
+      gap: 6px;
+      overflow-x: auto;
+    }
+
+    .pos-cat-btn {
+      padding: 6px 13px;
+      font-size: 12px;
+    }
+
+    /* Product grid: 3 columns on tablet for better card proportions */
+    .pos-products-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      padding: 10px 12px;
+      flex: 1;
+      overflow-y: auto;
+      max-height: none;
+    }
+
+    .pos-product-card {
+      padding: 8px 6px;
+    }
+
+    .pos-product-img {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .pos-product-stock {
+      font-size: 8px;
+      padding: 2px 4px;
+    }
+
+    .pos-product-name {
+      font-size: 11px;
+      margin-bottom: 2px;
+      -webkit-line-clamp: 1;
+      line-clamp: 1;
+    }
+
+    .pos-product-code {
+      font-size: 9px;
+      margin-bottom: 3px;
+    }
+
+    .pos-product-price {
+      font-size: 13px;
+    }
+
+    /* Cart panel: sticky full height sidebar */
+    .pos-cart-panel {
+      position: sticky;
+      top: 10px;
+      height: calc(100vh - 90px);
+      max-height: none;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border-radius: var(--pos-radius);
+    }
+
+    /* Cart header: compact */
+    .pos-cart-header {
+      padding: 12px 14px;
+      flex-shrink: 0;
+    }
+
+    .pos-cart-title {
+      font-size: 14px;
+      gap: 8px;
+    }
+
+    .pos-cart-count {
+      font-size: 11px;
+      padding: 2px 8px;
+    }
+
+    .pos-cart-clear {
+      font-size: 11px;
+      padding: 3px 7px;
+    }
+
+    /* Cart items: compact rows with 3-column layout (icon | info | qty+total) */
+    .pos-cart-items {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 10px;
+      max-height: none;
+    }
+
+    .pos-cart-item {
+      grid-template-columns: 34px 1fr auto;
+      gap: 8px;
+      padding: 8px 10px;
+      margin-bottom: 7px;
+      border-radius: 9px;
+    }
+
+    /* Stack qty controls + total in the 3rd column */
+    .pos-cart-item .pos-cart-qty {
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 3px;
+    }
+
+    .pos-cart-item .pos-cart-total {
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .pos-cart-img {
+      width: 34px;
+      height: 34px;
+      font-size: 14px;
+      border-radius: 7px;
+    }
+
+    .pos-cart-name {
+      font-size: 12px;
+    }
+
+    .pos-cart-price {
+      font-size: 11px;
+    }
+
+    .pos-qty-btn {
+      width: 22px;
+      height: 22px;
+      font-size: 13px;
+    }
+
+    .pos-qty-value {
+      font-size: 12px;
+      min-width: 18px;
+    }
+
+    .pos-cart-item-remove {
+      display: none;
+    }
+
+    /* Summary: tighter rows */
+    .pos-cart-summary {
+      padding: 10px 14px;
+      flex-shrink: 0;
+      background: #F8FAFC;
+    }
+
+    .pos-summary-row {
+      font-size: 12px;
+      margin-bottom: 7px;
+    }
+
+    .pos-summary-row.total {
+      font-size: 15px;
+      margin-top: 10px;
+      padding-top: 10px;
+    }
+
+    .pos-summary-row.total .pos-summary-value {
+      font-size: 19px;
+    }
+
+    /* Payment section: 3-column payment buttons */
+    .pos-payment-section {
+      padding: 8px 12px 12px;
+      flex-shrink: 0;
+    }
+
+    .pos-payment-methods {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .pos-payment-btn {
+      padding: 8px 4px;
+      font-size: 11px;
+      gap: 4px;
+      border-radius: 9px;
+      min-width: 0;
+      flex: none;
+    }
+
+    .pos-payment-btn i {
+      font-size: 16px;
+    }
+
+    .pos-customer-input {
+      padding: 9px 12px;
+      font-size: 13px;
+      margin-bottom: 10px;
+      border-radius: 9px;
+    }
+
+    .pos-checkout-btn {
+      padding: 12px;
+      font-size: 14px;
+      border-radius: 10px;
+      gap: 7px;
+    }
+
+    /* Hide mobile-only elements */
+    .pos-cart-fab,
+    .pos-mobile-summary,
+    .pos-cart-overlay {
+      display: none !important;
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════
+     COMPONENTS — shared baseline (desktop sizing)
+     Mobile/tablet overrides live in the media blocks above
+     ═══════════════════════════════════════════════════ */
 
   /* Left Panel - Products */
   .pos-products-panel {
@@ -879,6 +1451,27 @@
     </div>
   </div>
 
+  <!-- Mobile Cart Overlay -->
+  <div class="pos-cart-overlay" id="cartOverlay"></div>
+
+  <!-- Mobile Floating Cart Button -->
+  <button class="pos-cart-fab" id="cartFab">
+    <i class="fas fa-shopping-cart"></i>
+    <span>Cart</span>
+    <span class="pos-cart-fab-badge" id="cartFabBadge">0</span>
+  </button>
+
+  <!-- Mobile Bottom Summary Bar -->
+  <div class="pos-mobile-summary" id="mobileSummary">
+    <div class="pos-mobile-summary-total">
+      <small>Total</small>
+      <span id="mobileTotal">₱0.00</span>
+    </div>
+    <button class="pos-mobile-summary-btn" id="mobileCheckoutBtn" disabled>
+      <i class="fas fa-check-circle"></i> Pay
+    </button>
+  </div>
+
   <!-- Cart Panel -->
   <div class="pos-cart-panel">
     <div class="pos-cart-header">
@@ -1164,8 +1757,17 @@
       const summary = document.getElementById('cartSummary');
       const paymentSection = document.getElementById('paymentSection');
       const checkoutBtn = document.getElementById('checkoutBtn');
+      const fabBadge = document.getElementById('cartFabBadge');
+      const mobileTotal = document.getElementById('mobileTotal');
+      const mobileCheckoutBtn = document.getElementById('mobileCheckoutBtn');
 
-      countEl.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+      const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
+      countEl.textContent = totalQty;
+      if (fabBadge) fabBadge.textContent = totalQty;
+
+      const subtotal = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
+      const total = subtotal * 1.12;
+      if (mobileTotal) mobileTotal.textContent = '₱' + formatMoney(total);
 
       if (cart.length === 0) {
         container.innerHTML = `
@@ -1179,6 +1781,7 @@
         summary.style.display = 'none';
         paymentSection.style.display = 'none';
         checkoutBtn.disabled = true;
+        if (mobileCheckoutBtn) mobileCheckoutBtn.disabled = true;
         return;
       }
 
@@ -1186,20 +1789,23 @@
       summary.style.display = 'block';
       paymentSection.style.display = 'block';
       checkoutBtn.disabled = false;
+      if (mobileCheckoutBtn) mobileCheckoutBtn.disabled = false;
 
       container.innerHTML = cart.map((item, index) => `
       <div class="pos-cart-item" data-index="${index}">
         <div class="pos-cart-img"><i class="fas fa-box"></i></div>
         <div class="pos-cart-info">
           <div class="pos-cart-name">${item.product_name}</div>
-          <div class="pos-cart-price">₱${formatMoney(item.unit_price)}</div>
+          <div class="pos-cart-price">&#x20B1;${formatMoney(item.unit_price)} each</div>
         </div>
         <div class="pos-cart-qty">
-          <button class="pos-qty-btn" data-action="decrease" data-index="${index}">-</button>
-          <span class="pos-qty-value">${item.quantity}</span>
-          <button class="pos-qty-btn" data-action="increase" data-index="${index}">+</button>
+          <div class="pos-cart-total">&#x20B1;${formatMoney(item.unit_price * item.quantity)}</div>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <button class="pos-qty-btn" data-action="decrease" data-index="${index}">-</button>
+            <span class="pos-qty-value">${item.quantity}</span>
+            <button class="pos-qty-btn" data-action="increase" data-index="${index}">+</button>
+          </div>
         </div>
-        <div class="pos-cart-total">₱${formatMoney(item.unit_price * item.quantity)}</div>
         <button class="pos-cart-item-remove" data-action="remove" data-index="${index}"><i class="fas fa-times"></i></button>
       </div>
     `).join('');
@@ -1309,6 +1915,35 @@
       });
 
       document.getElementById('printReceiptBtn').addEventListener('click', printReceipt);
+
+      // Mobile cart FAB toggle
+      const cartFab = document.getElementById('cartFab');
+      const cartOverlay = document.getElementById('cartOverlay');
+      const cartPanel = document.querySelector('.pos-cart-panel');
+
+      if (cartFab) {
+        cartFab.addEventListener('click', () => {
+          cartPanel.classList.add('open');
+          cartOverlay.classList.add('open');
+        });
+      }
+
+      if (cartOverlay) {
+        cartOverlay.addEventListener('click', () => {
+          cartPanel.classList.remove('open');
+          cartOverlay.classList.remove('open');
+        });
+      }
+
+      // Mobile checkout button
+      const mobileCheckoutBtn = document.getElementById('mobileCheckoutBtn');
+      if (mobileCheckoutBtn) {
+        mobileCheckoutBtn.addEventListener('click', () => {
+          cartPanel.classList.remove('open');
+          cartOverlay.classList.remove('open');
+          openCheckoutModal();
+        });
+      }
 
       // Close modals on overlay click
       document.querySelectorAll('.pos-modal-overlay').forEach(overlay => {

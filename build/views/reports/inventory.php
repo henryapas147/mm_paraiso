@@ -254,7 +254,7 @@
   }
 
   /* ── RESPONSIVE ── */
-  @media (max-width: 1100px) {
+  @media (max-width: 1200px) {
     .inv-page .stat-grid {
       grid-template-columns: repeat(2, 1fr);
     }
@@ -263,6 +263,148 @@
   @media (max-width: 768px) {
     .inv-page .stat-grid {
       grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .inv-page .stat-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .inv-page .stat-card {
+      padding: 16px;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .inv-page .stat-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .inv-page .stat-label {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .inv-page .stat-value {
+      font-size: 22px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .inv-page .stat-footer {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .inv-page .stat-badge {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .inv-page .card-header {
+      padding: 14px 16px 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .inv-page .card-title {
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .inv-page .card-body {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .inv-page .data-table th {
+      padding: 8px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .inv-page .data-table td {
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .inv-page .badge {
+      padding: 3px 8px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .inv-content > div[style*="grid-template-columns: 1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .inv-page .stat-grid {
+      gap: 10px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .inv-page .stat-card {
+      padding: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .inv-page .stat-value {
+      font-size: 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .inv-page .card-header {
+      padding: 12px 14px 10px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .inv-page .card-body {
+      padding: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .inv-page .data-table th {
+      padding: 6px 10px;
+      font-size: 9px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .inv-page .data-table td {
+      padding: 8px 10px;
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .inv-page .badge {
+      padding: 2px 6px;
+      font-size: 9px;
     }
   }
 </style>
@@ -335,7 +477,7 @@
       <div class="stat-card orange">
         <div class="stat-header">
           <span class="stat-label">Total Value</span>
-          <div class="stat-icon orange">📦</div>
+          <div class="stat-icon orange"><i class="fa-solid fa-box"></i></div>
         </div>
         <div class="stat-value" id="totalValue">₱0.00</div>
         <div class="stat-footer">
@@ -347,7 +489,7 @@
       <div class="stat-card blue">
         <div class="stat-header">
           <span class="stat-label">Total Products</span>
-          <div class="stat-icon blue">📋</div>
+          <div class="stat-icon blue"><i class="fa-solid fa-clipboard-list"></i></div>
         </div>
         <div class="stat-value">2,456</div>
         <div class="stat-footer">
@@ -359,7 +501,7 @@
       <div class="stat-card green">
         <div class="stat-header">
           <span class="stat-label">In Stock</span>
-          <div class="stat-icon green">✅</div>
+          <div class="stat-icon green"><i class="fa-solid fa-check-circle"></i></div>
         </div>
         <div class="stat-value">1,892</div>
         <div class="stat-footer">
@@ -371,7 +513,7 @@
       <div class="stat-card rose">
         <div class="stat-header">
           <span class="stat-label">Low Stock</span>
-          <div class="stat-icon rose">⚠️</div>
+          <div class="stat-icon rose"><i class="fa-solid fa-triangle-exclamation"></i></div>
         </div>
         <div class="stat-value">23</div>
         <div class="stat-footer">

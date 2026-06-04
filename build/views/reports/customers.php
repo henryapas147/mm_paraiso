@@ -239,6 +239,134 @@
       grid-template-columns: 1fr 1fr;
     }
   }
+
+  @media (max-width: 640px) {
+    .cust-page .stat-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cust-page .stat-card {
+      padding: 16px;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cust-page .stat-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cust-page .stat-label {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cust-page .stat-value {
+      font-size: 22px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cust-page .stat-footer {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cust-page .stat-badge {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cust-page .card-header {
+      padding: 14px 16px 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cust-page .card-title {
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cust-page .card-body {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cust-page .data-table th {
+      padding: 8px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cust-page .data-table td {
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .cust-content > div[style*="grid-template-columns: 1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .cust-page .stat-grid {
+      gap: 10px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .cust-page .stat-card {
+      padding: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .cust-page .stat-value {
+      font-size: 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .cust-page .card-header {
+      padding: 12px 14px 10px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .cust-page .card-body {
+      padding: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .cust-page .data-table th {
+      padding: 6px 10px;
+      font-size: 9px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .cust-page .data-table td {
+      padding: 8px 10px;
+      font-size: 11px;
+    }
+  }
 </style>
 
 <script>
@@ -295,7 +423,7 @@
       <div class="stat-card blue">
         <div class="stat-header">
           <span class="stat-label">Total Customers</span>
-          <div class="stat-icon blue">👥</div>
+          <div class="stat-icon blue"><i class="fa-solid fa-users"></i></div>
         </div>
         <div class="stat-value">1,247</div>
         <div class="stat-footer">
@@ -307,7 +435,7 @@
       <div class="stat-card rose">
         <div class="stat-header">
           <span class="stat-label">New This Month</span>
-          <div class="stat-icon rose">🆕</div>
+          <div class="stat-icon rose"><i class="fa-solid fa-user-plus"></i></div>
         </div>
         <div class="stat-value">+89</div>
         <div class="stat-footer">
@@ -319,7 +447,7 @@
       <div class="stat-card green">
         <div class="stat-header">
           <span class="stat-label">Active Customers</span>
-          <div class="stat-icon green">✅</div>
+          <div class="stat-icon green"><i class="fa-solid fa-check-circle"></i></div>
         </div>
         <div class="stat-value">856</div>
         <div class="stat-footer">
@@ -331,7 +459,7 @@
       <div class="stat-card orange">
         <div class="stat-header">
           <span class="stat-label">Avg Spending</span>
-          <div class="stat-icon orange">💰</div>
+          <div class="stat-icon orange"><i class="fa-solid fa-money-bill-wave"></i></div>
         </div>
         <div class="stat-value">₱12,450</div>
         <div class="stat-footer">

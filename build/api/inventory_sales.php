@@ -11,10 +11,12 @@ try {
     case 'GET':
       if ($action === 'list') {
         $stmt = $pdo->query("
-          SELECT isale.*, p.property_name, pm.method_label as payment_method_name
+          SELECT isale.*, p.property_name, pm.method_label as payment_method_name, up.profile_photo_url
           FROM inventory_sales isale
           LEFT JOIN properties p ON isale.property_id = p.property_id
           LEFT JOIN payment_methods pm ON isale.payment_method_id = pm.method_id
+          LEFT JOIN user_accounts ua ON isale.staff_member_id = ua.user_id OR isale.created_by = ua.user_id
+          LEFT JOIN user_profiles up ON ua.user_id = up.user_id
           ORDER BY isale.sale_date DESC, isale.created_at DESC
         ");
         echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);

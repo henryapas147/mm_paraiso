@@ -1,7 +1,10 @@
 ﻿<?php
 header('Content-Type: application/json');
 require_once '../config/middleware.php';
+require_once '../services/NotificationService.php';
 applyAuthMiddleware();
+
+use App\Services\NotificationService;
 
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
@@ -99,6 +102,39 @@ try {
           $data['rate_multiplier'], $data['applies_to'] ?? null,
           $data['is_active'] ?? 1, $data['created_by'] ?? null
         ]);
+
+        // Notify customers about new seasonal rate
+        try {
+          $notificationService = new NotificationService($pdo);
+          
+          // Get all customer user IDs
+          $customerStmt = $pdo->prepare("
+            SELECT ua.user_id 
+            FROM user_accounts ua
+            INNER JOIN user_roles ur ON ua.role_id = ur.role_id
+            WHERE ur.role_code = 'customer'
+            AND ua.account_status = 'active'
+          ");
+          $customerStmt->execute();
+          $customerUsers = $customerStmt->fetchAll(PDO::FETCH_COLUMN);
+          
+          if (!empty($customerUsers)) {
+            $multiplierPercent = ($data['rate_multiplier'] - 1) * 100;
+            $message = $multiplierPercent > 0 
+              ? "Seasonal rate {$data['season_name']} now available with +" . abs($multiplierPercent) . "% rate adjustment."
+              : "Seasonal rate {$data['season_name']} now available with " . $multiplierPercent . "% discount.";
+            
+            $notificationService->createPromotionalNotification(
+              $customerUsers,
+              "New Seasonal Rate: {$data['season_name']}",
+              $message,
+              $data['property_id']
+            );
+          }
+        } catch (Exception $notifError) {
+          error_log("Failed to create notification for seasonal rate: " . $notifError->getMessage());
+        }
+
         echo json_encode(['success' => true, 'message' => 'Seasonal rate created', 'season_id' => $seasonId]);
 
       } elseif ($action === 'update') {

@@ -1,4 +1,10 @@
 <!-- Dashboard Page Content -->
+<?php
+$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'];
+$basePath = dirname($_SERVER['SCRIPT_NAME']);
+$defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
+?>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
     /* ── Dashboard Design System ── */
@@ -103,7 +109,8 @@
 
     /* ── DONUT CHART CARD ── */
     .dash-page .donut-wrap { display: flex; flex-direction: column; align-items: center; gap: 20px; }
-    .dash-page .donut-canvas-wrap { position: relative; width: 200px; height: 200px; }
+    .dash-page .donut-canvas-wrap { position: relative; width: 200px; height: 200px; flex-shrink: 0; max-width: 100%; }
+    .dash-page .donut-canvas-wrap canvas { width: 100% !important; height: auto !important; max-height: 200px; }
     .dash-page .donut-center {
       position: absolute; inset: 0;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -243,6 +250,12 @@
       font-size: 22px;
       background: var(--dash-bg-main);
       border: 1px solid var(--dash-border);
+      overflow: hidden;
+    }
+    .dash-page .product-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
     .dash-page .product-info { flex: 1; }
     .dash-page .product-name { font-size: 13px; font-weight: 600; color: var(--dash-text-primary); }
@@ -250,13 +263,142 @@
     .dash-page .product-rev  { font-size: 13px; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--dash-accent-blue); }
 
     /* ── RESPONSIVE ── */
+    @media (max-width: 1400px) {
+      .dash-page .stat-grid { gap: 12px; }
+      .dash-page .stat-card { padding: 16px; }
+      .dash-page .stat-value { font-size: 22px; }
+      .dash-page .card-header { padding: 14px 16px 12px; }
+      .dash-page .card-body { padding: 16px; }
+      .dash-page .chart-wrap { height: 220px; }
+    }
+
+    @media (max-width: 1200px) {
+      .dash-page .row2, .dash-page .row3 { grid-template-columns: 1fr; }
+      .dash-page .donut-canvas-wrap { width: 180px; height: 180px; max-width: 180px; }
+      .dash-page .donut-center-val { font-size: 22px; }
+    }
+
     @media (max-width: 1100px) {
       .dash-page .stat-grid { grid-template-columns: repeat(2,1fr); }
-      .dash-page .row2, .dash-page .row3 { grid-template-columns: 1fr; }
       .dash-page .row5 { grid-template-columns: 1fr; }
+      .dash-page .quick-grid { grid-template-columns: repeat(3,1fr); }
     }
+
+    @media (max-width: 992px) {
+      .dash-page .stat-card { padding: 14px; }
+      .dash-page .stat-icon { width: 38px; height: 38px; font-size: 18px; }
+      .dash-page .stat-value { font-size: 20px; }
+      .dash-page .card-title { font-size: 14px; }
+      .dash-page .card-subtitle { font-size: 11px; }
+      .dash-page .chart-wrap { height: 200px; }
+      .dash-page .donut-canvas-wrap { width: 160px; height: 160px; max-width: 160px; }
+      .dash-page .donut-center-val { font-size: 20px; }
+      .dash-page .country-table th, .dash-page .orders-table th { font-size: 10px; padding: 0 12px 10px; }
+      .dash-page .country-table td, .dash-page .orders-table td { font-size: 12px; padding: 10px 12px; }
+    }
+
     @media (max-width: 768px) {
-      .dash-page .stat-grid { grid-template-columns: 1fr 1fr; }
+      .dash-page .stat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .dash-page .stat-card { padding: 12px; }
+      .dash-page .stat-icon { width: 34px; height: 34px; font-size: 16px; }
+      .dash-page .stat-value { font-size: 18px; }
+      .dash-page .stat-label { font-size: 10px; }
+      .dash-page .card { border-radius: 12px; }
+      .dash-page .card-header { padding: 12px 14px 10px; }
+      .dash-page .card-body { padding: 14px; }
+      .dash-page .card-title { font-size: 13px; }
+      .dash-page .card-subtitle { font-size: 10px; }
+      .dash-page .card-tag { font-size: 10px; padding: 3px 8px; }
+      .dash-page .chart-wrap { height: 180px; }
+      .dash-page .donut-wrap { gap: 14px; }
+      .dash-page .donut-canvas-wrap { width: 140px; height: 140px; max-width: 140px; }
+      .dash-page .donut-center-val { font-size: 18px; }
+      .dash-page .donut-center-label { font-size: 10px; }
+      .dash-page .legend-item { font-size: 12px; }
+      .dash-page .legend-val { font-size: 12px; }
+      .dash-page .country-table th, .dash-page .orders-table th { font-size: 9px; padding: 0 8px 8px; }
+      .dash-page .country-table td, .dash-page .orders-table td { font-size: 11px; padding: 8px; }
+      .dash-page .country-flag { font-size: 18px; margin-right: 8px; }
+      .dash-page .customer-avatar { width: 26px; height: 26px; font-size: 10px; }
+      .dash-page .quick-grid { grid-template-columns: repeat(2,1fr); gap: 8px; }
+      .dash-page .quick-btn { padding: 12px 8px; font-size: 11px; }
+      .dash-page .quick-btn span { font-size: 20px; }
+      .dash-page .category-item { padding: 10px 12px; }
+      .dash-page .cat-icon-wrap { width: 34px; height: 34px; font-size: 16px; }
+      .dash-page .cat-name { font-size: 13px; }
+      .dash-page .cat-sub { font-size: 10px; }
+      .dash-page .activity-dot { width: 28px; height: 28px; font-size: 12px; }
+      .dash-page .activity-text { font-size: 12px; }
+      .dash-page .activity-time { font-size: 10px; }
+      .dash-page .product-img { width: 38px; height: 38px; font-size: 20px; }
+      .dash-page .product-name { font-size: 12px; }
+      .dash-page .product-cat { font-size: 10px; }
+      .dash-page .product-rev { font-size: 12px; }
+    }
+
+    @media (max-width: 640px) {
+      .dash-page .stat-grid { grid-template-columns: 1fr; }
+      .dash-page .stat-card { padding: 14px; }
+      .dash-page .stat-icon { width: 40px; height: 40px; font-size: 18px; }
+      .dash-page .stat-value { font-size: 22px; }
+      .dash-page .card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .dash-page .card-header > div { width: 100%; }
+      .dash-page .card-header > div:last-child { width: auto; align-self: flex-end; }
+      .dash-page .chart-wrap { height: 160px; }
+      .dash-page .donut-canvas-wrap { width: 160px; height: 160px; max-width: 160px; }
+      .dash-page .donut-center-val { font-size: 20px; }
+      .dash-page .country-table, .dash-page .orders-table { font-size: 10px; }
+      .dash-page .country-table th, .dash-page .orders-table th { padding: 0 6px 6px; }
+      .dash-page .country-table td, .dash-page .orders-table td { padding: 6px; }
+      .dash-page .quick-grid { grid-template-columns: 1fr; }
+      .dash-page .quick-btn { flex-direction: row; justify-content: flex-start; gap: 12px; padding: 12px 16px; }
+      .dash-page .quick-btn span { font-size: 18px; }
+    }
+
+    @media (max-width: 480px) {
+      .dash-content { gap: 16px; }
+      .dash-page .stat-card { padding: 12px; }
+      .dash-page .stat-icon { width: 36px; height: 36px; font-size: 16px; }
+      .dash-page .stat-value { font-size: 20px; }
+      .dash-page .stat-label { font-size: 9px; }
+      .dash-page .card { border-radius: 10px; }
+      .dash-page .card-header { padding: 10px 12px 8px; }
+      .dash-page .card-body { padding: 12px; }
+      .dash-page .card-title { font-size: 12px; }
+      .dash-page .card-subtitle { font-size: 9px; }
+      .dash-page .card-tag { font-size: 9px; padding: 2px 6px; }
+      .dash-page .chart-wrap { height: 140px; }
+      .dash-page .donut-canvas-wrap { width: 140px; height: 140px; max-width: 140px; }
+      .dash-page .donut-center-val { font-size: 18px; }
+      .dash-page .donut-center-label { font-size: 9px; }
+      .dash-page .legend-item { font-size: 11px; }
+      .dash-page .legend-val { font-size: 11px; }
+      .dash-page .country-table th, .dash-page .orders-table th { font-size: 8px; padding: 0 4px 4px; }
+      .dash-page .country-table td, .dash-page .orders-table td { font-size: 10px; padding: 4px; }
+      .dash-page .country-flag { font-size: 16px; margin-right: 6px; }
+      .dash-page .customer-avatar { width: 24px; height: 24px; font-size: 9px; }
+      .dash-page .order-status { font-size: 9px; padding: 2px 6px; }
+      .dash-page .category-item { padding: 8px 10px; }
+      .dash-page .cat-icon-wrap { width: 32px; height: 32px; font-size: 14px; }
+      .dash-page .cat-name { font-size: 12px; }
+      .dash-page .cat-sub { font-size: 9px; }
+      .dash-page .activity-dot { width: 26px; height: 26px; font-size: 11px; }
+      .dash-page .activity-text { font-size: 11px; }
+      .dash-page .activity-time { font-size: 9px; }
+      .dash-page .product-img { width: 36px; height: 36px; font-size: 18px; }
+      .dash-page .product-name { font-size: 11px; }
+      .dash-page .product-cat { font-size: 9px; }
+      .dash-page .product-rev { font-size: 11px; }
+    }
+
+    @media (max-width: 360px) {
+      .dash-page .stat-value { font-size: 18px; }
+      .dash-page .card-title { font-size: 11px; }
+      .dash-page .chart-wrap { height: 120px; }
+      .dash-page .donut-canvas-wrap { width: 120px; height: 120px; max-width: 120px; }
+      .dash-page .donut-center-val { font-size: 16px; }
+      .dash-page .quick-btn { font-size: 10px; }
+      .dash-page .quick-btn span { font-size: 16px; }
     }
 
     /* ── ANIMATIONS ── */
@@ -281,39 +423,36 @@
       <!-- Today's Money -->
       <div class="stat-card blue">
         <div class="stat-header">
-          <span class="stat-label">Today's Money</span>
-          <div class="stat-icon blue">💰</div>
+          <span class="stat-label">Today's Revenue</span>
+          <div class="stat-icon blue"><i class="fa-solid fa-peso-sign"></i></div>
         </div>
-        <div class="stat-value">$53,000</div>
+        <div class="stat-value" id="statTodayRevenue">—</div>
         <div class="stat-footer">
-          <span class="stat-badge up">▲ +55%</span>
-          since yesterday
+          <span class="stat-badge" id="statTodayRevenueBadge">loading...</span>
         </div>
       </div>
 
-      <!-- Today's Users -->
+      <!-- Occupancy -->
       <div class="stat-card rose">
         <div class="stat-header">
-          <span class="stat-label">Today's Users</span>
-          <div class="stat-icon rose">🌐</div>
+          <span class="stat-label">Occupancy</span>
+          <div class="stat-icon rose"><i class="fa-solid fa-couch"></i></div>
         </div>
-        <div class="stat-value">2,300</div>
+        <div class="stat-value" id="statOccupancy">—</div>
         <div class="stat-footer">
-          <span class="stat-badge up">▲ +3%</span>
-          since last week
+          <span class="stat-badge" id="statOccupancyBadge">loading...</span>
         </div>
       </div>
 
-      <!-- New Clients -->
+      <!-- Total Customers -->
       <div class="stat-card green">
         <div class="stat-header">
-          <span class="stat-label">New Clients</span>
-          <div class="stat-icon green">📋</div>
+          <span class="stat-label">Total Customers</span>
+          <div class="stat-icon green"><i class="fa-solid fa-people-group"></i></div>
         </div>
-        <div class="stat-value">+3,462</div>
+        <div class="stat-value" id="statCustomers">—</div>
         <div class="stat-footer">
-          <span class="stat-badge down">▼ -2%</span>
-          since last quarter
+          <span class="stat-badge" id="statCustomersBadge">loading...</span>
         </div>
       </div>
 
@@ -321,7 +460,7 @@
       <div class="stat-card red" id="lowStockCard">
         <div class="stat-header">
           <span class="stat-label">Low Stock Alert</span>
-          <div class="stat-icon red">⚠️</div>
+          <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
         </div>
         <div class="stat-value" id="lowStockCount">0</div>
         <div class="stat-footer">
@@ -338,7 +477,7 @@
         <div class="card-header">
           <div>
             <div class="card-title">Sales Overview</div>
-            <div class="card-subtitle">▲ <strong>4% more</strong> than last year</div>
+            <div class="card-subtitle" id="lineChartSubtitle">Loading revenue data...</div>
           </div>
           <div style="display:flex;gap:8px;align-items:center;">
             <select id="chartRange" style="font-family:inherit;font-size:12px;border:1.5px solid var(--dash-border);background:var(--dash-bg-main);color:var(--dash-text-primary);border-radius:8px;padding:5px 10px;cursor:pointer;outline:none;">
@@ -356,42 +495,25 @@
         </div>
       </div>
 
-      <!-- Traffic Donut -->
+      <!-- Booking Sources Donut -->
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="card-title">Traffic Sources</div>
+            <div class="card-title">Booking Sources</div>
             <div class="card-subtitle">Breakdown by channel</div>
           </div>
-          <span class="card-tag">Monthly</span>
+          <span class="card-tag">All Time</span>
         </div>
         <div class="card-body">
           <div class="donut-wrap">
             <div class="donut-canvas-wrap">
               <canvas id="dashboard-chart-donut" width="200" height="200"></canvas>
               <div class="donut-center">
-                <div class="donut-center-val">68%</div>
-                <div class="donut-center-label">Organic</div>
+                <div class="donut-center-val" id="donutCenterVal">—</div>
+                <div class="donut-center-label" id="donutCenterLabel">bookings</div>
               </div>
             </div>
-            <div class="donut-legend">
-              <div class="legend-item">
-                <div class="legend-dot-label"><div class="legend-dot" style="background:#4f46e5"></div>Organic</div>
-                <div class="legend-val">68%</div>
-              </div>
-              <div class="legend-item">
-                <div class="legend-dot-label"><div class="legend-dot" style="background:#8b5cf6"></div>Referral</div>
-                <div class="legend-val">15%</div>
-              </div>
-              <div class="legend-item">
-                <div class="legend-dot-label"><div class="legend-dot" style="background:#06b6d4"></div>Social</div>
-                <div class="legend-val">10%</div>
-              </div>
-              <div class="legend-item">
-                <div class="legend-dot-label"><div class="legend-dot" style="background:#f97316"></div>Direct</div>
-                <div class="legend-val">7%</div>
-              </div>
-            </div>
+            <div class="donut-legend" id="donutLegend"></div>
           </div>
         </div>
       </div>
@@ -400,204 +522,73 @@
     <!-- ── ROW 3 – SALES BY COUNTRY + CATEGORIES ── -->
     <div class="row3">
 
-      <!-- Sales by Country -->
+      <!-- Recent Reservations table -->
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="card-title">Sales by Country</div>
-            <div class="card-subtitle">Top performing regions</div>
+            <div class="card-title">Recent Reservations</div>
+            <div class="card-subtitle">Latest 5 bookings</div>
           </div>
-          <span class="card-tag">This Month</span>
+          <span class="card-tag">Live</span>
         </div>
         <div class="card-body" style="padding:0 0 8px;">
-          <table class="country-table">
-            <thead>
-              <tr>
-                <th>Country</th>
-                <th>Sales</th>
-                <th>Value</th>
-                <th>Bounce</th>
-                <th>Trend</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><span class="country-flag">🇺🇸</span><span class="country-name">United States</span></td>
-                <td class="mono">2,500</td>
-                <td class="mono">$230,900</td>
-                <td class="mono">29.9%</td>
-                <td><span class="trend-badge up">▲ +12%</span></td>
-              </tr>
-              <tr>
-                <td><span class="country-flag">🇩🇪</span><span class="country-name">Germany</span></td>
-                <td class="mono">3,900</td>
-                <td class="mono">$440,000</td>
-                <td class="mono">40.2%</td>
-                <td><span class="trend-badge up">▲ +7%</span></td>
-              </tr>
-              <tr>
-                <td><span class="country-flag">🇬🇧</span><span class="country-name">Great Britain</span></td>
-                <td class="mono">1,400</td>
-                <td class="mono">$190,700</td>
-                <td class="mono">23.4%</td>
-                <td><span class="trend-badge down">▼ -3%</span></td>
-              </tr>
-              <tr>
-                <td><span class="country-flag">🇧🇷</span><span class="country-name">Brazil</span></td>
-                <td class="mono">562</td>
-                <td class="mono">$143,960</td>
-                <td class="mono">32.1%</td>
-                <td><span class="trend-badge up">▲ +21%</span></td>
-              </tr>
-              <tr>
-                <td><span class="country-flag">🇯🇵</span><span class="country-name">Japan</span></td>
-                <td class="mono">1,120</td>
-                <td class="mono">$178,300</td>
-                <td class="mono">18.7%</td>
-                <td><span class="trend-badge up">▲ +9%</span></td>
-              </tr>
-              <tr>
-                <td><span class="country-flag">🇦🇺</span><span class="country-name">Australia</span></td>
-                <td class="mono">840</td>
-                <td class="mono">$112,500</td>
-                <td class="mono">27.5%</td>
-                <td><span class="trend-badge down">▼ -1%</span></td>
-              </tr>
-            </tbody>
-          </table>
+          <div style="overflow-x:auto;">
+            <table class="country-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Guest</th>
+                  <th>Check-in</th>
+                  <th>Check-out</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="recentReservationsTbody">
+                <tr><td colspan="6" style="text-align:center;color:var(--dash-text-muted);padding:20px;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      <!-- Categories -->
+      <!-- Inventory Categories -->
       <div class="card">
         <div class="card-header">
-          <div class="card-title">Categories</div>
-          <span class="card-tag">4 Active</span>
+          <div class="card-title">Inventory by Category</div>
+          <span class="card-tag" id="invCatTag">Loading</span>
         </div>
         <div class="card-body" style="padding:12px 8px;">
-          <div class="category-list">
-            <div class="category-item">
-              <div class="cat-left">
-                <div class="cat-icon-wrap" style="background:linear-gradient(135deg,#1e293b,#334155)">📱</div>
-                <div>
-                  <div class="cat-name">Devices</div>
-                  <div class="cat-sub">250 in stock · <strong>346+ sold</strong></div>
-                </div>
-              </div>
-              <span class="cat-arrow">›</span>
-            </div>
-            <div class="category-item">
-              <div class="cat-left">
-                <div class="cat-icon-wrap" style="background:linear-gradient(135deg,#1e293b,#334155)">🎫</div>
-                <div>
-                  <div class="cat-name">Tickets</div>
-                  <div class="cat-sub">123 closed · <strong>15 open</strong></div>
-                </div>
-              </div>
-              <span class="cat-arrow">›</span>
-            </div>
-            <div class="category-item">
-              <div class="cat-left">
-                <div class="cat-icon-wrap" style="background:linear-gradient(135deg,#1e293b,#334155)">⚠️</div>
-                <div>
-                  <div class="cat-name">Error Logs</div>
-                  <div class="cat-sub">1 active · <strong>40 closed</strong></div>
-                </div>
-              </div>
-              <span class="cat-arrow">›</span>
-            </div>
-            <div class="category-item">
-              <div class="cat-left">
-                <div class="cat-icon-wrap" style="background:linear-gradient(135deg,#1e293b,#334155)">😊</div>
-                <div>
-                  <div class="cat-name">Happy Users</div>
-                  <div class="cat-sub"><strong>+430</strong> this month</div>
-                </div>
-              </div>
-              <span class="cat-arrow">›</span>
-            </div>
+          <div class="category-list" id="invCategoryList">
+            <div style="text-align:center;color:var(--dash-text-muted);padding:20px;">Loading...</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ── ROW 4 – RECENT ORDERS ── -->
+    <!-- ── ROW 4 – RECENT POS SALES ── -->
     <div class="card">
       <div class="card-header">
         <div>
-          <div class="card-title">Recent Orders</div>
-          <div class="card-subtitle">Showing latest 6 transactions</div>
+          <div class="card-title">Recent POS Sales</div>
+          <div class="card-subtitle" id="posSalesSubtitle">Showing latest transactions</div>
         </div>
-        <button onclick="" style="font-family:inherit;font-size:13px;font-weight:600;color:var(--dash-accent-blue);background:var(--dash-accent-blue-light);border:none;border-radius:8px;padding:7px 14px;cursor:pointer;">View All</button>
+        <button onclick="window.location.href='inventory/pos'" style="font-family:inherit;font-size:13px;font-weight:600;color:var(--dash-accent-blue);background:var(--dash-accent-blue-light);border:none;border-radius:8px;padding:7px 14px;cursor:pointer;">Open POS</button>
       </div>
       <div style="overflow-x:auto;">
         <table class="orders-table">
           <thead>
             <tr>
-              <th>Order ID</th>
-              <th>Customer</th>
-              <th>Product</th>
+              <th>Sale ID</th>
+              <th>Cashier</th>
+              <th>Items</th>
               <th>Date</th>
               <th>Amount</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th>Payment</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td class="mono">#ORD-0041</td>
-              <td><div style="display:flex;align-items:center;"><div class="customer-avatar">AM</div>Alice Martin</div></td>
-              <td>iPhone 15 Pro</td>
-              <td>May 27, 2026</td>
-              <td class="mono">$1,299</td>
-              <td><span class="order-status delivered">Delivered</span></td>
-              <td><a href="#" style="font-size:12px;color:var(--dash-accent-blue);font-weight:600;">Details</a></td>
-            </tr>
-            <tr>
-              <td class="mono">#ORD-0040</td>
-              <td><div style="display:flex;align-items:center;"><div class="customer-avatar" style="background:linear-gradient(135deg,#10b981,#34d399);">BK</div>Bob Kim</div></td>
-              <td>MacBook Air M3</td>
-              <td>May 26, 2026</td>
-              <td class="mono">$1,099</td>
-              <td><span class="order-status processing">Processing</span></td>
-              <td><a href="#" style="font-size:12px;color:var(--dash-accent-blue);font-weight:600;">Details</a></td>
-            </tr>
-            <tr>
-              <td class="mono">#ORD-0039</td>
-              <td><div style="display:flex;align-items:center;"><div class="customer-avatar" style="background:linear-gradient(135deg,#f43f5e,#fb7185);">CL</div>Clara Lee</div></td>
-              <td>AirPods Pro</td>
-              <td>May 25, 2026</td>
-              <td class="mono">$249</td>
-              <td><span class="order-status delivered">Delivered</span></td>
-              <td><a href="#" style="font-size:12px;color:var(--dash-accent-blue);font-weight:600;">Details</a></td>
-            </tr>
-            <tr>
-              <td class="mono">#ORD-0038</td>
-              <td><div style="display:flex;align-items:center;"><div class="customer-avatar" style="background:linear-gradient(135deg,#f97316,#fbbf24);">DW</div>David Wu</div></td>
-              <td>iPad Pro 12.9"</td>
-              <td>May 24, 2026</td>
-              <td class="mono">$1,799</td>
-              <td><span class="order-status pending">Pending</span></td>
-              <td><a href="#" style="font-size:12px;color:var(--dash-accent-blue);font-weight:600;">Details</a></td>
-            </tr>
-            <tr>
-              <td class="mono">#ORD-0037</td>
-              <td><div style="display:flex;align-items:center;"><div class="customer-avatar" style="background:linear-gradient(135deg,#06b6d4,#0ea5e9);">EP</div>Eva Park</div></td>
-              <td>Apple Watch Ultra 2</td>
-              <td>May 23, 2026</td>
-              <td class="mono">$799</td>
-              <td><span class="order-status cancelled">Cancelled</span></td>
-              <td><a href="#" style="font-size:12px;color:var(--dash-accent-blue);font-weight:600;">Details</a></td>
-            </tr>
-            <tr>
-              <td class="mono">#ORD-0036</td>
-              <td><div style="display:flex;align-items:center;"><div class="customer-avatar" style="background:linear-gradient(135deg,#8b5cf6,#a78bfa);">FJ</div>Frank Jones</div></td>
-              <td>Mac Mini M4</td>
-              <td>May 22, 2026</td>
-              <td class="mono">$599</td>
-              <td><span class="order-status delivered">Delivered</span></td>
-              <td><a href="#" style="font-size:12px;color:var(--dash-accent-blue);font-weight:600;">Details</a></td>
-            </tr>
+          <tbody id="recentSalesTbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--dash-text-muted);padding:20px;">Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -606,63 +597,15 @@
     <!-- ── ROW 5 – ACTIVITY FEED + QUICK ACTIONS + TOP PRODUCTS ── -->
     <div class="row5">
 
-      <!-- Activity Feed -->
+      <!-- Recent Inventory Transactions -->
       <div class="card">
         <div class="card-header">
-          <div class="card-title">Recent Activity</div>
+          <div class="card-title">Recent Stock Movements</div>
           <span class="card-tag">Live</span>
         </div>
         <div class="card-body" style="padding-top:8px;">
-          <div class="activity-list">
-            <div class="activity-item">
-              <div class="activity-dot-wrap">
-                <div class="activity-dot" style="background:#eef2ff;">🛒</div>
-                <div class="activity-line"></div>
-              </div>
-              <div class="activity-content">
-                <div class="activity-text"><strong>Alice Martin</strong> placed a new order for iPhone 15 Pro</div>
-                <div class="activity-time">2 minutes ago</div>
-              </div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-dot-wrap">
-                <div class="activity-dot" style="background:#d1fae5;">✅</div>
-                <div class="activity-line"></div>
-              </div>
-              <div class="activity-content">
-                <div class="activity-text">Order <strong>#ORD-0036</strong> was successfully delivered</div>
-                <div class="activity-time">18 minutes ago</div>
-              </div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-dot-wrap">
-                <div class="activity-dot" style="background:#fef3c7;">👤</div>
-                <div class="activity-line"></div>
-              </div>
-              <div class="activity-content">
-                <div class="activity-text"><strong>47 new users</strong> signed up today</div>
-                <div class="activity-time">1 hour ago</div>
-              </div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-dot-wrap">
-                <div class="activity-dot" style="background:#fee2e2;">⚠️</div>
-                <div class="activity-line"></div>
-              </div>
-              <div class="activity-content">
-                <div class="activity-text">Server error log resolved — <strong>1 active</strong> remaining</div>
-                <div class="activity-time">3 hours ago</div>
-              </div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-dot-wrap">
-                <div class="activity-dot" style="background:#ede9fe;">📊</div>
-              </div>
-              <div class="activity-content">
-                <div class="activity-text">Monthly <strong>sales report</strong> is ready for review</div>
-                <div class="activity-time">Yesterday at 11:30 PM</div>
-              </div>
-            </div>
+          <div class="activity-list" id="stockMovementsList">
+            <div style="text-align:center;color:var(--dash-text-muted);padding:20px;">Loading...</div>
           </div>
         </div>
       </div>
@@ -674,69 +617,25 @@
         </div>
         <div class="card-body">
           <div class="quick-grid">
-            <div class="quick-btn"><span>➕</span>New Order</div>
-            <div class="quick-btn"><span>👤</span>Add Client</div>
-            <div class="quick-btn"><span>📦</span>Add Product</div>
-            <div class="quick-btn"><span>📤</span>Export CSV</div>
-            <div class="quick-btn"><span>📩</span>Send Email</div>
-            <div class="quick-btn"><span>🔍</span>Run Report</div>
+            <div class="quick-btn" onclick="window.location.href='inventory/pos'"><span><i class="fa-solid fa-cart-shopping"></i></span>Open POS</div>
+            <div class="quick-btn" onclick="window.location.href='reservations/reservations'"><span><i class="fa-solid fa-clipboard-list"></i></span>New Booking</div>
+            <div class="quick-btn" onclick="window.location.href='inventory/products'"><span><i class="fa-solid fa-boxes-stacked"></i></span>Products</div>
+            <div class="quick-btn" onclick="window.location.href='inventory/purchase-orders'"><span><i class="fa-solid fa-truck"></i></span>Purchase Orders</div>
+            <div class="quick-btn" onclick="window.location.href='customers/customers'"><span><i class="fa-solid fa-people-line"></i></span>Customers</div>
+            <div class="quick-btn" onclick="window.location.href='inventory/inventory-transactions'"><span><i class="fa-solid fa-box"></i></span>Inventory</div>
           </div>
         </div>
       </div>
 
-      <!-- Top Products -->
+      <!-- Top Menu Items -->
       <div class="card">
         <div class="card-header">
-          <div class="card-title">Top Products</div>
-          <span class="card-tag">May 2026</span>
+          <div class="card-title">Top Menu Items</div>
+          <span class="card-tag">All Time</span>
         </div>
         <div class="card-body">
-          <div class="product-list">
-            <div class="product-item">
-              <div class="product-rank">#1</div>
-              <div class="product-img">📱</div>
-              <div class="product-info">
-                <div class="product-name">iPhone 15 Pro</div>
-                <div class="product-cat">Devices · 842 sold</div>
-              </div>
-              <div class="product-rev">$28,900</div>
-            </div>
-            <div class="product-item">
-              <div class="product-rank">#2</div>
-              <div class="product-img">💻</div>
-              <div class="product-info">
-                <div class="product-name">MacBook Air M3</div>
-                <div class="product-cat">Devices · 610 sold</div>
-              </div>
-              <div class="product-rev">$22,400</div>
-            </div>
-            <div class="product-item">
-              <div class="product-rank">#3</div>
-              <div class="product-img">⌚</div>
-              <div class="product-info">
-                <div class="product-name">Apple Watch Ultra 2</div>
-                <div class="product-cat">Devices · 430 sold</div>
-              </div>
-              <div class="product-rev">$17,100</div>
-            </div>
-            <div class="product-item">
-              <div class="product-rank">#4</div>
-              <div class="product-img">🎧</div>
-              <div class="product-info">
-                <div class="product-name">AirPods Pro</div>
-                <div class="product-cat">Accessories · 980 sold</div>
-              </div>
-              <div class="product-rev">$12,250</div>
-            </div>
-            <div class="product-item">
-              <div class="product-rank">#5</div>
-              <div class="product-img">🖥️</div>
-              <div class="product-info">
-                <div class="product-name">iPad Pro 12.9"</div>
-                <div class="product-cat">Devices · 310 sold</div>
-              </div>
-              <div class="product-rev">$9,800</div>
-            </div>
+          <div class="product-list" id="topMenuItemsList">
+            <div style="text-align:center;color:var(--dash-text-muted);padding:20px;">Loading...</div>
           </div>
         </div>
       </div>
@@ -747,7 +646,7 @@
       <div class="card-header">
         <div>
           <div class="card-title">Monthly Revenue vs Expenses</div>
-          <div class="card-subtitle">Full year comparison — 2026</div>
+          <div class="card-subtitle" id="barChartSubtitle">Monthly revenue — current year</div>
         </div>
         <span class="card-tag">YTD</span>
       </div>
@@ -762,207 +661,423 @@
 </div><!-- /dash-page -->
 
 <script>
-/* ─────────────────────────────────────────
-   LOW STOCK ALERT
-───────────────────────────────────────── */
+const API = 'api/';
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const DEFAULT_PROFILE_PATH = '<?php echo $defaultProfilePath; ?>';
+
+function fmt(n) {
+  return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtShort(n) {
+  n = parseFloat(n || 0);
+  if (n >= 1000000) return '₱' + (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return '₱' + (n / 1000).toFixed(1) + 'k';
+  return '₱' + n.toFixed(2);
+}
+
+function normalizeProfilePhotoUrl(url) {
+  if (!url) return DEFAULT_PROFILE_PATH;
+  if (isLocalhost) {
+    if (url.startsWith('/../uploads/profile_photos/')) return url;
+    if (url.startsWith('/uploads/profile_photos/')) {
+      return '/../uploads/profile_photos/' + url.split('/').pop();
+    }
+    if (url.startsWith('/build/assets/images/uploads/profile_photos/')) {
+      return '/../uploads/profile_photos/' + url.split('/').pop();
+    }
+  } else {
+    if (url.startsWith('/uploads/profile_photos/')) return url;
+    if (url.startsWith('/../uploads/profile_photos/')) {
+      return '/uploads/profile_photos/' + url.split('/').pop();
+    }
+    if (url.startsWith('/build/assets/images/uploads/profile_photos/')) {
+      return '/uploads/profile_photos/' + url.split('/').pop();
+    }
+  }
+  return url;
+}
+
+function normalizeFoodImageUrl(url) {
+  const defaultImage = isLocalhost ? '../uploads/foods/default-food.png' : '/uploads/foods/default-food.png';
+  if (!url) return defaultImage;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (isLocalhost) {
+    if (url.startsWith('/uploads/foods/')) {
+      return '../uploads/foods/' + url.split('/').pop();
+    }
+    if (url.startsWith('/')) {
+      return '..' + url;
+    }
+    return '../uploads/foods/' + url;
+  } else {
+    if (url.startsWith('/uploads/foods/')) return url;
+    if (url.startsWith('/')) return url;
+    return '/uploads/foods/' + url;
+  }
+}
+
+/* ── STAT CARDS ── */
+async function loadStatCards() {
+  try {
+    const [rev, occ, cust] = await Promise.all([
+      fetch(API + 'reports.php?action=revenue_summary').then(r => r.json()),
+      fetch(API + 'reports.php?action=occupancy_summary').then(r => r.json()),
+      fetch(API + 'reports.php?action=customer_summary').then(r => r.json())
+    ]);
+
+    if (rev.success) {
+      document.getElementById('statTodayRevenue').textContent = fmtShort(rev.data.today);
+      const badge = document.getElementById('statTodayRevenueBadge');
+      badge.textContent = 'This month: ' + fmtShort(rev.data.month);
+      badge.className = 'stat-badge';
+    }
+
+    if (occ.success) {
+      document.getElementById('statOccupancy').textContent = occ.data.today + '%';
+      const badge = document.getElementById('statOccupancyBadge');
+      badge.textContent = occ.data.today + '% rooms occupied';
+      badge.className = 'stat-badge ' + (occ.data.today >= 50 ? 'up' : 'down');
+    }
+
+    if (cust.success) {
+      document.getElementById('statCustomers').textContent = parseInt(cust.data.total).toLocaleString();
+      const badge = document.getElementById('statCustomersBadge');
+      badge.textContent = '+' + cust.data.new_this_month + ' this month';
+      badge.className = 'stat-badge up';
+    }
+  } catch(e) { console.error('Stat cards error:', e); }
+}
+
+/* ── LOW STOCK ── */
 async function fetchLowStockCount() {
   try {
-    const response = await fetch('api/inventory_transactions.php?action=low_stock_count');
-    const result = await response.json();
+    const res = await fetch(API + 'inventory_transactions.php?action=low_stock_count');
+    const result = await res.json();
     if (result.success) {
       document.getElementById('lowStockCount').textContent = result.count;
       if (result.count > 0) {
         document.getElementById('lowStockCard').style.cursor = 'pointer';
-        document.getElementById('lowStockCard').onclick = () => {
-          window.location.href = 'inventory/inventory-transactions';
-        };
+        document.getElementById('lowStockCard').onclick = () => window.location.href = 'inventory/inventory-transactions';
       }
     }
-  } catch (error) {
-    console.error('Error fetching low stock count:', error);
-  }
+  } catch(e) { console.error('Low stock error:', e); }
 }
 
-fetchLowStockCount();
+/* ── RECENT RESERVATIONS ── */
+async function loadRecentReservations() {
+  const tbody = document.getElementById('recentReservationsTbody');
+  try {
+    const res = await fetch(API + 'reports.php?action=recent_reservations');
+    const result = await res.json();
+    if (!result.success || !result.data.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--dash-text-muted);padding:20px;">No reservations found</td></tr>`;
+      return;
+    }
+    const statusColors = { confirmed:'#4f46e5', checked_in:'#10b981', checked_out:'#6b7280', cancelled:'#f43f5e', pending:'#f97316' };
+    tbody.innerHTML = result.data.map(r => {
+      const name = [r.first_name, r.last_name].filter(Boolean).join(' ') || 'Guest';
+      const hasPhoto = r.profile_photo_url && r.profile_photo_url.trim() !== '';
+      const photoUrl = hasPhoto ? normalizeProfilePhotoUrl(r.profile_photo_url) : DEFAULT_PROFILE_PATH;
+      const color = statusColors[r.reservation_status] || '#6b7280';
+      const statusLabel = (r.reservation_status || '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      return `<tr>
+        <td class="mono">${r.reservation_code || '—'}</td>
+        <td><div style="display:flex;align-items:center;gap:8px;"><img src="${photoUrl}" alt="" class="customer-avatar" style="object-fit:cover;" ${hasPhoto ? `onerror="this.src='${DEFAULT_PROFILE_PATH}'"` : ''}>${name}</div></td>
+        <td>${r.check_in_date || '—'}</td>
+        <td>${r.check_out_date || '—'}</td>
+        <td class="mono">${fmt(r.total_amount)}</td>
+        <td><span class="order-status" style="background:${color}20;color:${color};padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;">${statusLabel}</span></td>
+      </tr>`;
+    }).join('');
+  } catch(e) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--dash-text-muted);">Error loading data</td></tr>`; }
+}
 
-/* ─────────────────────────────────────────
-   CHART INITIALIZATION
-───────────────────────────────────────── */
+/* ── INVENTORY BY CATEGORY ── */
+async function loadInventoryCategories() {
+  const list = document.getElementById('invCategoryList');
+  const tag = document.getElementById('invCatTag');
+  try {
+    const res = await fetch(API + 'reports.php?action=inventory_valuation');
+    const result = await res.json();
+    if (!result.success || !result.data.length) {
+      list.innerHTML = `<div style="text-align:center;color:var(--dash-text-muted);padding:20px;">No categories found</div>`;
+      return;
+    }
+    const colors = ['#4f46e5','#10b981','#f97316','#06b6d4','#8b5cf6','#f43f5e'];
+    tag.textContent = result.data.length + ' Categories';
+    list.innerHTML = result.data.map((cat, i) => `
+      <div class="category-item">
+        <div class="cat-left">
+          <div class="cat-icon-wrap" style="background:${colors[i % colors.length]}22;color:${colors[i % colors.length]};font-size:16px;"><i class="fa-solid fa-box"></i></div>
+          <div>
+            <div class="cat-name">${cat.category_name}</div>
+            <div class="cat-sub">${cat.product_count} products · <strong>${fmtShort(cat.total_value)}</strong></div>
+          </div>
+        </div>
+        <span class="cat-arrow">›</span>
+      </div>`).join('');
+  } catch(e) { list.innerHTML = `<div style="text-align:center;color:var(--dash-text-muted);">Error loading data</div>`; }
+}
 
-/* ─────────────────────────────────────────
-   LINE CHART – SALES OVERVIEW
-───────────────────────────────────────── */
+/* ── RECENT POS SALES ── */
+async function loadRecentSales() {
+  const tbody = document.getElementById('recentSalesTbody');
+  const subtitle = document.getElementById('posSalesSubtitle');
+  try {
+    const res = await fetch(API + 'inventory_sales.php?action=list&limit=6');
+    const result = await res.json();
+    if (!result.success || !result.data?.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--dash-text-muted);padding:20px;">No sales found</td></tr>`;
+      return;
+    }
+    const sales = result.data.slice(0, 6);
+    subtitle.textContent = `Showing ${sales.length} latest transactions`;
+    tbody.innerHTML = sales.map(s => {
+      const date = s.sale_date ? new Date(s.sale_date).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+      const cashier = s.cashier_name || s.staff_name || 'Staff';
+      const hasPhoto = s.profile_photo_url && s.profile_photo_url.trim() !== '';
+      const photoUrl = hasPhoto ? normalizeProfilePhotoUrl(s.profile_photo_url) : DEFAULT_PROFILE_PATH;
+      return `<tr>
+        <td class="mono">#${String(s.sale_id || s.id || '').slice(-6).padStart(6,'0')}</td>
+        <td><div style="display:flex;align-items:center;gap:8px;"><img src="${photoUrl}" alt="" class="customer-avatar" style="object-fit:cover;" ${hasPhoto ? `onerror="this.src='${DEFAULT_PROFILE_PATH}'"` : ''}>${cashier}</div></td>
+        <td>${s.item_count || s.total_items || '—'} items</td>
+        <td>${date}</td>
+        <td class="mono">${fmt(s.total_amount)}</td>
+        <td><span class="order-status delivered" style="background:#d1fae5;color:#059669;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;">${(s.payment_method || 'cash').replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase())}</span></td>
+      </tr>`;
+    }).join('');
+  } catch(e) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--dash-text-muted);">Error loading data</td></tr>`; }
+}
+
+/* ── STOCK MOVEMENTS ── */
+async function loadStockMovements() {
+  const list = document.getElementById('stockMovementsList');
+  try {
+    const res = await fetch(API + 'inventory_transactions.php?action=list&limit=5');
+    const result = await res.json();
+    const items = result.data || result.transactions || [];
+    if (!items.length) {
+      list.innerHTML = `<div style="text-align:center;color:var(--dash-text-muted);padding:20px;">No recent stock movements</div>`;
+      return;
+    }
+    const icons = { add: { bg: '#d1fae5', icon: '<i class="fa-solid fa-box-open"></i>' }, remove: { bg: '#fee2e2', icon: '📤' }, adjust: { bg: '#fef3c7', icon: '🔄' }, sale: { bg: '#ede9fe', icon: '🛒' } };
+    list.innerHTML = items.slice(0, 5).map((t, i) => {
+      const type = t.transaction_type || 'adjust';
+      const style = icons[type] || { bg: '#f1f5f9', icon: '<i class="fa-solid fa-box"></i>' };
+      const timeAgo = t.created_at ? new Date(t.created_at).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+      const isLast = i === items.slice(0,5).length - 1;
+      return `<div class="activity-item">
+        <div class="activity-dot-wrap">
+          <div class="activity-dot" style="background:${style.bg};">${style.icon}</div>
+          ${!isLast ? '<div class="activity-line"></div>' : ''}
+        </div>
+        <div class="activity-content">
+          <div class="activity-text"><strong>${t.product_name || 'Product'}</strong> — ${type.replace(/_/g,' ')} <strong>${parseFloat(t.quantity||0).toFixed(1)} ${t.uom_name || 'units'}</strong></div>
+          <div class="activity-time">${timeAgo}</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { list.innerHTML = `<div style="text-align:center;color:var(--dash-text-muted);">Error loading data</div>`; }
+}
+
+/* ── TOP MENU ITEMS ── */
+async function loadTopMenuItems() {
+  const list = document.getElementById('topMenuItemsList');
+  try {
+    const res = await fetch(API + 'reports.php?action=top_menu_items');
+    const result = await res.json();
+    if (!result.success || !result.data?.length) {
+      list.innerHTML = `<div style="text-align:center;color:var(--dash-text-muted);padding:20px;">No data available</div>`;
+      return;
+    }
+    const defaultFoodImage = isLocalhost ? '../uploads/foods/default-food.png' : '/uploads/foods/default-food.png';
+    list.innerHTML = result.data.slice(0, 5).map((item, i) => {
+      const hasImage = item.image_url && item.image_url.trim() !== '';
+      const imgUrl = hasImage ? normalizeFoodImageUrl(item.image_url) : defaultFoodImage;
+      return `
+      <div class="product-item">
+        <div class="product-rank">#${i + 1}</div>
+        <div class="product-img"><img src="${imgUrl}" alt="${item.item_name}" ${hasImage ? `onerror="this.src='${defaultFoodImage}'"` : ''}></div>
+        <div class="product-info">
+          <div class="product-name">${item.item_name}</div>
+          <div class="product-cat">${item.category_name} · ${parseInt(item.total_sold || 0).toLocaleString()} sold</div>
+        </div>
+        <div class="product-rev">${fmtShort(item.revenue)}</div>
+      </div>`;
+    }).join('');
+  } catch(e) { list.innerHTML = `<div style="text-align:center;color:var(--dash-text-muted);">Error loading data</div>`; }
+}
+
+/* ── LINE CHART – MONTHLY REVENUE ── */
 let lineChart;
-function buildLineChart() {
+async function buildLineChart() {
   const canvas = document.getElementById('dashboard-chart-line');
   if (!canvas) return;
-  
-  // Destroy any existing chart instance
-  const existingChart = Chart.getChart(canvas);
-  if (existingChart) {
-    existingChart.destroy();
-  }
-  
-  const ctx = canvas.getContext('2d');
-  const gridColor = 'rgba(0,0,0,0.05)';
-  const textColor = '#6b7280';
+  const existing = Chart.getChart(canvas);
+  if (existing) existing.destroy();
 
-  lineChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: ['Dec','Jan','Feb','Mar','Apr','May'],
-      datasets: [
-        {
+  try {
+    const res = await fetch(API + 'reports.php?action=revenue_monthly');
+    const result = await res.json();
+    const gridColor = 'rgba(0,0,0,0.05)', textColor = '#6b7280';
+
+    let labels = [], data = [];
+    if (result.success && result.data.length) {
+      const sorted = result.data.slice().reverse().slice(-6);
+      labels = sorted.map(r => { const [y, m] = r.month.split('-'); return new Date(y, m - 1).toLocaleString('en', { month: 'short' }) + ' ' + y.slice(2); });
+      data = sorted.map(r => parseFloat(r.revenue));
+      const total = data.reduce((a, b) => a + b, 0);
+      document.getElementById('lineChartSubtitle').textContent = 'Last 6 months · Total: ' + fmtShort(total);
+    } else {
+      labels = ['No data']; data = [0];
+    }
+
+    lineChart = new Chart(canvas.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
           label: 'Revenue',
-          data: [62000, 75000, 68000, 90000, 85000, 103000],
+          data,
           borderColor: '#4f46e5',
           backgroundColor: 'rgba(79,70,229,0.12)',
           fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 4,
           pointBackgroundColor: '#4f46e5'
-        },
-        {
-          label: 'Expenses',
-          data: [38000, 42000, 40000, 55000, 50000, 61000],
-          borderColor: '#8b5cf6',
-          backgroundColor: 'rgba(139,92,246,0.06)',
-          fill: true, tension: 0.4, borderWidth: 2, borderDash: [6,3],
-          pointRadius: 4, pointBackgroundColor: '#8b5cf6'
-        }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top', align: 'end',
-          labels: { color: textColor, font: { size: 12, family: 'Plus Jakarta Sans' }, boxWidth: 12, boxHeight: 12 }
-        },
-        tooltip: { mode: 'index', intersect: false,
-          callbacks: { label: ctx => ' $' + ctx.raw.toLocaleString() }
-        }
+        }]
       },
-      scales: {
-        x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 12 } } },
-        y: {
-          grid: { color: gridColor },
-          ticks: { color: textColor, font: { size: 12 },
-            callback: v => '$' + (v/1000) + 'k' }
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', align: 'end', labels: { color: textColor, font: { size: 12, family: 'Plus Jakarta Sans' }, boxWidth: 12 } },
+          tooltip: { mode: 'index', intersect: false, callbacks: { label: ctx => ' ' + fmt(ctx.raw) } }
+        },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 12 } } },
+          y: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 12 }, callback: v => fmtShort(v) } }
         }
       }
-    }
-  });
+    });
+  } catch(e) { console.error('Line chart error:', e); }
 }
 
-/* ─────────────────────────────────────────
-   DONUT CHART – TRAFFIC SOURCES
-───────────────────────────────────────── */
+/* ── DONUT CHART – BOOKING SOURCES ── */
 let donutChart;
-function buildDonutChart() {
+async function buildDonutChart() {
   const canvas = document.getElementById('dashboard-chart-donut');
   if (!canvas) return;
-  
-  // Destroy any existing chart instance
-  const existingChart = Chart.getChart(canvas);
-  if (existingChart) {
-    existingChart.destroy();
-  }
-  
-  const ctx = canvas.getContext('2d');
-  donutChart = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Organic','Referral','Social','Direct'],
-      datasets: [{
-        data: [68, 15, 10, 7],
-        backgroundColor: ['#4f46e5','#8b5cf6','#06b6d4','#f97316'],
-        borderWidth: 0, hoverOffset: 8
-      }]
-    },
-    options: {
-      responsive: false,
-      cutout: '70%',
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw + '%' } } },
-      animation: { animateRotate: true, duration: 900 }
+  const existing = Chart.getChart(canvas);
+  if (existing) existing.destroy();
+
+  try {
+    const res = await fetch(API + 'reports.php?action=revenue_by_source');
+    const result = await res.json();
+    const colors = ['#4f46e5','#8b5cf6','#06b6d4','#f97316','#10b981','#f43f5e'];
+
+    let labels = [], values = [];
+    if (result.success && result.data.length) {
+      const sorted = result.data.sort((a, b) => b.revenue - a.revenue).slice(0, 6);
+      labels = sorted.map(d => (d.source_channel || 'Direct').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
+      values = sorted.map(d => parseFloat(d.revenue));
+      const total = sorted.reduce((a, b) => a + parseInt(b.bookings || 0), 0);
+      document.getElementById('donutCenterVal').textContent = total.toLocaleString();
+      document.getElementById('donutCenterLabel').textContent = 'bookings';
+      const legend = document.getElementById('donutLegend');
+      legend.innerHTML = sorted.map((d, i) => `
+        <div class="legend-item">
+          <div class="legend-dot-label"><div class="legend-dot" style="background:${colors[i % colors.length]}"></div>${labels[i]}</div>
+          <div class="legend-val">${fmtShort(d.revenue)}</div>
+        </div>`).join('');
+    } else {
+      labels = ['No data']; values = [1];
+      document.getElementById('donutCenterVal').textContent = '0';
+      document.getElementById('donutLegend').innerHTML = '<div style="text-align:center;color:var(--dash-text-muted);font-size:12px;">No booking source data</div>';
     }
-  });
+
+    donutChart = new Chart(canvas.getContext('2d'), {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data: values, backgroundColor: colors.slice(0, values.length), borderWidth: 0, hoverOffset: 8 }] },
+      options: {
+        responsive: false, cutout: '70%',
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + fmtShort(ctx.raw) } } },
+        animation: { animateRotate: true, duration: 900 }
+      }
+    });
+  } catch(e) { console.error('Donut chart error:', e); }
 }
 
-/* ─────────────────────────────────────────
-   BAR CHART – MONTHLY REVENUE
-───────────────────────────────────────── */
+/* ── BAR CHART – MONTHLY REVENUE (FULL YEAR) ── */
 let barChart;
-function buildBarChart() {
+async function buildBarChart() {
   const canvas = document.getElementById('dashboard-chart-bar');
   if (!canvas) return;
-  
-  // Destroy any existing chart instance
-  const existingChart = Chart.getChart(canvas);
-  if (existingChart) {
-    existingChart.destroy();
-  }
-  
-  const ctx = canvas.getContext('2d');
-  const gridColor = 'rgba(0,0,0,0.05)';
-  const textColor = '#6b7280';
-  barChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-      datasets: [
-        {
-          label: 'Revenue',
-          data: [75000, 68000, 90000, 85000, 103000, 0, 0, 0, 0, 0, 0, 0],
-          backgroundColor: '#4f46e5cc',
-          borderRadius: 6, borderSkipped: false
-        },
-        {
-          label: 'Expenses',
-          data: [42000, 40000, 55000, 50000, 61000, 0, 0, 0, 0, 0, 0, 0],
-          backgroundColor: '#8b5cf688',
-          borderRadius: 6, borderSkipped: false
-        }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top', align: 'end',
-          labels: { color: textColor, font: { size: 12, family: 'Plus Jakarta Sans' }, boxWidth: 12 }
-        },
-        tooltip: { mode: 'index', intersect: false,
-          callbacks: { label: ctx => ' $' + ctx.raw.toLocaleString() }
-        }
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { color: textColor, font: { size: 12 } } },
-        y: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 12 },
-            callback: v => '$' + (v/1000) + 'k' } }
-      }
+  const existing = Chart.getChart(canvas);
+  if (existing) existing.destroy();
+
+  try {
+    const res = await fetch(API + 'reports.php?action=revenue_monthly');
+    const result = await res.json();
+    const gridColor = 'rgba(0,0,0,0.05)', textColor = '#6b7280';
+    const year = new Date().getFullYear();
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const revenueByMonth = {};
+
+    if (result.success) {
+      result.data.forEach(r => {
+        if (r.month.startsWith(year)) revenueByMonth[r.month] = parseFloat(r.revenue);
+      });
     }
-  });
+
+    const data = months.map((_, i) => {
+      const key = `${year}-${String(i + 1).padStart(2, '0')}`;
+      return revenueByMonth[key] || 0;
+    });
+
+    document.getElementById('barChartSubtitle').textContent = `Monthly revenue — ${year}`;
+
+    barChart = new Chart(canvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: months,
+        datasets: [{ label: 'Revenue', data, backgroundColor: '#4f46e5cc', borderRadius: 6, borderSkipped: false }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', align: 'end', labels: { color: textColor, font: { size: 12, family: 'Plus Jakarta Sans' }, boxWidth: 12 } },
+          tooltip: { mode: 'index', intersect: false, callbacks: { label: ctx => ' ' + fmt(ctx.raw) } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: textColor, font: { size: 12 } } },
+          y: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 12 }, callback: v => fmtShort(v) } }
+        }
+      }
+    });
+  } catch(e) { console.error('Bar chart error:', e); }
 }
 
+/* ── INIT ── */
 let chartsInitialized = false;
-
-function initCharts() {
+function initDashboard() {
   if (chartsInitialized) return;
   chartsInitialized = true;
 
+  loadStatCards();
+  fetchLowStockCount();
+  loadRecentReservations();
+  loadInventoryCategories();
+  loadRecentSales();
+  loadStockMovements();
+  loadTopMenuItems();
   buildLineChart();
   buildDonutChart();
   buildBarChart();
 
-  // Chart range selector
-  const chartRange = document.getElementById('chartRange');
-  if (chartRange) {
-    chartRange.addEventListener('change', buildLineChart);
-  }
+  document.getElementById('chartRange')?.addEventListener('change', buildLineChart);
 }
 
-// Initialize when DOM is ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initCharts);
+  document.addEventListener('DOMContentLoaded', initDashboard);
 } else {
-  initCharts();
+  initDashboard();
 }
-
 </script>

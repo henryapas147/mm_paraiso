@@ -1,7 +1,10 @@
 ﻿<?php
 header('Content-Type: application/json');
 require_once '../config/middleware.php';
+require_once '../services/NotificationService.php';
 applyAuthMiddleware();
+
+use App\Services\NotificationService;
 
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
@@ -89,7 +92,7 @@ try {
           mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
           mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
         
-        $appliesTo = is_array($data['applies_to_booking_type']) ? implode(',', $data['applies_to_booking_type']) : $data['applies_to_booking_type'];
+        $appliesTo = is_array($data['applies_to_booking_type'] ?? null) ? implode(',', $data['applies_to_booking_type']) : ($data['applies_to_booking_type'] ?? null);
         
         $stmt = $pdo->prepare("INSERT INTO promotions (promo_id, property_id, promo_code, promo_title, promo_type, short_desc, full_description, terms_conditions, discount_id, applies_to_booking_type, valid_from, valid_until, is_featured, sort_order, is_active, created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
         $stmt->execute([
@@ -101,10 +104,47 @@ try {
           $data['is_featured'] ?? 0, $data['sort_order'] ?? 0,
           $data['is_active'] ?? 1, $data['created_by'] ?? null
         ]);
+
+        // Notify customers about new promotion
+        try {
+          $notificationService = new NotificationService($pdo);
+          
+          // Get all customer user IDs
+          $customerStmt = $pdo->prepare("
+            SELECT ua.user_id 
+            FROM user_accounts ua
+            INNER JOIN user_roles ur ON ua.role_id = ur.role_id
+            WHERE ur.role_code = 'customer'
+            AND ua.account_status = 'active'
+          ");
+          $customerStmt->execute();
+          $customerUsers = $customerStmt->fetchAll(PDO::FETCH_COLUMN);
+          
+          $logMessage = "[" . date('Y-m-d H:i:s') . "] Found " . count($customerUsers) . " customer users to notify about promotion\n";
+          file_put_contents(__DIR__ . '/../views/settings/notifications_debug.log', $logMessage, FILE_APPEND);
+          
+          if (!empty($customerUsers)) {
+            $result = $notificationService->createPromotionalNotification(
+              $customerUsers,
+              $data['promo_title'],
+              $data['short_desc'] ?? 'New promotion available! Check it out now.',
+              $data['property_id'] ?? null
+            );
+            $logMessage = "[" . date('Y-m-d H:i:s') . "] Notification creation result: " . json_encode($result) . "\n";
+            file_put_contents(__DIR__ . '/../views/settings/notifications_debug.log', $logMessage, FILE_APPEND);
+          } else {
+            $logMessage = "[" . date('Y-m-d H:i:s') . "] No active customer users found to notify about promotion\n";
+            file_put_contents(__DIR__ . '/../views/settings/notifications_debug.log', $logMessage, FILE_APPEND);
+          }
+        } catch (Exception $notifError) {
+          $logMessage = "[" . date('Y-m-d H:i:s') . "] Failed to create notification for promotion: " . $notifError->getMessage() . "\n";
+          file_put_contents(__DIR__ . '/../views/settings/notifications_debug.log', $logMessage, FILE_APPEND);
+        }
+
         echo json_encode(['success' => true, 'message' => 'Promotion created', 'promo_id' => $promoId]);
 
       } elseif ($action === 'update') {
-        $appliesTo = is_array($data['applies_to_booking_type']) ? implode(',', $data['applies_to_booking_type']) : $data['applies_to_booking_type'];
+        $appliesTo = is_array($data['applies_to_booking_type'] ?? null) ? implode(',', $data['applies_to_booking_type']) : ($data['applies_to_booking_type'] ?? null);
         
         $stmt = $pdo->prepare("UPDATE promotions SET property_id=?, promo_code=?, promo_title=?, promo_type=?, short_desc=?, full_description=?, terms_conditions=?, discount_id=?, applies_to_booking_type=?, valid_from=?, valid_until=?, is_featured=?, sort_order=?, is_active=?, created_by=? WHERE promo_id=?");
         $stmt->execute([
@@ -120,10 +160,15 @@ try {
         echo json_encode(['success' => true, 'message' => 'Promotion updated']);
 
       } elseif ($action === 'delete') {
+        $promoId = $data['promotion_id'] ?? null;
+        if (!$promoId) {
+          echo json_encode(['success' => false, 'message' => 'promotion_id is required']);
+          break;
+        }
         $stmt = $pdo->prepare("DELETE FROM promotion_images WHERE promo_id=?");
-        $stmt->execute([$data['promo_id']]);
+        $stmt->execute([$promoId]);
         $stmt = $pdo->prepare("DELETE FROM promotions WHERE promo_id=?");
-        $stmt->execute([$data['promo_id']]);
+        $stmt->execute([$promoId]);
         echo json_encode(['success' => true, 'message' => 'Promotion deleted']);
       }
       break;

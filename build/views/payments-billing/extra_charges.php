@@ -349,6 +349,201 @@
     font-size: 13px;
     color: #1a1a1a
   }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media (max-width: 640px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-card {
+      padding: 14px 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-label {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-value {
+      font-size: 24px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .card-header div[style*="display:flex"] {
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .search-input {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 640px) {
+    thead th {
+      padding: 8px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    td {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .type-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .action-btn {
+      padding: 4px 8px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state {
+      padding: 40px 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state i {
+      font-size: 28px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modal {
+      max-width: 90vw;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal {
+      max-width: none;
+      max-height: 95vh;
+      border-radius: 12px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modal-body {
+      padding: 18px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-body {
+      padding: 16px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-footer {
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-footer .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-header {
+      padding: 14px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-title {
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-close {
+      font-size: 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-label {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-input,
+    .form-select,
+    .form-textarea {
+      font-size: 12px;
+      padding: 7px 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .view-row {
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .view-label {
+      width: auto;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .view-value {
+      font-size: 12px;
+    }
+  }
 </style>
 
 <!-- PAGE CONTENT -->
@@ -625,7 +820,7 @@
     };
     try {
       const res = await fetch('../api/extra_charges.php?action=create', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': '<?php echo htmlspecialchars($_SESSION["csrf_token"] ?? "", ENT_QUOTES, "UTF-8"); ?>' }, body: JSON.stringify(data)
       });
       const result = await res.json();
       if (result.success) {
@@ -670,7 +865,7 @@
     };
     try {
       const res = await fetch('../api/extra_charges.php?action=update', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': '<?php echo htmlspecialchars($_SESSION["csrf_token"] ?? "", ENT_QUOTES, "UTF-8"); ?>' }, body: JSON.stringify(data)
       });
       const result = await res.json();
       if (result.success) {
@@ -715,7 +910,7 @@
       if (result.isConfirmed) {
         try {
           const res = await fetch('../api/extra_charges.php?action=delete', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ charge_id: chargeId })
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': '<?php echo htmlspecialchars($_SESSION["csrf_token"] ?? "", ENT_QUOTES, "UTF-8"); ?>' }, body: JSON.stringify({ charge_id: chargeId })
           });
           const r = await res.json();
           if (r.success) {

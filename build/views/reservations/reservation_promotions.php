@@ -274,6 +274,137 @@
     font-weight: 600;
     color: #A32D2D;
   }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media (max-width: 768px) {
+    .promo-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      padding: 16px 18px;
+    }
+    .promo-toolbar {
+      flex-wrap: wrap;
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .promo-title {
+      font-size: 14px;
+    }
+    .promo-subtitle {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .promo-apply-form {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    input {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .validation-result {
+      padding: 10px 14px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    thead th {
+      padding: 8px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    td {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .promo-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .status-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .discount-amount {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state {
+      padding: 40px 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state i {
+      font-size: 28px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state span {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .totals-bar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+      padding: 12px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .total-label {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .total-value {
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .reservation-selector > div {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
 </style>
 
 <script>

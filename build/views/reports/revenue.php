@@ -292,6 +292,166 @@
       grid-template-columns: 1fr 1fr;
     }
   }
+
+  @media (max-width: 640px) {
+    .rev-page .stat-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .rev-page .stat-card {
+      padding: 16px;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .rev-page .stat-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .rev-page .stat-label {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .rev-page .stat-value {
+      font-size: 22px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .rev-page .stat-footer {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .rev-page .stat-badge {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .rev-page .card-header {
+      padding: 14px 16px 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .rev-page .card-title {
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .rev-page .card-body {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .rev-page .data-table th {
+      padding: 8px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .rev-page .data-table td {
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .rev-page .btn {
+      font-size: 11px;
+      padding: 6px 12px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .rev-content > div[style*="grid-template-columns: 2fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .rev-content > div[style*="grid-template-columns: 1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .rev-content > div[style*="height: 300px"] {
+      height: 250px !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .rev-page .stat-grid {
+      gap: 10px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .rev-page .stat-card {
+      padding: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .rev-page .stat-value {
+      font-size: 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .rev-page .card-header {
+      padding: 12px 14px 10px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .rev-page .card-body {
+      padding: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .rev-page .data-table th {
+      padding: 6px 10px;
+      font-size: 9px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .rev-page .data-table td {
+      padding: 8px 10px;
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .rev-page .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .rev-content > div[style*="height: 300px"] {
+      height: 200px !important;
+    }
+  }
 </style>
 
 <script>
@@ -472,7 +632,7 @@
       <div class="stat-card green">
         <div class="stat-header">
           <span class="stat-label">Total Revenue</span>
-          <div class="stat-icon green">💰</div>
+          <div class="stat-icon green"><i class="fa-solid fa-money-bill-wave"></i></div>
         </div>
         <div class="stat-value" id="totalRevenue">₱0.00</div>
         <div class="stat-footer">
@@ -496,7 +656,7 @@
       <div class="stat-card orange">
         <div class="stat-header">
           <span class="stat-label">Period</span>
-          <div class="stat-icon orange">📅</div>
+          <div class="stat-icon orange"><i class="fa-solid fa-calendar-days"></i></div>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
           <button onclick="changePeriod(7)" class="btn btn-secondary period-btn">7 Days</button>
@@ -508,7 +668,7 @@
       <div class="stat-card rose">
         <div class="stat-header">
           <span class="stat-label">Actions</span>
-          <div class="stat-icon rose">📥</div>
+          <div class="stat-icon rose"><i class="fa-solid fa-download"></i></div>
         </div>
         <button onclick="exportReport()" class="btn btn-export" style="width: 100%;">Export Report</button>
       </div>

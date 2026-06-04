@@ -826,6 +826,72 @@ $csrfToken = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'
     padding: 0 2px;
     margin-left: auto
   }
+
+  /* ── Responsive ───────────────────────────────── */
+  @media(max-width:640px){
+    .ci-page{padding:.85rem 1rem}
+    .ci-page-title{font-size:18px}
+    .ci-card-title{font-size:12px}
+    .ci-msg-subject{font-size:14px}
+    .ci-contact-name{font-size:13px}
+    .ci-topbar{flex-direction:column;gap:.75rem}
+    .ci-breadcrumb{font-size:12px}
+    .ci-back-btn{width:100%;justify-content:center}
+    .ci-card{padding:1rem}
+    .ci-badge{padding:3px 8px;font-size:11px}
+    .ci-status-row{flex-direction:column;align-items:stretch}
+    .ci-status-select{width:100%}
+    .ci-chips{font-size:12px;gap:8px}
+    .ci-msg-box{padding:1rem}
+    .ci-msg-body{font-size:13px}
+    .ci-notes-box{padding:1rem}
+    .ci-btn{font-size:12px;padding:6px 12px}
+    .ci-avatar{width:36px;height:36px;font-size:13px}
+    .ci-contact-email{font-size:12px}
+    .ci-field-label{font-size:10px}
+    .ci-field-value{font-size:12px}
+    .ci-form-label{font-size:10px}
+    .ci-form-input{padding:6px 9px;font-size:12px}
+    .ci-thread{max-height:400px}
+    .ci-thread-rail{width:32px}
+    .ci-thread-avatar{width:24px;height:24px;font-size:10px}
+    .ci-thread-header{padding:.4rem .6rem}
+    .ci-thread-from{font-size:12px}
+    .ci-thread-subj{font-size:10px;max-width:160px}
+    .ci-thread-date{font-size:10px}
+    .ci-thread-text{font-size:12px;padding:.6rem}
+    .ci-quote-toggle{font-size:10px;padding:2px 6px}
+    .ci-quoted-block{font-size:11px}
+    .ci-thread-actions{padding:.4rem .6rem}
+    .ci-tpill{font-size:10px;padding:2px 6px}
+    .ci-meta-grid{font-size:11px;gap:.4rem .85rem}
+    .ci-meta-val{font-size:11px}
+  }
+
+  @media(max-width:480px){
+    .ci-page{padding:.75rem .85rem}
+    .ci-page-title{font-size:16px}
+    .ci-card-title{font-size:11px}
+    .ci-msg-subject{font-size:13px}
+    .ci-contact-name{font-size:12px}
+    .ci-card{padding:.85rem}
+    .ci-badge{padding:2px 6px;font-size:10px}
+    .ci-msg-box{padding:.85rem}
+    .ci-msg-body{font-size:12px}
+    .ci-notes-box{padding:.85rem}
+    .ci-btn{font-size:11px;padding:5px 10px}
+    .ci-avatar{width:32px;height:32px;font-size:12px}
+    .ci-form-input{padding:5px 8px;font-size:11px}
+    .ci-thread-rail{width:28px}
+    .ci-thread-avatar{width:22px;height:22px;font-size:9px}
+    .ci-thread-header{padding:.35rem .5rem}
+    .ci-thread-from{font-size:11px}
+    .ci-thread-subj{font-size:9px;max-width:120px}
+    .ci-thread-text{font-size:11px;padding:.5rem}
+    .ci-quoted-block{font-size:10px}
+    .ci-meta-grid{font-size:10px}
+    .ci-meta-val{font-size:10px}
+  }
 </style>
 
 <!-- PAGE CONTENT -->

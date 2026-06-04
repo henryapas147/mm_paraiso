@@ -85,6 +85,109 @@
     @media (max-width: 768px) {
         .food-page .stat-card { flex-direction: column; text-align: center; }
     }
+
+    @media (max-width: 640px) {
+        .food-page .stat-card {
+            padding: 16px;
+            gap: 12px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .food-page .stat-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .food-page .stat-label {
+            font-size: 10px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .food-page .stat-value {
+            font-size: 20px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .food-page .card-header {
+            padding: 14px 16px 12px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .food-page .card-title {
+            font-size: 14px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .food-page .card-body {
+            padding: 16px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .food-page .data-table th {
+            padding: 8px 12px;
+            font-size: 10px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .food-page .data-table td {
+            padding: 10px 12px;
+            font-size: 12px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .food-content > div[style*="grid-template-columns: 1fr 1fr"] {
+            grid-template-columns: 1fr !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .food-page .stat-card {
+            padding: 14px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .food-page .stat-value {
+            font-size: 18px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .food-page .card-header {
+            padding: 12px 14px 10px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .food-page .card-body {
+            padding: 14px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .food-page .data-table th {
+            padding: 6px 10px;
+            font-size: 9px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .food-page .data-table td {
+            padding: 8px 10px;
+            font-size: 11px;
+        }
+    }
 </style>
 
 <script>

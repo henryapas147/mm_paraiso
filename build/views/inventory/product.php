@@ -696,6 +696,152 @@
     bottom: 0;
     background: var(--color-background-primary, #fff);
     border-radius: 0 0 var(--prod-radius-xl) var(--prod-radius-xl);
+    flex-wrap: wrap;
+  }
+
+  /* ── Custom Alert Dialog (replaces SweetAlert) ─────────── */
+  .prod-alert-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, .5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .prod-alert-overlay.open {
+    display: flex;
+  }
+
+  .prod-alert {
+    background: var(--color-background-primary, #fff);
+    border-radius: var(--prod-radius-xl);
+    border: 1px solid rgba(0, 0, 0, .08);
+    width: 100%;
+    max-width: 420px;
+    box-shadow: var(--prod-shadow-lg);
+    animation: alertIn .2s cubic-bezier(.22, .68, 0, 1.2);
+  }
+
+  @keyframes alertIn {
+    from { opacity: 0; transform: translateY(12px) scale(.98); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .prod-alert-header {
+    padding: 22px 26px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .prod-alert-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .prod-alert-icon.success { background: var(--prod-green-pale); color: var(--prod-green); }
+  .prod-alert-icon.error { background: var(--prod-red-pale); color: var(--prod-red); }
+  .prod-alert-icon.warning { background: var(--prod-amber-pale); color: var(--prod-amber); }
+  .prod-alert-icon.info { background: var(--prod-blue-pale); color: var(--prod-blue); }
+
+  .prod-alert-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    letter-spacing: -.3px;
+  }
+
+  .prod-alert-body {
+    padding: 0 26px 20px;
+  }
+
+  .prod-alert-message {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+
+  .prod-alert-footer {
+    padding: 0 26px 22px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .prod-alert-btn {
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: var(--prod-radius-md);
+    border: 1px solid rgba(0, 0, 0, .12);
+    background: var(--color-background-primary, #fff);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: all .15s;
+    font-family: var(--prod-font);
+  }
+
+  .prod-alert-btn:hover {
+    background: var(--color-background-secondary, #F8FAFC);
+    border-color: rgba(0, 0, 0, .18);
+  }
+
+  .prod-alert-btn.primary {
+    background: var(--prod-blue);
+    color: #fff;
+    border-color: var(--prod-blue);
+  }
+
+  .prod-alert-btn.primary:hover {
+    background: var(--prod-blue-dark);
+    border-color: var(--prod-blue-dark);
+  }
+
+  .prod-alert-btn.danger {
+    background: var(--prod-red);
+    color: #fff;
+    border-color: var(--prod-red);
+  }
+
+  .prod-alert-btn.danger:hover {
+    background: #a02222;
+    border-color: #a02222;
+  }
+
+  .prod-alert-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 26px;
+    gap: 12px;
+  }
+
+  .prod-alert-loading i {
+    font-size: 24px;
+    color: var(--prod-blue);
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .prod-alert-loading-text {
+    font-size: 14px;
+    color: var(--color-text-secondary);
   }
 
   /* ── Form ───────────────────────────────────────────── */
@@ -964,6 +1110,88 @@
   }
 
   /* Responsive */
+  /* ── Responsive ───────────────────────────────────────── */
+  @media (max-width: 1400px) {
+    .prod-page { padding: 24px 24px 36px; }
+    .prod-search-input { width: 200px; }
+  }
+
+  @media (max-width: 1200px) {
+    .prod-page { padding: 20px 20px 32px; }
+    .prod-page-header { flex-direction: column; align-items: flex-start; }
+    .prod-toolbar { width: 100%; flex-wrap: wrap; }
+    .prod-search-input { width: 180px; }
+    .prod-btn { padding: 7px 14px; font-size: 12px; }
+  }
+
+  @media (max-width: 1024px) {
+    .prod-page { padding: 18px 18px 28px; }
+    .prod-stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .prod-card-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .prod-toolbar { width: 100%; flex-wrap: wrap; gap: 6px; }
+    .prod-search-input { width: 100%; }
+    .prod-filter-select { flex: 1 1 auto; }
+    .prod-table th:nth-child(4),
+    .prod-table td:nth-child(4) { display: none; }
+  }
+
+  @media (max-width: 992px) {
+    .prod-page { padding: 16px 16px 24px; }
+    .prod-page-title { font-size: 20px; }
+    .prod-stat-value { font-size: 28px; }
+    .prod-card-header { padding: 14px 18px; }
+    .prod-table td { padding: 10px 12px; }
+    .prod-table th { padding: 10px 12px; font-size: 11px; }
+    .prod-name-primary { font-size: 12px; }
+    .prod-name-secondary { font-size: 10px; }
+    .prod-type-badge, .prod-status-badge { font-size: 10px; padding: 2px 8px; }
+    .prod-action-btn { width: 30px; height: 30px; font-size: 11px; }
+    .prod-modal { max-width: 96vw; }
+    .prod-modal-header { padding: 18px 22px 16px; }
+    .prod-modal-body { padding: 20px 22px; }
+    .prod-modal-footer { padding: 14px 22px; }
+  }
+
+  @media (max-width: 768px) {
+    .prod-page { padding: 14px 14px 20px; }
+    .prod-page-header { gap: 12px; margin-bottom: 20px; }
+    .prod-page-title { font-size: 18px; }
+    .prod-page-subtitle { font-size: 12px; }
+    .prod-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .prod-stat-card { padding: 16px 18px; }
+    .prod-stat-icon { width: 32px; height: 32px; font-size: 14px; }
+    .prod-stat-value { font-size: 24px; }
+    .prod-card-header { padding: 12px 16px; }
+    .prod-toolbar { gap: 6px; }
+    .prod-table th:nth-child(2),
+    .prod-table td:nth-child(2) { display: none; }
+    .prod-table td { padding: 8px 10px; }
+    .prod-table th { padding: 8px 10px; font-size: 10px; }
+    .prod-name-primary { font-size: 11px; }
+    .prod-name-secondary { font-size: 9px; }
+    .prod-avatar { width: 32px; height: 32px; font-size: 11px; }
+    .prod-stock-val { font-size: 12px; }
+    .prod-stock-uom { font-size: 10px; }
+    .prod-type-badge, .prod-status-badge { font-size: 9px; padding: 2px 6px; }
+    .prod-action-btn { width: 28px; height: 28px; font-size: 10px; }
+    /* Slide-up modal */
+    .prod-overlay { padding: 0; align-items: flex-end; }
+    .prod-modal { border-radius: 20px 20px 0 0; max-width: 100%; max-height: 95vh; }
+    .prod-modal-header { border-radius: 20px 20px 0 0; padding: 16px 20px 14px; }
+    .prod-modal-footer { border-radius: 0; padding: 12px 20px; flex-wrap: wrap; }
+    .prod-modal-body { padding: 18px 20px; }
+    .prod-modal-title { font-size: 15px; }
+    .prod-pagination-wrap { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .prod-pagination-info { display: none; }
+  }
+
+  @media (max-width: 640px) {
+    .prod-card-header { flex-direction: column; align-items: stretch; }
+    .prod-toolbar { flex-direction: column; align-items: stretch; }
+    .prod-search-wrap, .prod-filter-select, .prod-btn { width: 100%; }
+    .prod-stats-grid { grid-template-columns: 1fr; }
+  }
+
   @media (max-width: 600px) {
 
     .prod-details-grid,
@@ -986,8 +1214,64 @@
     }
 
     .prod-search-input {
-      width: 160px;
+      width: 100%;
     }
+
+    .prod-page { padding: 12px 12px 18px; }
+    .prod-page-title { font-size: 16px; }
+    .prod-page-subtitle { font-size: 11px; }
+    .prod-stat-card { padding: 14px 16px; }
+    .prod-stat-icon { width: 30px; height: 30px; font-size: 13px; }
+    .prod-stat-value { font-size: 22px; }
+    .prod-card-header { padding: 10px 14px; }
+    .prod-card-title { font-size: 13px; }
+    .prod-table th:nth-child(3),
+    .prod-table td:nth-child(3) { display: none; }
+    .prod-modal-footer { flex-direction: column; align-items: stretch; }
+    .prod-modal-footer .prod-btn { width: 100%; justify-content: center; }
+    .prod-modal-title { font-size: 14px; }
+    .prod-form-grid { gap: 14px; }
+    .prod-form-input, .prod-form-select, .prod-form-textarea { font-size: 14px; padding: 8px 12px; }
+    .prod-form-label { font-size: 11px; }
+  }
+
+  @media (max-width: 480px) {
+    .prod-page { padding: 10px 10px 16px; }
+    .prod-page-title { font-size: 15px; }
+    .prod-stat-value { font-size: 20px; }
+    .prod-modal-header { padding: 14px 18px 12px; }
+    .prod-modal-body { padding: 16px 18px; }
+    .prod-modal-footer { padding: 10px 18px; }
+    .prod-modal-title { font-size: 13px; }
+    .prod-form-input, .prod-form-select, .prod-form-textarea { font-size: 13px; padding: 7px 11px; }
+    .prod-btn { padding: 7px 12px; font-size: 11px; }
+  }
+
+  @media (max-width: 360px) {
+    .prod-page { padding: 8px 8px 14px; }
+    .prod-page-title { font-size: 14px; }
+    .prod-stat-card { padding: 12px 14px; }
+    .prod-stat-value { font-size: 18px; }
+    .prod-modal-header { padding: 12px 16px 10px; }
+    .prod-modal-body { padding: 14px 16px; }
+    .prod-modal-footer { padding: 8px 16px; }
+    .prod-modal-title { font-size: 12px; }
+    .prod-form-input, .prod-form-select, .prod-form-textarea { font-size: 12px; padding: 6px 10px; }
+  }
+
+  @media (max-width: 768px) and (orientation: landscape) {
+    .prod-overlay { padding: 8px; align-items: center; }
+    .prod-modal { border-radius: var(--prod-radius-xl); max-height: 90vh; }
+    .prod-modal-header { border-radius: var(--prod-radius-xl) var(--prod-radius-xl) 0 0; }
+    .prod-modal-body { padding: 14px 18px; }
+    .prod-form-grid { grid-template-columns: 1fr 1fr; }
+    .prod-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    .prod-action-btn { width: 36px; height: 36px; font-size: 13px; }
+    .prod-btn { padding: 9px 16px; }
+    .prod-form-input, .prod-form-select, .prod-form-textarea { font-size: 16px; }
   }
 </style>
 
@@ -1282,6 +1566,146 @@
   </div>
 </div>
 
+<!-- Edit Product Modal -->
+<div class="prod-overlay" id="editProductModal" onclick="handleEditProductOverlayClick(event)">
+  <div class="prod-modal wide" role="dialog" aria-modal="true">
+    <div class="prod-modal-header">
+      <div>
+        <div class="prod-modal-title">Edit Product</div>
+        <div class="prod-modal-subtitle">Update product information</div>
+      </div>
+      <button class="prod-modal-close" onclick="closeEditProductModal()" aria-label="Close">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form id="editProductForm" onsubmit="submitEditProduct(event)">
+      <div class="prod-modal-body">
+        <div class="prod-form-grid">
+          <input type="hidden" id="editProductId" name="product_id">
+
+          <div class="prod-section-label"><i class="fas fa-info-circle" style="margin-right:5px;opacity:.6"></i>Basic Information</div>
+
+          <div class="prod-form-group">
+            <label class="prod-form-label">Product Code <span class="req">*</span></label>
+            <input type="text" id="editProductCode" name="product_code" required class="prod-form-input">
+          </div>
+
+          <div class="prod-form-group">
+            <label class="prod-form-label">Product Name <span class="req">*</span></label>
+            <input type="text" id="editProductName" name="product_name" required class="prod-form-input">
+          </div>
+
+          <div class="prod-form-group">
+            <label class="prod-form-label">Category</label>
+            <select id="editCategoryId" name="category_id" class="prod-form-select">
+              <option value="">Select Category</option>
+            </select>
+          </div>
+
+          <div class="prod-form-group">
+            <label class="prod-form-label">Unit of Measure</label>
+            <select id="editUomId" name="uom_id" class="prod-form-select">
+              <option value="">Select UOM</option>
+            </select>
+          </div>
+
+          <div class="prod-form-group">
+            <label class="prod-form-label">Product Type</label>
+            <input type="text" id="editProductType" name="product_type" class="prod-form-input" placeholder="e.g., Consumable, Asset">
+          </div>
+
+          <div class="prod-form-group">
+            <label class="prod-form-label">Brand</label>
+            <input type="text" id="editBrand" name="brand" class="prod-form-input" placeholder="e.g., Brand Name">
+          </div>
+
+          <div class="prod-form-group full">
+            <label class="prod-form-label">Description</label>
+            <textarea id="editDescription" name="description" class="prod-form-textarea" rows="2" placeholder="Product description..."></textarea>
+          </div>
+
+          <div class="prod-divider"></div>
+
+          <div class="prod-section-label"><i class="fas fa-dollar-sign" style="margin-right:5px;opacity:.6"></i>Costing &amp; Stock</div>
+
+          <div class="prod-form-group">
+            <label class="prod-form-label">Unit Cost <span class="req">*</span></label>
+            <input type="number" id="editUnitCost" name="unit_cost" step="0.01" min="0" required class="prod-form-input" placeholder="0.00">
+          </div>
+
+          <div class="prod-form-group">
+            <label class="prod-form-label">Selling Price <span class="req">*</span></label>
+            <input type="number" id="editSellingPrice" name="selling_price" step="0.01" min="0" required class="prod-form-input" placeholder="0.00">
+          </div>
+
+          <div class="prod-form-group">
+            <label class="prod-form-label">Reorder Point</label>
+            <input type="number" id="editReorderPoint" name="reorder_point" step="0.001" min="0" class="prod-form-input" placeholder="Low stock threshold">
+          </div>
+
+          <div class="prod-form-group">
+            <label class="prod-form-label">Minimum Stock</label>
+            <input type="number" id="editMinimumStock" name="minimum_stock" step="0.001" min="0" class="prod-form-input" placeholder="Minimum stock level">
+          </div>
+
+          <div class="prod-form-group">
+            <label class="prod-form-label">Maximum Stock</label>
+            <input type="number" id="editMaximumStock" name="maximum_stock" step="0.001" min="0" class="prod-form-input" placeholder="Maximum stock level">
+          </div>
+
+          <div class="prod-form-group">
+            <label class="prod-form-label">Preferred Supplier</label>
+            <select id="editSupplierId" name="preferred_supplier_id" class="prod-form-select">
+              <option value="">Select Supplier</option>
+            </select>
+          </div>
+
+          <div class="prod-divider"></div>
+
+          <div class="prod-section-label"><i class="fas fa-cog" style="margin-right:5px;opacity:.6"></i>Settings</div>
+
+          <div class="prod-checkbox-group">
+            <label class="prod-checkbox-item">
+              <input type="checkbox" id="editForSale" name="is_for_sale"> <span>For Sale</span>
+            </label>
+            <label class="prod-checkbox-item">
+              <input type="checkbox" id="editForRooms" name="is_for_rooms"> <span>For Rooms</span>
+            </label>
+            <label class="prod-checkbox-item">
+              <input type="checkbox" id="editTrackInventory" name="track_inventory"> <span>Track Inventory</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="prod-modal-footer">
+        <button type="button" class="prod-btn" onclick="closeEditProductModal()">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="submit" class="prod-btn prod-btn-primary">
+          <i class="fas fa-save"></i> Update Product
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Custom Alert Dialog (replaces SweetAlert) -->
+<div class="prod-alert-overlay" id="prodAlertOverlay">
+  <div class="prod-alert" id="prodAlert">
+    <div class="prod-alert-header">
+      <div class="prod-alert-icon" id="prodAlertIcon"><i class="fas fa-info"></i></div>
+      <div class="prod-alert-title" id="prodAlertTitle">Alert</div>
+    </div>
+    <div class="prod-alert-body">
+      <div class="prod-alert-message" id="prodAlertMessage">Message goes here</div>
+    </div>
+    <div class="prod-alert-footer" id="prodAlertFooter">
+      <button class="prod-alert-btn" id="prodAlertCancelBtn" style="display:none">Cancel</button>
+      <button class="prod-alert-btn primary" id="prodAlertConfirmBtn">OK</button>
+    </div>
+  </div>
+</div>
+
 <script>
   let productsData = [];
   let filteredData = [];
@@ -1292,17 +1716,7 @@
     uoms: [],
     suppliers: []
   };
-  let csrfToken = '';
-
-  async function fetchCsrfToken() {
-    try {
-      const res = await fetch('../api/users.php?action=csrf_token');
-      const json = await res.json();
-      if (json.success) csrfToken = json.csrf_token;
-    } catch (e) {
-      console.error('Error fetching CSRF token:', e);
-    }
-  }
+  const CSRF_TOKEN = <?php echo json_encode(CSRF_TOKEN); ?>;
 
   // Toast notification function
   function showToast(message, type = 'info') {
@@ -1332,12 +1746,113 @@
     }, 3000);
   }
 
+  // Custom Alert Dialog Helper (replaces SweetAlert)
+  function showProdAlert(options) {
+    const overlay = document.getElementById('prodAlertOverlay');
+    const alertEl = document.getElementById('prodAlert');
+
+    // Handle loading state
+    if (options.loading) {
+      alertEl.innerHTML = `
+        <div class="prod-alert-loading">
+          <i class="fas fa-spinner"></i>
+          <span class="prod-alert-loading-text">${options.loadingText || 'Loading...'}</span>
+        </div>
+      `;
+      overlay.classList.add('open');
+      return;
+    }
+
+    // Restore normal structure if it was in loading state
+    if (!alertEl.querySelector('.prod-alert-header')) {
+      alertEl.innerHTML = `
+        <div class="prod-alert-header">
+          <div class="prod-alert-icon" id="prodAlertIcon"><i class="fas fa-info"></i></div>
+          <div class="prod-alert-title" id="prodAlertTitle">Alert</div>
+        </div>
+        <div class="prod-alert-body">
+          <div class="prod-alert-message" id="prodAlertMessage">Message goes here</div>
+        </div>
+        <div class="prod-alert-footer" id="prodAlertFooter">
+          <button class="prod-alert-btn" id="prodAlertCancelBtn" style="display:none">Cancel</button>
+          <button class="prod-alert-btn primary" id="prodAlertConfirmBtn">OK</button>
+        </div>
+      `;
+    }
+
+    // Re-query elements after possible HTML restoration
+    const iconEl = document.getElementById('prodAlertIcon');
+    const titleEl = document.getElementById('prodAlertTitle');
+    const messageEl = document.getElementById('prodAlertMessage');
+    const cancelBtn = document.getElementById('prodAlertCancelBtn');
+    const confirmBtn = document.getElementById('prodAlertConfirmBtn');
+
+    // Set icon
+    const iconMap = {
+      success: 'fa-check',
+      error: 'fa-times',
+      warning: 'fa-exclamation-triangle',
+      info: 'fa-info'
+    };
+    const iconClass = options.icon || 'info';
+    iconEl.className = 'prod-alert-icon ' + iconClass;
+    iconEl.innerHTML = `<i class="fas ${iconMap[iconClass] || iconMap.info}"></i>`;
+
+    // Set title and message
+    titleEl.textContent = options.title || 'Alert';
+    messageEl.innerHTML = options.text || options.html || '';
+
+    // Handle buttons
+    if (options.showCancelButton) {
+      cancelBtn.style.display = 'inline-flex';
+      cancelBtn.textContent = options.cancelButtonText || 'Cancel';
+      cancelBtn.onclick = () => {
+        overlay.classList.remove('open');
+        if (options.cancelCallback) options.cancelCallback();
+      };
+    } else {
+      cancelBtn.style.display = 'none';
+    }
+
+    confirmBtn.textContent = options.confirmButtonText || 'OK';
+    confirmBtn.className = 'prod-alert-btn ' + (options.confirmButtonClass || 'primary');
+    if (options.confirmButtonColor === '#C62828') {
+      confirmBtn.className = 'prod-alert-btn danger';
+    }
+    confirmBtn.onclick = () => {
+      overlay.classList.remove('open');
+      if (options.confirmCallback) options.confirmCallback();
+    };
+
+    // Show alert
+    overlay.classList.add('open');
+
+    // Return promise-like object
+    return {
+      then: function(callback) {
+        confirmBtn.onclick = () => {
+          overlay.classList.remove('open');
+          callback({ isConfirmed: true });
+        };
+        if (options.showCancelButton) {
+          cancelBtn.onclick = () => {
+            overlay.classList.remove('open');
+            callback({ isConfirmed: false });
+          };
+        }
+      }
+    };
+  }
+
+  function closeProdAlert() {
+    document.getElementById('prodAlertOverlay').classList.remove('open');
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
-    ['productDetailsModal', 'addProductModal', 'quickStockModal'].forEach(function(id) {
+    ['productDetailsModal', 'addProductModal', 'editProductModal', 'quickStockModal', 'prodAlertOverlay'].forEach(function(id) {
       var el = document.getElementById(id);
       if (el) document.body.appendChild(el);
     });
-    fetchCsrfToken();
     fetchProducts();
   });
 
@@ -1385,12 +1900,22 @@
   }
 
   function populateDropdowns() {
-    document.getElementById('addCategoryId').innerHTML = '<option value="">Select Category</option>' +
+    const categoryOptions = '<option value="">Select Category</option>' +
       relatedData.categories.map(c => `<option value="${c.category_id}">${c.category_name} (${c.category_code})</option>`).join('');
-    document.getElementById('addUomId').innerHTML = '<option value="">Select UOM</option>' +
+    const uomOptions = '<option value="">Select UOM</option>' +
       relatedData.uoms.map(u => `<option value="${u.uom_id}">${u.uom_name} (${u.uom_code})</option>`).join('');
-    document.getElementById('addSupplierId').innerHTML = '<option value="">No Supplier</option>' +
+    const supplierOptions = '<option value="">No Supplier</option>' +
       relatedData.suppliers.map(s => `<option value="${s.supplier_id}">${s.company_name}</option>`).join('');
+
+    // Populate add modal dropdowns
+    document.getElementById('addCategoryId').innerHTML = categoryOptions;
+    document.getElementById('addUomId').innerHTML = uomOptions;
+    document.getElementById('addSupplierId').innerHTML = supplierOptions;
+
+    // Populate edit modal dropdowns
+    document.getElementById('editCategoryId').innerHTML = categoryOptions;
+    document.getElementById('editUomId').innerHTML = uomOptions;
+    document.getElementById('editSupplierId').innerHTML = supplierOptions;
   }
 
   function getInitials(name) {
@@ -1469,8 +1994,8 @@
         </td>
         <td>
           <div class="prod-actions-cell">
-            <button onclick="viewProductDetails('${p.product_id}')" class="prod-action-btn view"><i class="fas fa-eye"></i> View</button>
-            <button onclick="openEditProductModal('${p.product_id}')" class="prod-action-btn edit"><i class="fas fa-pen"></i> Edit</button>
+            <button onclick="viewProductDetails('${p.product_id}')" class="prod-action-btn view"><i class="fas fa-eye"></i></button>
+            <button onclick="openEditProductModal('${p.product_id}')" class="prod-action-btn edit"><i class="fas fa-pen"></i></button>
             <button onclick="deleteProduct('${p.product_id}', '${p.product_name.replace(/'/g, "\\'")}')" class="prod-action-btn danger"><i class="fas fa-trash"></i></button>
           </div>
         </td>
@@ -1603,16 +2128,114 @@
   }
 
   function openEditProductModal(productId) {
-    Swal.fire({
-      icon: 'info',
-      title: 'Coming Soon',
-      text: 'Edit product functionality will be implemented soon.',
-      confirmButtonColor: '#1A6BBF'
+    const product = productsData.find(p => p.product_id === productId);
+    if (!product) return;
+
+    // Populate edit form
+    document.getElementById('editProductId').value = product.product_id;
+    document.getElementById('editProductCode').value = product.product_code || '';
+    document.getElementById('editProductName').value = product.product_name || '';
+    document.getElementById('editCategoryId').value = product.category_id || '';
+    document.getElementById('editUomId').value = product.uom_id || '';
+    document.getElementById('editProductType').value = product.product_type || '';
+    document.getElementById('editBrand').value = product.brand || '';
+    document.getElementById('editDescription').value = product.description || '';
+    document.getElementById('editUnitCost').value = product.unit_cost || '';
+    document.getElementById('editSellingPrice').value = product.selling_price || '';
+    document.getElementById('editReorderPoint').value = product.reorder_point || '';
+    document.getElementById('editMinimumStock').value = product.minimum_stock || '';
+    document.getElementById('editMaximumStock').value = product.maximum_stock || '';
+    document.getElementById('editSupplierId').value = product.preferred_supplier_id || '';
+    document.getElementById('editForSale').checked = product.is_for_sale == 1;
+    document.getElementById('editForRooms').checked = product.is_for_rooms == 1;
+    document.getElementById('editTrackInventory').checked = product.track_inventory == 1;
+
+    document.getElementById('editProductModal').classList.add('open');
+  }
+
+  function closeEditProductModal() {
+    document.getElementById('editProductModal').classList.remove('open');
+    document.getElementById('editProductForm').reset();
+  }
+
+  function handleEditProductOverlayClick(e) {
+    if (e.target === document.getElementById('editProductModal')) closeEditProductModal();
+  }
+
+  function submitEditProduct(event) {
+    event.preventDefault();
+    const form = document.getElementById('editProductForm');
+    const formData = new FormData(form);
+
+    showProdAlert({
+      title: 'Updating Product…',
+      loading: true,
+      loadingText: 'Updating product...'
     });
+
+    const payload = {
+      product_id: formData.get('product_id'),
+      product_code: formData.get('product_code'),
+      product_name: formData.get('product_name'),
+      category_id: formData.get('category_id'),
+      uom_id: formData.get('uom_id'),
+      product_type: formData.get('product_type'),
+      brand: formData.get('brand'),
+      description: formData.get('description'),
+      unit_cost: formData.get('unit_cost'),
+      selling_price: formData.get('selling_price'),
+      reorder_point: formData.get('reorder_point'),
+      minimum_stock: formData.get('minimum_stock'),
+      maximum_stock: formData.get('maximum_stock'),
+      preferred_supplier_id: formData.get('preferred_supplier_id'),
+      is_for_sale: formData.get('is_for_sale') ? 1 : 0,
+      is_for_rooms: formData.get('is_for_rooms') ? 1 : 0,
+      track_inventory: formData.get('track_inventory') ? 1 : 0,
+      csrf_token: CSRF_TOKEN
+    };
+
+    fetch('../api/products.php?action=update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(r => r.json())
+      .then(data => {
+        closeEditProductModal();
+        closeProdAlert();
+        if (data.success) {
+          showProdAlert({
+              icon: 'success',
+              title: 'Product Updated!',
+              text: data.message,
+              confirmButtonColor: '#1A6BBF'
+            })
+            .then(() => fetchProducts());
+        } else {
+          showProdAlert({
+            icon: 'error',
+            title: 'Error',
+            text: data.message,
+            confirmButtonColor: '#C62828'
+          });
+        }
+      })
+      .catch(() => {
+        closeEditProductModal();
+        closeProdAlert();
+        showProdAlert({
+          icon: 'error',
+          title: 'Error',
+          text: 'An error occurred.',
+          confirmButtonColor: '#C62828'
+        });
+      });
   }
 
   function deleteProduct(productId, productName) {
-    Swal.fire({
+    showProdAlert({
       title: 'Delete product?',
       html: `<span style="font-size:14px">You're about to delete <strong>${productName}</strong>. This action cannot be undone.</span>`,
       icon: 'warning',
@@ -1620,19 +2243,13 @@
       confirmButtonColor: '#C62828',
       cancelButtonColor: '#64748B',
       confirmButtonText: 'Yes, delete',
-      cancelButtonText: 'Cancel',
-      customClass: {
-        popup: 'swal2-popup-high-z'
-      }
+      cancelButtonText: 'Cancel'
     }).then((result) => {
       if (result.isConfirmed) {
-        Swal.fire({
+        showProdAlert({
           title: 'Deleting…',
-          allowOutsideClick: false,
-          didOpen: () => Swal.showLoading(),
-          customClass: {
-            popup: 'swal2-popup-high-z'
-          }
+          loading: true,
+          loadingText: 'Deleting product...'
         });
         fetch('../api/products.php?action=delete', {
             method: 'POST',
@@ -1645,16 +2262,16 @@
           })
           .then(r => r.json())
           .then(data => {
+            closeProdAlert();
             if (data.success) {
-              Swal.fire({
-                  icon: 'success',
-                  title: 'Deleted!',
-                  text: data.message,
-                  confirmButtonColor: '#1A6BBF'
-                })
-                .then(() => fetchProducts());
+              showProdAlert({
+                icon: 'success',
+                title: 'Deleted!',
+                text: data.message,
+                confirmButtonColor: '#1A6BBF'
+              }).then(() => fetchProducts());
             } else {
-              Swal.fire({
+              showProdAlert({
                 icon: 'error',
                 title: 'Error',
                 text: data.message,
@@ -1662,12 +2279,15 @@
               });
             }
           })
-          .catch(() => Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'An error occurred.',
-            confirmButtonColor: '#C62828'
-          }));
+          .catch(() => {
+            closeProdAlert();
+            showProdAlert({
+              icon: 'error',
+              title: 'Error',
+              text: 'An error occurred.',
+              confirmButtonColor: '#C62828'
+            });
+          });
       }
     });
   }
@@ -1707,7 +2327,7 @@
       transaction_type: document.getElementById('quickStockType').value,
       quantity: parseFloat(document.getElementById('quickStockQuantity').value),
       reason: document.getElementById('quickStockReason').value || 'Quick adjustment',
-      csrf_token: typeof csrfToken !== 'undefined' ? csrfToken : ''
+      csrf_token: CSRF_TOKEN
     };
 
     fetch('../api/inventory_transactions.php?action=adjust', {
@@ -1736,13 +2356,10 @@
     const form = document.getElementById('addProductForm');
     const formData = new FormData(form);
 
-    Swal.fire({
+    showProdAlert({
       title: 'Adding Product…',
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
-      customClass: {
-        popup: 'swal2-popup-high-z'
-      }
+      loading: true,
+      loadingText: 'Adding product...'
     });
 
     const payload = {
@@ -1774,8 +2391,9 @@
       .then(r => r.json())
       .then(data => {
         closeAddProductModal();
+        closeProdAlert();
         if (data.success) {
-          Swal.fire({
+          showProdAlert({
               icon: 'success',
               title: 'Product Added!',
               text: data.message,
@@ -1783,7 +2401,7 @@
             })
             .then(() => fetchProducts());
         } else {
-          Swal.fire({
+          showProdAlert({
             icon: 'error',
             title: 'Error',
             text: data.message,
@@ -1793,7 +2411,8 @@
       })
       .catch(() => {
         closeAddProductModal();
-        Swal.fire({
+        closeProdAlert();
+        showProdAlert({
           icon: 'error',
           title: 'Error',
           text: 'An error occurred.',

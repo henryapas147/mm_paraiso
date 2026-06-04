@@ -457,6 +457,233 @@
 
   /* Override Tailwind conflicts from parent theme */
   .mi-card *, .mi-modal * { box-sizing: border-box; }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media (max-width: 640px) {
+    .mi-stats-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mi-stat-card {
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mi-stat-icon {
+      width: 36px;
+      height: 36px;
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mi-stat-label {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mi-stat-value {
+      font-size: 24px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .mi-card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .mi-card-actions {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .mi-card-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .mi-search {
+      width: 100%;
+      flex: 1;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .mi-btn-primary {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mi-table th {
+      padding: 10px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .item-row td {
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mi-thumb {
+      width: 44px;
+      height: 44px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mi-featured-dot {
+      width: 14px;
+      height: 14px;
+      font-size: 6px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mi-item-name {
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mi-item-code {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mi-badge {
+      font-size: 10px;
+      padding: 3px 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mi-price {
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mi-property {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mi-action-btn {
+      width: 32px;
+      height: 32px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mi-empty {
+      padding: 48px 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mi-empty-icon {
+      width: 56px;
+      height: 56px;
+      font-size: 22px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mi-empty h4 {
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mi-empty p {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .mi-modal {
+      max-width: 90vw;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .mi-modal {
+      max-width: none;
+      max-height: 95vh;
+      border-radius: var(--radius-lg);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .mi-modal-body {
+      padding: 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .mi-modal-body {
+      padding: 18px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .mi-modal-footer {
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .mi-modal-footer .mi-btn-primary,
+    .mi-modal-footer .mi-btn-cancel {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .mi-img-upload-area {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .mi-img-preview {
+      width: 100%;
+      height: 120px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .mi-toggle-row {
+      flex-direction: column;
+    }
+  }
 </style>
 
 <script>

@@ -1,147 +1,4 @@
 <?php
-if (false) {
-    try {
-        error_log("Starting payment method deletion process...");
-        
-        $method_id = $_POST['method_id'] ?? '';
-        error_log("Deleting method_id: " . $method_id);
-
-        if (empty($method_id)) {
-            throw new Exception("Payment Method ID is required");
-        }
-
-        // Start transaction
-        $pdo->beginTransaction();
-
-        // Delete payment method from database
-        $stmt = $pdo->prepare("DELETE FROM payment_methods WHERE method_id = ?");
-        $stmt->execute([$method_id]);
-        error_log("Deleted payment method from database");
-
-        $pdo->commit();
-
-        // Redirect to avoid form resubmission
-        header('Location: payment_methods.php?success=payment_method_deleted');
-        exit;
-
-    } catch (Exception $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
-        error_log("Error deleting payment method: " . $e->getMessage());
-        $error_message = "Failed to delete payment method. Please try again. Error: " . $e->getMessage();
-    }
-}
-
-// Handle Edit Payment Method Form Submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'edit_payment_method') {
-    try {
-        error_log("Starting payment method edit process...");
-        
-        $method_id = $_POST['method_id'] ?? '';
-        error_log("Editing method_id: " . $method_id);
-
-        if (empty($method_id)) {
-            throw new Exception("Payment Method ID is required");
-        }
-
-        // Start transaction
-        $pdo->beginTransaction();
-
-        // Update payment method data
-        $stmt = $pdo->prepare("
-            UPDATE payment_methods SET
-                method_code = ?,
-                method_label = ?,
-                method_type = ?,
-                icon_url = ?,
-                is_active = ?,
-                sort_order = ?
-            WHERE method_id = ?
-        ");
-
-        $stmt->execute([
-            $_POST['method_code'],
-            $_POST['method_label'],
-            $_POST['method_type'],
-            $_POST['icon_url'] ?? null,
-            $_POST['is_active'] ?? 1,
-            $_POST['sort_order'] ?? 0,
-            $method_id
-        ]);
-
-        $pdo->commit();
-
-        // Redirect to avoid form resubmission
-        header('Location: payment_methods.php?success=payment_method_updated');
-        exit;
-
-    } catch (PDOException $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
-        error_log("PDO Error editing payment method: " . $e->getMessage());
-        $error_message = "Failed to update payment method. Please try again. Error: " . $e->getMessage();
-    } catch (Exception $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
-        error_log("General Error editing payment method: " . $e->getMessage());
-        $error_message = "Failed to update payment method. Please try again. Error: " . $e->getMessage();
-    }
-}
-
-// Handle Add Payment Method Form Submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_payment_method') {
-    try {
-        error_log("Starting payment method addition process...");
-
-        // Start transaction
-        $pdo->beginTransaction();
-
-        // Insert payment method data
-        $stmt = $pdo->prepare("
-            INSERT INTO payment_methods (
-                method_code, method_label, method_type, icon_url, is_active, sort_order
-            ) VALUES (?, ?, ?, ?, ?, ?)
-        ");
-
-        $params = [
-            $_POST['method_code'],
-            $_POST['method_label'],
-            $_POST['method_type'],
-            $_POST['icon_url'] ?? null,
-            $_POST['is_active'] ?? 1,
-            $_POST['sort_order'] ?? 0
-        ];
-
-        error_log("Executing payment method insert with params: " . json_encode($params));
-        $stmt->execute($params);
-        error_log("Payment method inserted successfully");
-
-        $pdo->commit();
-
-        // Redirect to avoid form resubmission
-        header('Location: payment_methods.php?success=payment_method_added');
-        exit;
-
-    } catch (PDOException $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
-        error_log("PDO Error adding payment method: " . $e->getMessage());
-        error_log("Error code: " . $e->getCode());
-        error_log("Error info: " . print_r($e->errorInfo, true));
-        $error_message = "Failed to add payment method. Please try again. Error: " . $e->getMessage();
-    } catch (Exception $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
-        error_log("General Error adding payment method: " . $e->getMessage());
-        $error_message = "Failed to add payment method. Please try again. Error: " . $e->getMessage();
-    }
-}
-
 ?>
 
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
@@ -468,6 +325,187 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     font-size: 13px;
     color: #1a1a1a
   }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media (max-width: 640px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-card {
+      padding: 14px 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-label {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-value {
+      font-size: 24px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    thead th {
+      padding: 8px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    td {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .status-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .action-btn {
+      padding: 4px 8px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state {
+      padding: 40px 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state i {
+      font-size: 28px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modal {
+      max-width: 90vw;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal {
+      max-width: none;
+      max-height: 95vh;
+      border-radius: 12px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modal-body {
+      padding: 18px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-body {
+      padding: 16px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-footer {
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-footer .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-header {
+      padding: 14px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-title {
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-close {
+      font-size: 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-label {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-input,
+    .form-select {
+      font-size: 12px;
+      padding: 7px 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .view-row {
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .view-label {
+      width: auto;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .view-value {
+      font-size: 12px;
+    }
+  }
 </style>
 
 <!-- PAGE CONTENT -->
@@ -497,7 +535,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
   <div class="card">
     <div class="card-header">
       <div class="card-title">Payment Methods</div>
-      <button onclick="openAddPaymentMethodModal()" class="btn btn-primary">
+      <button class="btn btn-primary">
         <i class="fas fa-plus mr-1"></i> Add Payment Method
       </button>
     </div>
@@ -530,7 +568,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title">Add New Payment Method</div>
-      <button onclick="closeAddPaymentMethodModal()" class="modal-close">×</button>
+      <button class="modal-close">×</button>
     </div>
     <div class="modal-body">
       <form id="addPaymentMethodForm">
@@ -570,8 +608,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
       </form>
     </div>
     <div class="modal-footer">
-      <button type="button" onclick="closeAddPaymentMethodModal()" class="btn btn-secondary">Cancel</button>
-      <button type="button" onclick="submitAddPaymentMethod()" class="btn btn-primary">Add Payment Method</button>
+      <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+      <button type="button" class="btn btn-primary modal-add-submit">Add Payment Method</button>
     </div>
   </div>
 </div>
@@ -581,7 +619,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title">Edit Payment Method</div>
-      <button onclick="closeEditPaymentMethodModal()" class="modal-close">×</button>
+      <button class="modal-close">×</button>
     </div>
     <div class="modal-body">
       <form id="editPaymentMethodForm">
@@ -622,8 +660,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
       </form>
     </div>
     <div class="modal-footer">
-      <button type="button" onclick="closeEditPaymentMethodModal()" class="btn btn-secondary">Cancel</button>
-      <button type="button" onclick="submitEditPaymentMethod()" class="btn btn-primary">Update Payment Method</button>
+      <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+      <button type="button" class="btn btn-primary modal-edit-submit">Update Payment Method</button>
     </div>
   </div>
 </div>
@@ -633,7 +671,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title">Payment Method Details</div>
-      <button onclick="closeViewPaymentMethodModal()" class="modal-close">×</button>
+      <button class="modal-close">×</button>
     </div>
     <div class="modal-body">
       <div class="view-row">
@@ -669,7 +707,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
   document.addEventListener('DOMContentLoaded', function () {
     fetchPaymentMethods();
+    setupEventListeners();
   });
+
+  function setupEventListeners() {
+    // Add button in card header
+    const addBtn = document.querySelector('.card-header .btn-primary');
+    if (addBtn) {
+      addBtn.onclick = openAddPaymentMethodModal;
+    }
+
+    // Event delegation for table actions
+    const tableBody = document.getElementById('paymentMethodsTableBody');
+    if (tableBody) {
+      tableBody.addEventListener('click', function(e) {
+        const btn = e.target.closest('.action-btn');
+        if (!btn) return;
+
+        const row = btn.closest('tr');
+        const methodId = row.dataset.methodId;
+
+        if (btn.classList.contains('delete')) {
+          confirmDeletePaymentMethod(methodId);
+        } else if (btn.textContent === 'Edit') {
+          openEditPaymentMethodModal(methodId);
+        } else if (btn.textContent === 'View') {
+          openViewPaymentMethodModal(methodId);
+        }
+      });
+    }
+
+    // Modal close buttons
+    document.querySelectorAll('.modal-close').forEach(btn => {
+      btn.onclick = function() {
+        const modal = this.closest('.modal-overlay');
+        if (modal) modal.style.display = 'none';
+      };
+    });
+
+    // Submit buttons
+    const addSubmitBtn = document.querySelector('.modal-add-submit');
+    if (addSubmitBtn) {
+      addSubmitBtn.onclick = submitAddPaymentMethod;
+    }
+
+    const editSubmitBtn = document.querySelector('.modal-edit-submit');
+    if (editSubmitBtn) {
+      editSubmitBtn.onclick = submitEditPaymentMethod;
+    }
+
+    // Cancel buttons
+    document.querySelectorAll('.modal-cancel').forEach(btn => {
+      btn.onclick = function() {
+        const modal = this.closest('.modal-overlay');
+        if (modal) modal.style.display = 'none';
+      };
+    });
+  }
 
   async function fetchPaymentMethods() {
     try {
@@ -698,7 +792,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
   function renderTable() {
     const tbody = document.getElementById('paymentMethodsTableBody');
     if (!paymentMethodsData.length) {
-      tbody.innerHTML = `<tr><td colspan="5" class="empty-state"><i class="fa-regular fa-clipboard"></i>No payment methods found. <a href="javascript:;" onclick="openAddPaymentMethodModal()" style="color:#185FA5;font-weight:500">Add your first payment method</a>.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" class="empty-state"><i class="fa-regular fa-clipboard"></i>No payment methods found. <button class="action-btn" id="addFirstMethod" style="color:#185FA5;font-weight:500;border:none;background:none;padding:0">Add your first payment method</button>.</td></tr>`;
+      document.getElementById('addFirstMethod').onclick = openAddPaymentMethodModal;
       return;
     }
     tbody.innerHTML = paymentMethodsData.map(m => {
@@ -707,7 +802,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         ? `<span class="status-badge active">Active</span>`
         : `<span class="status-badge inactive">Inactive</span>`;
       return `
-        <tr class="payment-method-row">
+        <tr class="payment-method-row" data-method-id="${m.method_id}">
           <td>
             <div style="display:flex;align-items:center;gap:10px">
               <div style="width:36px;height:36px;background:#185FA5;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff">
@@ -721,9 +816,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
           <td style="text-align:center">${statusBadge}</td>
           <td>
             <div class="action-btns">
-              <button onclick="openViewPaymentMethodModal('${m.method_id}')" class="action-btn">View</button>
-              <button onclick="openEditPaymentMethodModal('${m.method_id}')" class="action-btn">Edit</button>
-              <button onclick="confirmDeletePaymentMethod('${m.method_id}')" class="action-btn delete">Delete</button>
+              <button class="action-btn">View</button>
+              <button class="action-btn">Edit</button>
+              <button class="action-btn delete">Delete</button>
             </div>
           </td>
         </tr>`;
@@ -744,13 +839,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
       method_code: document.getElementById('method_code').value,
       method_label: document.getElementById('method_label').value,
       method_type: document.getElementById('method_type').value,
-      description: document.getElementById('icon_url').value,
+      icon_url: document.getElementById('icon_url').value,
       sort_order: document.getElementById('sort_order').value,
       is_active: document.querySelector('[name="is_active"]').checked ? 1 : 0,
     };
     try {
       const res = await fetch('../api/payment_methods.php?action=create', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': '<?php echo htmlspecialchars($_SESSION["csrf_token"] ?? "", ENT_QUOTES, "UTF-8"); ?>' }, body: JSON.stringify(data)
       });
       const result = await res.json();
       if (result.success) {
@@ -761,12 +856,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         Swal.fire({ icon: 'error', title: 'Error!', text: result.message, confirmButtonColor: '#3085d6' });
       }
     } catch (e) {
+      console.error('Error adding payment method:', e);
       Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to add payment method', confirmButtonColor: '#3085d6' });
     }
   }
 
   function openEditPaymentMethodModal(methodId) {
-    const method = paymentMethodsData.find(m => m.method_id === methodId);
+    const method = paymentMethodsData.find(m => m.method_id == methodId);
     if (method) {
       document.getElementById('edit_method_id').value = method.method_id;
       document.getElementById('edit_method_code').value = method.method_code;
@@ -776,6 +872,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
       document.getElementById('edit_sort_order').value = method.sort_order;
       document.getElementById('edit_is_active').checked = method.is_active == 1;
       document.getElementById('editPaymentMethodModal').style.display = 'flex';
+    } else {
+      console.error('Payment method not found:', methodId);
     }
   }
 
@@ -789,13 +887,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
       method_code: document.getElementById('edit_method_code').value,
       method_label: document.getElementById('edit_method_label').value,
       method_type: document.getElementById('edit_method_type').value,
-      description: document.getElementById('edit_icon_url').value,
+      icon_url: document.getElementById('edit_icon_url').value,
       sort_order: document.getElementById('edit_sort_order').value,
       is_active: document.getElementById('edit_is_active').checked ? 1 : 0,
     };
     try {
       const res = await fetch('../api/payment_methods.php?action=update', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': '<?php echo htmlspecialchars($_SESSION["csrf_token"] ?? "", ENT_QUOTES, "UTF-8"); ?>' }, body: JSON.stringify(data)
       });
       const result = await res.json();
       if (result.success) {
@@ -806,12 +904,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         Swal.fire({ icon: 'error', title: 'Error!', text: result.message, confirmButtonColor: '#3085d6' });
       }
     } catch (e) {
+      console.error('Error updating payment method:', e);
       Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to update payment method', confirmButtonColor: '#3085d6' });
     }
   }
 
   function openViewPaymentMethodModal(methodId) {
-    const method = paymentMethodsData.find(m => m.method_id === methodId);
+    const method = paymentMethodsData.find(m => m.method_id == methodId);
     if (method) {
       document.getElementById('view_method_label').textContent = method.method_label;
       document.getElementById('view_method_code').textContent = method.method_code;
@@ -820,6 +919,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
       document.getElementById('view_sort_order').textContent = method.sort_order;
       document.getElementById('view_is_active').textContent = method.is_active == 1 ? 'Active' : 'Inactive';
       document.getElementById('viewPaymentMethodModal').style.display = 'flex';
+    } else {
+      console.error('Payment method not found:', methodId);
     }
   }
 
@@ -840,7 +941,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
       if (result.isConfirmed) {
         try {
           const res = await fetch('../api/payment_methods.php?action=delete', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ method_id: methodId })
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': '<?php echo htmlspecialchars($_SESSION["csrf_token"] ?? "", ENT_QUOTES, "UTF-8"); ?>' }, body: JSON.stringify({ method_id: methodId })
           });
           const r = await res.json();
           if (r.success) {
@@ -850,16 +951,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             Swal.fire({ icon: 'error', title: 'Error!', text: r.message, confirmButtonColor: '#3085d6' });
           }
         } catch (e) {
+          console.error('Error deleting payment method:', e);
           Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to delete payment method', confirmButtonColor: '#3085d6' });
         }
       }
-    });
-  }
-
-  function filterTable() {
-    const filter = document.getElementById('searchInput').value.toUpperCase();
-    document.querySelectorAll('#paymentMethodsTable .payment-method-row').forEach(row => {
-      row.style.display = row.textContent.toUpperCase().includes(filter) ? '' : 'none';
     });
   }
 </script>

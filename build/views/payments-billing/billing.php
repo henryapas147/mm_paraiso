@@ -379,6 +379,224 @@
       grid-template-columns: 1fr
     }
   }
+
+  /* ── Additional Responsive ──────────────────────────────────── */
+  @media (max-width: 480px) {
+    .page {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .credit-card {
+      padding: 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .credit-card .wifi-icon {
+      font-size: 20px;
+      margin-bottom: 24px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .credit-card .card-number {
+      font-size: 18px;
+      letter-spacing: 2px;
+      margin-bottom: 24px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .credit-card .card-holder, .credit-card .card-expires {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .credit-card .card-holder strong, .credit-card .card-expires strong {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mini-cards {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mini-card {
+      padding: 14px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mini-card .icon {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mini-card h6 {
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mini-card span {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .mini-card .amount {
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .payment-method-item {
+      padding: 10px 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .payment-method-item img {
+      width: 32px;
+      margin-right: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .payment-method-item h6 {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .invoice-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .invoice-item h6 {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .invoice-item span {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .invoice-item .amount {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .invoice-item .pdf-btn {
+      margin-left: 0;
+      margin-top: 4px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .billing-item {
+      flex-direction: column;
+      gap: 12px;
+      padding: 14px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .billing-item h6 {
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .billing-item span {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .billing-item .actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .transaction-item {
+      padding: 8px 0;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .transaction-item .icon {
+      width: 24px;
+      height: 24px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .transaction-item h6 {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .transaction-item span {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .transaction-item .amount {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .card-body {
+      padding: 18px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .card-body {
+      padding: 16px;
+    }
+  }
 </style>
 
 <div class="page">

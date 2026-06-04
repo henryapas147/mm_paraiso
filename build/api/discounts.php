@@ -1,7 +1,10 @@
 ﻿<?php
 header('Content-Type: application/json');
 require_once '../config/middleware.php';
+require_once '../services/NotificationService.php';
 applyAuthMiddleware();
+
+use App\Services\NotificationService;
 
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
@@ -55,6 +58,38 @@ try {
           $data['is_active'] ?? 1,
           $data['notes'] ?? null,
         ]);
+
+        // Notify customers about new discount
+        try {
+          $notificationService = new NotificationService($pdo);
+          
+          // Get all customer user IDs
+          $customerStmt = $pdo->prepare("
+            SELECT ua.user_id 
+            FROM user_accounts ua
+            INNER JOIN user_roles ur ON ua.role_id = ur.role_id
+            WHERE ur.role_code = 'customer'
+            AND ua.account_status = 'active'
+          ");
+          $customerStmt->execute();
+          $customerUsers = $customerStmt->fetchAll(PDO::FETCH_COLUMN);
+          
+          if (!empty($customerUsers)) {
+            $discountValue = $data['discount_type'] === 'percentage' 
+              ? $data['discount_value'] . '% off' 
+              : '₱' . number_format($data['discount_value'], 2) . ' off';
+            
+            $notificationService->createPromotionalNotification(
+              $customerUsers,
+              "New Discount: {$data['discount_name']}",
+              "Use code {$data['discount_code']} for {$discountValue} on your next booking!",
+              null
+            );
+          }
+        } catch (Exception $notifError) {
+          error_log("Failed to create notification for discount: " . $notifError->getMessage());
+        }
+
         echo json_encode(['success' => true, 'message' => 'Discount created successfully', 'discount_id' => $discount_id]);
       } else if ($action === 'update') {
         $stmt = $pdo->prepare("

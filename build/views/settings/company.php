@@ -194,6 +194,99 @@
   .toast-close:hover {
     color: #333
   }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media (max-width: 480px) {
+    .page {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .card-header {
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .card-title {
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .card-subtitle {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .card-body {
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .section-title {
+      font-size: 13px;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    label {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: 12px;
+      padding: 7px 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    textarea {
+      min-height: 70px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-actions {
+      flex-direction: column;
+      gap: 10px;
+      padding-top: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .toast {
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      font-size: 12px;
+      min-width: auto;
+    }
+  }
 </style>
 
 <!-- Toast -->

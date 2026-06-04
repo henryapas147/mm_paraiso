@@ -56,6 +56,11 @@ class InventoryController extends Controller
         $this->view('inventory/purchase_orders');
     }
 
+    public function purchaseOrdersReceiving()
+    {
+        $this->view('inventory/purchase_orders_receiving');
+    }
+
     public function stockTransactions()
     {
         $this->view('inventory/stock_transactions');

@@ -13,13 +13,13 @@ try {
         // Dashboard Summary Endpoints
         case 'revenue_summary':
           // Today's revenue
-          $stmt = $pdo->query("SELECT COALESCE(SUM(p.amount), 0) as today FROM payments p WHERE DATE(p.payment_date) = CURDATE() AND p.payment_status = 'confirmed'");
+          $stmt = $pdo->query("SELECT COALESCE(SUM(p.amount), 0) as today FROM payments p WHERE DATE(p.payment_date) = CURDATE() AND p.payment_status IN ('paid', 'partial')");
           $today = $stmt->fetchColumn();
-          
+
           // Month revenue
-          $stmt = $pdo->query("SELECT COALESCE(SUM(p.amount), 0) as month FROM payments p WHERE MONTH(p.payment_date) = MONTH(CURDATE()) AND YEAR(p.payment_date) = YEAR(CURDATE()) AND p.payment_status = 'confirmed'");
+          $stmt = $pdo->query("SELECT COALESCE(SUM(p.amount), 0) as month FROM payments p WHERE MONTH(p.payment_date) = MONTH(CURDATE()) AND YEAR(p.payment_date) = YEAR(CURDATE()) AND p.payment_status IN ('paid', 'partial')");
           $month = $stmt->fetchColumn();
-          
+
           echo json_encode(['success' => true, 'data' => ['today' => $today, 'month' => $month]]);
           break;
 
@@ -65,18 +65,18 @@ try {
         // Detailed Reports
         case 'revenue_daily':
           $days = $_GET['days'] ?? 30;
-          $stmt = $pdo->prepare("SELECT DATE(p.payment_date) as date, COALESCE(SUM(p.amount), 0) as revenue, COUNT(*) as transactions FROM payments p WHERE p.payment_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY) AND p.payment_status = 'confirmed' GROUP BY DATE(p.payment_date) ORDER BY date DESC");
+          $stmt = $pdo->prepare("SELECT DATE(p.payment_date) as date, COALESCE(SUM(p.amount), 0) as revenue, COUNT(*) as transactions FROM payments p WHERE p.payment_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY) AND p.payment_status IN ('paid', 'partial') GROUP BY DATE(p.payment_date) ORDER BY date DESC");
           $stmt->execute([$days]);
           echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
           break;
 
         case 'revenue_monthly':
-          $stmt = $pdo->query("SELECT DATE_FORMAT(p.payment_date, '%Y-%m') as month, COALESCE(SUM(p.amount), 0) as revenue, COUNT(*) as transactions FROM payments p WHERE p.payment_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) AND p.payment_status = 'confirmed' GROUP BY DATE_FORMAT(p.payment_date, '%Y-%m') ORDER BY month DESC");
+          $stmt = $pdo->query("SELECT DATE_FORMAT(p.payment_date, '%Y-%m') as month, COALESCE(SUM(p.amount), 0) as revenue, COUNT(*) as transactions FROM payments p WHERE p.payment_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) AND p.payment_status IN ('paid', 'partial') GROUP BY DATE_FORMAT(p.payment_date, '%Y-%m') ORDER BY month DESC");
           echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
           break;
 
         case 'revenue_by_source':
-          $stmt = $pdo->query("SELECT r.source_channel, COALESCE(SUM(p.amount), 0) as revenue, COUNT(*) as bookings FROM payments p JOIN reservations r ON p.reservation_id = r.reservation_id WHERE p.payment_status = 'confirmed' GROUP BY r.source_channel");
+          $stmt = $pdo->query("SELECT r.source_channel, COALESCE(SUM(p.amount), 0) as revenue, COUNT(*) as bookings FROM payments p JOIN reservations r ON p.reservation_id = r.reservation_id WHERE p.payment_status IN ('paid', 'partial') GROUP BY r.source_channel");
           echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
           break;
 
@@ -86,7 +86,7 @@ try {
           break;
 
         case 'occupancy_by_room_type':
-          $stmt = $pdo->query("SELECT rc.category_name, COUNT(r.room_id) as total_rooms, COUNT(CASE WHEN r.status = 'occupied' THEN 1 END) as occupied FROM room_categories rc LEFT JOIN rooms r ON rc.category_id = r.category_id GROUP BY rc.category_id, rc.category_name");
+          $stmt = $pdo->query("SELECT rc.category_name, COUNT(r.room_id) as total_rooms, COUNT(CASE WHEN rr.room_id IS NOT NULL THEN 1 END) as occupied FROM room_categories rc LEFT JOIN rooms r ON rc.category_id = r.category_id LEFT JOIN reservation_rooms rr ON r.room_id = rr.room_id LEFT JOIN reservations res ON rr.reservation_id = res.reservation_id AND DATE(res.check_in_date) <= CURDATE() AND DATE(res.check_out_date) >= CURDATE() AND res.reservation_status IN ('checked_in', 'confirmed') GROUP BY rc.category_id, rc.category_name");
           echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
           break;
 
@@ -97,7 +97,7 @@ try {
 
         case 'stock_movements':
           $days = $_GET['days'] ?? 30;
-          $stmt = $pdo->prepare("SELECT DATE(st.created_at) as date, st.transaction_type, COUNT(*) as count, COALESCE(SUM(st.quantity), 0) as total_quantity FROM stock_transactions st WHERE st.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY) GROUP BY DATE(st.created_at), st.transaction_type ORDER BY date DESC");
+          $stmt = $pdo->prepare("SELECT DATE(it.created_at) as date, it.transaction_type, COUNT(*) as count, COALESCE(SUM(it.quantity), 0) as total_quantity FROM inventory_transactions it WHERE it.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY) GROUP BY DATE(it.created_at), it.transaction_type ORDER BY date DESC");
           $stmt->execute([$days]);
           echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
           break;
@@ -125,13 +125,64 @@ try {
           break;
 
         case 'top_menu_items':
-          $stmt = $pdo->query("SELECT mi.item_name, fc.category_name, COALESCE(SUM(foi.quantity), 0) as total_sold, COALESCE(SUM(foi.quantity * foi.unit_price), 0) as revenue FROM menu_items mi JOIN food_categories fc ON mi.category_id = fc.category_id LEFT JOIN food_order_items foi ON mi.item_id = foi.item_id LEFT JOIN food_orders fo ON foi.order_id = fo.order_id WHERE fo.order_status != 'cancelled' OR fo.order_id IS NULL GROUP BY mi.item_id, mi.item_name, fc.category_name ORDER BY total_sold DESC LIMIT 10");
+          $stmt = $pdo->query("SELECT mi.item_name, fc.category_name, mii.image_url, COALESCE(SUM(foi.quantity), 0) as total_sold, COALESCE(SUM(foi.quantity * foi.unit_price), 0) as revenue FROM menu_items mi JOIN food_categories fc ON mi.category_id = fc.category_id LEFT JOIN menu_item_images mii ON mi.item_id = mii.item_id AND mii.is_cover = 1 LEFT JOIN food_order_items foi ON mi.item_id = foi.item_id LEFT JOIN food_orders fo ON foi.order_id = fo.order_id WHERE fo.order_status != 'cancelled' OR fo.order_id IS NULL GROUP BY mi.item_id, mi.item_name, fc.category_name, mii.image_url ORDER BY total_sold DESC LIMIT 10");
           echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
           break;
 
         case 'recent_reservations':
-          $stmt = $pdo->query("SELECT r.reservation_code, r.check_in_date, r.check_out_date, r.reservation_status, r.total_amount, up.first_name, up.last_name FROM reservations r LEFT JOIN user_accounts ua ON r.customer_user_id = ua.user_id LEFT JOIN user_profiles up ON ua.user_id = up.user_id ORDER BY r.created_at DESC LIMIT 5");
+          $stmt = $pdo->query("SELECT r.reservation_code, r.check_in_date, r.check_out_date, r.reservation_status, r.total_amount, COALESCE(up.first_name, r.walkin_first_name) as first_name, COALESCE(up.last_name, r.walkin_last_name) as last_name, up.profile_photo_url FROM reservations r LEFT JOIN user_accounts ua ON r.customer_user_id = ua.user_id LEFT JOIN user_profiles up ON ua.user_id = up.user_id ORDER BY r.created_at DESC LIMIT 12");
           echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+          break;
+
+        case 'financial_summary':
+          $period = $_GET['period'] ?? 'year';
+          $year = $_GET['year'] ?? date('Y');
+          
+          // Build date condition based on period
+          $dateCondition = '';
+          if ($period === 'month') {
+            $dateCondition = "AND MONTH(p.payment_date) = MONTH(CURDATE()) AND YEAR(p.payment_date) = YEAR(CURDATE())";
+            $expenseDateCondition = "AND MONTH(st.transaction_date) = MONTH(CURDATE()) AND YEAR(st.transaction_date) = YEAR(CURDATE())";
+          } elseif ($period === 'last_month') {
+            $dateCondition = "AND MONTH(p.payment_date) = MONTH(CURDATE() - INTERVAL 1 MONTH) AND YEAR(p.payment_date) = YEAR(CURDATE() - INTERVAL 1 MONTH)";
+            $expenseDateCondition = "AND MONTH(st.transaction_date) = MONTH(CURDATE() - INTERVAL 1 MONTH) AND YEAR(st.transaction_date) = YEAR(CURDATE() - INTERVAL 1 MONTH)";
+          } elseif ($period === 'quarter') {
+            $dateCondition = "AND QUARTER(p.payment_date) = QUARTER(CURDATE()) AND YEAR(p.payment_date) = YEAR(CURDATE())";
+            $expenseDateCondition = "AND QUARTER(st.transaction_date) = QUARTER(CURDATE()) AND YEAR(st.transaction_date) = YEAR(CURDATE())";
+          } else {
+            // year (default)
+            $dateCondition = "AND YEAR(p.payment_date) = ?";
+            $expenseDateCondition = "AND YEAR(st.transaction_date) = ?";
+          }
+          
+          // Revenue from payments
+          if ($period === 'year') {
+            $stmt = $pdo->prepare("SELECT COALESCE(SUM(p.amount), 0) as revenue FROM payments p WHERE p.payment_status IN ('paid', 'partial') $dateCondition");
+            $stmt->execute([$year]);
+          } else {
+            $stmt = $pdo->query("SELECT COALESCE(SUM(p.amount), 0) as revenue FROM payments p WHERE p.payment_status IN ('paid', 'partial') $dateCondition");
+          }
+          $revenue = $stmt->fetchColumn();
+          
+          // Expenses from stock_transactions
+          if ($period === 'year') {
+            $stmt = $pdo->prepare("SELECT COALESCE(SUM(st.quantity * st.unit_cost), 0) as expenses FROM stock_transactions st WHERE st.transaction_type IN ('stock_out_sale', 'stock_out_use', 'stock_out_damage') $expenseDateCondition");
+            $stmt->execute([$year]);
+          } else {
+            $stmt = $pdo->query("SELECT COALESCE(SUM(st.quantity * st.unit_cost), 0) as expenses FROM stock_transactions st WHERE st.transaction_type IN ('stock_out_sale', 'stock_out_use', 'stock_out_damage') $expenseDateCondition");
+          }
+          $expenses = $stmt->fetchColumn();
+          
+          // Net profit
+          $netProfit = $revenue - $expenses;
+          
+          echo json_encode(['success' => true, 'data' => [
+            'revenue' => $revenue,
+            'expenses' => $expenses,
+            'net_profit' => $netProfit,
+            'year' => $year,
+            'period' => $period
+          ]]);
           break;
 
         default:

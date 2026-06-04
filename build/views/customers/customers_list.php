@@ -476,6 +476,269 @@
     justify-content: flex-end;
     margin-top: 16px;
   }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .stats-grid {
+      gap: 12px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-card {
+      padding: 16px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-label {
+      font-size: 11px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-value {
+      font-size: 20px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 18px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .table-header {
+      padding: 14px 16px 12px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .controls-container {
+      flex-direction: column;
+      width: 100%
+    }
+  }
+
+  @media (max-width: 640px) {
+    .search-input {
+      width: 100%;
+      min-width: auto
+    }
+  }
+
+  @media (max-width: 640px) {
+    .filter-select {
+      width: 100%
+    }
+  }
+
+  @media (max-width: 640px) {
+    .btn {
+      font-size: 12px;
+      padding: 6px 14px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .data-table th {
+      padding: 8px 12px;
+      font-size: 10px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .data-table td {
+      padding: 10px 12px;
+      font-size: 12px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .customer-avatar, .customer-avatar-initial {
+      width: 32px;
+      height: 32px;
+      font-size: 14px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .customer-name {
+      font-size: 13px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .customer-email {
+      font-size: 11px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .badge {
+      padding: 3px 8px;
+      font-size: 10px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .actions-cell {
+      flex-direction: column
+    }
+  }
+
+  @media (max-width: 640px) {
+    .action-btn {
+      width: 100%;
+      font-size: 11px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state {
+      padding: 32px 16px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state i {
+      font-size: 36px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .info-grid {
+      grid-template-columns: 1fr
+    }
+  }
+
+  @media (max-width: 640px) {
+    .info-label {
+      font-size: 11px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .info-value {
+      font-size: 13px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-grid {
+      grid-template-columns: 1fr
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-label {
+      font-size: 12px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-input, .form-select {
+      padding: 6px 10px;
+      font-size: 12px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .photo-preview img {
+      width: 64px;
+      height: 64px
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cropper-modal {
+      padding: 16px
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stats-grid {
+      gap: 10px
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stat-card {
+      padding: 14px
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stat-value {
+      font-size: 18px
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stat-icon {
+      width: 36px;
+      height: 36px;
+      font-size: 16px
+    }
+  }
+
+  @media (max-width: 480px) {
+    .table-header {
+      padding: 12px 14px 10px
+    }
+  }
+
+  @media (max-width: 480px) {
+    .btn {
+      font-size: 11px;
+      padding: 5px 12px
+    }
+  }
+
+  @media (max-width: 480px) {
+    .data-table th {
+      padding: 6px 10px;
+      font-size: 9px
+    }
+  }
+
+  @media (max-width: 480px) {
+    .data-table td {
+      padding: 8px 10px;
+      font-size: 11px
+    }
+  }
+
+  @media (max-width: 480px) {
+    .customer-avatar, .customer-avatar-initial {
+      width: 28px;
+      height: 28px;
+      font-size: 12px
+    }
+  }
+
+  @media (max-width: 480px) {
+    .badge {
+      padding: 2px 6px;
+      font-size: 9px
+    }
+  }
+
+  @media (max-width: 480px) {
+    .form-input, .form-select {
+      font-size: 11px
+    }
+  }
+
+  @media (max-width: 480px) {
+    .photo-preview img {
+      width: 56px;
+      height: 56px
+    }
+  }
 </style>
 
 <!-- Stats Cards -->

@@ -341,44 +341,178 @@ function generateUUID()
   .rm-toast.success { border-color: #9fe1cb; color: #085041; }
   .rm-toast.error   { border-color: #f7c1c1; color: #791f1f; }
 
-  /* Responsive */
+  /* ── Mobile actions dropdown ── */
+  .rm-actions-dropdown {
+    position: relative;
+    display: none;
+  }
+  .rm-actions-dropdown-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px;
+    border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-tertiary);
+    background: transparent; color: var(--color-text-secondary);
+    cursor: pointer; font-size: 14px;
+  }
+  .rm-actions-dropdown-btn:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+  .rm-actions-dropdown-menu {
+    position: absolute; right: 0; top: calc(100% + 4px);
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    min-width: 150px; z-index: 100; overflow: hidden; display: none;
+  }
+  .rm-actions-dropdown-menu.open { display: block; }
+  .rm-actions-dropdown-menu button {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 8px 12px; font-size: 12px;
+    background: transparent; border: none;
+    color: var(--color-text-primary); cursor: pointer; text-align: left;
+  }
+  .rm-actions-dropdown-menu button:hover { background: var(--color-background-secondary); }
+  .rm-actions-dropdown-menu button.del-action:hover { background: #fcebeb; color: #791f1f; }
+  .rm-actions-dropdown-menu button i { width: 16px; text-align: center; font-size: 13px; color: var(--color-text-secondary); }
+  .rm-actions-dropdown-menu button.del-action:hover i { color: #791f1f; }
+
+  /* ── Responsive ── */
+  @media (max-width: 1400px) {
+    .rm-page { padding: 20px; }
+    .rm-search-input { width: 160px; }
+  }
+
+  @media (max-width: 1200px) {
+    .rm-page { padding: 18px; }
+    .rm-card-header { flex-direction: column; align-items: flex-start; }
+    .rm-toolbar { width: 100%; flex-wrap: wrap; }
+    .rm-search-input { width: 140px; }
+    .rm-btn { padding: 6px 12px; font-size: 12px; }
+  }
+
   @media (max-width: 1024px) {
     .rm-table thead th:nth-child(4), .rm-table tbody td:nth-child(4) { display: none; }
     .rm-table thead th:nth-child(1) { width: 32%; }
     .rm-table thead th:nth-child(2) { width: 24%; }
     .rm-table thead th:nth-child(3) { width: 22%; }
+    .rm-card-title { font-size: 14px; }
+    .rm-table td { padding: 10px 14px; }
+    .rm-table thead th { padding: 8px 14px; }
   }
-  @media (max-width: 768px) {
+
+  @media (max-width: 992px) {
     .rm-page { padding: 16px; }
-    .rm-card-header { flex-direction: column; align-items: stretch; gap: 10px; }
-    .rm-toolbar { width: 100%; flex-wrap: wrap; }
-    .rm-search-wrap { flex: 1 1 auto; } .rm-search-input { width: 100%; }
-    .rm-filter-select { flex: 1 1 auto; }
+    .rm-card-header { padding: 14px 16px; flex-direction: column; align-items: flex-start; gap: 10px; }
+    .rm-toolbar { width: 100%; flex-wrap: wrap; gap: 6px; }
+    .rm-search-wrap { flex: 1 1 auto; }
+    .rm-search-input { width: 100%; font-size: 12px; }
+    .rm-filter-select { flex: 1 1 auto; font-size: 12px; padding: 6px 10px; }
+    .rm-btn { padding: 6px 10px; font-size: 12px; }
+    .rm-table td { padding: 10px 12px; }
+    .rm-table thead th { padding: 8px 12px; font-size: 10px; }
+    .rm-avatar { width: 36px; height: 36px; }
+    .rm-avatar i { font-size: 14px; }
+    .rm-name { font-size: 12px; max-width: 130px; }
+    .rm-code { font-size: 10px; }
+    .rm-text { font-size: 12px; }
+    .rm-status-badge { font-size: 10px; padding: 2px 8px; }
+    .rm-icon-btn { width: 28px; height: 28px; font-size: 12px; }
+    .rm-pag-info { font-size: 11px; }
+    .rm-pag-btn { min-width: 28px; height: 28px; font-size: 11px; }
+    /* Modal */
+    .rm-modal { max-width: 96vw; }
+    .rm-modal-header { padding: 14px 20px; }
+    .rm-modal-body { padding: 16px 20px; }
+    .rm-modal-footer { padding: 12px 20px; }
+  }
+
+  @media (max-width: 768px) {
+    .rm-page { padding: 14px; }
+    .rm-card-header { padding: 12px; }
+    .rm-card-title { font-size: 13px; }
+    .rm-toolbar { gap: 6px; }
     .rm-table thead th:nth-child(3), .rm-table tbody td:nth-child(3) { display: none; }
-    .rm-table thead th:nth-child(1) { width: 42%; }
-    .rm-table thead th:nth-child(2) { width: 25%; }
+    .rm-table thead th:nth-child(1) { width: 40%; }
+    .rm-table thead th:nth-child(2) { width: 24%; }
     .rm-table thead th:nth-child(5) { width: 18%; }
-    .rm-table thead th:nth-child(6) { width: 15%; }
+    .rm-table thead th:nth-child(6) { width: 18%; }
+    .rm-table td { padding: 8px 10px; }
+    .rm-table thead th { padding: 8px 10px; font-size: 9px; }
+    .rm-avatar { width: 34px; height: 34px; }
+    .rm-name { font-size: 11px; max-width: 110px; }
+    .rm-code { font-size: 9px; }
+    .rm-status-badge { font-size: 9px; padding: 2px 6px; }
+    .rm-icon-btn { width: 26px; height: 26px; font-size: 12px; }
+    .rm-actions { gap: 3px; }
+    /* Slide-up modal */
     .rm-modal-backdrop { padding: 0; align-items: flex-end; }
-    .rm-modal { border-radius: 16px 16px 0 0; max-width: 100%; max-height: 95vh; overflow-y: auto; margin: 0; }
-    .rm-modal-header { border-radius: 16px 16px 0 0; } .rm-modal-footer { border-radius: 0; }
+    .rm-modal { border-radius: 20px 20px 0 0; max-width: 100%; max-height: 95vh; overflow-y: auto; margin: 0; }
+    .rm-modal-header { border-radius: 20px 20px 0 0; padding: 14px 18px; }
+    .rm-modal-footer { border-radius: 0; padding: 12px 18px; flex-wrap: wrap; }
+    .rm-modal-body { padding: 14px 18px; }
+    .rm-modal-title { font-size: 14px; }
     .rm-form-grid { grid-template-columns: 1fr; }
     .rm-form-group.full { grid-column: 1; }
     .rm-image-entry { grid-template-columns: 1fr; }
     .rm-pagination { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .rm-per-page-wrap { display: none; }
+    /* Crop modal */
+    .crop-modal-body { flex-direction: column; }
+    .crop-preview-box { width: 100%; }
+    .crop-preview { width: 100%; height: auto; aspect-ratio: 4/3; }
   }
+
+  @media (max-width: 640px) {
+    .rm-card-header { flex-direction: column; align-items: stretch; }
+    .rm-toolbar { flex-direction: column; align-items: stretch; }
+    .rm-search-wrap, .rm-filter-select, .rm-btn { width: 100%; }
+    .rm-search-input { width: 100%; }
+    /* Dropdown actions on small screens */
+    .rm-actions .rm-icon-btn { display: none; }
+    .rm-actions-dropdown { display: block; }
+  }
+
   @media (max-width: 480px) {
     .rm-page { padding: 12px; }
     .rm-table thead th:nth-child(2), .rm-table tbody td:nth-child(2) { display: none; }
     .rm-table thead th:nth-child(1) { width: 50%; }
     .rm-table thead th:nth-child(5) { width: 20%; }
     .rm-table thead th:nth-child(6) { width: 30%; }
-    .rm-name { max-width: 100px; font-size: 12px; }
+    .rm-name { max-width: 90px; font-size: 11px; }
     .rm-code { display: none; }
-    .rm-avatar { width: 34px; height: 34px; }
-    .rm-icon-btn { width: 26px; height: 26px; font-size: 12px; }
-    .rm-actions { gap: 3px; }
+    .rm-avatar { width: 32px; height: 32px; }
+    .rm-avatar i { font-size: 12px; }
+    .rm-actions .rm-icon-btn { display: none; }
+    .rm-actions-dropdown { display: block; }
+    .rm-modal-footer { flex-direction: column; align-items: stretch; }
+    .rm-modal-footer .rm-btn { width: 100%; justify-content: center; }
+    .rm-modal-title { font-size: 13px; }
+    .rm-form-grid { gap: 10px; }
+    .rm-form-group input, .rm-form-group select, .rm-form-group textarea { font-size: 14px; padding: 8px 10px; }
+    .rm-section-label { font-size: 10px; }
+    .rm-pag-btn { min-width: 26px; height: 26px; font-size: 10px; }
   }
+
+  @media (max-width: 360px) {
+    .rm-page { padding: 10px; }
+    .rm-card-title { font-size: 12px; }
+    .rm-modal-header { padding: 12px 14px; }
+    .rm-modal-body { padding: 12px 14px; }
+    .rm-modal-footer { padding: 10px 14px; }
+    .rm-modal-title { font-size: 12px; }
+    .rm-form-group input, .rm-form-group select, .rm-form-group textarea { font-size: 13px; padding: 7px 9px; }
+    .rm-pag-btn { min-width: 24px; height: 24px; font-size: 9px; }
+    .rm-name { max-width: 70px; }
+  }
+
+  @media (max-width: 768px) and (orientation: landscape) {
+    .rm-modal-backdrop { padding: 8px; align-items: center; }
+    .rm-modal { border-radius: 16px; max-height: 90vh; margin: auto; }
+    .rm-modal-header { border-radius: 16px 16px 0 0; }
+    .rm-modal-body { padding: 10px 16px; }
+    .rm-form-grid { grid-template-columns: 1fr 1fr; }
+    .rm-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  }
+
   @media (hover: none) and (pointer: coarse) {
     .rm-icon-btn { width: 36px; height: 36px; }
     .rm-pag-btn { min-width: 36px; height: 36px; }
@@ -696,6 +830,22 @@ function generateUUID()
               <button class="rm-icon-btn view" onclick="viewRoomDetails('${room.room_id}')" title="View"><i class="fas fa-eye"></i></button>
               <button class="rm-icon-btn edit" onclick="openEditRoomModal('${room.room_id}')" title="Edit"><i class="fas fa-pen"></i></button>
               <button class="rm-icon-btn del" onclick="confirmDeleteRoom('${room.room_id}', '${(room.room_name || room.room_number).replace(/'/g, "\\'")}')" title="Delete"><i class="fas fa-trash"></i></button>
+              <div class="rm-actions-dropdown" id="rmActDrop-${room.room_id}">
+                <button class="rm-actions-dropdown-btn" onclick="rmToggleActionsMenu('${room.room_id}', event)" title="Actions">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div class="rm-actions-dropdown-menu" id="rmActMenu-${room.room_id}">
+                  <button onclick="viewRoomDetails('${room.room_id}');rmCloseActionsMenu('${room.room_id}')">
+                    <i class="fas fa-eye"></i> View Details
+                  </button>
+                  <button onclick="openEditRoomModal('${room.room_id}');rmCloseActionsMenu('${room.room_id}')">
+                    <i class="fas fa-pen"></i> Edit Room
+                  </button>
+                  <button class="del-action" onclick="confirmDeleteRoom('${room.room_id}', '${(room.room_name || room.room_number).replace(/'/g, "\\'")}');rmCloseActionsMenu('${room.room_id}')">
+                    <i class="fas fa-trash"></i> Delete
+                  </button>
+                </div>
+              </div>
             </div>
           </td>
         </tr>
@@ -1150,6 +1300,23 @@ function generateUUID()
       showRmToast('An error occurred while updating the room', 'error');
     }
   }
+
+  // Mobile actions dropdown helpers
+  function rmToggleActionsMenu(roomId, event) {
+    event.stopPropagation();
+    const menu = document.getElementById('rmActMenu-' + roomId);
+    document.querySelectorAll('.rm-actions-dropdown-menu.open').forEach(m => { if (m !== menu) m.classList.remove('open'); });
+    menu.classList.toggle('open');
+  }
+
+  function rmCloseActionsMenu(roomId) {
+    const menu = document.getElementById('rmActMenu-' + roomId);
+    if (menu) menu.classList.remove('open');
+  }
+
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.rm-actions-dropdown-menu.open').forEach(m => m.classList.remove('open'));
+  });
 
   // Delete Room Function (API-based)
   async function confirmDeleteRoom(roomId, roomNumber) {

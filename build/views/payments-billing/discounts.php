@@ -1,188 +1,4 @@
 <?php
-if (false) {
-  try {
-    error_log("Starting discount deletion process...");
-
-    $discount_id = $_POST['discount_id'] ?? '';
-    error_log("Deleting discount_id: " . $discount_id);
-
-    if (empty($discount_id)) {
-      throw new Exception("Discount ID is required");
-    }
-
-    // Start transaction
-    $pdo->beginTransaction();
-
-    // Delete discount from database
-    $stmt = $pdo->prepare("DELETE FROM discounts WHERE discount_id = ?");
-    $stmt->execute([$discount_id]);
-    error_log("Deleted discount from database");
-
-    $pdo->commit();
-
-    // Redirect to avoid form resubmission
-    header('Location: discounts.php?success=discount_deleted');
-    exit;
-  } catch (Exception $e) {
-    if ($pdo->inTransaction()) {
-      $pdo->rollBack();
-    }
-    error_log("Error deleting discount: " . $e->getMessage());
-    $error_message = "Failed to delete discount. Please try again. Error: " . $e->getMessage();
-  }
-}
-
-// Handle Edit Discount Form Submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'edit_discount') {
-  try {
-    error_log("Starting discount edit process...");
-
-    $discount_id = $_POST['discount_id'] ?? '';
-    error_log("Editing discount_id: " . $discount_id);
-
-    if (empty($discount_id)) {
-      throw new Exception("Discount ID is required");
-    }
-
-    // Start transaction
-    $pdo->beginTransaction();
-
-    // Update discount data
-    $stmt = $pdo->prepare("
-            UPDATE discounts SET
-                property_id = ?,
-                discount_code = ?,
-                discount_name = ?,
-                description = ?,
-                discount_type = ?,
-                discount_value = ?,
-                min_nights = ?,
-                min_booking_amount = ?,
-                max_discount_amount = ?,
-                applies_to = ?,
-                usage_limit = ?,
-                per_user_limit = ?,
-                valid_from = ?,
-                valid_until = ?,
-                is_active = ?
-            WHERE discount_id = ?
-        ");
-
-    $stmt->execute([
-      $_POST['property_id'] ?? null,
-      $_POST['discount_code'],
-      $_POST['discount_name'],
-      $_POST['description'] ?? null,
-      $_POST['discount_type'],
-      $_POST['discount_value'],
-      $_POST['min_nights'] ?? null,
-      $_POST['min_booking_amount'] ?? null,
-      $_POST['max_discount_amount'] ?? null,
-      implode(',', $_POST['applies_to'] ?? ['overnight', 'hourly', 'day_use']),
-      $_POST['usage_limit'] ?? null,
-      $_POST['per_user_limit'] ?? null,
-      $_POST['valid_from'],
-      $_POST['valid_until'],
-      $_POST['is_active'] ?? 1,
-      $discount_id
-    ]);
-
-    $pdo->commit();
-
-    // Redirect to avoid form resubmission
-    header('Location: discounts.php?success=discount_updated');
-    exit;
-  } catch (PDOException $e) {
-    if ($pdo->inTransaction()) {
-      $pdo->rollBack();
-    }
-    error_log("PDO Error editing discount: " . $e->getMessage());
-    $error_message = "Failed to update discount. Please try again. Error: " . $e->getMessage();
-  } catch (Exception $e) {
-    if ($pdo->inTransaction()) {
-      $pdo->rollBack();
-    }
-    error_log("General Error editing discount: " . $e->getMessage());
-    $error_message = "Failed to update discount. Please try again. Error: " . $e->getMessage();
-  }
-}
-
-// Handle Add Discount Form Submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_discount') {
-  try {
-    error_log("Starting discount addition process...");
-
-    // Generate UUID for discount_id
-    $discount_id = sprintf(
-      '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-      mt_rand(0, 0xffff),
-      mt_rand(0, 0xffff),
-      mt_rand(0, 0xffff),
-      mt_rand(0, 0x0fff) | 0x4000,
-      mt_rand(0, 0x3fff) | 0x8000,
-      mt_rand(0, 0xffff),
-      mt_rand(0, 0xffff),
-      mt_rand(0, 0xffff)
-    );
-
-    // Start transaction
-    $pdo->beginTransaction();
-
-    // Insert discount data
-    $stmt = $pdo->prepare("
-            INSERT INTO discounts (
-                discount_id, property_id, discount_code, discount_name, description, 
-                discount_type, discount_value, min_nights, min_booking_amount, 
-                max_discount_amount, applies_to, usage_limit, per_user_limit, 
-                valid_from, valid_until, is_active
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ");
-
-    $params = [
-      $discount_id,
-      $_POST['property_id'] ?? null,
-      $_POST['discount_code'],
-      $_POST['discount_name'],
-      $_POST['description'] ?? null,
-      $_POST['discount_type'],
-      $_POST['discount_value'],
-      $_POST['min_nights'] ?? null,
-      $_POST['min_booking_amount'] ?? null,
-      $_POST['max_discount_amount'] ?? null,
-      implode(',', $_POST['applies_to'] ?? ['overnight', 'hourly', 'day_use']),
-      $_POST['usage_limit'] ?? null,
-      $_POST['per_user_limit'] ?? null,
-      $_POST['valid_from'],
-      $_POST['valid_until'],
-      $_POST['is_active'] ?? 1
-    ];
-
-    error_log("Executing discount insert with params: " . json_encode($params));
-    $stmt->execute($params);
-    error_log("Discount inserted successfully");
-
-    $pdo->commit();
-
-    // Redirect to avoid form resubmission
-    header('Location: discounts.php?success=discount_added');
-    exit;
-  } catch (PDOException $e) {
-    if ($pdo->inTransaction()) {
-      $pdo->rollBack();
-    }
-    error_log("PDO Error adding discount: " . $e->getMessage());
-    error_log("Error code: " . $e->getCode());
-    error_log("Error info: " . print_r($e->errorInfo, true));
-    $error_message = "Failed to add discount. Please try again. Error: " . $e->getMessage();
-  } catch (Exception $e) {
-    if ($pdo->inTransaction()) {
-      $pdo->rollBack();
-    }
-    error_log("General Error adding discount: " . $e->getMessage());
-    $error_message = "Failed to add discount. Please try again. Error: " . $e->getMessage();
-  }
-}
-
 ?>
 
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
@@ -526,6 +342,193 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     font-size: 13px;
     color: #1a1a1a
   }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media (max-width: 640px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-card {
+      padding: 14px 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-label {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stat-value {
+      font-size: 24px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    thead th {
+      padding: 8px 12px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    td {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .action-btn {
+      padding: 4px 8px;
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state {
+      padding: 40px 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .empty-state i {
+      font-size: 28px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modal {
+      max-width: 90vw;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal {
+      max-width: none;
+      max-height: 95vh;
+      border-radius: 12px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modal-body {
+      padding: 18px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-body {
+      padding: 16px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-footer {
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-footer .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-header {
+      padding: 14px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-title {
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-close {
+      font-size: 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-label {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-input,
+    .form-select,
+    .form-textarea {
+      font-size: 12px;
+      padding: 7px 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .checkbox-group {
+      gap: 6px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .view-row {
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .view-label {
+      width: auto;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .view-value {
+      font-size: 12px;
+    }
+  }
 </style>
 
 <!-- PAGE CONTENT -->
@@ -839,6 +842,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 </div>
 
 <script>
+  let csrfToken = "<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>";
   let discountsData = [];
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -931,7 +935,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     };
     try {
       const res = await fetch('../api/discounts.php?action=create', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken }, body: JSON.stringify(data)
       });
       const result = await res.json();
       if (result.success) {
@@ -997,7 +1001,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     };
     try {
       const res = await fetch('../api/discounts.php?action=update', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken }, body: JSON.stringify(data)
       });
       const result = await res.json();
       if (result.success) {
@@ -1046,7 +1050,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
       if (result.isConfirmed) {
         try {
           const res = await fetch('../api/discounts.php?action=delete', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ discount_id: discountId })
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken }, body: JSON.stringify({ discount_id: discountId })
           });
           const r = await res.json();
           if (r.success) {

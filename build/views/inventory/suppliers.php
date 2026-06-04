@@ -458,6 +458,18 @@
     box-shadow: var(--prod-shadow-lg);
   }
 
+  @media (min-width: 1400px) {
+    .sup-modal {
+      max-width: 700px;
+    }
+  }
+
+  @media (min-width: 1600px) {
+    .sup-modal {
+      max-width: 800px;
+    }
+  }
+
   .sup-modal-header {
     padding: 22px 26px 18px;
     border-bottom: 1px solid rgba(0, 0, 0, .06);
@@ -564,6 +576,148 @@
 
     .sup-form-group.half {
       grid-template-columns: 1fr;
+    }
+
+    .sup-overlay {
+      padding: 12px;
+    }
+
+    .sup-modal {
+      max-height: 95vh;
+    }
+
+    .sup-modal-header {
+      padding: 16px 18px 14px;
+    }
+
+    .sup-modal-body {
+      padding: 18px;
+    }
+
+    .sup-modal-footer {
+      padding: 14px 18px;
+      flex-direction: column;
+    }
+
+    .sup-modal-footer .sup-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .sup-view-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .sup-view-section {
+    background: var(--color-background-secondary, #F8FAFC);
+    border-radius: var(--prod-radius-md);
+    padding: 18px;
+    border: 1px solid rgba(0, 0, 0, .05);
+  }
+
+  .sup-view-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--prod-blue);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--prod-blue-pale);
+  }
+
+  .sup-view-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, .04);
+  }
+
+  .sup-view-row:last-child {
+    border-bottom: none;
+  }
+
+  .sup-view-label {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    min-width: 120px;
+  }
+
+  .sup-view-value {
+    font-size: 13px;
+    color: var(--color-text-primary);
+    font-weight: 500;
+    text-align: right;
+    flex: 1;
+  }
+
+  .sup-view-value.empty {
+    color: var(--color-text-secondary);
+    font-style: italic;
+  }
+
+  @media (max-width: 600px) {
+    .sup-view-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .sup-view-row {
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .sup-view-label {
+      min-width: auto;
+    }
+
+    .sup-view-value {
+      text-align: left;
+    }
+  }
+
+  @media (min-width: 601px) and (max-width: 768px) {
+    .sup-modal {
+      max-width: 90%;
+    }
+
+    .sup-modal-header {
+      padding: 18px 20px 16px;
+    }
+
+    .sup-modal-body {
+      padding: 20px;
+    }
+
+    .sup-modal-footer {
+      padding: 16px 20px;
+    }
+  }
+
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .sup-modal {
+      max-width: 550px;
+    }
+  }
+
+  @media (min-width: 1025px) and (max-width: 1200px) {
+    .sup-modal {
+      max-width: 580px;
+    }
+  }
+
+  @media (min-width: 1201px) and (max-width: 1399px) {
+    .sup-modal {
+      max-width: 620px;
     }
   }
 </style>
@@ -1025,26 +1179,71 @@
 
     const address = [supplier.address_line1, supplier.address_line2, supplier.city, supplier.province].filter(Boolean).join(', ');
 
+    const isEmpty = (val) => !val || val === '';
+
     document.getElementById('modalSupplierContent').innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
-      <div>
-        <div style="font-size:11px;font-weight:700;color:var(--prod-blue);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--prod-blue-pale);"><i class="fas fa-info-circle" style="margin-right:5px;opacity:.6"></i>Basic Information</div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Supplier Code</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${supplier.supplier_code || '—'}</div></div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Company Name</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${supplier.company_name}</div></div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Contact Person</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${supplier.contact_person || '—'}</div></div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Email</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${supplier.email || '—'}</div></div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Phone (Primary)</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${supplier.phone_primary || '—'}</div></div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Phone (Secondary)</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${supplier.phone_secondary || '—'}</div></div>
+    <div class="sup-view-grid">
+      <div class="sup-view-section">
+        <div class="sup-view-section-header">
+          <i class="fas fa-info-circle"></i> Basic Information
+        </div>
+        <div class="sup-view-row">
+          <div class="sup-view-label">Supplier Code</div>
+          <div class="sup-view-value ${isEmpty(supplier.supplier_code) ? 'empty' : ''}">${supplier.supplier_code || '—'}</div>
+        </div>
+        <div class="sup-view-row">
+          <div class="sup-view-label">Company Name</div>
+          <div class="sup-view-value">${supplier.company_name}</div>
+        </div>
+        <div class="sup-view-row">
+          <div class="sup-view-label">Contact Person</div>
+          <div class="sup-view-value ${isEmpty(supplier.contact_person) ? 'empty' : ''}">${supplier.contact_person || '—'}</div>
+        </div>
+        <div class="sup-view-row">
+          <div class="sup-view-label">Email</div>
+          <div class="sup-view-value ${isEmpty(supplier.email) ? 'empty' : ''}">${supplier.email || '—'}</div>
+        </div>
+        <div class="sup-view-row">
+          <div class="sup-view-label">Phone (Primary)</div>
+          <div class="sup-view-value ${isEmpty(supplier.phone_primary) ? 'empty' : ''}">${supplier.phone_primary || '—'}</div>
+        </div>
+        <div class="sup-view-row">
+          <div class="sup-view-label">Phone (Secondary)</div>
+          <div class="sup-view-value ${isEmpty(supplier.phone_secondary) ? 'empty' : ''}">${supplier.phone_secondary || '—'}</div>
+        </div>
       </div>
-      <div>
-        <div style="font-size:11px;font-weight:700;color:var(--prod-blue);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--prod-blue-pale);margin-top:20px;"><i class="fas fa-map-marker-alt" style="margin-right:5px;opacity:.6"></i>Address</div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Address</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${address || '—'}</div></div>
-        <div style="font-size:11px;font-weight:700;color:var(--prod-blue);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--prod-blue-pale);margin-top:20px;"><i class="fas fa-briefcase" style="margin-right:5px;opacity:.6"></i>Business Details</div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">TIN Number</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${supplier.tin_number || '—'}</div></div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Payment Terms</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${supplier.payment_terms || '—'}</div></div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Notes</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;">${supplier.notes || '—'}</div></div>
-        <div style="font-size:11px;font-weight:700;color:var(--prod-blue);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--prod-blue-pale);margin-top:20px;"><i class="fas fa-sliders" style="margin-right:5px;opacity:.6"></i>Settings</div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.04);"><div style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Status</div><div style="font-size:13px;color:var(--color-text-primary);font-weight:500;text-align:right;"><span class="sup-badge active">${supplier.is_active ? 'Active' : 'Inactive'}</span></div></div>
+      <div class="sup-view-section">
+        <div class="sup-view-section-header">
+          <i class="fas fa-map-marker-alt"></i> Address
+        </div>
+        <div class="sup-view-row">
+          <div class="sup-view-label">Full Address</div>
+          <div class="sup-view-value ${isEmpty(address) ? 'empty' : ''}">${address || '—'}</div>
+        </div>
+        <div class="sup-view-section-header" style="margin-top: 20px;">
+          <i class="fas fa-briefcase"></i> Business Details
+        </div>
+        <div class="sup-view-row">
+          <div class="sup-view-label">TIN Number</div>
+          <div class="sup-view-value ${isEmpty(supplier.tin_number) ? 'empty' : ''}">${supplier.tin_number || '—'}</div>
+        </div>
+        <div class="sup-view-row">
+          <div class="sup-view-label">Payment Terms</div>
+          <div class="sup-view-value ${isEmpty(supplier.payment_terms) ? 'empty' : ''}">${supplier.payment_terms || '—'}</div>
+        </div>
+        <div class="sup-view-row">
+          <div class="sup-view-label">Notes</div>
+          <div class="sup-view-value ${isEmpty(supplier.notes) ? 'empty' : ''}">${supplier.notes || '—'}</div>
+        </div>
+        <div class="sup-view-section-header" style="margin-top: 20px;">
+          <i class="fas fa-sliders"></i> Settings
+        </div>
+        <div class="sup-view-row">
+          <div class="sup-view-label">Status</div>
+          <div class="sup-view-value">
+            <span class="sup-badge ${supplier.is_active ? 'active' : ''}">${supplier.is_active ? 'Active' : 'Inactive'}</span>
+          </div>
+        </div>
       </div>
     </div>`;
 
