@@ -9,6 +9,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('inventory.view');
       if ($action === 'list') {
         $productId = $_GET['product_id'] ?? null;
         
@@ -78,6 +79,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('inventory.edit');
       $data = json_decode(file_get_contents('php://input'), true);
       
       if ($action === 'create') {

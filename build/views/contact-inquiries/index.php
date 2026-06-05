@@ -381,7 +381,7 @@
       const rowCls    = `ci-row-clickable${isNew ? ' ci-row-new' : ''}`;
       const viewUrl   = `./contact-inquiries/view?id=${inq.inquiry_id}`;
 
-      // Relative date with full date tooltip
+      // Relative date with full date tooltip — store created timestamp for live updates
       const createdMs = new Date(inq.created_at).getTime();
       const diffSec   = Math.floor((Date.now() - createdMs) / 1000);
       let relDate;
@@ -391,6 +391,7 @@
       else if (diffSec < 604800)  relDate = Math.floor(diffSec / 86400) + ' day(s) ago';
       else relDate = new Date(inq.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
       const fullDate  = new Date(inq.created_at).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit' });
+      const relAttr   = `data-created="${createdMs}"`;
 
       const preview  = (inq.message || '').substring(0, 60) + (inq.message.length > 60 ? '…' : '');
       const nameWt   = isNew ? 'font-weight:600' : 'font-weight:500';
@@ -413,7 +414,7 @@
           <td>
             <span class="ci-truncate" style="max-width:200px;color:var(--color-text-secondary,#6b7280)" title="${escHtml(inq.message || '')}">${escHtml(preview)}</span>
           </td>
-          <td style="white-space:nowrap;color:var(--color-text-secondary,#6b7280)" title="${fullDate}">${relDate}</td>
+          <td style="white-space:nowrap;color:var(--color-text-secondary,#6b7280)" title="${fullDate}" ${relAttr} class="ci-rel-date">${relDate}</td>
           <td style="text-align:right">
             <a href="${viewUrl}"
               style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:500;background:#3b82f6;color:#fff;text-decoration:none;border:none"
@@ -493,6 +494,8 @@
   });
 
   /* ── Auto-refresh ── */
+  let refreshTimer = null;
+
   function updateLastRefreshed() {
     const el = document.getElementById('ciLastRefreshed');
     if (el) el.textContent = 'Last updated ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -504,11 +507,53 @@
     updateLastRefreshed();
   }
 
-  setInterval(() => {
-    reloadWithTimestamp();
-  }, 60000);
+  function startRefresh() {
+    if (refreshTimer) return;
+    refreshTimer = setInterval(() => {
+      reloadWithTimestamp();
+    }, 60000);
+  }
+
+  function stopRefresh() {
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
+      refreshTimer = null;
+    }
+  }
+
+  // Pause when tab hidden, resume (and refresh immediately) when visible.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      stopRefresh();
+    } else {
+      reloadWithTimestamp();
+      startRefresh();
+    }
+  });
+
+  /* ── Live relative timestamps ── */
+  function updateRelativeTimes() {
+    const els = document.querySelectorAll('.ci-rel-date[data-created]');
+    els.forEach(el => {
+      const createdMs = parseInt(el.dataset.created, 10);
+      if (Number.isNaN(createdMs)) return;
+      const diffSec = Math.max(0, Math.floor((Date.now() - createdMs) / 1000));
+      let txt;
+      if (diffSec < 60)           txt = 'Just now';
+      else if (diffSec < 3600)    txt = Math.floor(diffSec / 60) + ' min ago';
+      else if (diffSec < 86400)   txt = Math.floor(diffSec / 3600) + ' hr ago';
+      else if (diffSec < 604800)  txt = Math.floor(diffSec / 86400) + ' day(s) ago';
+      else txt = new Date(createdMs).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+      el.textContent = txt;
+    });
+  }
+
+  // Update timestamps every 60s (aligned with refresh).
+  setInterval(updateRelativeTimes, 60000);
 
   /* ── Init ── */
   reloadWithTimestamp();
+  startRefresh();
+  updateRelativeTimes();
 })();
 </script>

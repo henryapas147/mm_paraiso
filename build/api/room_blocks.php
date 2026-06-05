@@ -21,23 +21,43 @@ if ($method === 'POST') {
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('rooms.view');
       if ($action === 'list') {
+        // Build query with optional room_id filter
+        $whereClause = "";
+        $params = [];
+
+        if (isset($_GET['room_id'])) {
+          $whereClause = "WHERE room_id = ?";
+          $params[] = $_GET['room_id'];
+        }
+
         // Get total count
-        $countStmt = $pdo->query("SELECT COUNT(*) as total FROM room_availability_blocks");
+        $countSql = "SELECT COUNT(*) as total FROM room_availability_blocks " . $whereClause;
+        $countStmt = $pdo->prepare($countSql);
+        $countStmt->execute($params);
         $total = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
 
         // Get paginated blocks with room and property details
         $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
         $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
-        $stmt = $pdo->prepare("
+        
+        // For the main query with joins, use table alias to avoid ambiguity
+        $whereClauseWithAlias = $whereClause ? str_replace('WHERE room_id = ?', 'WHERE rab.room_id = ?', $whereClause) : '';
+        
+        $sql = "
           SELECT rab.*, r.room_name, r.room_number, p.property_name
           FROM room_availability_blocks rab
           LEFT JOIN rooms r ON rab.room_id = r.room_id
           LEFT JOIN properties p ON r.property_id = p.property_id
+          $whereClauseWithAlias
           ORDER BY rab.date_start DESC
           LIMIT ? OFFSET ?
-        ");
-        $stmt->execute([$limit, $offset]);
+        ";
+        $params[] = $limit;
+        $params[] = $offset;
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
         $blocks = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => $blocks, 'total' => $total]);
       } else if ($action === 'single' && isset($_GET['id'])) {
@@ -56,6 +76,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('rooms.edit');
       // Validate CSRF token for write operations
       if (!validateCsrfToken($data['csrf_token'] ?? '')) {
         echo json_encode(['success' => false, 'message' => 'Invalid or missing CSRF token']);
@@ -93,6 +114,7 @@ try {
             $data['reason'] ?? null,
             $data['is_active'] ?? 1
           ]);
+          syncRoomStatus($pdo, $data['room_id']);
           echo json_encode(['success' => true, 'message' => 'Block created successfully']);
         } catch (PDOException $e) {
           echo json_encode(['success' => false, 'message' => 'Database error on create: ' . $e->getMessage()]);
@@ -129,6 +151,7 @@ try {
             $data['block_id']
           ]);
           $rowCount = $stmt->rowCount();
+          syncRoomStatus($pdo, $data['room_id']);
           echo json_encode(['success' => true, 'message' => 'Block updated successfully', 'rows_affected' => $rowCount]);
         } catch (PDOException $e) {
           echo json_encode(['success' => false, 'message' => 'Database error on update: ' . $e->getMessage()]);
@@ -139,12 +162,21 @@ try {
           exit;
         }
         try {
+          // Get room_id before deleting for status sync
+          $stmt = $pdo->prepare("SELECT room_id FROM room_availability_blocks WHERE block_id = ?");
+          $stmt->execute([$data['block_id']]);
+          $block = $stmt->fetch(PDO::FETCH_ASSOC);
+          $roomId = $block ? $block['room_id'] : null;
+
           $stmt = $pdo->prepare("DELETE FROM room_availability_blocks WHERE block_id = ?");
           $result = $stmt->execute([$data['block_id']]);
           $rowCount = $stmt->rowCount();
           if ($rowCount === 0) {
             echo json_encode(['success' => false, 'message' => 'No block found with id: ' . $data['block_id']]);
           } else {
+            if ($roomId) {
+              syncRoomStatus($pdo, $roomId);
+            }
             echo json_encode(['success' => true, 'message' => 'Block deleted successfully', 'rows_affected' => $rowCount]);
           }
         } catch (PDOException $e) {
@@ -163,4 +195,41 @@ try {
     $pdo->rollBack();
   }
   echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+}
+
+/**
+ * Sync room status with active availability blocks.
+ * Should be called after any CRUD operation on room_availability_blocks.
+ */
+function syncRoomStatus($pdo, $roomId) {
+  $nowDate = date('Y-m-d');
+  $nowTime = date('H:i:s');
+
+  // Find the most recently active block for this room
+  $stmt = $pdo->prepare("
+    SELECT block_type
+    FROM room_availability_blocks
+    WHERE room_id = ? AND is_active = 1
+      AND (
+        (date_start < ?) OR (date_start = ? AND (time_start IS NULL OR time_start <= ?))
+      )
+      AND (
+        (date_end > ?) OR (date_end = ? AND (time_end IS NULL OR time_end > ?))
+      )
+    ORDER BY date_end DESC, time_end DESC
+    LIMIT 1
+  ");
+  $stmt->execute([$roomId, $nowDate, $nowDate, $nowTime, $nowDate, $nowDate, $nowTime]);
+  $activeBlock = $stmt->fetch(PDO::FETCH_ASSOC);
+
+  if ($activeBlock) {
+    // Room has an active block - set status to the actual block_type
+    $newStatus = $activeBlock['block_type'];
+    $stmt = $pdo->prepare("UPDATE rooms SET room_status = ? WHERE room_id = ?");
+    $stmt->execute([$newStatus, $roomId]);
+  } else {
+    // No active block - if room has any non-available status, reset to available
+    $stmt = $pdo->prepare("UPDATE rooms SET room_status = 'available' WHERE room_id = ? AND room_status != 'available'");
+    $stmt->execute([$roomId]);
+  }
 }

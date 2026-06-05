@@ -9,6 +9,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('reports.view');
       switch ($action) {
         // Dashboard Summary Endpoints
         case 'revenue_summary':
@@ -163,6 +164,18 @@ try {
             $stmt = $pdo->query("SELECT COALESCE(SUM(p.amount), 0) as revenue FROM payments p WHERE p.payment_status IN ('paid', 'partial') $dateCondition");
           }
           $revenue = $stmt->fetchColumn();
+
+          // Extra charges
+          if ($period === 'year') {
+            $stmt = $pdo->prepare("SELECT COALESCE(SUM(ec.amount), 0) as extra_charges FROM extra_charges ec WHERE YEAR(ec.charged_at) = ?");
+            $stmt->execute([$year]);
+          } else {
+            $stmt = $pdo->query("SELECT COALESCE(SUM(ec.amount), 0) as extra_charges FROM extra_charges ec $expenseDateCondition");
+          }
+          $extraCharges = $stmt->fetchColumn();
+
+          // Total revenue includes extra charges
+          $totalRevenue = $revenue + $extraCharges;
           
           // Expenses from stock_transactions
           if ($period === 'year') {
@@ -174,10 +187,12 @@ try {
           $expenses = $stmt->fetchColumn();
           
           // Net profit
-          $netProfit = $revenue - $expenses;
-          
+          $netProfit = $totalRevenue - $expenses;
+
           echo json_encode(['success' => true, 'data' => [
             'revenue' => $revenue,
+            'extra_charges' => $extraCharges,
+            'total_revenue' => $totalRevenue,
             'expenses' => $expenses,
             'net_profit' => $netProfit,
             'year' => $year,

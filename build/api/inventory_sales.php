@@ -9,6 +9,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('inventory.view');
       if ($action === 'list') {
         $stmt = $pdo->query("
           SELECT isale.*, p.property_name, pm.method_label as payment_method_name, up.profile_photo_url
@@ -56,6 +57,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('inventory.create');
       // Support both JSON and FormData
       $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
       if (strpos($contentType, 'application/json') !== false) {

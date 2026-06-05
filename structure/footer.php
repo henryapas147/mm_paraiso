@@ -5,7 +5,7 @@
                 <div class="text-sm leading-normal text-center text-slate-500 lg:text-left">
                     ©
                     <script>
-                        document.write(new Date().getFullYear() + ",");
+                        document.write(new Date().getFullYear() + "");
                     </script>
                     Developed and Designed by
                     <a href="https://www.facebook.com/anthonzcatzz" class="font-semibold text-slate-700 dark:text-white" target="_blank">@nthonz</a>

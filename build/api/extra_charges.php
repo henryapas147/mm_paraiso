@@ -9,6 +9,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('extra_charges.view');
       if ($action === 'list') {
         $stmt = $pdo->query("
           SELECT ec.*
@@ -34,6 +35,7 @@ try {
       $data = json_decode(file_get_contents('php://input'), true);
 
       if ($action === 'create') {
+        requirePermission('extra_charges.create');
         $charge_id = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
           mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff),
           mt_rand(0, 0x0fff) | 0x4000, mt_rand(0, 0x3fff) | 0x8000,
@@ -55,6 +57,7 @@ try {
         echo json_encode(['success' => true, 'message' => 'Extra charge created successfully', 'charge_id' => $charge_id]);
 
       } else if ($action === 'update') {
+        requirePermission('extra_charges.edit');
         $stmt = $pdo->prepare("
           UPDATE extra_charges SET reservation_id=?, charge_type=?, description=?, amount=?, charged_at=?, notes=?
           WHERE charge_id=?
@@ -71,6 +74,7 @@ try {
         echo json_encode(['success' => true, 'message' => 'Extra charge updated successfully']);
 
       } else if ($action === 'delete') {
+        requirePermission('extra_charges.delete');
         $stmt = $pdo->prepare("DELETE FROM extra_charges WHERE charge_id = ?");
         $stmt->execute([$data['charge_id']]);
         echo json_encode(['success' => true, 'message' => 'Extra charge deleted successfully']);

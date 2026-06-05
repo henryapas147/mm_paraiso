@@ -9,6 +9,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('inventory.view');
       if ($action === 'list') {
         $stmt = $pdo->query("
           SELECT p.*, ic.category_name, ic.category_code, u.uom_code, u.uom_name, s.company_name AS supplier_name
@@ -36,6 +37,7 @@ try {
       $data = json_decode(file_get_contents('php://input'), true);
 
       if ($action === 'create') {
+        requirePermission('inventory.create');
         $id = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
           mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
           mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
@@ -51,6 +53,7 @@ try {
         echo json_encode(['success' => true, 'message' => 'Product created', 'product_id' => $id]);
 
       } elseif ($action === 'update') {
+        requirePermission('inventory.edit');
         $stmt = $pdo->prepare("UPDATE products SET product_code=?, product_name=?, category_id=?, uom_id=?, product_type=?, brand=?, description=?, unit_cost=?, selling_price=?, reorder_point=?, minimum_stock=?, maximum_stock=?, preferred_supplier_id=?, is_active=? WHERE product_id=?");
         $stmt->execute([
           $data['product_code'], $data['product_name'], $data['category_id'] ?: null,
@@ -62,6 +65,7 @@ try {
         echo json_encode(['success' => true, 'message' => 'Product updated']);
 
       } elseif ($action === 'delete') {
+        requirePermission('inventory.delete');
         $stmt = $pdo->prepare("UPDATE products SET is_active=0 WHERE product_id=?");
         $stmt->execute([$data['product_id']]);
         echo json_encode(['success' => true, 'message' => 'Product deleted']);

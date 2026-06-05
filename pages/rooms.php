@@ -185,6 +185,7 @@ $companyName = $companyInfo['company_name'] ?? 'M&M Paraiso';
   <script>
     let allRooms = [];
     let properties = [];
+    let roomBlocks = [];
 
     // Helper function to escape HTML
     function escapeHtml(text) {
@@ -207,6 +208,22 @@ $companyName = $companyInfo['company_name'] ?? 'M&M Paraiso';
     }
 
     // Fetch rooms from API
+    // Fetch room blocks for a specific room
+    async function fetchRoomBlocks(roomId) {
+      try {
+        const response = await fetch(`../build/api/room_blocks.php?action=list&room_id=${encodeURIComponent(roomId)}`);
+        const result = await response.json();
+
+        if (result.success && result.data && result.data.length > 0) {
+          return result.data;
+        }
+        return [];
+      } catch (error) {
+        console.error('Error fetching room blocks:', error);
+        return [];
+      }
+    }
+
     async function fetchRooms() {
       try {
         const response = await fetch('api/rooms.php?action=list');
@@ -215,6 +232,12 @@ $companyName = $companyInfo['company_name'] ?? 'M&M Paraiso';
         if (result.success && result.data && result.data.data) {
           allRooms = result.data.data;
           properties = result.properties;
+          
+          // Fetch blocks for all rooms
+          const blockPromises = allRooms.map(room => fetchRoomBlocks(room.room_id));
+          const allBlocks = await Promise.all(blockPromises);
+          roomBlocks = allBlocks.flat();
+          
           renderPropertyFilter(properties);
           renderRooms(allRooms, result.data.pagination);
         } else {
@@ -244,6 +267,33 @@ $companyName = $companyInfo['company_name'] ?? 'M&M Paraiso';
         option.textContent = `${prop.property_name} (${prop.city || 'N/A'})`;
         select.appendChild(option);
       });
+    }
+
+    // Check if a room has an active block
+    function getRoomBlockStatus(roomId) {
+      const blocks = roomBlocks.filter(block => block.room_id === roomId);
+      if (!blocks.length) return null;
+      
+      const now = new Date();
+      const activeBlock = blocks.find(block => {
+        const startDate = new Date(block.date_start);
+        const endDate = new Date(block.date_end);
+        if (block.time_start) {
+          const [h, m] = block.time_start.split(':');
+          startDate.setHours(parseInt(h), parseInt(m), 0, 0);
+        } else {
+          startDate.setHours(0, 0, 0, 0);
+        }
+        if (block.time_end) {
+          const [h, m] = block.time_end.split(':');
+          endDate.setHours(parseInt(h), parseInt(m), 59, 999);
+        } else {
+          endDate.setHours(23, 59, 59, 999);
+        }
+        return now >= startDate && now < endDate;
+      });
+      
+      return activeBlock ? activeBlock.block_type : null;
     }
 
     // Filter rooms by property
@@ -620,8 +670,15 @@ $companyName = $companyInfo['company_name'] ?? 'M&M Paraiso';
             'maintenance': '#c62828',
             'out_of_order': '#fff'
           };
-          const statusBadge = room.room_status 
-            ? `<span style="background: ${statusColors[room.room_status] || '#e0e0e0'}; color: ${statusTextColors[room.room_status] || '#424242'}; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-left: 10px;">${room.room_status.replace('_', ' ')}</span>`
+          // Check for active block to override status
+          const blockType = getRoomBlockStatus(room.room_id);
+          let effectiveStatus = room.room_status;
+          if (blockType) {
+            effectiveStatus = blockType === 'maintenance' ? 'maintenance' : 'blocked';
+          }
+
+          const statusBadge = effectiveStatus 
+            ? `<span style="background: ${statusColors[effectiveStatus] || '#e0e0e0'}; color: ${statusTextColors[effectiveStatus] || '#424242'}; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-left: 10px;">${effectiveStatus.replace('_', ' ')}</span>`
             : '';
 
           return `
@@ -639,7 +696,10 @@ $companyName = $companyInfo['company_name'] ?? 'M&M Paraiso';
                 ${amenitiesHtml}
                 ${bookingHtml}
                 <div class="main-button">
-                  <a href="room-details.php?room_id=${escapeHtml(room.room_id)}&category_id=${escapeHtml(room.category_id)}">View Details</a>
+                  ${blockType 
+                    ? `<span style="display: inline-flex; align-items: center; justify-content: center; background: #9e9e9e; color: #fff; padding: 12px 30px; border-radius: 5px; font-weight: 500; cursor: not-allowed;">Unavailable - ${blockType === 'maintenance' ? 'Maintenance' : 'Blocked'}</span>`
+                    : `<a href="room-details.php?room_id=${escapeHtml(room.room_id)}&category_id=${escapeHtml(room.category_id)}">View Details</a>`
+                  }
                 </div>
               </div>
             </div>

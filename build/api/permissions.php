@@ -16,6 +16,7 @@ $action = $_GET['action'] ?? '';
 try {
     switch ($method) {
         case 'GET':
+            requirePermission('users.roles.manage');
             if ($action === 'list' || $action === '') {
                 // List all permissions with optional filtering
                 $category = $_GET['category'] ?? null;
@@ -77,6 +78,7 @@ try {
             break;
 
         case 'POST':
+            requirePermission('users.roles.manage');
             $data = json_decode(file_get_contents('php://input'), true);
             
             if ($action === 'create') {

@@ -9,6 +9,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('properties.view');
       if ($action === 'list') {
         $propertyId = $_GET['property_id'] ?? null;
         $policyType = $_GET['policy_type'] ?? null;
@@ -77,6 +78,7 @@ try {
       $data = json_decode(file_get_contents('php://input'), true);
 
       if ($action === 'create') {
+        requirePermission('properties.edit');
         $policyId = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
           mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
           mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
@@ -93,6 +95,7 @@ try {
         echo json_encode(['success' => true, 'message' => 'Booking policy created', 'policy_id' => $policyId]);
 
       } elseif ($action === 'update') {
+        requirePermission('properties.edit');
         $stmt = $pdo->prepare("UPDATE booking_policies SET property_id=?, category_id=?, policy_type=?, policy_name=?, description=?, free_cancel_hours=?, penalty_type=?, penalty_value=?, deposit_type=?, deposit_value=?, min_nights=?, is_active=?, created_by=? WHERE policy_id=?");
         $stmt->execute([
           $data['property_id'] ?? null, $data['category_id'] ?? null,
@@ -104,6 +107,7 @@ try {
         echo json_encode(['success' => true, 'message' => 'Booking policy updated']);
 
       } elseif ($action === 'delete') {
+        requirePermission('properties.edit');
         $stmt = $pdo->prepare("DELETE FROM booking_policies WHERE policy_id=?");
         $stmt->execute([$data['policy_id']]);
         echo json_encode(['success' => true, 'message' => 'Booking policy deleted']);

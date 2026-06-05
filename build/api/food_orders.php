@@ -14,6 +14,7 @@ try {
   switch ($method) {
     case 'GET':
       if ($action === 'list') {
+        requirePermission('food_canteen.view');
         $stmt = $pdo->query("
           SELECT fo.*, p.property_name, r.reservation_id as res_reservation_id, r.reservation_code
           FROM food_orders fo
@@ -34,6 +35,7 @@ try {
         echo json_encode(['success' => true, 'data' => $orders]);
 
       } elseif ($action === 'related') {
+        requirePermission('food_canteen.view');
         $properties = $pdo->query("SELECT property_id, property_name FROM properties ORDER BY property_name ASC")->fetchAll(PDO::FETCH_ASSOC);
         $reservations = $pdo->query("SELECT reservation_id, reservation_code, CONCAT(walkin_first_name, ' ', walkin_last_name) as display FROM reservations WHERE reservation_status IN ('confirmed', 'checked_in') ORDER BY reservation_code ASC")->fetchAll(PDO::FETCH_ASSOC);
         $menuItems = $pdo->query("SELECT item_id, item_name, item_code, price FROM menu_items WHERE is_active = 1 AND is_available = 1 ORDER BY item_name ASC")->fetchAll(PDO::FETCH_ASSOC);
@@ -99,6 +101,7 @@ try {
         echo json_encode(['success' => true, 'data' => $orders]);
 
       } elseif ($action === 'single' && isset($_GET['id'])) {
+        requirePermission('food_canteen.view');
         $stmt = $pdo->prepare("SELECT fo.*, p.property_name, r.reservation_id as res_reservation_id, r.reservation_code FROM food_orders fo LEFT JOIN properties p ON fo.property_id = p.property_id LEFT JOIN reservations r ON fo.reservation_id = r.reservation_id WHERE fo.order_id = ?");
         $stmt->execute([$_GET['id']]);
         $order = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -127,6 +130,7 @@ try {
       $data = json_decode(file_get_contents('php://input'), true);
 
       if ($action === 'create') {
+        requirePermission('food_canteen.create');
         $id = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
           mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
           mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
@@ -192,6 +196,7 @@ try {
         echo json_encode(['success' => true, 'message' => 'Order created', 'order_id' => $id, 'order_number' => $orderNumber]);
 
       } elseif ($action === 'update_status') {
+        requirePermission('food_canteen.edit');
         $pdo->beginTransaction();
         
         // Get current status
@@ -301,6 +306,7 @@ try {
         echo json_encode(['success' => true, 'message' => 'Order status updated']);
 
       } elseif ($action === 'update_payment') {
+        requirePermission('food_canteen.edit');
         $stmt = $pdo->prepare("UPDATE food_orders SET payment_status=?, payment_method_id=? WHERE order_id=?");
         $stmt->execute([$data['payment_status'], $data['payment_method_id'] ?? null, $data['order_id']]);
 
@@ -536,6 +542,7 @@ try {
         echo json_encode(['success' => true, 'message' => 'Payment status updated']);
 
       } elseif ($action === 'delete') {
+        requirePermission('food_canteen.delete');
         $pdo->beginTransaction();
 
         // Delete inventory_sales record if exists

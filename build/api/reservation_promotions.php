@@ -10,6 +10,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('reservations.view');
       if ($action === 'list') {
         $reservationId = $_GET['reservation_id'] ?? null;
         $promoId = $_GET['promo_id'] ?? null;
@@ -92,6 +93,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('reservations.edit');
       // Validate CSRF token for all POST actions
       $headers = getallheaders();
       $csrfToken = $headers['X-CSRF-Token'] ?? $headers['X-Csrf-Token'] ?? null;

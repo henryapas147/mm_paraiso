@@ -9,6 +9,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('dashboard.view');
       if ($action === 'list') {
         $notifId = $_GET['notif_id'] ?? null;
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -68,6 +69,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('dashboard.manage');
       $data = json_decode(file_get_contents('php://input'), true);
 
       if ($action === 'create') {

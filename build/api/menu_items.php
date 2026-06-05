@@ -9,6 +9,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('food_canteen.view');
       if ($action === 'list') {
         $stmt = $pdo->query("
           SELECT mi.*, fc.category_name, p.property_name, mii.image_url
@@ -31,6 +32,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('food_canteen.create');
       // Handle both JSON and FormData inputs
       $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
       if (strpos($contentType, 'multipart/form-data') !== false) {

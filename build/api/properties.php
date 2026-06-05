@@ -144,6 +144,7 @@ function handleGetRequest(string $action, PDO $pdo): void
 {
   switch ($action) {
     case 'list':
+      requirePermission('properties.view');
       $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
       $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
 
@@ -172,6 +173,7 @@ function handleGetRequest(string $action, PDO $pdo): void
       break;
 
     case 'single':
+      requirePermission('properties.view');
       if (!isset($_GET['id'])) {
         sendResponse(false, 'Property ID required');
       }
@@ -245,6 +247,7 @@ function handlePostRequest(string $action, PDO $pdo, array $fields, array $requi
  */
 function handleCreate(array $data, PDO $pdo, array $fields, array $required): void
 {
+  requirePermission('properties.create');
   // Validate required fields
   $missing = validateRequiredFields($data, $required);
   if (!empty($missing)) {
@@ -284,6 +287,7 @@ function handleCreate(array $data, PDO $pdo, array $fields, array $required): vo
  */
 function handleUpdate(array $data, PDO $pdo, array $fields, array $required): void
 {
+  requirePermission('properties.edit');
   if (empty($data['property_id'])) {
     sendResponse(false, 'Property ID required');
   }
@@ -317,6 +321,7 @@ function handleUpdate(array $data, PDO $pdo, array $fields, array $required): vo
  */
 function handleDelete(array $data, PDO $pdo): void
 {
+  requirePermission('properties.delete');
   if (empty($data['property_id'])) {
     sendResponse(false, 'Property ID required');
   }
@@ -383,6 +388,7 @@ function handleDelete(array $data, PDO $pdo): void
  */
 function handleDeleteImage(array $data, PDO $pdo): void
 {
+  requirePermission('properties.edit');
   if (empty($data['image_id'])) {
     sendResponse(false, 'Image ID required');
   }

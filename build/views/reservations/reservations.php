@@ -1595,6 +1595,20 @@
         </div>
       </div>
 
+      <div style="margin-top:24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <h3 style="margin:0;font-size:14px;font-weight:600;color:#185FA5;text-transform:uppercase;letter-spacing:0.05em">Extra Charges</h3>
+          <button onclick="openAddExtraChargeModal('${data.reservation_id}')" style="padding:6px 12px;font-size:12px;background:#185FA5;color:#fff;border:none;border-radius:4px;cursor:pointer">
+            <i class="fa-solid fa-plus"></i> Add Charge
+          </button>
+        </div>
+        <div id="extraChargesContainer">
+          <div style="padding:16px;text-align:center;color:#666;font-size:13px">
+            <i class="fa-solid fa-spinner fa-spin"></i> Loading extra charges...
+          </div>
+        </div>
+      </div>
+
       ${requirements && requirements.length > 0 ? `
       <div style="margin-top:24px">
         <h3 style="margin:0 0 12px;font-size:14px;font-weight:600;color:#92400e;text-transform:uppercase;letter-spacing:0.05em">Requirements</h3>
@@ -1643,6 +1657,186 @@
       footer.innerHTML = `
         <button class="btn" onclick="closeModal('viewModal')">Close</button>
       `;
+    }
+
+    // Fetch extra charges for this reservation
+    fetchReservationExtraCharges(data.reservation_id);
+  }
+
+  let currentReservationId = null;
+
+  async function fetchReservationExtraCharges(reservationId) {
+    currentReservationId = reservationId;
+    const container = document.getElementById('extraChargesContainer');
+    if (!container) return;
+
+    try {
+      const res = await fetch(`../api/extra_charges.php?action=list&reservation_id=${reservationId}`);
+      const result = await res.json();
+      if (result.success) {
+        renderReservationExtraCharges(result.data);
+      } else {
+        container.innerHTML = `<div style="padding:16px;text-align:center;color:#999;font-size:13px">No extra charges</div>`;
+      }
+    } catch (e) {
+      console.error('Error fetching extra charges:', e);
+      container.innerHTML = `<div style="padding:16px;text-align:center;color:#C62828;font-size:13px">Failed to load extra charges</div>`;
+    }
+  }
+
+  function renderReservationExtraCharges(charges) {
+    const container = document.getElementById('extraChargesContainer');
+    if (!container) return;
+
+    if (!charges || charges.length === 0) {
+      container.innerHTML = `<div style="padding:16px;text-align:center;color:#999;font-size:13px">No extra charges for this reservation</div>`;
+      return;
+    }
+
+    const typeColors = {
+      damage: '#FEE2E2;color:#DC2626',
+      late_checkout: '#FEF3C7;color:#D97706',
+      extra_amenity: '#DBEAFE;color:#2563EB',
+      cleaning: '#CCFBF1;color:#0D9488',
+      extension: '#EDE9FE;color:#7C3AED',
+      other: '#F5F5F5;color:#666'
+    };
+
+    container.innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="background:#f5f5f5">
+            <th style="padding:8px 12px;text-align:left;font-weight:600;color:#666;font-size:11px;text-transform:uppercase">Type</th>
+            <th style="padding:8px 12px;text-align:left;font-weight:600;color:#666;font-size:11px;text-transform:uppercase">Description</th>
+            <th style="padding:8px 12px;text-align:right;font-weight:600;color:#666;font-size:11px;text-transform:uppercase">Amount</th>
+            <th style="padding:8px 12px;text-align:right;font-weight:600;color:#666;font-size:11px;text-transform:uppercase">Date</th>
+            <th style="padding:8px 12px;text-align:center;font-weight:600;color:#666;font-size:11px;text-transform:uppercase">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${charges.map(c => {
+            const tc = typeColors[c.charge_type] || typeColors.other;
+            const typeLabel = (c.charge_type || '').replace(/_/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase());
+            const chargedAt = c.charged_at ? new Date(c.charged_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-';
+            return `<tr style="border-top:1px solid #e0e0e0">
+              <td style="padding:9px 12px"><span style="font-size:11px;background:${tc};border-radius:9999px;padding:2px 9px;font-weight:500">${typeLabel}</span></td>
+              <td style="padding:9px 12px;color:#1a1a1a">${c.description || '-'}</td>
+              <td style="padding:9px 12px;text-align:right;font-weight:600">₱${parseFloat(c.amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
+              <td style="padding:9px 12px;text-align:right;color:#666">${chargedAt}</td>
+              <td style="padding:9px 12px;text-align:center">
+                <button onclick="deleteReservationExtraCharge('${c.charge_id}')" style="padding:4px 8px;font-size:11px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:4px;cursor:pointer">Delete</button>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function openAddExtraChargeModal(reservationId) {
+    currentReservationId = reservationId;
+    const modalHtml = `
+      <div class="overlay" id="addExtraChargeModal" style="display:flex">
+        <div class="modal" style="max-width:500px">
+          <div class="modal-header">
+            <div class="modal-title">Add Extra Charge</div>
+            <button class="modal-close" onclick="closeAddExtraChargeModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form id="addExtraChargeForm">
+              <div class="form-group">
+                <label>Charge Type</label>
+                <select id="extra_charge_type" class="form-control" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:4px">
+                  <option value="damage">Damage</option>
+                  <option value="late_checkout">Late Checkout</option>
+                  <option value="extra_amenity">Extra Amenity</option>
+                  <option value="cleaning">Cleaning</option>
+                  <option value="extension">Extension</option>
+                  <option value="other" selected>Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Description</label>
+                <input type="text" id="extra_charge_description" class="form-control" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:4px" placeholder="Enter description">
+              </div>
+              <div class="form-group">
+                <label>Amount (₱)</label>
+                <input type="number" id="extra_charge_amount" class="form-control" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:4px" placeholder="0.00" step="0.01" min="0">
+              </div>
+              <div class="form-group">
+                <label>Notes (optional)</label>
+                <textarea id="extra_charge_notes" class="form-control" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:4px;min-height:60px" placeholder="Additional notes"></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button class="btn" onclick="closeAddExtraChargeModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="submitExtraCharge()">Add Charge</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+  }
+
+  function closeAddExtraChargeModal() {
+    const modal = document.getElementById('addExtraChargeModal');
+    if (modal) modal.remove();
+  }
+
+  async function submitExtraCharge() {
+    const chargeType = document.getElementById('extra_charge_type').value;
+    const description = document.getElementById('extra_charge_description').value;
+    const amount = document.getElementById('extra_charge_amount').value;
+    const notes = document.getElementById('extra_charge_notes').value;
+
+    if (!description || !amount) {
+      alert('Please fill in description and amount');
+      return;
+    }
+
+    try {
+      const res = await fetch('../api/extra_charges.php?action=create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': '<?php echo htmlspecialchars($_SESSION["csrf_token"] ?? "", ENT_QUOTES, "UTF-8"); ?>' },
+        body: JSON.stringify({
+          reservation_id: currentReservationId,
+          charge_type: chargeType,
+          description: description,
+          amount: amount,
+          notes: notes
+        })
+      });
+      const result = await res.json();
+      if (result.success) {
+        closeAddExtraChargeModal();
+        fetchReservationExtraCharges(currentReservationId);
+      } else {
+        alert('Failed to add charge: ' + (result.message || 'Unknown error'));
+      }
+    } catch (e) {
+      alert('Failed to add charge');
+      console.error(e);
+    }
+  }
+
+  async function deleteReservationExtraCharge(chargeId) {
+    if (!confirm('Are you sure you want to delete this extra charge?')) return;
+
+    try {
+      const res = await fetch(`../api/extra_charges.php?action=delete&id=${chargeId}`, {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': '<?php echo htmlspecialchars($_SESSION["csrf_token"] ?? "", ENT_QUOTES, "UTF-8"); ?>' }
+      });
+      const result = await res.json();
+      if (result.success) {
+        fetchReservationExtraCharges(currentReservationId);
+      } else {
+        alert('Failed to delete charge: ' + (result.message || 'Unknown error'));
+      }
+    } catch (e) {
+      alert('Failed to delete charge');
+      console.error(e);
     }
   }
 

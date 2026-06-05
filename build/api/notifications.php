@@ -9,6 +9,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('dashboard.view');
       if ($action === 'list') {
         $propertyId = $_GET['property_id'] ?? null;
         $status = $_GET['status'] ?? null;
@@ -173,6 +174,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('dashboard.manage');
       $data = json_decode(file_get_contents('php://input'), true);
 
       if ($action === 'create') {

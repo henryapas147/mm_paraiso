@@ -9,6 +9,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('food_canteen.view');
       if ($action === 'list') {
         $stmt = $pdo->query("
           SELECT fc.*, p.property_name
@@ -28,6 +29,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('food_canteen.create');
       $data = json_decode(file_get_contents('php://input'), true);
 
       if ($action === 'create') {

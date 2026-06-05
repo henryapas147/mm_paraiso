@@ -261,8 +261,14 @@ $categoryId = $_GET['category_id'] ?? null;
         const result = await response.json();
 
         if (result.success) {
+          // Fetch room blocks if viewing a specific room
+          let roomBlocks = [];
+          if (roomId) {
+            roomBlocks = await fetchRoomBlocks(roomId);
+          }
+
           // Amenities now included in API response, no separate fetch needed
-          renderRoomDetails(result.data, roomId ? 'room' : 'category');
+          renderRoomDetails(result.data, roomId ? 'room' : 'category', roomBlocks);
           // Fetch booking policies for this room/category
           if (result.data.category_id) {
             fetchBookingPolicies(result.data.category_id);
@@ -324,6 +330,22 @@ $categoryId = $_GET['category_id'] ?? null;
       }
     }
 
+    // Fetch room availability blocks
+    async function fetchRoomBlocks(roomId) {
+      try {
+        const response = await fetch(`../build/api/room_blocks.php?action=list&room_id=${encodeURIComponent(roomId)}`);
+        const result = await response.json();
+
+        if (result.success && result.data && result.data.length > 0) {
+          return result.data.filter(block => block.is_active == 1);
+        }
+        return [];
+      } catch (error) {
+        console.error('Error fetching room blocks:', error);
+        return [];
+      }
+    }
+
     // Render booking policies
     function renderBookingPolicies(policies) {
       const container = document.getElementById('policiesContainer');
@@ -379,7 +401,7 @@ $categoryId = $_GET['category_id'] ?? null;
     }
 
     // Render room details
-    function renderRoomDetails(room, dataType = 'category') {
+    function renderRoomDetails(room, dataType = 'category', roomBlocks = []) {
       // Determine if rendering specific room or category
       const isRoom = dataType === 'room';
       
@@ -541,6 +563,7 @@ $categoryId = $_GET['category_id'] ?? null;
       // Individual rooms list (only for category view)
       let individualRoomsHtml = '';
       let roomCountBadge = '';
+      let isBlocked = false; // Default value
       
       if (!isRoom && room.rooms && room.rooms.length > 0) {
         const roomsList = room.rooms.map(r => {
@@ -570,13 +593,53 @@ $categoryId = $_GET['category_id'] ?? null;
           : `<span style="background: #ffebee; color: #c62828; padding: 8px 15px; border-radius: 20px; font-size: 14px; font-weight: 600; margin-left: 15px;">No rooms available</span>`;
       } else if (isRoom) {
         // Show room status badge for single room
+        // Check if there are active blocks that override the status
+        let effectiveStatus = room.room_status;
+        let blockInfo = null;
+
+        if (roomBlocks && roomBlocks.length > 0) {
+          // Find the most recent active block
+          const activeBlock = roomBlocks.find(block => {
+            const now = new Date();
+
+            // Parse date+time manually to avoid UTC offset issues
+            const parseLocalDateTime = (dateStr, timeStr, defaultHours) => {
+              const [year, month, day] = dateStr.split('-').map(Number);
+              const d = new Date(year, month - 1, day); // local midnight, no UTC shift
+              if (timeStr) {
+                const [h, m] = timeStr.split(':').map(Number);
+                d.setHours(h, m, 0, 0);
+              } else {
+                d.setHours(...defaultHours);
+              }
+              return d;
+            };
+
+            const startDate = parseLocalDateTime(block.date_start, block.time_start, [0, 0, 0, 0]);
+            const endDate   = parseLocalDateTime(block.date_end,   block.time_end,   [23, 59, 59, 999]);
+
+            return now >= startDate && now < endDate;
+          });
+
+          if (activeBlock) {
+            effectiveStatus = activeBlock.block_type === 'maintenance' ? 'maintenance' : 'blocked';
+            blockInfo = activeBlock;
+          } else {
+            // If no active block but room status is maintenance/blocked, reset to available
+            if (effectiveStatus === 'maintenance' || effectiveStatus === 'blocked') {
+              effectiveStatus = 'available';
+            }
+          }
+        }
+
         const statusColors = {
           'available': '#e8f5e9',
           'occupied': '#fff3e0',
           'reserved': '#e3f2fd',
           'cleaning': '#fce4ec',
           'maintenance': '#ffebee',
-          'out_of_order': '#37474f'
+          'out_of_order': '#37474f',
+          'blocked': '#ffccbc'
         };
         const statusTextColors = {
           'available': '#2e7d32',
@@ -584,11 +647,25 @@ $categoryId = $_GET['category_id'] ?? null;
           'reserved': '#1565c0',
           'cleaning': '#c2185b',
           'maintenance': '#c62828',
-          'out_of_order': '#fff'
+          'out_of_order': '#fff',
+          'blocked': '#e65100'
         };
-        roomCountBadge = room.room_status 
-          ? `<span style="background: ${statusColors[room.room_status] || '#e0e0e0'}; color: ${statusTextColors[room.room_status] || '#424242'}; padding: 8px 15px; border-radius: 20px; font-size: 14px; font-weight: 600; margin-left: 15px;">${room.room_status.replace('_', ' ').toUpperCase()}</span>`
+        const statusLabels = {
+          'available': 'AVAILABLE',
+          'occupied': 'OCCUPIED',
+          'reserved': 'RESERVED',
+          'cleaning': 'CLEANING',
+          'maintenance': 'MAINTENANCE',
+          'out_of_order': 'OUT OF ORDER',
+          'blocked': 'BLOCKED'
+        };
+
+        roomCountBadge = effectiveStatus 
+          ? `<span style="background: ${statusColors[effectiveStatus] || '#e0e0e0'}; color: ${statusTextColors[effectiveStatus] || '#424242'}; padding: 8px 15px; border-radius: 20px; font-size: 14px; font-weight: 600; margin-left: 15px;">${statusLabels[effectiveStatus] || effectiveStatus.toUpperCase()}</span>`
           : '';
+
+        // Check if room is blocked (has active maintenance or block)
+        isBlocked = effectiveStatus === 'maintenance' || effectiveStatus === 'blocked';
       }
 
       document.getElementById('roomDetailsContainer').innerHTML = `
@@ -628,6 +705,75 @@ $categoryId = $_GET['category_id'] ?? null;
               ${isRoom ? ` • <i class="fa fa-door-open"></i> Room ${escapeHtml(room.room_number)}` : ''}
             </div>
             <p>${(isRoom ? room.category_description : room.description) ? escapeHtml(isRoom ? room.category_description : room.description) : 'No description available.'}</p>
+
+            ${isRoom && roomBlocks && roomBlocks.length > 0 ? (() => {
+              // Only show active blocks
+              const activeBlocks = roomBlocks.filter(block => {
+                const now = new Date();
+                const startDate = new Date(block.date_start);
+                const endDate = new Date(block.date_end);
+                if (block.time_start) {
+                  const [h, m] = block.time_start.split(':');
+                  startDate.setHours(parseInt(h), parseInt(m), 0, 0);
+                } else {
+                  startDate.setHours(0, 0, 0, 0);
+                }
+                if (block.time_end) {
+                  const [h, m] = block.time_end.split(':');
+                  endDate.setHours(parseInt(h), parseInt(m), 59, 999);
+                } else {
+                  endDate.setHours(23, 59, 59, 999);
+                }
+                return now >= startDate && now < endDate;
+              });
+              
+              if (activeBlocks.length === 0) return '';
+              
+              return `
+            <!-- Room Availability Blocks -->
+            <div style="margin-top: 25px;">
+              <h5 style="color: #f35525; margin-bottom: 15px;"><i class="fa fa-calendar-times" style="margin-right: 8px;"></i>Availability Blocks</h5>
+              ${activeBlocks.map(block => {
+                const startDate = new Date(block.date_start);
+                const endDate = new Date(block.date_end);
+                const blockTypeLabel = block.block_type === 'maintenance' ? 'Maintenance' : 'Blocked';
+                const blockTypeIcon = block.block_type === 'maintenance' ? 'fa-wrench' : 'fa-ban';
+                
+                // Format date as "Month Day Year"
+                const formatDate = (date) => {
+                  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                  return date.toLocaleDateString('en-US', options);
+                };
+                
+                // Format time to 12-hour format
+                const formatTime = (time) => {
+                  if (!time) return '';
+                  const [hours, minutes] = time.split(':');
+                  const hour = parseInt(hours);
+                  const ampm = hour >= 12 ? 'PM' : 'AM';
+                  const hour12 = hour % 12 || 12;
+                  return `${hour12}:${minutes} ${ampm}`;
+                };
+                
+                return `
+                  <div style="background: #fff3e0; border-left: 4px solid #ff9800; padding: 15px; border-radius: 5px; margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                      <span style="font-weight: 600; color: #e65100;">
+                        <i class="fa ${blockTypeIcon}" style="margin-right: 5px;"></i>${blockTypeLabel}
+                      </span>
+                      <span style="background: #ff9800; color: white; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;">ACTIVE</span>
+                    </div>
+                    <div style="font-size: 13px; color: #666;">
+                      <div><i class="fa fa-calendar" style="margin-right: 5px;"></i>${formatDate(startDate)} - ${formatDate(endDate)}</div>
+                      ${block.time_start && block.time_end ? `<div><i class="fa fa-clock-o" style="margin-right: 5px;"></i>${formatTime(block.time_start)} - ${formatTime(block.time_end)}</div>` : ''}
+                      ${block.reason ? `<div style="margin-top: 5px; font-style: italic;"><i class="fa fa-info-circle" style="margin-right: 5px;"></i>${escapeHtml(block.reason)}</div>` : ''}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+            `;
+            })() : ''}
             
             ${isRoom && room.building_block ? `
             <!-- Building & Floor Info Cards -->
@@ -1015,9 +1161,15 @@ $categoryId = $_GET['category_id'] ?? null;
 
           <!-- Action Buttons -->
           <div class="main-button" style="margin-bottom: 15px;">
-            <a href="schedule-visit.php?property_id=${escapeHtml(room.property_id)}&room_category_id=${escapeHtml(room.category_id)}${isRoom ? '&room_id=' + escapeHtml(room.room_id) : ''}" style="width: 100%; text-align: center; display: block;">
-              <i class="fa fa-calendar"></i> Book This Room
-            </a>
+            ${isBlocked ? `
+              <a href="#" onclick="return false;" style="width: 100%; text-align: center; display: block; background: #ccc; cursor: not-allowed; pointer-events: none;">
+                <i class="fa fa-calendar"></i> Book This Room (Unavailable)
+              </a>
+            ` : `
+              <a href="schedule-visit.php?property_id=${escapeHtml(room.property_id)}&room_category_id=${escapeHtml(room.category_id)}${isRoom ? '&room_id=' + escapeHtml(room.room_id) : ''}" style="width: 100%; text-align: center; display: block;">
+                <i class="fa fa-calendar"></i> Book This Room
+              </a>
+            `}
           </div>
           <div style="text-align: center;">
             <a href="property-details.php?id=${escapeHtml(room.property_id)}" style="color: #666; text-decoration: underline;">

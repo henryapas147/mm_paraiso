@@ -1,0 +1,68 @@
+# Security Hardening for M&M Paraiso Booking System
+
+# Disable directory browsing
+Options -Indexes
+
+# Hide server signature
+ServerSignature Off
+
+# Block access to sensitive files
+<FilesMatch "(credentials\.php|\.env|\.git|composer\.json|composer\.lock|package\.json|package-lock\.json)">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Block access to config directories
+<FilesMatch "^config/">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Prevent access to .git and .svn
+RedirectMatch 404 /\.git
+RedirectMatch 404 /\.svn
+
+# Block access to sensitive file types
+<FilesMatch "\.(log|sql|bak|old|tmp|swp)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Prevent access to node_modules
+RedirectMatch 404 ^/node_modules/
+
+# Prevent access to build config (except API)
+<FilesMatch "^build/config/">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Allow only specific access to build/api
+<FilesMatch "^build/api/">
+    Order allow,deny
+    Allow from all
+</FilesMatch>
+
+# Force HTTPS (uncomment in production)
+# RewriteEngine On
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Protect against clickjacking
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# Disable HTTP TRACE method
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK)
+    RewriteRule .* - [F]
+</IfModule>
+
+# Limit request size to prevent DoS
+LimitRequestBody 104857600

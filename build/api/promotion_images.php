@@ -9,6 +9,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('settings.view');
       if ($action === 'list') {
         $promoId = $_GET['promo_id'] ?? null;
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -64,6 +65,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('settings.edit');
       if ($action === 'create') {
         $imageId = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
           mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),

@@ -17,6 +17,7 @@ if (strpos($contentType, 'application/json') !== false) {
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('inventory.view');
       if ($action === 'list') {
         $stmt = $pdo->query("
           SELECT po.*, s.company_name, p.property_name
@@ -114,6 +115,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('inventory.create');
       if ($action === 'add' || $action === 'create') {
         $id = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
           mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),

@@ -63,6 +63,10 @@ $phone = $companyInfo['phone_number'] ?? '010-020-0340';
 $email = $companyInfo['email'] ?? 'info@villa.co';
 $googleMapsUrl = $companyInfo['google_maps_embed_url'] ?? 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d12469.776493332698!2d-80.14036379941481!3d25.907788681148624!2m3!1f357.26927939317244!2f20.870722720054623!3f0!3m2!1i1024!2i768!4f35!3m3!1m2!1s0x88d9add4b4ac788f%3A0xe77469d09480fcdb!2sSunny%20Isles%20Beach!5e1!3m2!1sen!2sth!4v1642869952544!5m2!1sen!2sth';
 $youtubeUrl = $companyInfo['youtube_url'] ?? null;
+$videoFile = $companyInfo['video_file'] ? '../build/' . $companyInfo['video_file'] : null;
+$videoSourcePreference = $companyInfo['video_source_preference'] ?? 'youtube_priority';
+$videoTitle = $companyInfo['video_title'] ?? 'Get Closer View & Different Feeling';
+$videoDescription = $companyInfo['video_description'] ?? null;
 $companyDescription = $companyInfo['description'] ?? null;
 $companyCheckinTime = null;
 
@@ -474,7 +478,10 @@ https://templatemo.com/tm-591-villa-agency
         <div class="col-lg-4 offset-lg-4">
           <div class="section-heading text-center">
             <h6>| Video View</h6>
-            <h2>Get Closer View & Different Feeling</h2>
+            <h2><?php echo htmlspecialchars($videoTitle); ?></h2>
+            <?php if ($videoDescription): ?>
+              <p style="color: white;"><?php echo htmlspecialchars($videoDescription); ?></p>
+            <?php endif; ?>
           </div>
         </div>
       </div>
@@ -486,11 +493,47 @@ https://templatemo.com/tm-591-villa-agency
       <div class="row">
         <div class="col-lg-10 offset-lg-1">
           <div class="video-frame">
-            <?php if ($youtubeEmbedUrl): ?>
+            <?php
+            // Determine which video to display based on preference
+            $displayVideo = null;
+            $displayType = null;
+            
+            switch ($videoSourcePreference) {
+              case 'youtube':
+                $displayVideo = $youtubeEmbedUrl;
+                $displayType = 'youtube';
+                break;
+              case 'file':
+                $displayVideo = $videoFile;
+                $displayType = 'file';
+                break;
+              case 'file_priority':
+                $displayVideo = $videoFile ?: $youtubeEmbedUrl;
+                $displayType = $videoFile ? 'file' : ($youtubeEmbedUrl ? 'youtube' : null);
+                break;
+              case 'youtube_priority':
+              default:
+                $displayVideo = $youtubeEmbedUrl ?: $videoFile;
+                $displayType = $youtubeEmbedUrl ? 'youtube' : ($videoFile ? 'file' : null);
+                break;
+            }
+            ?>
+            
+            <?php if ($displayVideo && $displayType === 'file'): ?>
+              <!-- Uploaded video file -->
               <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
-                <iframe src="<?php echo htmlspecialchars($youtubeEmbedUrl); ?>" title="<?php echo htmlspecialchars($companyInfo['company_name'] ?? 'M&M Paraiso'); ?>" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border-radius:10px;"></iframe>
+                <video controls style="position:absolute; top:0; left:0; width:100%; height:100%; border-radius:10px;">
+                  <source src="<?php echo htmlspecialchars($displayVideo); ?>" type="video/mp4">
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            <?php elseif ($displayVideo && $displayType === 'youtube'): ?>
+              <!-- YouTube embed -->
+              <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+                <iframe src="<?php echo htmlspecialchars($displayVideo); ?>" title="<?php echo htmlspecialchars($companyInfo['company_name'] ?? 'M&M Paraiso'); ?>" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border-radius:10px;"></iframe>
               </div>
             <?php else: ?>
+              <!-- Fallback image -->
               <img src="assets/images/video-frame.jpg" alt="">
               <?php if ($youtubeUrl): ?>
                 <a href="<?php echo htmlspecialchars($youtubeUrl); ?>" target="_blank"><i class="fa fa-play"></i></a>

@@ -12,6 +12,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('settings.view');
       if ($action === 'list') {
         $propertyId = $_GET['property_id'] ?? null;
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -71,6 +72,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('settings.edit');
       $data = json_decode(file_get_contents('php://input'), true);
 
       // Validate CSRF token for write operations

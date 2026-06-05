@@ -22,3 +22,39 @@ function applyPublicMiddleware(): void {
   // DB and session already initialized via db.php (loaded through auth.php above).
   // Public endpoints handle their own per-action CSRF checks where needed.
 }
+
+function hasPermission(string $permission): bool {
+  global $pdo;
+
+  // Super admin has all permissions
+  if (($_SESSION['role_code'] ?? '') === 'super_admin') {
+    return true;
+  }
+
+  // Get user's role permissions
+  $roleCode = $_SESSION['role_code'] ?? '';
+  if (empty($roleCode)) {
+    return false;
+  }
+
+  $stmt = $pdo->prepare("SELECT permissions FROM user_roles WHERE role_code = ?");
+  $stmt->execute([$roleCode]);
+  $role = $stmt->fetch(PDO::FETCH_ASSOC);
+
+  if (!$role) {
+    return false;
+  }
+
+  $permissions = json_decode($role['permissions'], true) ?? [];
+
+  // Check if role has "all" permission or the specific permission
+  return in_array('all', $permissions) || in_array($permission, $permissions);
+}
+
+function requirePermission(string $permission): void {
+  if (!hasPermission($permission)) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Forbidden: Insufficient permissions']);
+    exit;
+  }
+}

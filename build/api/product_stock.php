@@ -9,6 +9,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('inventory.view');
       if ($action === 'list') {
         $stmt = $pdo->query("
           SELECT psl.*, p.product_name, p.product_code, il.location_name, il.location_type,

@@ -207,6 +207,7 @@ try {
   switch ($method) {
     case 'GET':
       if ($action === 'list') {
+        requirePermission('reservations.view');
         $page   = max(1, intval($_GET['page'] ?? 1));
         $limit  = max(1, min(100, intval($_GET['limit'] ?? 10)));
         $offset = ($page - 1) * $limit;
@@ -272,6 +273,7 @@ try {
           'pagination' => ['total' => $total, 'page' => $page, 'limit' => $limit, 'pages' => ceil($total / $limit)]
         ]);
       } else if ($action === 'my_reservations') {
+        // No permission check - users can view their own reservations
         $userId = $_SESSION['user_id'] ?? null;
         if (!$userId) {
           echo json_encode(['success' => false, 'message' => 'Not authenticated']);
@@ -296,6 +298,7 @@ try {
         $reservations = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => $reservations]);
       } else if ($action === 'single' && isset($_GET['id'])) {
+        requirePermission('reservations.view');
         $stmt = $pdo->prepare("
           SELECT r.*, p.property_name,
             CONCAT(COALESCE(r.walkin_first_name, up.first_name), ' ', COALESCE(r.walkin_last_name, up.last_name)) as guest_name,
@@ -372,6 +375,7 @@ try {
       $data = json_decode(file_get_contents('php://input'), true);
 
       if ($action === 'create') {
+        requirePermission('reservations.create');
         $stmt = $pdo->prepare("
           INSERT INTO reservations (
             reservation_id, reservation_code, property_id, customer_user_id,
@@ -425,6 +429,7 @@ try {
 
         echo json_encode(['success' => true, 'message' => 'Reservation created successfully']);
       } else if ($action === 'update') {
+        requirePermission('reservations.edit');
         $stmt = $pdo->prepare("
           UPDATE reservations SET
             reservation_status = ?, payment_status = ?,
@@ -457,10 +462,12 @@ try {
         ]);
         echo json_encode(['success' => true, 'message' => 'Reservation updated successfully']);
       } else if ($action === 'delete') {
+        requirePermission('reservations.delete');
         $stmt = $pdo->prepare("UPDATE reservations SET deleted_at = NOW() WHERE reservation_id = ?");
         $stmt->execute([$data['reservation_id']]);
         echo json_encode(['success' => true, 'message' => 'Reservation deleted successfully']);
       } else if ($action === 'update_status') {
+        requirePermission('reservations.edit');
         $stmt = $pdo->prepare("
           UPDATE reservations SET reservation_status = ?, updated_at = NOW()
           WHERE reservation_id = ?
@@ -645,6 +652,7 @@ try {
         
         echo json_encode(['success' => true, 'message' => 'Reservation status updated successfully']);
       } else if ($action === 'create_walkin') {
+        requirePermission('reservations.create');
         $pdo->beginTransaction();
         
         // Generate reservation code

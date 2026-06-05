@@ -10,6 +10,7 @@ try {
   switch ($method) {
     case 'GET':
       if ($action === 'list') {
+        requirePermission('payments.view');
         $stmt = $pdo->query("
           SELECT p.*, pm.method_label, pm.method_type
           FROM payments p
@@ -36,6 +37,7 @@ try {
         $payments = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => $payments]);
       } else if ($action === 'single' && isset($_GET['id'])) {
+        requirePermission('payments.view');
         $stmt = $pdo->prepare("SELECT p.*, pm.method_label FROM payments p LEFT JOIN payment_methods pm ON p.method_id = pm.method_id WHERE p.payment_id = ?");
         $stmt->execute([$_GET['id']]);
         $payment = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -47,6 +49,7 @@ try {
       $data = json_decode(file_get_contents('php://input'), true);
 
       if ($action === 'create') {
+        requirePermission('payments.create');
         $payment_id = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
           mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff),
           mt_rand(0, 0x0fff) | 0x4000, mt_rand(0, 0x3fff) | 0x8000,
@@ -98,6 +101,7 @@ try {
 
         echo json_encode(['success' => true, 'message' => 'Payment added successfully', 'payment_id' => $payment_id]);
       } else if ($action === 'update') {
+        requirePermission('payments.edit');
         $stmt = $pdo->prepare("
           UPDATE payments SET reservation_id=?, method_id=?, transaction_type=?, amount=?,
             reference_number=?, proof_image_url=?, payment_status=?, payment_date=?, payment_time=?, notes=?
@@ -118,6 +122,7 @@ try {
         ]);
         echo json_encode(['success' => true, 'message' => 'Payment updated successfully']);
       } else if ($action === 'delete') {
+        requirePermission('payments.delete');
         $stmt = $pdo->prepare("DELETE FROM payments WHERE payment_id = ?");
         $stmt->execute([$data['payment_id']]);
         echo json_encode(['success' => true, 'message' => 'Payment deleted successfully']);

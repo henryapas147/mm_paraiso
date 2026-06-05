@@ -17,6 +17,7 @@ try {
     switch ($method) {
         case 'GET':
             if ($action === 'list') {
+                requirePermission('users.view');
                 $stmt = $pdo->query("
                     SELECT ua.user_id, ua.email, ua.phone_number, ua.account_status,
                            ua.is_email_verified, ua.last_login_at, ua.created_at,
@@ -116,7 +117,11 @@ try {
                     mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
                     mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
                     mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
-                $password = password_hash(!empty($input['password']) ? $input['password'] : 'Admin@123', PASSWORD_BCRYPT);
+                if (empty($input['password'])) {
+                    echo json_encode(['success' => false, 'message' => 'Password is required']);
+                    exit;
+                }
+                $password = password_hash($input['password'], PASSWORD_BCRYPT);
                 $photoUrl = $uploadPhoto('profile_photo', $userId);
 
                 $pdo->beginTransaction();
@@ -137,6 +142,7 @@ try {
                 echo json_encode(['success' => true, 'message' => 'User created successfully']);
 
             } elseif ($action === 'update') {
+                requirePermission('users.edit');
                 if (empty($input['user_id'])) {
                     http_response_code(400);
                     echo json_encode(['success' => false, 'message' => 'user_id is required']);
@@ -194,6 +200,7 @@ try {
                 echo json_encode(['success' => true, 'message' => 'User updated successfully']);
 
             } elseif ($action === 'delete') {
+                requirePermission('users.delete');
                 if (empty($input['user_id'])) {
                     http_response_code(400);
                     echo json_encode(['success' => false, 'message' => 'user_id is required']);

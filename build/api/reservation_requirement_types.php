@@ -20,6 +20,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('reservations.view');
       if ($action === 'list') {
         $stmt = $pdo->query("
           SELECT rt.*, p.property_name
@@ -38,6 +39,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('settings.edit');
       // Handle file upload
       if ($action === 'upload') {
         if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {

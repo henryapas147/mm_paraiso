@@ -17,6 +17,7 @@ try {
   switch ($method) {
     case 'GET':
       if ($action === 'list') {
+        requirePermission('customers.view');
         // Join user_accounts with user_profiles and geocode tables, filter by customer role (role_id = 7)
         $stmt = $pdo->query("SELECT 
           ua.user_id, ua.email, ua.phone_number, ua.account_status, ua.is_email_verified, ua.is_phone_verified, ua.created_at, ua.last_login_at,
@@ -35,6 +36,7 @@ try {
         echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
 
       } elseif ($action === 'single' && isset($_GET['id'])) {
+        requirePermission('customers.view');
         $stmt = $pdo->prepare("SELECT 
           ua.user_id, ua.email, ua.phone_number, ua.account_status, ua.is_email_verified, ua.is_phone_verified, ua.created_at, ua.last_login_at,
           up.first_name, up.last_name, up.middle_name, up.date_of_birth, up.gender, up.nationality, up.id_type, up.id_number, up.id_verified,
@@ -88,6 +90,7 @@ try {
       $data = $input;
 
       if ($action === 'create') {
+        requirePermission('customers.create');
         // Check if email already exists
         $stmt = $pdo->prepare("SELECT user_id FROM user_accounts WHERE email = ? AND deleted_at IS NULL");
         $stmt->execute([$data['email']]);
@@ -103,7 +106,11 @@ try {
           mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
 
         // Generate password hash (default password: Customer@123)
-        $password_hash = password_hash($data['password'] ?? 'Customer@123', PASSWORD_DEFAULT);
+        if (empty($data['password'])) {
+            echo json_encode(['success' => false, 'message' => 'Password is required']);
+            exit;
+        }
+        $password_hash = password_hash($data['password'], PASSWORD_DEFAULT);
         $photoUrl = $uploadPhoto('profile_photo', $user_id);
 
         // Insert into user_accounts
@@ -147,6 +154,7 @@ try {
         echo json_encode(['success' => true, 'message' => 'Customer created', 'user_id' => $user_id]);
 
       } elseif ($action === 'update') {
+        requirePermission('customers.edit');
         // Check if email already exists (excluding current user)
         $stmt = $pdo->prepare("SELECT user_id FROM user_accounts WHERE email = ? AND user_id != ? AND deleted_at IS NULL");
         $stmt->execute([$data['email'], $data['user_id']]);
@@ -261,6 +269,7 @@ try {
         echo json_encode(['success' => true, 'message' => 'Customer updated']);
 
       } elseif ($action === 'delete') {
+        requirePermission('customers.delete');
         // Soft delete - set deleted_at timestamp
         $stmt = $pdo->prepare("UPDATE user_accounts SET deleted_at=NOW(), account_status='inactive' WHERE user_id=? AND role_id=7");
         $stmt->execute([$data['user_id']]);

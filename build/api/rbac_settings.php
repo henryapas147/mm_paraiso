@@ -15,6 +15,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 try {
     switch ($method) {
         case 'GET':
+            requirePermission('users.roles.manage');
             // Get all roles with permissions
             $stmt = $pdo->query("
                 SELECT role_id, role_code, role_label, permissions, is_system_role, is_active

@@ -10,7 +10,7 @@ $userId = $_SESSION['user_id'] ?? null;
 
 // ── GET REQUESTS ─────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-  
+  requirePermission('inventory.view');
   // List transactions with optional filters
   if ($action === 'list') {
     $productId = $_GET['product_id'] ?? null;
@@ -210,6 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
 // ── POST REQUESTS ────────────────────────────────────────────────────────────
 elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  requirePermission('inventory.create');
   $data = json_decode(file_get_contents('php://input'), true);
 
   // Manual stock adjustment (add or deduct)

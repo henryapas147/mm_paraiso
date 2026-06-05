@@ -20,6 +20,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('reservations.view');
       if ($action === 'list') {
         $stmt = $pdo->query("
           SELECT
@@ -68,6 +69,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('reservations.edit');
       if ($action === 'upload') {
         // Handle file upload
         if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {

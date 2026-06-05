@@ -1,0 +1,19 @@
+# Disable HTTP/2 for this directory to fix upload errors
+<IfModule mod_http2.c>
+    Protocols http/1.1
+</IfModule>
+
+# Force HTTP/1.1
+<IfModule mod_headers.c>
+    Header always set Connection "keep-alive"
+    Header unset Upgrade
+    Header unset HTTP2
+</IfModule>
+
+# Increase PHP limits for uploads
+<IfModule mod_php.c>
+    php_value upload_max_filesize 256M
+    php_value post_max_size 1536M
+    php_value max_execution_time 300
+    php_value max_input_time 300
+</IfModule>

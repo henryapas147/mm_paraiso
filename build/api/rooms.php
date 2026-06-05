@@ -122,6 +122,7 @@ try {
 function handleGetRequest(string $action, PDO $pdo): void {
   switch ($action) {
     case 'list':
+      requirePermission('rooms.view');
       // Pagination parameters
       $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
       $perPage = isset($_GET['per_page']) ? min(100, max(5, (int)$_GET['per_page'])) : 10;
@@ -179,6 +180,7 @@ function handleGetRequest(string $action, PDO $pdo): void {
       break;
 
     case 'single':
+      requirePermission('rooms.view');
       if (!isset($_GET['id'])) {
         sendResponse(false, 'Room ID required');
       }
@@ -305,6 +307,7 @@ function getPropertyIdFromCategory(PDO $pdo, string $categoryId): ?string {
  * Handle Create Room
  */
 function handleCreate(array $data, PDO $pdo, array $fields, array $required): void {
+  requirePermission('rooms.create');
   // Validate required fields
   $missing = validateRequiredFields($data, $required);
   if (!empty($missing)) {
@@ -357,6 +360,7 @@ function handleCreate(array $data, PDO $pdo, array $fields, array $required): vo
  * Handle Update Room
  */
 function handleUpdate(array $data, PDO $pdo, array $fields, array $required): void {
+  requirePermission('rooms.edit');
   if (empty($data['room_id'])) {
     sendResponse(false, 'Room ID required');
   }
@@ -425,6 +429,7 @@ function handleUpdate(array $data, PDO $pdo, array $fields, array $required): vo
  * Handle Delete Room
  */
 function handleDelete(array $data, PDO $pdo): void {
+  requirePermission('rooms.delete');
   if (empty($data['room_id'])) {
     sendResponse(false, 'Room ID required');
   }

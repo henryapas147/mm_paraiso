@@ -9,6 +9,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('settings.view');
       if ($action === 'list') {
         $propertyId = $_GET['property_id'] ?? null;
         $settingGroup = $_GET['setting_group'] ?? null;
@@ -89,6 +90,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('settings.edit');
       $data = json_decode(file_get_contents('php://input'), true);
 
       if ($action === 'create') {

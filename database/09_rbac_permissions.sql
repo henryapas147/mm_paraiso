@@ -46,6 +46,10 @@ UPDATE user_roles SET permissions = '[
   "payments.create",
   "payments.edit",
   "payments.delete",
+  "extra_charges.view",
+  "extra_charges.create",
+  "extra_charges.edit",
+  "extra_charges.delete",
   "reports.view",
   "settings.view",
   "settings.edit",
@@ -81,6 +85,10 @@ UPDATE user_roles SET permissions = '[
   "payments.view",
   "payments.create",
   "payments.edit",
+  "extra_charges.view",
+  "extra_charges.create",
+  "extra_charges.edit",
+  "extra_charges.delete",
   "reports.view",
   "settings.view",
   "settings.edit"
@@ -100,6 +108,9 @@ UPDATE user_roles SET permissions = '[
   "customers.edit",
   "payments.view",
   "payments.create",
+  "extra_charges.view",
+  "extra_charges.create",
+  "extra_charges.edit",
   "reports.view"
 ]' WHERE role_code = 'front_desk';
 

@@ -16,6 +16,7 @@ if ($method === 'POST') {
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('properties.view');
       if ($action === 'list') {
         // Get total count
         $countStmt = $pdo->query("SELECT COUNT(*) as total FROM amenities");
@@ -40,6 +41,7 @@ try {
 
     case 'POST':
       if ($action === 'create') {
+        requirePermission('properties.edit');
         // Validate required fields
         if (empty($data['amenity_id'])) {
           echo json_encode(['success' => false, 'message' => 'Missing required field: amenity_id']);
@@ -64,6 +66,7 @@ try {
           echo json_encode(['success' => false, 'message' => 'Database error on create: ' . $e->getMessage()]);
         }
       } else if ($action === 'update') {
+        requirePermission('properties.edit');
         // Validate required fields
         if (empty($data['amenity_id'])) {
           echo json_encode(['success' => false, 'message' => 'Missing required field: amenity_id']);
@@ -89,6 +92,7 @@ try {
           echo json_encode(['success' => false, 'message' => 'Database error on update: ' . $e->getMessage()]);
         }
       } else if ($action === 'delete') {
+        requirePermission('properties.edit');
         if (empty($data['amenity_id'])) {
           echo json_encode(['success' => false, 'message' => 'Missing required field: amenity_id']);
           exit;

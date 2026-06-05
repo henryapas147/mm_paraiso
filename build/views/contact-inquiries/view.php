@@ -892,6 +892,18 @@ $csrfToken = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'
     .ci-meta-grid{font-size:10px}
     .ci-meta-val{font-size:10px}
   }
+
+  /* ── Confirm modal ── */
+  .ci-modal-overlay{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:1rem}
+  .ci-modal-overlay.open{display:flex}
+  .ci-modal{background:var(--color-background-primary,#fff);border:.5px solid var(--color-border-tertiary,#e5e7eb);border-radius:14px;padding:1.5rem;max-width:380px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.18);animation:ciModalIn .18s ease}
+  @keyframes ciModalIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+  .ci-modal-icon{width:48px;height:48px;border-radius:50%;background:#fee2e2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-size:20px;margin:0 auto .75rem}
+  .ci-modal-title{font-family:'Lora',serif;font-style:italic;font-size:18px;font-weight:600;margin:0 0 .4rem}
+  .ci-modal-text{font-size:13px;color:var(--color-text-secondary,#6b7280);line-height:1.6;margin:0 0 1.25rem}
+  .ci-modal-actions{display:flex;gap:.6rem;justify-content:center}
+  .ci-modal-actions .ci-btn{min-width:96px;justify-content:center}
+  .ci-form-hint{font-size:11px;color:var(--color-text-tertiary,#9ca3af);display:inline-flex;align-items:center;gap:4px}
 </style>
 
 <!-- PAGE CONTENT -->
@@ -941,12 +953,12 @@ $csrfToken = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'
         </div>
         <div class="ci-chips">
           <span><i class="fas fa-clock" aria-hidden="true"></i>
-            <?php
+            <span id="ciRelativeTime" data-created="<?php echo htmlspecialchars(date('c', strtotime($inquiry['created_at'])), ENT_QUOTES); ?>"><?php
             $diff = time() - strtotime($inquiry['created_at']);
             if ($diff < 3600)      echo round($diff / 60) . ' min ago';
             elseif ($diff < 86400) echo round($diff / 3600) . ' hr ago';
             else                   echo round($diff / 86400) . ' day(s) ago';
-            ?>
+            ?></span>
           </span>
           <?php if (!empty($inquiry['ip_address'])): ?>
             <span><i class="fas fa-location-dot" aria-hidden="true"></i> <?php echo htmlspecialchars($inquiry['ip_address']); ?></span>
@@ -1044,6 +1056,10 @@ $csrfToken = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'
             <label class="ci-form-label" for="replyBody">Message</label>
             <textarea class="ci-form-input" id="replyBody" rows="6"
               placeholder="Type your reply here…"></textarea>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.3rem">
+              <span class="ci-form-hint"><i class="fas fa-keyboard" aria-hidden="true"></i> Ctrl+Enter to send</span>
+              <span class="ci-form-hint" id="replyCharCount">0 characters</span>
+            </div>
           </div>
           <div style="display:flex;gap:.5rem">
             <button class="ci-btn ci-btn-success" style="flex:1;justify-content:center" id="sendReplyBtn" onclick="ciSendReply()">
@@ -1059,9 +1075,14 @@ $csrfToken = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'
       <div class="ci-card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
           <p class="ci-card-title" style="margin-bottom:0">Email history</p>
-          <button class="ci-btn ci-btn-ghost" style="padding:4px 10px;font-size:12px" onclick="ciLoadEmailHistory()" title="Refresh">
-            <i class="fas fa-rotate" aria-hidden="true"></i> Refresh
-          </button>
+          <div style="display:flex;gap:.4rem">
+            <button class="ci-btn ci-btn-primary" style="padding:4px 10px;font-size:12px" id="checkRepliesBtn" onclick="ciCheckReplies()" title="Fetch new customer replies from Gmail">
+              <i class="fas fa-inbox" aria-hidden="true"></i> Check for replies
+            </button>
+            <button class="ci-btn ci-btn-ghost" style="padding:4px 10px;font-size:12px" onclick="ciLoadEmailHistory()" title="Refresh">
+              <i class="fas fa-rotate" aria-hidden="true"></i> Refresh
+            </button>
+          </div>
         </div>
         <div id="emailHistoryContainer" class="ci-thread">
           <p class="ci-history-empty">
@@ -1110,6 +1131,19 @@ $csrfToken = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'
 
 <!-- Toast container -->
 <div class="ci-toast-wrap" id="ciToastWrap" aria-live="polite"></div>
+
+<!-- Confirm modal -->
+<div class="ci-modal-overlay" id="ciConfirmModal" aria-hidden="true">
+  <div class="ci-modal" role="dialog" aria-modal="true" aria-labelledby="ciConfirmTitle">
+    <div class="ci-modal-icon"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i></div>
+    <h3 class="ci-modal-title" id="ciConfirmTitle">Are you sure?</h3>
+    <p class="ci-modal-text" id="ciConfirmText"></p>
+    <div class="ci-modal-actions">
+      <button class="ci-btn ci-btn-ghost" id="ciConfirmCancel">Cancel</button>
+      <button class="ci-btn ci-btn-danger" id="ciConfirmOk">Confirm</button>
+    </div>
+  </div>
+</div>
 
 <script>
   (function() {
@@ -1174,7 +1208,8 @@ $csrfToken = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'
       fetch('../contact-inquiries/updateStatus', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-Token': CSRF_TOKEN,
           },
           body: `id=${INQUIRY_ID}&status=${status}`,
         })
@@ -1202,7 +1237,8 @@ $csrfToken = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'
       fetch('../contact-inquiries/updateStatus', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-Token': CSRF_TOKEN,
           },
           body: `id=${INQUIRY_ID}&status=${status}&notes=${encodeURIComponent(notes)}`,
         })
@@ -1333,6 +1369,46 @@ $csrfToken = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'
       }
     };
 
+    /* ── Check Gmail for new inbound replies (on-demand poll) ── */
+    window.ciCheckReplies = async function() {
+      const btn = document.getElementById('checkRepliesBtn');
+      const original = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Checking…';
+
+      try {
+        const res = await fetch('../api/poll-inquiry-replies.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': CSRF_TOKEN,
+          },
+          body: JSON.stringify({ csrf_token: CSRF_TOKEN }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          if (data.status === 'baseline_set') {
+            ciShowToast('Gmail connected. Future replies will now be tracked — send/receive a reply and check again.', 'info');
+          } else if ((data.processed || 0) > 0) {
+            ciShowToast(`Found ${data.processed} new repl${data.processed === 1 ? 'y' : 'ies'}!`, 'success');
+          } else {
+            ciShowToast('No new replies found.', 'info');
+          }
+          // Always refresh the thread so newly recorded replies show up.
+          ciLoadEmailHistory();
+        } else {
+          ciShowToast(data.message || 'Failed to check for replies.', 'error');
+        }
+      } catch (err) {
+        console.error(err);
+        ciShowToast('Network error while checking for replies.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = original;
+      }
+    };
+
     /* ── Load email history (threaded) ── */
     window.ciLoadEmailHistory = async function() {
       const container = document.getElementById('emailHistoryContainer');
@@ -1392,10 +1468,9 @@ $csrfToken = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'
             // Unread dot for inbound
             const unreadDot = isInbound ? `<span class="ci-unread-dot" title="Inbound"></span>` : '';
 
-            // Reply button (inbound items only)
-            const safeBody = cleanBody.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
+            // Reply button (inbound items only) — data-attrs avoid fragile inline onclick string-escaping
             const replyBtn = isInbound ?
-              `<button class="ci-btn ci-btn-ghost" style="font-size:11px;padding:3px 9px" onclick="ciReplyToEmail('${escHtml(email.sender_email || email.recipient_email)}','${escHtml(email.subject)}','${safeBody}')">
+              `<button class="ci-btn ci-btn-ghost ci-reply-btn" style="font-size:11px;padding:3px 9px" data-to="${escAttr(email.sender_email || email.recipient_email)}" data-subject="${escAttr(email.subject || '')}" data-body="${escAttr(cleanBody)}">
                 <i class="fas fa-reply" aria-hidden="true"></i> Reply
                </button>` :
               '';
@@ -1469,13 +1544,20 @@ $csrfToken = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'
     };
 
     /* ── Delete inquiry ── */
-    window.ciDeleteInquiry = function() {
-      if (!confirm('Delete this inquiry permanently? This action cannot be undone.')) return;
+    window.ciDeleteInquiry = async function() {
+      const ok = await ciConfirm({
+        title: 'Delete this inquiry?',
+        text: 'This permanently removes the inquiry and its email history. This action cannot be undone.',
+        confirmLabel: 'Delete',
+        danger: true,
+      });
+      if (!ok) return;
 
       fetch('../contact-inquiries/delete', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-Token': CSRF_TOKEN,
           },
           body: `id=${INQUIRY_ID}`,
         })
@@ -1500,7 +1582,155 @@ $csrfToken = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'
       return d.innerHTML;
     }
 
+    // Escapes a value for safe use inside a double-quoted HTML attribute.
+    function escAttr(str) {
+      return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    /* ── Styled confirm modal (Promise-based replacement for window.confirm) ── */
+    function ciConfirm({ title = 'Are you sure?', text = '', confirmLabel = 'Confirm', danger = true } = {}) {
+      return new Promise((resolve) => {
+        const overlay = document.getElementById('ciConfirmModal');
+        const okBtn = document.getElementById('ciConfirmOk');
+        const cancelBtn = document.getElementById('ciConfirmCancel');
+
+        document.getElementById('ciConfirmTitle').textContent = title;
+        document.getElementById('ciConfirmText').textContent = text;
+        okBtn.textContent = confirmLabel;
+        okBtn.className = 'ci-btn ' + (danger ? 'ci-btn-danger' : 'ci-btn-primary');
+
+        const close = (result) => {
+          overlay.classList.remove('open');
+          overlay.setAttribute('aria-hidden', 'true');
+          okBtn.removeEventListener('click', onOk);
+          cancelBtn.removeEventListener('click', onCancel);
+          overlay.removeEventListener('click', onBackdrop);
+          document.removeEventListener('keydown', onKey);
+          resolve(result);
+        };
+        const onOk = () => close(true);
+        const onCancel = () => close(false);
+        const onBackdrop = (e) => { if (e.target === overlay) close(false); };
+        const onKey = (e) => {
+          if (e.key === 'Escape') close(false);
+          if (e.key === 'Enter') { e.preventDefault(); close(true); }
+        };
+
+        okBtn.addEventListener('click', onOk);
+        cancelBtn.addEventListener('click', onCancel);
+        overlay.addEventListener('click', onBackdrop);
+        document.addEventListener('keydown', onKey);
+
+        overlay.classList.add('open');
+        overlay.setAttribute('aria-hidden', 'false');
+        okBtn.focus();
+      });
+    }
+
+    /* ── Background polling for inbound replies ── */
+    let ciPollTimer = null;
+
+    async function ciSilentPoll() {
+      try {
+        const res = await fetch('../api/poll-inquiry-replies.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': CSRF_TOKEN,
+          },
+          body: JSON.stringify({ csrf_token: CSRF_TOKEN }),
+        });
+        const data = await res.json();
+        if (data.success && (data.processed || 0) > 0) {
+          ciShowToast(`${data.processed} new repl${data.processed === 1 ? 'y' : 'ies'} received.`, 'success');
+          ciLoadEmailHistory();
+        }
+      } catch (_) {
+        /* silent — transient network errors should not nag the user */
+      }
+    }
+
+    function ciStartPolling() {
+      if (ciPollTimer) return;
+      ciPollTimer = setInterval(ciSilentPoll, 90000); // every 90s
+    }
+
+    function ciStopPolling() {
+      if (ciPollTimer) {
+        clearInterval(ciPollTimer);
+        ciPollTimer = null;
+      }
+    }
+
+    // Pause polling when the tab is hidden; resume (and poll immediately) when visible.
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        ciStopPolling();
+      } else {
+        ciSilentPoll();
+        ciStartPolling();
+      }
+    });
+
     /* ── Init ── */
-    document.addEventListener('DOMContentLoaded', ciLoadEmailHistory);
+    document.addEventListener('DOMContentLoaded', () => {
+      ciLoadEmailHistory();
+
+      // Delegate reply-button clicks (cards are re-rendered on every load).
+      const historyEl = document.getElementById('emailHistoryContainer');
+      if (historyEl) {
+        historyEl.addEventListener('click', (e) => {
+          const btn = e.target.closest('.ci-reply-btn');
+          if (!btn) return;
+          ciReplyToEmail(btn.dataset.to, btn.dataset.subject, btn.dataset.body);
+        });
+      }
+
+      // Reply form: live character count + Ctrl/Cmd+Enter to send.
+      const replyBody = document.getElementById('replyBody');
+      const charCount = document.getElementById('replyCharCount');
+      if (replyBody) {
+        const updateCount = () => {
+          const n = replyBody.value.length;
+          if (charCount) charCount.textContent = `${n} character${n === 1 ? '' : 's'}`;
+        };
+        replyBody.addEventListener('input', updateCount);
+        replyBody.addEventListener('keydown', (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            ciSendReply();
+          }
+        });
+        updateCount();
+      }
+
+      // Live-updating relative timestamp for the inquiry age.
+      const relEl = document.getElementById('ciRelativeTime');
+      if (relEl && relEl.dataset.created) {
+        const createdMs = new Date(relEl.dataset.created).getTime();
+        if (!Number.isNaN(createdMs)) {
+          const renderRel = () => {
+            const diff = Math.max(0, Math.floor((Date.now() - createdMs) / 1000));
+            let txt;
+            if (diff < 60) txt = 'just now';
+            else if (diff < 3600) txt = Math.round(diff / 60) + ' min ago';
+            else if (diff < 86400) txt = Math.round(diff / 3600) + ' hr ago';
+            else txt = Math.round(diff / 86400) + ' day(s) ago';
+            relEl.textContent = txt;
+          };
+          renderRel();
+          setInterval(renderRel, 60000);
+        }
+      }
+
+      // Kick off an immediate inbound check, then poll in the background.
+      ciSilentPoll();
+      ciStartPolling();
+    });
   })();
 </script>

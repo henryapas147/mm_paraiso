@@ -12,6 +12,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('reservations.view');
       if ($action === 'list') {
         $stmt = $pdo->query("SELECT * FROM discounts ORDER BY created_at DESC");
         $discounts = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -29,6 +30,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('settings.edit');
       $data = json_decode(file_get_contents('php://input'), true);
 
       if ($action === 'create') {

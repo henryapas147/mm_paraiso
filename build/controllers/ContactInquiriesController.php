@@ -68,6 +68,12 @@ class ContactInquiriesController extends Controller
             return;
         }
 
+        if (!\validateCsrfToken()) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Invalid or missing CSRF token.']);
+            return;
+        }
+
         $id = intval($_POST['id'] ?? 0);
         $status = $_POST['status'] ?? '';
         $notes = trim($_POST['notes'] ?? '');
@@ -107,6 +113,12 @@ class ContactInquiriesController extends Controller
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
             echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            return;
+        }
+
+        if (!\validateCsrfToken()) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Invalid or missing CSRF token.']);
             return;
         }
 

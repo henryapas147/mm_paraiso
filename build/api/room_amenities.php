@@ -9,6 +9,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('rooms.view');
       if ($action === 'by_category' && isset($_GET['category_id'])) {
         $stmt = $pdo->prepare("
           SELECT ra.*, a.amenity_name, a.icon_code
@@ -37,6 +38,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('rooms.edit');
       $data = json_decode(file_get_contents('php://input'), true);
       $action = $data['action'] ?? '';
 

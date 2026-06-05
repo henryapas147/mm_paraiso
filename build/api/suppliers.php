@@ -9,6 +9,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('inventory.view');
       if ($action === 'list') {
         $stmt = $pdo->query("SELECT * FROM suppliers WHERE is_active = 1 ORDER BY company_name ASC");
         echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
@@ -20,6 +21,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('inventory.create');
       $data = json_decode(file_get_contents('php://input'), true);
 
       if ($action === 'create') {

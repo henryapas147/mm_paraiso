@@ -9,6 +9,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('food_canteen.view');
       if ($action === 'list') {
         // List all recipes with basic info
         $stmt = $pdo->query("
@@ -107,6 +108,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('food_canteen.create');
       $data = json_decode(file_get_contents('php://input'), true);
       
       if ($action === 'create') {

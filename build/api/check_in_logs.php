@@ -9,6 +9,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('reservations.view');
       if ($action === 'list') {
         $stmt = $pdo->query("
           SELECT
@@ -39,6 +40,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('reservations.check_in');
       $data = json_decode(file_get_contents('php://input'), true);
 
       if ($action === 'create') {

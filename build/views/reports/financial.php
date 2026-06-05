@@ -375,9 +375,11 @@
         const data = result.data;
         const fmt = v => '₱' + parseFloat(v || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
         const revenue = parseFloat(data.revenue || 0);
+        const extraCharges = parseFloat(data.extra_charges || 0);
+        const totalRevenue = parseFloat(data.total_revenue || 0);
         const expenses = parseFloat(data.expenses || 0);
         const netProfit = parseFloat(data.net_profit || 0);
-        const margin = revenue > 0 ? ((netProfit / revenue) * 100).toFixed(1) : '0.0';
+        const margin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(1) : '0.0';
 
         let content = '';
 
@@ -392,8 +394,16 @@
                 <th style="text-align: left; padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: var(--fin-text-muted); font-weight: 700;" colspan="2">Income</th>
               </tr>
               <tr style="border-bottom: 1px solid var(--fin-border);">
-                <td style="padding: 12px 14px; color: var(--fin-text-primary);">Total Revenue (Payments Received)</td>
+                <td style="padding: 12px 14px; color: var(--fin-text-primary);">Room Revenue (Payments Received)</td>
                 <td style="padding: 12px 14px; text-align: right; font-weight: 700; color: var(--fin-accent-emerald); font-family: 'DM Mono', monospace;">${fmt(revenue)}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--fin-border);">
+                <td style="padding: 12px 14px; color: var(--fin-text-primary);">Extra Charges (Damage, Late Checkout, etc.)</td>
+                <td style="padding: 12px 14px; text-align: right; font-weight: 700; color: var(--fin-accent-blue); font-family: 'DM Mono', monospace;">${fmt(extraCharges)}</td>
+              </tr>
+              <tr style="background: var(--fin-bg-main); font-weight: 700;">
+                <td style="padding: 12px 14px; color: var(--fin-text-primary);">Total Revenue</td>
+                <td style="padding: 12px 14px; text-align: right; font-weight: 700; color: var(--fin-accent-emerald); font-family: 'DM Mono', monospace;">${fmt(totalRevenue)}</td>
               </tr>
               <tr style="background: var(--fin-bg-main);">
                 <th style="text-align: left; padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: var(--fin-text-muted); font-weight: 700;" colspan="2">Cost of Goods Sold</th>
@@ -408,10 +418,10 @@
               </tr>
             </table>
             <div class="stats-row" style="margin-top: 20px;">
-              <div class="stat-box"><p class="stat-label">Gross Revenue</p><p class="stat-value emerald">${fmt(revenue)}</p></div>
-              <div class="stat-box"><p class="stat-label">Total Expenses</p><p class="stat-value rose">${fmt(expenses)}</p></div>
+              <div class="stat-box"><p class="stat-label">Room Revenue</p><p class="stat-value emerald">${fmt(revenue)}</p></div>
+              <div class="stat-box"><p class="stat-label">Extra Charges</p><p class="stat-value blue">${fmt(extraCharges)}</p></div>
+              <div class="stat-box"><p class="stat-label">Total Revenue</p><p class="stat-value emerald">${fmt(totalRevenue)}</p></div>
               <div class="stat-box"><p class="stat-label">Net Profit</p><p class="stat-value ${netProfit >= 0 ? 'emerald' : 'rose'}">${fmt(netProfit)}</p></div>
-              <div class="stat-box"><p class="stat-label">Profit Margin</p><p class="stat-value ${netProfit >= 0 ? 'emerald' : 'rose'}">${margin}%</p></div>
             </div>`;
         } else if (currentReportType === 'balance_sheet') {
           content = `
@@ -486,8 +496,8 @@
               </tr>
             </table>`;
         } else if (currentReportType === 'tax') {
-          const vat = (revenue * 0.12).toFixed(2);
-          const vatableBase = (revenue / 1.12).toFixed(2);
+          const vat = (totalRevenue * 0.12).toFixed(2);
+          const vatableBase = (totalRevenue / 1.12).toFixed(2);
           content = `
             <h6 style="font-size: 14px; font-weight: 700; color: var(--fin-text-primary); margin-bottom: 16px;">
               <i class="fa-solid fa-chart-pie" style="color: var(--fin-accent-blue); margin-right: 6px;"></i>
@@ -495,11 +505,26 @@
             </h6>
             <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
               <tr style="background: var(--fin-bg-main);">
+                <th style="text-align: left; padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: var(--fin-text-muted); font-weight: 700;" colspan="2">Revenue Breakdown</th>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--fin-border);">
+                <td style="padding: 12px 14px; color: var(--fin-text-primary);">Room Revenue</td>
+                <td style="padding: 12px 14px; text-align: right; font-family: 'DM Mono', monospace; font-weight: 600;">${fmt(revenue)}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--fin-border);">
+                <td style="padding: 12px 14px; color: var(--fin-text-primary);">Extra Charges</td>
+                <td style="padding: 12px 14px; text-align: right; font-family: 'DM Mono', monospace; font-weight: 600;">${fmt(extraCharges)}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--fin-border); background: var(--fin-bg-main); font-weight: 700;">
+                <td style="padding: 12px 14px; color: var(--fin-text-primary);">Total Revenue</td>
+                <td style="padding: 12px 14px; text-align: right; font-family: 'DM Mono', monospace; font-weight: 700;">${fmt(totalRevenue)}</td>
+              </tr>
+              <tr style="background: var(--fin-bg-main);">
                 <th style="text-align: left; padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: var(--fin-text-muted); font-weight: 700;" colspan="2">VAT Summary (12%)</th>
               </tr>
               <tr style="border-bottom: 1px solid var(--fin-border);">
                 <td style="padding: 12px 14px; color: var(--fin-text-primary);">Gross Sales (VAT-inclusive)</td>
-                <td style="padding: 12px 14px; text-align: right; font-family: 'DM Mono', monospace; font-weight: 600;">${fmt(revenue)}</td>
+                <td style="padding: 12px 14px; text-align: right; font-family: 'DM Mono', monospace; font-weight: 600;">${fmt(totalRevenue)}</td>
               </tr>
               <tr style="border-bottom: 1px solid var(--fin-border);">
                 <td style="padding: 12px 14px; color: var(--fin-text-primary);">VATable Base (÷ 1.12)</td>
@@ -518,7 +543,7 @@
               </tr>
             </table>
             <div class="stats-row" style="margin-top: 20px;">
-              <div class="stat-box"><p class="stat-label">Gross Sales</p><p class="stat-value blue">${fmt(revenue)}</p></div>
+              <div class="stat-box"><p class="stat-label">Total Revenue</p><p class="stat-value blue">${fmt(totalRevenue)}</p></div>
               <div class="stat-box"><p class="stat-label">VATable Base</p><p class="stat-value blue">${fmt(vatableBase)}</p></div>
               <div class="stat-box"><p class="stat-label">Output VAT</p><p class="stat-value" style="color: var(--fin-accent-orange);">${fmt(vat)}</p></div>
             </div>`;

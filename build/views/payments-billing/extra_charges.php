@@ -275,6 +275,69 @@
     color: #666
   }
 
+  .alert-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000
+  }
+
+  .alert-box {
+    background: #fff;
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25)
+  }
+
+  .alert-icon {
+    font-size: 48px;
+    margin-bottom: 16px
+  }
+
+  .alert-icon.success {
+    color: #2E7D32
+  }
+
+  .alert-icon.error {
+    color: #C62828
+  }
+
+  .alert-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #1a1a1a
+  }
+
+  .alert-message {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px
+  }
+
+  .alert-btn {
+    padding: 8px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    background: #185FA5;
+    color: #fff
+  }
+
+  .alert-btn:hover {
+    background: #145090
+  }
+
   .modal-body {
     padding: 20px;
     overflow-y: auto;
@@ -615,8 +678,10 @@
     <div class="modal-body">
       <form id="addChargeForm">
         <div class="form-group">
-          <label for="reservation_id" class="form-label">Reservation ID</label>
-          <input type="text" id="reservation_id" required class="form-input" placeholder="UUID">
+          <label for="reservation_id" class="form-label">Reservation</label>
+          <select id="reservation_id" required class="form-select">
+            <option value="">Select a reservation...</option>
+          </select>
         </div>
         <div class="form-group">
           <label for="charge_type" class="form-label">Charge Type</label>
@@ -800,8 +865,26 @@
     }).join('');
   }
 
+  async function fetchReservations() {
+    try {
+      const res = await fetch('../api/reservations.php?action=list&limit=1000');
+      const result = await res.json();
+      if (result.success && result.data) {
+        const select = document.getElementById('reservation_id');
+        select.innerHTML = '<option value="">Select a reservation...</option>';
+        result.data.forEach(r => {
+          const label = `${r.reservation_code || r.reservation_id.substring(0, 8)} - ${r.walkin_first_name || r.guest_name || 'Guest'} (${r.reservation_status})`;
+          select.innerHTML += `<option value="${r.reservation_id}">${label}</option>`;
+        });
+      }
+    } catch (e) {
+      console.error('Error fetching reservations:', e);
+    }
+  }
+
   function openAddChargeModal() {
     document.getElementById('addChargeForm').reset();
+    fetchReservations();
     document.getElementById('addChargeModal').style.display = 'flex';
   }
 
@@ -825,13 +908,13 @@
       const result = await res.json();
       if (result.success) {
         closeAddChargeModal();
-        Swal.fire({ icon: 'success', title: 'Success!', text: 'Extra charge added successfully', timer: 2000, showConfirmButton: false });
+        showAlert('success', 'Success!', 'Extra charge added successfully');
         fetchExtraCharges();
       } else {
-        Swal.fire({ icon: 'error', title: 'Error!', text: result.message, confirmButtonColor: '#3085d6' });
+        showAlert('error', 'Error!', result.message);
       }
     } catch (e) {
-      Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to add charge', confirmButtonColor: '#3085d6' });
+      showAlert('error', 'Error!', 'Failed to add charge');
     }
   }
 
@@ -870,13 +953,13 @@
       const result = await res.json();
       if (result.success) {
         closeEditChargeModal();
-        Swal.fire({ icon: 'success', title: 'Success!', text: 'Extra charge updated successfully', timer: 2000, showConfirmButton: false });
+        showAlert('success', 'Success!', 'Extra charge updated successfully');
         fetchExtraCharges();
       } else {
-        Swal.fire({ icon: 'error', title: 'Error!', text: result.message, confirmButtonColor: '#3085d6' });
+        showAlert('error', 'Error!', result.message);
       }
     } catch (e) {
-      Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to update charge', confirmButtonColor: '#3085d6' });
+      showAlert('error', 'Error!', 'Failed to update charge');
     }
   }
 
@@ -898,30 +981,20 @@
   }
 
   function confirmDeleteCharge(chargeId) {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: "You won't be able to revert this!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!'
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const res = await fetch('../api/extra_charges.php?action=delete', {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': '<?php echo htmlspecialchars($_SESSION["csrf_token"] ?? "", ENT_QUOTES, "UTF-8"); ?>' }, body: JSON.stringify({ charge_id: chargeId })
-          });
-          const r = await res.json();
-          if (r.success) {
-            Swal.fire({ icon: 'success', title: 'Deleted!', text: 'Extra charge deleted.', timer: 1500, showConfirmButton: false });
-            fetchExtraCharges();
-          } else {
-            Swal.fire({ icon: 'error', title: 'Error!', text: r.message, confirmButtonColor: '#3085d6' });
-          }
-        } catch (e) {
-          Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to delete charge', confirmButtonColor: '#3085d6' });
+    showConfirm('Delete Charge', "You won't be able to revert this!", async () => {
+      try {
+        const res = await fetch('../api/extra_charges.php?action=delete', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': '<?php echo htmlspecialchars($_SESSION["csrf_token"] ?? "", ENT_QUOTES, "UTF-8"); ?>' }, body: JSON.stringify({ charge_id: chargeId })
+        });
+        const r = await res.json();
+        if (r.success) {
+          showAlert('success', 'Deleted!', 'Extra charge deleted.');
+          fetchExtraCharges();
+        } else {
+          showAlert('error', 'Error!', r.message);
         }
+      } catch (e) {
+        showAlert('error', 'Error!', 'Failed to delete charge');
       }
     });
   }
@@ -932,4 +1005,67 @@
       row.style.display = row.textContent.toUpperCase().includes(filter) ? '' : 'none';
     });
   }
+
+  function showAlert(type, title, message, callback = null) {
+    const overlay = document.getElementById('customAlert');
+    const icon = document.getElementById('alertIcon');
+    const titleEl = document.getElementById('alertTitle');
+    const messageEl = document.getElementById('alertMessage');
+    const btn = document.getElementById('alertBtn');
+
+    icon.className = 'alert-icon ' + type;
+    icon.innerHTML = type === 'success' ? '✓' : '✕';
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    overlay.style.display = 'flex';
+
+    btn.onclick = function() {
+      overlay.style.display = 'none';
+      if (callback) callback();
+    };
+  }
+
+  function showConfirm(title, message, onConfirm) {
+    const overlay = document.getElementById('confirmAlert');
+    const titleEl = document.getElementById('confirmTitle');
+    const messageEl = document.getElementById('confirmMessage');
+    const confirmBtn = document.getElementById('confirmBtnOk');
+    const cancelBtn = document.getElementById('confirmBtnCancel');
+
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    overlay.style.display = 'flex';
+
+    confirmBtn.onclick = function() {
+      overlay.style.display = 'none';
+      if (onConfirm) onConfirm();
+    };
+
+    cancelBtn.onclick = function() {
+      overlay.style.display = 'none';
+    };
+  }
 </script>
+
+<!-- Custom Alert Modal -->
+<div id="customAlert" class="alert-overlay">
+  <div class="alert-box">
+    <div id="alertIcon" class="alert-icon"></div>
+    <div id="alertTitle" class="alert-title"></div>
+    <div id="alertMessage" class="alert-message"></div>
+    <button id="alertBtn" class="alert-btn">OK</button>
+  </div>
+</div>
+
+<!-- Custom Confirm Modal -->
+<div id="confirmAlert" class="alert-overlay">
+  <div class="alert-box">
+    <div class="alert-icon error">?</div>
+    <div id="confirmTitle" class="alert-title"></div>
+    <div id="confirmMessage" class="alert-message"></div>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button id="confirmBtnCancel" class="btn btn-secondary">Cancel</button>
+      <button id="confirmBtnOk" class="btn btn-primary">Confirm</button>
+    </div>
+  </div>
+</div>

@@ -15,6 +15,7 @@ if ($method === 'POST') {
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('rooms.view');
       if ($action === 'list') {
         $stmt = $pdo->query("
           SELECT rc.*,
@@ -78,6 +79,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('rooms.create');
       if ($action === 'create') {
         $amenities = $data['amenities'] ?? [];
 

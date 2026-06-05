@@ -9,6 +9,7 @@ $action = $_GET['action'] ?? '';
 try {
   switch ($method) {
     case 'GET':
+      requirePermission('payments.view');
       if ($action === 'list') {
         $stmt = $pdo->query("
           SELECT i.*, r.reservation_code
@@ -27,6 +28,7 @@ try {
       break;
 
     case 'POST':
+      requirePermission('payments.create');
       $data = json_decode(file_get_contents('php://input'), true);
 
       if ($action === 'create') {

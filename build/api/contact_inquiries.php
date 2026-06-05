@@ -19,6 +19,7 @@ $action = $_GET['action'] ?? '';
 try {
     switch ($method) {
         case 'GET':
+            requirePermission('settings.view');
             if ($action === 'stats') {
                 // Get status counts
                 $stats = [
@@ -138,6 +139,7 @@ try {
 
         case 'PUT':
         case 'POST':
+            requirePermission('settings.edit');
             $input = json_decode(file_get_contents('php://input'), true);
 
             if ($action === 'updateStatus' && isset($input['id'])) {

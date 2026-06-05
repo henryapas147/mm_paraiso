@@ -28,6 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+requirePermission('settings.edit');
+
 // Get JSON input
 $json = file_get_contents('php://input');
 $data = json_decode($json, true);

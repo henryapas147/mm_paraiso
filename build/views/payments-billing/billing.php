@@ -1,5 +1,314 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
 
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    loadBillingData();
+  });
+
+  async function loadBillingData() {
+    try {
+      // Load all data in parallel
+      const [summaryRes, invoicesRes, transactionsRes, companyRes, methodsRes] = await Promise.all([
+        fetch('../api/billing.php?action=dashboard_summary'),
+        fetch('../api/billing.php?action=recent_invoices&limit=5'),
+        fetch('../api/billing.php?action=recent_transactions&limit=10'),
+        fetch('../api/billing.php?action=company_info'),
+        fetch('../api/billing.php?action=payment_methods')
+      ]);
+
+      const summary = await summaryRes.json();
+      const invoices = await invoicesRes.json();
+      const transactions = await transactionsRes.json();
+      const company = await companyRes.json();
+      const methods = await methodsRes.json();
+
+      if (summary.success) updateSummary(summary.data);
+      if (invoices.success) renderInvoices(invoices.data);
+      if (transactions.success) renderTransactions(transactions.data);
+      if (company.success) {
+        window.companyData = company.data;
+        renderCompanyInfo(company.data);
+      }
+      if (methods.success) renderPaymentMethods(methods.data);
+    } catch (e) {
+      console.error('Error loading billing data:', e);
+    }
+  }
+
+  function updateSummary(data) {
+    // Update mini-cards with real revenue data
+    const salaryCard = document.querySelector('.mini-card:nth-child(1)');
+    const paypalCard = document.querySelector('.mini-card:nth-child(2)');
+    
+    if (salaryCard && data.total_revenue !== undefined) {
+      salaryCard.querySelector('h6').textContent = 'Total Revenue';
+      salaryCard.querySelector('span').textContent = 'All Time';
+      salaryCard.querySelector('.amount').textContent = '₱' + parseFloat(data.total_revenue || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+    
+    if (paypalCard && data.pending_payments !== undefined) {
+      paypalCard.querySelector('h6').textContent = 'Pending';
+      paypalCard.querySelector('span').textContent = 'Awaiting Confirmation';
+      paypalCard.querySelector('.amount').textContent = '₱' + parseFloat(data.pending_payments || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+  }
+
+  function renderInvoices(data) {
+    const list = document.querySelector('.invoice-list');
+    if (!list || !data || data.length === 0) return;
+    
+    list.innerHTML = data.map(inv => {
+      const date = inv.invoice_date ? formatDate(inv.invoice_date) : { main: '—', day: '' };
+      const statusClass = getInvoiceStatusClass(inv.status);
+      const statusLabel = capitalize(inv.status || 'unknown');
+      
+      return `
+        <li class="invoice-item">
+          <div>
+            <h6>${date.main}</h6>
+            <span>${inv.invoice_number || inv.reservation_code || '—'}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span class="invoice-status-badge ${statusClass}">${statusLabel}</span>
+            <span class="amount">₱${parseFloat(inv.total_amount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+            <button class="pdf-btn" onclick="viewInvoice('${inv.invoice_id}')"><i class="fas fa-file-pdf"></i> PDF</button>
+          </div>
+        </li>
+      `;
+    }).join('');
+  }
+
+  function getInvoiceStatusClass(status) {
+    const classes = {
+      'paid': 'status-paid',
+      'partial': 'status-pending',
+      'sent': 'status-pending',
+      'draft': 'status-unknown',
+      'overdue': 'status-failed',
+      'void': 'status-unknown'
+    };
+    return classes[status] || 'status-unknown';
+  }
+
+  function renderTransactions(data) {
+    const newestSection = document.querySelector('.transaction-section:first-of-type');
+    const yesterdaySection = document.querySelector('.transaction-section:last-of-type');
+    
+    if (!data || data.length === 0) return;
+    
+    // Split transactions: first 2 as newest, rest as yesterday
+    const newest = data.slice(0, 2);
+    const yesterday = data.slice(2);
+    
+    if (newestSection) {
+      newestSection.querySelector('h6').textContent = 'Recent';
+      const container = newestSection.querySelector('.transaction-item')?.parentElement;
+      if (container) {
+        container.innerHTML = newest.map(t => createTransactionRow(t)).join('');
+      }
+    }
+    
+    if (yesterdaySection && yesterday.length > 0) {
+      yesterdaySection.querySelector('h6').textContent = 'Earlier';
+      const container = yesterdaySection.querySelector('.transaction-item')?.parentElement;
+      if (container) {
+        container.innerHTML = yesterday.map(t => createTransactionRow(t)).join('');
+      }
+    }
+  }
+
+  function createTransactionRow(t) {
+    const date = t.payment_date ? formatDate(t.payment_date) : { main: '—', day: '' };
+    const isConfirmed = t.payment_status === 'confirmed';
+    const iconClass = isConfirmed ? 'up' : 'pending';
+    const amountClass = isConfirmed ? 'positive' : 'negative';
+    const amountPrefix = isConfirmed ? '+' : '-';
+    const customerName = t.first_name && t.last_name ? `${t.first_name} ${t.last_name}` : t.reservation_code || 'Guest';
+    
+    return `
+      <div class="transaction-item">
+        <div style="display: flex; align-items: center">
+          <div class="icon ${iconClass}"><i class="fas fa-arrow-${isConfirmed ? 'up' : 'down'}"></i></div>
+          <div>
+            <h6>${customerName}</h6>
+            <span>${date.main} at ${t.payment_time || '—'}</span>
+          </div>
+        </div>
+        <span class="amount ${amountClass}">${amountPrefix} ₱${parseFloat(t.amount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+      </div>
+    `;
+  }
+
+  function renderCompanyInfo(data) {
+    if (!data) return;
+    
+    const billingInfo = document.getElementById('billingInfo');
+    if (!billingInfo) return;
+    
+    // Rebuild the billing item with company data
+    billingInfo.innerHTML = `
+      <div class="billing-item">
+        <div>
+          <h6>${data.company_name || 'Company Name'}</h6>
+          <span>Company Name: <strong>${data.legal_name || data.company_name || '—'}</strong></span>
+          <span>Email Address: <strong>${data.email || '—'}</strong></span>
+          <span>Tax ID: <strong>${data.tax_id || '—'}</strong></span>
+        </div>
+        <div class="actions">
+          <a class="edit" onclick="editCompanyInfo()"><i class="fas fa-pencil-alt"></i> Edit</a>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPaymentMethods(data) {
+    const container = document.querySelector('.card-body .payment-method-item')?.parentElement;
+    if (!container || !data || data.length === 0) return;
+    
+    container.innerHTML = data.map(m => `
+      <div class="payment-method-item">
+        <div class="method-icon" style="width: 40px; height: 40px; border-radius: 8px; background: #F3F4F6; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 1rem; color: #6B7280;">
+          <i class="${getMethodIcon(m.method_type)}"></i>
+        </div>
+        <h6>${m.method_label}</h6>
+        <i class="fas fa-pencil-alt edit-icon"></i>
+      </div>
+    `).join('');
+  }
+
+  function getMethodIcon(type) {
+    const t = type?.toLowerCase() || '';
+    if (t.includes('card') || t.includes('credit') || t.includes('debit')) return 'ni ni-credit-card';
+    if (t.includes('cash')) return 'ni ni-money-coins';
+    if (t.includes('digital') || t.includes('wallet') || t.includes('gcash') || t.includes('maya')) return 'ni ni-mobile-button';
+    if (t.includes('bank') || t.includes('transfer')) return 'ni ni-bank';
+    return 'ni ni-single-02';
+  }
+
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    return {
+      main: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      day: date.toLocaleDateString('en-US', { weekday: 'long' })
+    };
+  }
+
+  function viewInvoice(invoiceId) {
+    // TODO: Implement PDF generation or invoice detail view
+    alert('View invoice: ' + invoiceId);
+  }
+
+  function addPaymentMethod() {
+    // TODO: Implement add payment method modal/form
+    alert('Add payment method modal - to be implemented');
+  }
+
+  function viewAllInvoices() {
+    // TODO: Navigate to full invoices page or show modal
+    alert('View all invoices - to be implemented');
+  }
+
+  function editCompanyInfo() {
+    const companyData = window.companyData || {};
+    
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
+    modal.innerHTML = `
+      <div style="background:#fff;border-radius:12px;padding:24px;max-width:500px;width:90%;max-height:90vh;overflow-y:auto;">
+        <h3 style="margin:0 0 16px;font-family:'Lora',serif;font-size:18px;">Edit Company Information</h3>
+        <form id="companyInfoForm">
+          <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Company Name</label>
+            <input type="text" name="company_name" value="${companyData.company_name || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;" required>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Legal Name</label>
+            <input type="text" name="legal_name" value="${companyData.legal_name || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;">
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Tax ID</label>
+            <input type="text" name="tax_id" value="${companyData.tax_id || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;">
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Email</label>
+            <input type="email" name="email" value="${companyData.email || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;" required>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Phone</label>
+            <input type="text" name="phone_number" value="${companyData.phone_number || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;" required>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Address Line 1</label>
+            <input type="text" name="address_line1" value="${companyData.address_line1 || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;" required>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">City</label>
+            <input type="text" name="city" value="${companyData.city || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;" required>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Province</label>
+            <input type="text" name="province" value="${companyData.province || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;">
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Postal Code</label>
+            <input type="text" name="postal_code" value="${companyData.postal_code || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;">
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Website</label>
+            <input type="url" name="website" value="${companyData.website || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;">
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Description</label>
+            <textarea name="description" rows="3" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;">${companyData.description || ''}</textarea>
+          </div>
+          <input type="hidden" name="company_id" value="${companyData.company_id || ''}">
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button type="button" onclick="this.closest('div[style*=fixed]').remove()" style="padding:8px 16px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;cursor:pointer;">Cancel</button>
+            <button type="submit" style="padding:8px 16px;border:none;border-radius:6px;background:#185FA5;color:#fff;cursor:pointer;">Save</button>
+          </div>
+        </form>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    modal.querySelector('#companyInfoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData.entries());
+      
+      try {
+        const res = await fetch('../api/billing.php?action=update_company_info', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        
+        if (result.success) {
+          modal.remove();
+          // Reload company info
+          const companyRes = await fetch('../api/billing.php?action=company_info');
+          const company = await companyRes.json();
+          if (company.success) {
+            window.companyData = company.data;
+            renderCompanyInfo(company.data);
+          }
+          alert('Company information updated successfully');
+        } else {
+          alert('Error: ' + result.message);
+        }
+      } catch (err) {
+        alert('Error updating company information');
+      }
+    });
+  }
+</script>
+
 <style>
   * {
     box-sizing: border-box;
@@ -597,6 +906,19 @@
       padding: 16px;
     }
   }
+
+  /* Invoice status badges */
+  .invoice-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
 </style>
 
 <div class="page">
@@ -619,18 +941,18 @@
                 </div>
               </div>
             </div>
-            <div class="mini-cards">
+            <div class="mini-cards" id="revenueCards">
               <div class="mini-card">
-                <div class="icon"><i class="fas fa-landmark"></i></div>
-                <h6>Salary</h6>
-                <span>Belong Interactive</span>
-                <div class="amount">+$2000</div>
+                <div class="icon"><i class="fas fa-chart-line"></i></div>
+                <h6>Total Revenue</h6>
+                <span>All Time</span>
+                <div class="amount">₱0.00</div>
               </div>
               <div class="mini-card">
-                <div class="icon"><i class="fab fa-paypal"></i></div>
-                <h6>Paypal</h6>
-                <span>Freelance Payment</span>
-                <div class="amount">$455.00</div>
+                <div class="icon"><i class="fas fa-clock"></i></div>
+                <h6>Pending</h6>
+                <span>Awaiting Confirmation</span>
+                <div class="amount">₱0.00</div>
               </div>
             </div>
           </div>
@@ -640,18 +962,11 @@
       <div class="card">
         <div class="card-header">
           <div class="card-title">Payment Method</div>
-          <button class="btn btn-primary"><i class="fas fa-plus mr-1"></i> Add New Card</button>
+          <button class="btn btn-primary" onclick="addPaymentMethod()"><i class="fas fa-plus mr-1"></i> Add New Card</button>
         </div>
-        <div class="card-body">
+        <div class="card-body" id="paymentMethodsContainer">
           <div class="payment-method-item">
-            <img src="../assets/img/logos/mastercard.png" alt="Mastercard" />
-            <h6>****  ****  ****  7852</h6>
-            <i class="fas fa-pencil-alt edit-icon"></i>
-          </div>
-          <div class="payment-method-item">
-            <img src="../assets/img/logos/visa.png" alt="Visa" />
-            <h6>****  ****  ****  5248</h6>
-            <i class="fas fa-pencil-alt edit-icon"></i>
+            <h6>Loading...</h6>
           </div>
         </div>
       </div>
@@ -660,58 +975,13 @@
     <div class="card">
       <div class="card-header">
         <div class="card-title">Invoices</div>
-        <button class="btn btn-outline">View All</button>
+        <button class="btn btn-outline" onclick="viewAllInvoices()">View All</button>
       </div>
       <div class="card-body">
-        <ul class="invoice-list">
+        <ul class="invoice-list" id="invoiceList">
           <li class="invoice-item">
             <div>
-              <h6>March, 01, 2020</h6>
-              <span>#MS-415646</span>
-            </div>
-            <div>
-              <span class="amount">$180</span>
-              <button class="pdf-btn"><i class="fas fa-file-pdf"></i> PDF</button>
-            </div>
-          </li>
-          <li class="invoice-item">
-            <div>
-              <h6>February, 10, 2021</h6>
-              <span>#RV-126749</span>
-            </div>
-            <div>
-              <span class="amount">$250</span>
-              <button class="pdf-btn"><i class="fas fa-file-pdf"></i> PDF</button>
-            </div>
-          </li>
-          <li class="invoice-item">
-            <div>
-              <h6>April, 05, 2020</h6>
-              <span>#FB-212562</span>
-            </div>
-            <div>
-              <span class="amount">$560</span>
-              <button class="pdf-btn"><i class="fas fa-file-pdf"></i> PDF</button>
-            </div>
-          </li>
-          <li class="invoice-item">
-            <div>
-              <h6>June, 25, 2019</h6>
-              <span>#QW-103578</span>
-            </div>
-            <div>
-              <span class="amount">$120</span>
-              <button class="pdf-btn"><i class="fas fa-file-pdf"></i> PDF</button>
-            </div>
-          </li>
-          <li class="invoice-item">
-            <div>
-              <h6>March, 01, 2019</h6>
-              <span>#AR-803481</span>
-            </div>
-            <div>
-              <span class="amount">$300</span>
-              <button class="pdf-btn"><i class="fas fa-file-pdf"></i> PDF</button>
+              <h6>Loading...</h6>
             </div>
           </li>
         </ul>
@@ -724,41 +994,10 @@
       <div class="card-header">
         <div class="card-title">Billing Information</div>
       </div>
-      <div class="card-body">
+      <div class="card-body" id="billingInfo">
         <div class="billing-item">
           <div>
-            <h6>Oliver Liam</h6>
-            <span>Company Name: <strong>Viking Burrito</strong></span>
-            <span>Email Address: <strong>oliver@burrito.com</strong></span>
-            <span>VAT Number: <strong>FRB1235476</strong></span>
-          </div>
-          <div class="actions">
-            <a class="delete"><i class="far fa-trash-alt"></i> Delete</a>
-            <a class="edit"><i class="fas fa-pencil-alt"></i> Edit</a>
-          </div>
-        </div>
-        <div class="billing-item">
-          <div>
-            <h6>Lucas Harper</h6>
-            <span>Company Name: <strong>Stone Tech Zone</strong></span>
-            <span>Email Address: <strong>lucas@stone-tech.com</strong></span>
-            <span>VAT Number: <strong>FRB1235476</strong></span>
-          </div>
-          <div class="actions">
-            <a class="delete"><i class="far fa-trash-alt"></i> Delete</a>
-            <a class="edit"><i class="fas fa-pencil-alt"></i> Edit</a>
-          </div>
-        </div>
-        <div class="billing-item">
-          <div>
-            <h6>Ethan James</h6>
-            <span>Company Name: <strong>Fiber Notion</strong></span>
-            <span>Email Address: <strong>ethan@fiber.com</strong></span>
-            <span>VAT Number: <strong>FRB1235476</strong></span>
-          </div>
-          <div class="actions">
-            <a class="delete"><i class="far fa-trash-alt"></i> Delete</a>
-            <a class="edit"><i class="fas fa-pencil-alt"></i> Edit</a>
+            <h6>Loading...</h6>
           </div>
         </div>
       </div>
@@ -771,72 +1010,20 @@
           <i class="far fa-calendar-alt mr-1"></i> 23 - 30 March 2020
         </div>
       </div>
-      <div class="card-body">
+      <div class="card-body" id="transactionsContainer">
         <div class="transaction-section">
-          <h6>Newest</h6>
+          <h6>Recent</h6>
           <div class="transaction-item">
             <div style="display: flex; align-items: center">
-              <div class="icon down"><i class="fas fa-arrow-down"></i></div>
+              <div class="icon pending"><i class="fas fa-spinner"></i></div>
               <div>
-                <h6>Netflix</h6>
-                <span>27 March 2020, at 12:30 PM</span>
+                <h6>Loading...</h6>
               </div>
             </div>
-            <span class="amount negative">- $2,500</span>
-          </div>
-          <div class="transaction-item">
-            <div style="display: flex; align-items: center">
-              <div class="icon up"><i class="fas fa-arrow-up"></i></div>
-              <div>
-                <h6>Apple</h6>
-                <span>27 March 2020, at 04:30 AM</span>
-              </div>
-            </div>
-            <span class="amount positive">+ $2,000</span>
           </div>
         </div>
         <div class="transaction-section">
-          <h6>Yesterday</h6>
-          <div class="transaction-item">
-            <div style="display: flex; align-items: center">
-              <div class="icon up"><i class="fas fa-arrow-up"></i></div>
-              <div>
-                <h6>Stripe</h6>
-                <span>26 March 2020, at 13:45 PM</span>
-              </div>
-            </div>
-            <span class="amount positive">+ $750</span>
-          </div>
-          <div class="transaction-item">
-            <div style="display: flex; align-items: center">
-              <div class="icon up"><i class="fas fa-arrow-up"></i></div>
-              <div>
-                <h6>HubSpot</h6>
-                <span>26 March 2020, at 12:30 PM</span>
-              </div>
-            </div>
-            <span class="amount positive">+ $1,000</span>
-          </div>
-          <div class="transaction-item">
-            <div style="display: flex; align-items: center">
-              <div class="icon up"><i class="fas fa-arrow-up"></i></div>
-              <div>
-                <h6>Creative Tim</h6>
-                <span>26 March 2020, at 08:30 AM</span>
-              </div>
-            </div>
-            <span class="amount positive">+ $2,500</span>
-          </div>
-          <div class="transaction-item">
-            <div style="display: flex; align-items: center">
-              <div class="icon pending"><i class="fas fa-exclamation"></i></div>
-              <div>
-                <h6>Webflow</h6>
-                <span>26 March 2020, at 05:00 AM</span>
-              </div>
-            </div>
-            <span style="font-size: 13px; font-weight: 500; color: #666">Pending</span>
-          </div>
+          <h6>Earlier</h6>
         </div>
       </div>
     </div>
