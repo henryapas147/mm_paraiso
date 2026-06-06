@@ -794,6 +794,42 @@
   </div>
 </div>
 
+<!-- Print Invoice Modal -->
+<div id="printInvoiceModal" class="modal-overlay">
+  <div class="modal" style="max-width: 800px;">
+    <div class="modal-header">
+      <div class="modal-title">Print Invoice</div>
+      <button onclick="closePrintInvoiceModal()" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="print-options" style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 10px; font-weight: 500;">Select Print Format:</label>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <input type="radio" name="printFormat" value="a4" checked>
+            <span>A4 Paper</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <input type="radio" name="printFormat" value="thermal">
+            <span>Thermal Receipt (80mm)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <input type="radio" name="printFormat" value="dotmatrix">
+            <span>Dot Matrix (76mm) - Epson TM-U220</span>
+          </label>
+        </div>
+      </div>
+      <div id="printPreview" style="border: 1px solid #e0e0e0; padding: 20px; background: #fff; min-height: 400px;">
+        <!-- Print content will be loaded here -->
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" onclick="closePrintInvoiceModal()" class="btn btn-secondary">Cancel</button>
+      <button type="button" onclick="executePrint()" class="btn btn-primary"><i class="fa-solid fa-print"></i> Print</button>
+    </div>
+  </div>
+</div>
+
 <!-- View Invoice Modal -->
 <div id="viewInvoiceModal" class="modal-overlay">
   <div class="modal">
@@ -859,6 +895,10 @@
         <div class="view-value" id="view_notes"></div>
       </div>
     </div>
+    <div class="modal-footer" style="border-top: 1px solid #e0e0e0; padding: 16px 20px; display: flex; justify-content: flex-end; gap: 10px;">
+      <button type="button" onclick="closeViewInvoiceModal()" class="btn btn-secondary">Close</button>
+      <button type="button" onclick="printCurrentInvoice()" class="btn btn-primary"><i class="fa-solid fa-print"></i> Print Invoice</button>
+    </div>
   </div>
 </div>
 
@@ -915,6 +955,7 @@
           <td>
             <div class="action-btns">
               <button onclick="openViewInvoiceModal('${inv.invoice_id}')" class="action-btn">View</button>
+              <button onclick="printInvoice('${inv.invoice_id}')" class="action-btn" title="Print Invoice"><i class="fa-solid fa-print"></i></button>
               <button onclick="openEditInvoiceModal('${inv.invoice_id}')" class="action-btn">Edit</button>
               <button onclick="confirmDeleteInvoice('${inv.invoice_id}')" class="action-btn delete">Delete</button>
             </div>
@@ -1045,6 +1086,321 @@
 
   function closeViewInvoiceModal() {
     document.getElementById('viewInvoiceModal').style.display = 'none';
+  }
+
+  let currentPrintInvoiceId = null;
+
+  function printInvoice(invoiceId) {
+    currentPrintInvoiceId = invoiceId;
+    const invoice = invoicesData.find(i => i.invoice_id === invoiceId);
+    if (!invoice) return;
+    loadPrintPreview(invoice);
+    document.getElementById('printInvoiceModal').style.display = 'flex';
+  }
+
+  function printCurrentInvoice() {
+    const invoiceId = document.getElementById('view_invoice_number').textContent;
+    const invoice = invoicesData.find(i => i.invoice_number === invoiceId);
+    if (invoice) {
+      currentPrintInvoiceId = invoice.invoice_id;
+      loadPrintPreview(invoice);
+      document.getElementById('printInvoiceModal').style.display = 'flex';
+    }
+  }
+
+  function closePrintInvoiceModal() {
+    document.getElementById('printInvoiceModal').style.display = 'none';
+    currentPrintInvoiceId = null;
+  }
+
+  function loadPrintPreview(invoice) {
+    const format = document.querySelector('input[name="printFormat"]:checked')?.value || 'a4';
+    const preview = document.getElementById('printPreview');
+    
+    if (format === 'thermal') {
+      preview.innerHTML = generateThermalReceipt(invoice);
+      preview.style.maxWidth = '320px';
+      preview.style.margin = '0 auto';
+    } else if (format === 'dotmatrix') {
+      preview.innerHTML = generateDotMatrixReceipt(invoice);
+      preview.style.maxWidth = '40ch';
+      preview.style.margin = '0 auto';
+      preview.style.fontFamily = "'Courier New', 'Consolas', monospace";
+      preview.style.fontSize = '11pt';
+      preview.style.lineHeight = '1.2';
+      preview.style.padding = '8px';
+      preview.style.border = '1px solid #ccc';
+      preview.style.background = '#fff';
+    } else {
+      preview.innerHTML = generateA4Invoice(invoice);
+      preview.style.maxWidth = '100%';
+      preview.style.margin = '0';
+    }
+  }
+
+  // Listen for format changes
+  document.addEventListener('change', function(e) {
+    if (e.target.name === 'printFormat' && currentPrintInvoiceId) {
+      const invoice = invoicesData.find(i => i.invoice_id === currentPrintInvoiceId);
+      if (invoice) loadPrintPreview(invoice);
+    }
+  });
+
+  function generateA4Invoice(invoice) {
+    const typeLabel = (invoice.invoice_type || '').replace(/_/g, ' ').toUpperCase();
+    const dateStr = invoice.invoice_date ? new Date(invoice.invoice_date).toLocaleDateString('en-PH') : '-';
+    const dueDateStr = invoice.due_date ? new Date(invoice.due_date).toLocaleDateString('en-PH') : 'N/A';
+    
+    return `
+      <div class="a4-invoice" style="font-family: Arial, sans-serif; color: #333;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h2 style="margin: 0; font-size: 24px;">M&M PARAISO RESORT</h2>
+          <p style="margin: 5px 0; color: #666;">Official Receipt</p>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
+          <div>
+            <p style="margin: 3px 0;"><strong>Invoice #:</strong> ${invoice.invoice_number}</p>
+            <p style="margin: 3px 0;"><strong>Type:</strong> ${typeLabel}</p>
+            <p style="margin: 3px 0;"><strong>Status:</strong> ${invoice.status?.toUpperCase()}</p>
+          </div>
+          <div style="text-align: right;">
+            <p style="margin: 3px 0;"><strong>Date:</strong> ${dateStr}</p>
+            <p style="margin: 3px 0;"><strong>Due Date:</strong> ${dueDateStr}</p>
+          </div>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+          <thead>
+            <tr style="border-bottom: 2px solid #333;">
+              <th style="text-align: left; padding: 10px;">Description</th>
+              <th style="text-align: right; padding: 10px;">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid #ddd;">
+              <td style="padding: 10px;">Subtotal</td>
+              <td style="text-align: right; padding: 10px;">₱${parseFloat(invoice.subtotal || 0).toFixed(2)}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #ddd;">
+              <td style="padding: 10px;">Discount</td>
+              <td style="text-align: right; padding: 10px; color: #2E7D32;">-₱${parseFloat(invoice.discount_amount || 0).toFixed(2)}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #ddd;">
+              <td style="padding: 10px;">Tax (12% VAT)</td>
+              <td style="text-align: right; padding: 10px;">₱${parseFloat(invoice.tax_amount || 0).toFixed(2)}</td>
+            </tr>
+            <tr style="border-bottom: 2px solid #333; font-weight: bold;">
+              <td style="padding: 10px;">TOTAL</td>
+              <td style="text-align: right; padding: 10px;">₱${parseFloat(invoice.total_amount || 0).toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px;">Amount Paid</td>
+              <td style="text-align: right; padding: 10px; color: #1565C0;">₱${parseFloat(invoice.amount_paid || 0).toFixed(2)}</td>
+            </tr>
+            <tr style="font-weight: bold;">
+              <td style="padding: 10px;">Balance</td>
+              <td style="text-align: right; padding: 10px; color: ${parseFloat(invoice.balance || 0) > 0 ? '#C62828' : '#2E7D32'};">₱${parseFloat(invoice.balance || 0).toFixed(2)}</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd;">
+          <p style="margin: 5px 0; font-size: 12px; color: #666;"><strong>Notes:</strong> ${invoice.notes || 'N/A'}</p>
+          <p style="margin: 20px 0 5px; font-size: 11px; color: #999; text-align: center;">
+            Thank you for choosing M&M Paraiso Resort!<br>
+            This is an official receipt for your transaction.
+          </p>
+        </div>
+      </div>
+    `;
+  }
+
+  function generateThermalReceipt(invoice) {
+    const typeLabel = (invoice.invoice_type || '').replace(/_/g, ' ').toUpperCase();
+    const dateStr = invoice.invoice_date ? new Date(invoice.invoice_date).toLocaleDateString('en-PH') : '-';
+    
+    return `
+      <div class="thermal-receipt" style="font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.4;">
+        <div style="text-align: center; margin-bottom: 10px;">
+          <div style="font-size: 14px; font-weight: bold;">M&M PARAISO</div>
+          <div style="font-size: 10px;">RESORT</div>
+        </div>
+        
+        <div style="text-align: center; margin: 10px 0; border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 5px 0;">
+          ${typeLabel}
+        </div>
+        
+        <div style="margin-bottom: 10px;">
+          <div>Inv#: ${invoice.invoice_number}</div>
+          <div>Date: ${dateStr}</div>
+          <div>Status: ${invoice.status?.toUpperCase()}</div>
+        </div>
+        
+        <div style="border-top: 1px solid #000; margin: 10px 0;"></div>
+        
+        <div style="display: flex; justify-content: space-between;">
+          <span>Subtotal</span>
+          <span>₱${parseFloat(invoice.subtotal || 0).toFixed(2)}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span>Discount</span>
+          <span>-₱${parseFloat(invoice.discount_amount || 0).toFixed(2)}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span>Tax</span>
+          <span>₱${parseFloat(invoice.tax_amount || 0).toFixed(2)}</span>
+        </div>
+        
+        <div style="border-top: 1px solid #000; margin: 10px 0;"></div>
+        
+        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 14px;">
+          <span>TOTAL</span>
+          <span>₱${parseFloat(invoice.total_amount || 0).toFixed(2)}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span>Paid</span>
+          <span>₱${parseFloat(invoice.amount_paid || 0).toFixed(2)}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span>Balance</span>
+          <span>₱${parseFloat(invoice.balance || 0).toFixed(2)}</span>
+        </div>
+        
+        <div style="border-top: 1px dashed #000; margin: 15px 0; padding-top: 10px; text-align: center; font-size: 10px;">
+          Thank you for your visit!
+        </div>
+      </div>
+    `;
+  }
+
+  function generateDotMatrixReceipt(invoice) {
+    // Professional receipt format - 40 columns for Epson TM-U220
+    const typeLabel = (invoice.invoice_type || '').replace(/_/g, ' ').toUpperCase();
+    const dateStr = invoice.invoice_date ? new Date(invoice.invoice_date).toLocaleDateString('en-PH') : '-';
+    const dueDateStr = invoice.due_date ? new Date(invoice.due_date).toLocaleDateString('en-PH') : null;
+    
+    // 40-column layout (matches CitiStar format)
+    const WIDTH = 40;
+    const padL = (str, len) => String(str).padStart(len, ' ');
+    const padR = (str, len) => String(str).padEnd(len, ' ');
+    const center = (str) => {
+      const spaces = Math.max(0, WIDTH - str.length);
+      const leftPad = Math.floor(spaces / 2);
+      return ' '.repeat(leftPad) + str;
+    };
+    const twoCols = (left, right) => padR(left, WIDTH - right.length) + right;
+    const separator = '-'.repeat(WIDTH);
+    const thickSep = '='.repeat(WIDTH);
+    
+    // Format amounts
+    const fmt = (n) => parseFloat(n || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    const subtotal = fmt(invoice.subtotal);
+    const discount = fmt(invoice.discount_amount);
+    const tax = fmt(invoice.tax_amount);
+    const total = fmt(invoice.total_amount);
+    const paid = fmt(invoice.amount_paid);
+    const balance = fmt(invoice.balance);
+    
+    let lines = [];
+    
+    // ===== HEADER =====
+    lines.push(center('M&M PARAISO RESORT'));
+    lines.push(center('Official Receipt'));
+    lines.push('');
+    lines.push(separator);
+    
+    // ===== INVOICE INFO =====
+    lines.push(`Inv#: ${invoice.invoice_number}`);
+    lines.push(`Date: ${dateStr}`);
+    if (dueDateStr) {
+      lines.push(`Due:  ${dueDateStr}`);
+    }
+    lines.push(`Type: ${typeLabel}`);
+    lines.push(`Stat: ${invoice.status?.toUpperCase() || 'N/A'}`);
+    lines.push(separator);
+    lines.push('');
+    
+    // ===== AMOUNTS =====
+    if (parseFloat(invoice.subtotal || 0) !== 0) {
+      lines.push(twoCols('Subtotal:', `P${subtotal}`));
+    }
+    if (parseFloat(invoice.discount_amount || 0) > 0) {
+      lines.push(twoCols('Discount:', `-${discount}`));
+    }
+    if (parseFloat(invoice.tax_amount || 0) !== 0) {
+      lines.push(twoCols('VAT (12%):', `P${tax}`));
+    }
+    
+    lines.push(thickSep);
+    lines.push(twoCols('TOTAL:', `P${total}`));
+    lines.push('');
+    
+    // ===== PAYMENT =====
+    lines.push(twoCols('Amount Paid:', `P${paid}`));
+    const balVal = parseFloat(invoice.balance || 0);
+    if (balVal > 0) {
+      lines.push(twoCols('Balance Due:', `P${balance}`));
+    } else {
+      lines.push(twoCols('Balance Due:', 'PAID'));
+    }
+    
+    lines.push(separator);
+    lines.push('');
+    
+    // ===== FOOTER =====
+    if (invoice.notes) {
+      lines.push(`Note: ${invoice.notes.substring(0, 32)}`);
+      lines.push('');
+    }
+    
+    lines.push(center('Thank you for your visit!'));
+    lines.push(center('Please come again'));
+    lines.push('');
+    lines.push(center('This is your Official Receipt'));
+    lines.push('');
+    lines.push('');
+    
+    return `
+      <pre style="font-family: 'Courier New', 'Consolas', monospace; font-size: 11pt; line-height: 1.2; white-space: pre; margin: 0; padding: 8px; width: 40ch; max-width: 40ch; overflow: hidden;">
+${lines.join('\n')}
+      </pre>
+    `;
+  }
+
+  function executePrint() {
+    const format = document.querySelector('input[name="printFormat"]:checked')?.value || 'a4';
+    const preview = document.getElementById('printPreview');
+    const content = preview.innerHTML;
+    
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Invoice Print</title>
+        <style>
+          body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+          @media print {
+            body { padding: 0; }
+            @page { ${format === 'thermal' ? 'width: 80mm; margin: 0;' : format === 'dotmatrix' ? 'width: 76mm; margin: 0;' : 'size: A4; margin: 15mm;'} }
+          }
+        </style>
+      </head>
+      <body>
+        ${content}
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+              window.close();
+            }, 250);
+          };
+        <\/script>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
   }
 
   function confirmDeleteInvoice(invoiceId) {

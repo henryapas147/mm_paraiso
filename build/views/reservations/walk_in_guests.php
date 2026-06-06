@@ -980,11 +980,7 @@
         <div class="form-group">
           <label>Payment Method <span class="req">*</span></label>
           <select id="walkInPaymentMethod" required>
-            <option value="cash">Cash</option>
-            <option value="gcash">GCash</option>
-            <option value="maya">Maya</option>
-            <option value="card">Card</option>
-            <option value="bank_transfer">Bank Transfer</option>
+            <option value="">Loading...</option>
           </select>
         </div>
         <div class="form-group">
@@ -1808,8 +1804,30 @@
     }
   }
 
+  async function loadPaymentMethods() {
+    try {
+      const response = await fetch('../api/payment_methods.php?action=active');
+      const result = await response.json();
+      const select = document.getElementById('walkInPaymentMethod');
+      select.innerHTML = '<option value="">Select Payment Method</option>';
+      if (result.success && result.data) {
+        result.data.forEach(method => {
+          const option = document.createElement('option');
+          option.value = method.method_code;
+          option.textContent = method.method_label;
+          select.appendChild(option);
+        });
+      }
+    } catch (e) {
+      console.error('Failed to load payment methods:', e);
+      const select = document.getElementById('walkInPaymentMethod');
+      select.innerHTML = '<option value="">Error loading methods</option>';
+    }
+  }
+
   async function openWalkInModal() {
     await loadEntranceFees();
+    await loadPaymentMethods();
     const now = new Date();
     const pad = n => String(n).padStart(2, '0');
     document.getElementById('walkInCheckInDate').value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
