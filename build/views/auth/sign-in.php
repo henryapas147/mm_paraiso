@@ -22,17 +22,26 @@ function generateUUID()
 $error = '';
 $success = '';
 
+if (isset($_GET['message'])) {
+  $success = match($_GET['message']) {
+    'registration_success' => 'Account created! Please sign in.',
+    'account_activated'    => 'Your account has been activated. Please sign in.',
+    'account_exists'       => 'An account with this email already exists. Please sign in.',
+    default                => '',
+  };
+}
+
 // Check if user is already logged in, redirect to dashboard
 if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
-  // If user came from pages, redirect back there
-  if (isset($_SESSION['auth_referrer']) && $_SESSION['auth_referrer'] === 'pages') {
+  if (isset($_SESSION['last_visited_url'])) {
+    $redirectUrl = $_SESSION['last_visited_url'];
+    unset($_SESSION['last_visited_url']);
+  } elseif (isset($_SESSION['auth_referrer']) && $_SESSION['auth_referrer'] === 'pages') {
     unset($_SESSION['auth_referrer']);
-    header('Location: ../pages/');
-    exit;
+    $redirectUrl = '../pages/';
+  } else {
+    $redirectUrl = '../';
   }
-  // Redirect to the last visited URL if stored, otherwise dashboard
-  $redirectUrl = $_SESSION['last_visited_url'] ?? '../';
-  unset($_SESSION['last_visited_url']); // Clear the stored URL
   header('Location: ' . $redirectUrl);
   exit;
 }
@@ -184,9 +193,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Redirect based on user role and referrer
             $redirectUrl = './';
-            
+
+            // If a specific return URL was stored (e.g. from schedule-visit auth guard), use it
+            if (isset($_SESSION['last_visited_url'])) {
+                $redirectUrl = $_SESSION['last_visited_url'];
+                unset($_SESSION['last_visited_url']);
             // If user came from pages, redirect back there
-            if (isset($_SESSION['auth_referrer']) && $_SESSION['auth_referrer'] === 'pages') {
+            } elseif (isset($_SESSION['auth_referrer']) && $_SESSION['auth_referrer'] === 'pages') {
                 $redirectUrl = '../pages/';
                 unset($_SESSION['auth_referrer']);
             } else {
@@ -283,7 +296,7 @@ $page_title = 'Sign In'; ?>
                   <div class="w-3/12 max-w-full px-1 mr-auto flex-0">
                     <?php
                     $redirectUri = $protocol . '://' . $host . $basePath . '/google-callback';
-                    $googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=684828627007-f0b26teteotc7u87r96fnbl3c8idnosg.apps.googleusercontent.com&redirect_uri=' . urlencode($redirectUri) . '&response_type=code&scope=openid%20profile%20email&access_type=offline';
+                    $googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=684828627007-f0b26teteotc7u87r96fnbl3c8idnosg.apps.googleusercontent.com&redirect_uri=' . urlencode($redirectUri) . '&response_type=code&scope=openid%20profile%20email&access_type=offline&state=' . bin2hex(random_bytes(16));
                     ?>
                     <a class="inline-block w-full px-5 py-2.5 mb-4 font-bold text-center text-gray-200 uppercase align-middle transition-all bg-transparent border border-gray-200 border-solid rounded-lg shadow-none cursor-pointer hover:-translate-y-px leading-pro text-xs ease-in tracking-tight-rem bg-150 bg-x-25 hover:bg-transparent hover:opacity-75" href="<?php echo htmlspecialchars($googleAuthUrl); ?>">
                       <svg width="24px" height="32px" viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -300,6 +313,11 @@ $page_title = 'Sign In'; ?>
                   </div>
                 </div>
                 <div class="flex-auto p-6">
+                  <?php if ($success): ?>
+                    <div class="mb-4 p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg">
+                      <?php echo htmlspecialchars($success); ?>
+                    </div>
+                  <?php endif; ?>
                   <?php if ($error): ?>
                     <div class="mb-4 p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
                       <?php echo htmlspecialchars($error); ?>

@@ -37,7 +37,7 @@ header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
 if (PHP_SAPI !== 'cli' && session_status() === PHP_SESSION_NONE) {
   ini_set('session.cookie_httponly', 1);
   ini_set('session.cookie_secure', isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on');
-  ini_set('session.cookie_samesite', 'Strict');
+  ini_set('session.cookie_samesite', 'Lax'); // Lax allows cookies during OAuth redirects
   ini_set('session.use_strict_mode', 1);
   ini_set('session.gc_maxlifetime', 3600);
   session_start();

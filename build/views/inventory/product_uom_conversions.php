@@ -344,6 +344,149 @@
     box-shadow: 0 0 0 3px rgba(200,75,49,.08);
   }
 
+  /* ── Searchable Dropdown ── */
+  .searchable-dropdown {
+    position: relative;
+    width: 100%;
+  }
+
+  .searchable-dropdown-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10px 14px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s;
+    user-select: none;
+  }
+
+  .searchable-dropdown-toggle:hover {
+    border-color: var(--brand);
+  }
+
+  .searchable-dropdown-toggle.disabled {
+    background: var(--surface-2);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    border-color: var(--border);
+  }
+
+  .searchable-dropdown-toggle .selected {
+    color: var(--text-primary);
+  }
+
+  .searchable-dropdown-toggle i {
+    font-size: 12px;
+    color: var(--text-muted);
+    transition: transform .15s;
+  }
+
+  .searchable-dropdown-menu.show + .searchable-dropdown-toggle i,
+  .searchable-dropdown:has(.show) .searchable-dropdown-toggle i {
+    transform: rotate(180deg);
+  }
+
+  .searchable-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 4px 16px rgba(0,0,0,.12);
+    z-index: 1000;
+    max-height: 320px;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .searchable-dropdown-menu.show {
+    display: flex;
+  }
+
+  .searchable-dropdown-search {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .searchable-dropdown-search i {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  .searchable-dropdown-search input {
+    width: 100%;
+    padding: 8px 12px 8px 32px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+
+  .searchable-dropdown-search input:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(200,75,49,.08);
+  }
+
+  .searchable-dropdown-search input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .searchable-dropdown-list {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 240px;
+  }
+
+  .searchable-dropdown-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: background .12s;
+  }
+
+  .searchable-dropdown-item:last-child {
+    border-bottom: none;
+  }
+
+  .searchable-dropdown-item:hover {
+    background: var(--brand-light);
+  }
+
+  .searchable-dropdown-item .product-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+
+  .searchable-dropdown-item .product-code {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .searchable-dropdown-item[style*="none"] {
+    display: none !important;
+  }
+
   /* ── Modal ── */
   .fo-modal-overlay {
     position: fixed; inset: 0;
@@ -724,9 +867,24 @@
         
         <div class="fo-form-group">
           <label class="fo-label">Product <span style="color:var(--danger)">*</span></label>
-          <select id="productId" name="product_id" class="fo-select" required onchange="onProductChange()">
-            <option value="">Select Product</option>
-          </select>
+          <!-- Searchable Product Dropdown -->
+          <div class="searchable-dropdown" id="productDropdown">
+            <div class="searchable-dropdown-toggle" id="productDropdownToggle" onclick="toggleProductDropdown()">
+              <span id="productDisplayText">Select Product</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="searchable-dropdown-menu" id="productDropdownMenu">
+              <div class="searchable-dropdown-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="productSearchInput" placeholder="Search products..." 
+                  onkeyup="filterProductDropdown()" onkeydown="handleSearchKeydown(event)">
+              </div>
+              <div class="searchable-dropdown-list" id="productDropdownList">
+                <!-- Options populated by JS -->
+              </div>
+            </div>
+            <input type="hidden" id="productId" name="product_id" required>
+          </div>
         </div>
         
         <div class="fo-form-group">
@@ -763,6 +921,69 @@
             <input type="checkbox" id="isDefault" name="is_default" value="1">
             <span class="fo-checkbox-label">Set as default conversion for this product</span>
           </label>
+        </div>
+        
+        <div style="margin-top:20px;padding-top:16px;border-top:2px solid var(--border);">
+          <div style="font-size:12px;font-weight:600;color:var(--brand);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;">
+            <i class="fas fa-tag"></i> Alternative Product Code & Pricing
+          </div>
+          
+          <div class="fo-form-grid">
+            <div class="fo-form-group">
+              <label class="fo-label">Alternative Product Code</label>
+              <input type="text" id="altProductCode" name="alt_product_code" class="fo-input" 
+                placeholder="e.g., RICE-SACK, RICE-1KG">
+              <small style="color:var(--text-muted);font-size:11px;margin-top:4px;display:block;">
+                Unique code for this UOM variant
+              </small>
+            </div>
+            <div class="fo-form-group">
+              <label class="fo-label">Barcode</label>
+              <input type="text" id="barcode" name="barcode" class="fo-input" 
+                placeholder="Scan or enter barcode">
+            </div>
+          </div>
+          
+          <div class="fo-form-group">
+            <label class="fo-label">Pricing Mode</label>
+            <select id="pricingMode" name="pricing_mode" class="fo-select" onchange="onPricingModeChange()">
+              <option value="fixed_price">Fixed Price (Manual)</option>
+              <option value="percentage_markup">Percentage Markup (based on PO cost)</option>
+              <option value="fixed_markup">Fixed Amount Markup (based on PO cost)</option>
+            </select>
+          </div>
+          
+          <div class="fo-form-grid" id="markupFields" style="display:none;">
+            <div class="fo-form-group">
+              <label class="fo-label">Last PO Cost (per base unit)</label>
+              <input type="number" id="lastPoCost" name="last_po_cost" class="fo-input" 
+                step="0.0001" min="0" placeholder="0.00" onchange="calculateSellingPrice()">
+              <small style="color:var(--text-muted);font-size:11px;margin-top:4px;display:block;">
+                Cost from your last purchase order
+              </small>
+            </div>
+            <div class="fo-form-group">
+              <label class="fo-label" id="markupLabel">Markup Value</label>
+              <input type="number" id="markupValue" name="markup_value" class="fo-input" 
+                step="0.01" min="0" placeholder="0" onchange="calculateSellingPrice()">
+              <small style="color:var(--text-muted);font-size:11px;margin-top:4px;display:block;" id="markupHint">
+                Enter percentage or fixed amount
+              </small>
+            </div>
+          </div>
+          
+          <div class="fo-form-group" id="sellingPriceField">
+            <label class="fo-label">Selling Price</label>
+            <input type="number" id="sellingPrice" name="selling_price" class="fo-input" 
+              step="0.0001" min="0" placeholder="0.00">
+            <small style="color:var(--text-muted);font-size:11px;margin-top:4px;display:block;" id="sellingPriceHint">
+              Final selling price for this UOM
+            </small>
+          </div>
+          
+          <div id="calculatedPriceDisplay" style="display:none;margin-top:8px;padding:8px 12px;background:var(--success-bg);border-radius:var(--radius-sm);font-size:12px;color:var(--success);">
+            <i class="fas fa-calculator"></i> Calculated: <strong id="calculatedPriceValue">₱0.00</strong>
+          </div>
         </div>
         
         <!-- Audit Trail -->
@@ -880,17 +1101,76 @@
   }
 
   function populateProductSelect() {
-    const select = document.getElementById('productId');
-    select.innerHTML = '<option value="">Select Product</option>';
+    const list = document.getElementById('productDropdownList');
+    list.innerHTML = '';
+    
     products.forEach(p => {
-      const option = document.createElement('option');
-      option.value = p.product_id;
-      option.textContent = `${p.product_name} (${p.uom_code || 'no base UOM'})`;
-      option.dataset.uomId = p.uom_id;
-      option.dataset.uomCode = p.uom_code || 'unit';
-      select.appendChild(option);
+      const item = document.createElement('div');
+      item.className = 'searchable-dropdown-item';
+      item.dataset.value = p.product_id;
+      item.dataset.uomId = p.uom_id;
+      item.dataset.uomCode = p.uom_code || 'unit';
+      item.innerHTML = `
+        <div class="product-name">${p.product_name}</div>
+        <div class="product-code">${p.product_code || 'No code'} • ${p.uom_code || 'no base UOM'}</div>
+      `;
+      item.onclick = () => selectProduct(p);
+      list.appendChild(item);
     });
   }
+
+  function toggleProductDropdown() {
+    const toggle = document.getElementById('productDropdownToggle');
+    if (toggle.classList.contains('disabled')) return;
+    
+    const menu = document.getElementById('productDropdownMenu');
+    const isOpen = menu.classList.contains('show');
+    
+    // Close all other dropdowns
+    document.querySelectorAll('.searchable-dropdown-menu').forEach(m => m.classList.remove('show'));
+    
+    if (!isOpen) {
+      menu.classList.add('show');
+      setTimeout(() => document.getElementById('productSearchInput').focus(), 50);
+    }
+  }
+
+  function closeProductDropdown() {
+    document.getElementById('productDropdownMenu').classList.remove('show');
+  }
+
+  function filterProductDropdown() {
+    const searchTerm = document.getElementById('productSearchInput').value.toLowerCase();
+    const items = document.querySelectorAll('.searchable-dropdown-item');
+    
+    items.forEach(item => {
+      const text = item.textContent.toLowerCase();
+      item.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+  }
+
+  function handleSearchKeydown(event) {
+    if (event.key === 'Escape') {
+      closeProductDropdown();
+    }
+  }
+
+  function selectProduct(product) {
+    document.getElementById('productId').value = product.product_id;
+    document.getElementById('productDisplayText').textContent = `${product.product_name} (${product.uom_code || 'no base UOM'})`;
+    document.getElementById('productDisplayText').classList.add('selected');
+    closeProductDropdown();
+    document.getElementById('productSearchInput').value = '';
+    filterProductDropdown();
+    onProductChange();
+  }
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#productDropdown')) {
+      closeProductDropdown();
+    }
+  });
 
   function populateUomSelects() {
     const fromSelect = document.getElementById('fromUomId');
@@ -908,19 +1188,117 @@
     const product = products.find(p => p.product_id === productId);
     if (product) {
       document.getElementById('baseUomDisplay').value = `${product.uom_name || 'Unknown'} (${product.uom_code || 'unit'})`;
-      
+
       // Auto-select base UOM in "From UOM" dropdown
       if (product.uom_id) {
         document.getElementById('fromUomId').value = product.uom_id;
         updateFactorExample();
       }
+
+      // Auto-generate alternative product code suggestion
+      const altCodeField = document.getElementById('altProductCode');
+      if (product && !altCodeField.value && !document.getElementById('conversionId').value) {
+        const toUom = uoms.find(u => u.uom_id == document.getElementById('toUomId').value);
+        if (toUom) {
+          altCodeField.value = `${product.product_code}-${toUom.uom_code}`.toUpperCase();
+        }
+      }
+
+      // Fetch last PO cost for the base UOM
+      fetchLastPoCost(productId, product.uom_id);
+    }
+  }
+
+  async function fetchLastPoCost(productId, uomId) {
+    if (!productId || !uomId) return;
+
+    try {
+      const response = await fetch(`../api/product_uom_conversions.php?action=last_po_cost&product_id=${productId}&uom_id=${uomId}`);
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        document.getElementById('lastPoCost').value = result.data.unit_cost;
+        calculateSellingPrice();
+      }
+    } catch (error) {
+      console.error('Error fetching last PO cost:', error);
+    }
+  }
+
+  function onPricingModeChange() {
+    const mode = document.getElementById('pricingMode').value;
+    const markupFields = document.getElementById('markupFields');
+    const sellingPriceField = document.getElementById('sellingPriceField');
+    const sellingPriceInput = document.getElementById('sellingPrice');
+    const markupLabel = document.getElementById('markupLabel');
+    const markupHint = document.getElementById('markupHint');
+    const calculatedDisplay = document.getElementById('calculatedPriceDisplay');
+    
+    if (mode === 'fixed_price') {
+      markupFields.style.display = 'none';
+      calculatedDisplay.style.display = 'none';
+      sellingPriceInput.readOnly = false;
+      document.getElementById('sellingPriceHint').textContent = 'Enter manual selling price';
+    } else {
+      markupFields.style.display = 'grid';
+      calculatedDisplay.style.display = 'block';
+      sellingPriceInput.readOnly = true;
+      document.getElementById('sellingPriceHint').textContent = 'Auto-calculated based on markup';
+      
+      if (mode === 'percentage_markup') {
+        markupLabel.textContent = 'Markup Percentage (%)';
+        markupHint.textContent = 'Enter percentage to add to cost (e.g., 20 for 20%)';
+      } else {
+        markupLabel.textContent = 'Fixed Markup Amount (₱)';
+        markupHint.textContent = 'Enter fixed amount to add to cost';
+      }
+      
+      calculateSellingPrice();
+    }
+  }
+
+  function calculateSellingPrice() {
+    const mode = document.getElementById('pricingMode').value;
+    const lastPoCost = parseFloat(document.getElementById('lastPoCost').value) || 0;
+    const markupValue = parseFloat(document.getElementById('markupValue').value) || 0;
+    const conversionFactor = parseFloat(document.getElementById('conversionFactor').value) || 1;
+    const sellingPriceInput = document.getElementById('sellingPrice');
+    
+    let calculatedPrice = 0;
+    
+    if (mode === 'percentage_markup' && lastPoCost > 0) {
+      calculatedPrice = (lastPoCost * conversionFactor) * (1 + (markupValue / 100));
+    } else if (mode === 'fixed_markup') {
+      calculatedPrice = (lastPoCost * conversionFactor) + markupValue;
+    }
+    
+    if (calculatedPrice > 0) {
+      sellingPriceInput.value = calculatedPrice.toFixed(4);
+      document.getElementById('calculatedPriceValue').textContent = '₱' + calculatedPrice.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 4});
     }
   }
 
   // Update factor example when inputs change
   document.getElementById('fromUomId')?.addEventListener('change', updateFactorExample);
-  document.getElementById('toUomId')?.addEventListener('change', updateFactorExample);
-  document.getElementById('conversionFactor')?.addEventListener('input', updateFactorExample);
+  document.getElementById('toUomId')?.addEventListener('change', () => {
+    updateFactorExample();
+    // Auto-generate alt product code if empty
+    const altCodeField = document.getElementById('altProductCode');
+    const productId = document.getElementById('productId').value;
+    const product = products.find(p => p.product_id === productId);
+    const toUom = uoms.find(u => u.uom_id == document.getElementById('toUomId').value);
+    if (product && toUom && !altCodeField.value && !document.getElementById('conversionId').value) {
+      altCodeField.value = `${product.product_code}-${toUom.uom_code}`.toUpperCase();
+    }
+  });
+  document.getElementById('conversionFactor')?.addEventListener('input', () => {
+    updateFactorExample();
+    // Recalculate selling price if using markup mode
+    const pricingMode = document.getElementById('pricingMode').value;
+    if (pricingMode !== 'fixed_price') {
+      calculateSellingPrice();
+    }
+  });
 
   function updateFactorExample() {
     const fromUomId = document.getElementById('fromUomId').value;
@@ -979,7 +1357,9 @@
         ? productConvs.map(c => `
             <span class="puc-conversion-badge ${c.is_default == 1 ? 'default' : ''}" title="${c.is_default == 1 ? 'Default conversion' : ''}">
               ${c.from_uom_code} → ${c.to_uom_code}: <span class="puc-conversion-factor">${parseFloat(c.conversion_factor).toLocaleString()}</span>
-              ${c.is_default == 1 ? '<i class="fas fa-check" style="font-size:10px;"></i>' : ''}
+              ${c.alt_product_code ? `<br><small style="font-size:10px;opacity:0.8;">Code: ${c.alt_product_code}</small>` : ''}
+              ${c.selling_price ? `<br><small style="font-size:10px;opacity:0.8;">₱${parseFloat(c.selling_price).toFixed(2)}</small>` : ''}
+              ${c.is_default == 1 ? '<i class="fas fa-check" style="font-size:10px;margin-left:4px;"></i>' : ''}
               <button onclick="event.stopPropagation();editConversion(${c.conversion_id})" style="background:none;border:none;color:var(--text-muted);cursor:pointer;margin-left:6px;padding:2px;"><i class="fas fa-edit" style="font-size:11px;"></i></button>
               <button onclick="event.stopPropagation();deleteConversion(${c.conversion_id})" style="background:none;border:none;color:var(--danger);cursor:pointer;margin-left:4px;padding:2px;"><i class="fas fa-trash" style="font-size:11px;"></i></button>
             </span>
@@ -1034,10 +1414,22 @@
 
   function filterTable() {
     const searchTerm = document.getElementById('searchInput')?.value?.toLowerCase() || '';
-    filteredProducts = products.filter(p =>
-      p.product_name.toLowerCase().includes(searchTerm) ||
-      p.product_code?.toLowerCase().includes(searchTerm)
-    );
+    
+    // Filter products
+    filteredProducts = products.filter(p => {
+      const matchesProduct = p.product_name.toLowerCase().includes(searchTerm) ||
+        p.product_code?.toLowerCase().includes(searchTerm);
+      
+      // Also check if any conversion matches the search term
+      const productConvs = conversions.filter(c => c.product_id === p.product_id);
+      const matchesConversion = productConvs.some(c => 
+        c.alt_product_code?.toLowerCase().includes(searchTerm) ||
+        c.barcode?.toLowerCase().includes(searchTerm)
+      );
+      
+      return matchesProduct || matchesConversion;
+    });
+    
     currentPage = 1;
     renderTable();
   }
@@ -1047,15 +1439,29 @@
     document.getElementById('conversionId').value = '';
     document.getElementById('modalTitle').textContent = 'Add UOM Conversion';
     
+    // Reset searchable dropdown
+    const productDisplayText = document.getElementById('productDisplayText');
+    productDisplayText.textContent = 'Select Product';
+    productDisplayText.classList.remove('selected');
+    document.getElementById('productDropdownList').querySelectorAll('.searchable-dropdown-item').forEach(item => {
+      item.style.display = '';
+    });
+    
     // Hide audit trail for new conversions
     document.getElementById('auditTrailSection').style.display = 'none';
     
     if (preselectedProductId) {
       document.getElementById('productId').value = preselectedProductId;
+      // Set display text for preselected product
+      const product = products.find(p => p.product_id === preselectedProductId);
+      if (product) {
+        productDisplayText.textContent = `${product.product_name} (${product.uom_code || 'no base UOM'})`;
+        productDisplayText.classList.add('selected');
+      }
       onProductChange();
-      document.getElementById('productId').disabled = true;
+      document.getElementById('productDropdownToggle')?.classList.add('disabled');
     } else {
-      document.getElementById('productId').disabled = false;
+      document.getElementById('productDropdownToggle')?.classList.remove('disabled');
     }
     
     document.getElementById('conversionModal').classList.add('open');
@@ -1067,10 +1473,29 @@
     
     document.getElementById('conversionId').value = conversion.conversion_id;
     document.getElementById('productId').value = conversion.product_id;
+    
+    // Set product display text for searchable dropdown
+    const product = products.find(p => p.product_id === conversion.product_id);
+    if (product) {
+      document.getElementById('productDisplayText').textContent = `${product.product_name} (${product.uom_code || 'no base UOM'})`;
+      document.getElementById('productDisplayText').classList.add('selected');
+    }
+    
     document.getElementById('fromUomId').value = conversion.from_uom_id;
     document.getElementById('toUomId').value = conversion.to_uom_id;
     document.getElementById('conversionFactor').value = conversion.conversion_factor;
     document.getElementById('isDefault').checked = conversion.is_default == 1;
+    
+    // Populate new pricing fields
+    document.getElementById('altProductCode').value = conversion.alt_product_code || '';
+    document.getElementById('barcode').value = conversion.barcode || '';
+    document.getElementById('pricingMode').value = conversion.pricing_mode || 'fixed_price';
+    document.getElementById('lastPoCost').value = conversion.last_po_cost || '';
+    document.getElementById('markupValue').value = conversion.markup_value || '';
+    document.getElementById('sellingPrice').value = conversion.selling_price || '';
+    
+    // Trigger pricing mode change to show/hide markup fields
+    onPricingModeChange();
     
     // Show audit trail
     document.getElementById('auditTrailSection').style.display = 'block';
@@ -1079,6 +1504,7 @@
     
     onProductChange();
     document.getElementById('productId').disabled = true;
+    document.getElementById('productDropdownToggle').classList.add('disabled');
     document.getElementById('modalTitle').textContent = 'Edit UOM Conversion';
     document.getElementById('conversionModal').classList.add('open');
   }
@@ -1121,6 +1547,8 @@
   function closeModal() {
     document.getElementById('conversionModal').classList.remove('open');
     document.getElementById('productId').disabled = false;
+    document.getElementById('productDropdownToggle')?.classList.remove('disabled');
+    closeProductDropdown();
   }
 
   async function saveConversion(event) {
@@ -1132,7 +1560,13 @@
       from_uom_id: document.getElementById('fromUomId').value,
       to_uom_id: document.getElementById('toUomId').value,
       conversion_factor: parseFloat(document.getElementById('conversionFactor').value),
-      is_default: document.getElementById('isDefault').checked ? 1 : 0
+      is_default: document.getElementById('isDefault').checked ? 1 : 0,
+      alt_product_code: document.getElementById('altProductCode').value || null,
+      barcode: document.getElementById('barcode').value || null,
+      pricing_mode: document.getElementById('pricingMode').value,
+      last_po_cost: parseFloat(document.getElementById('lastPoCost').value) || null,
+      markup_value: parseFloat(document.getElementById('markupValue').value) || null,
+      selling_price: parseFloat(document.getElementById('sellingPrice').value) || null
     };
     
     try {

@@ -4,6 +4,16 @@ require_once '../config/middleware.php';
 require_once '../../vendor/autoload.php';
 applyPublicMiddleware();
 
+// Build a dynamic base URL that works on both localhost and production
+function getBaseUrl() {
+    $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'];
+    $scriptPath = $_SERVER['PHP_SELF']; // e.g. /admin_booking/build/api/auth.php
+    // Go up two levels from /api/ to get the /build/ root
+    $buildPath = dirname(dirname($scriptPath)); // e.g. /admin_booking/build
+    return $protocol . '://' . $host . $buildPath;
+}
+
 use Google\Client;
 use Google\Service\Gmail;
 use Google\Service\Gmail\Message;
@@ -108,7 +118,7 @@ try {
         $profileStmt->execute([$profileId, $userId, $firstName, $lastName]);
 
         // Send verification email using Gmail API with OAuth 2.0
-        $verifyUrl = "http://" . $_SERVER['HTTP_HOST'] . "/admin_booking/build/api/auth.php?action=verify&token=$verifyToken";
+        $verifyUrl = getBaseUrl() . "/api/auth.php?action=verify&token=$verifyToken";
 
         try {
           $credentials = json_decode(file_get_contents('../../config/gmail-credentials.json'), true);
@@ -189,7 +199,7 @@ try {
           $client->setApplicationName('Resort Booking System');
           $client->setClientId($credentials['web']['client_id']);
           $client->setClientSecret($credentials['web']['client_secret']);
-          $client->setRedirectUri('http://192.168.1.46/admin_booking/build/api/auth.php?action=google-callback');
+          $client->setRedirectUri(getBaseUrl() . '/api/auth.php?action=google-callback');
           $client->setScopes(['openid', 'profile', 'email']);
           $client->setAccessType('offline');
 
@@ -206,34 +216,47 @@ try {
           $googleId = $googleUser->getId();
 
           // Check if user already exists
-          $checkEmail = $pdo->prepare("SELECT user_id, email, account_status FROM user_accounts WHERE email = ? AND deleted_at IS NULL");
+          $checkEmail = $pdo->prepare("
+            SELECT ua.user_id, ua.email, ua.account_status, ur.role_code, ur.role_label
+            FROM user_accounts ua
+            LEFT JOIN user_roles ur ON ua.role_id = ur.role_id
+            WHERE ua.email = ? AND ua.deleted_at IS NULL
+          ");
           $checkEmail->execute([$email]);
           $existingUser = $checkEmail->fetch();
 
           if ($existingUser) {
-            // User exists - update Google ID if not set
-            if ($existingUser['account_status'] === 'active') {
-              // User is active, redirect to login
-              header('Location: /admin_booking/build/sign-in?message=account_exists');
-              exit;
-            } else {
-              // User is pending verification, activate account
-              $stmt = $pdo->prepare("UPDATE user_accounts SET account_status = 'active', is_email_verified = 1 WHERE email = ?");
-              $stmt->execute([$email]);
-              header('Location: /admin_booking/build/sign-in?message=account_activated');
-              exit;
-            }
+            $ipAddress = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+            // Update account: activate if pending, link google_id if missing, reset login tracking
+            $stmt = $pdo->prepare("
+              UPDATE user_accounts
+              SET account_status    = 'active',
+                  is_email_verified = 1,
+                  google_id         = COALESCE(google_id, ?),
+                  failed_login_count = 0,
+                  locked_until      = NULL,
+                  last_login_at     = NOW(),
+                  last_login_ip     = ?
+              WHERE user_id = ?
+            ");
+            $stmt->execute([$googleId, $ipAddress, $existingUser['user_id']]);
+
+            $loginUserId    = $existingUser['user_id'];
+            $loginRoleCode  = $existingUser['role_code'];
+            $loginRoleLabel = $existingUser['role_label'];
+            $loginEmail     = $existingUser['email'];
           } else {
             // Create new user
-            $userId = generateUUID();
-            
+            $newUserId = generateUUID();
+
             // Get customer role
             $roleStmt = $pdo->prepare("SELECT role_id FROM user_roles WHERE role_code = 'customer' LIMIT 1");
             $roleStmt->execute();
             $role = $roleStmt->fetch();
 
             if (!$role) {
-              die("System error: Customer role not found. Please contact support.");
+              header('Location: ' . getBaseUrl() . '/sign-up?error=system_error');
+              exit;
             }
 
             // Create user account
@@ -241,31 +264,67 @@ try {
               INSERT INTO user_accounts (user_id, role_id, email, account_status, is_email_verified, google_id)
               VALUES (?, ?, ?, 'active', 1, ?)
             ");
-            $stmt->execute([$userId, $role['role_id'], $email, $googleId]);
+            $stmt->execute([$newUserId, $role['role_id'], $email, $googleId]);
 
             // Create user profile
             $profileId = generateUUID();
             $nameParts = explode(' ', $name, 2);
             $firstName = $nameParts[0];
-            $lastName = $nameParts[1] ?? '';
+            $lastName  = $nameParts[1] ?? '';
 
             $profileStmt = $pdo->prepare("
               INSERT INTO user_profiles (profile_id, user_id, first_name, last_name)
               VALUES (?, ?, ?, ?)
             ");
-            $profileStmt->execute([$profileId, $userId, $firstName, $lastName]);
+            $profileStmt->execute([$profileId, $newUserId, $firstName, $lastName]);
 
-            header('Location: /admin_booking/build/sign-in?message=registration_success');
-            exit;
+            $loginUserId    = $newUserId;
+            $loginRoleCode  = 'customer';
+            $loginRoleLabel = 'Customer';
+            $loginEmail     = $email;
           }
+
+          // Log the user in — set session variables
+          session_regenerate_id(true);
+          $_SESSION['user_id']    = $loginUserId;
+          $_SESSION['email']      = $loginEmail;
+          $_SESSION['role_code']  = $loginRoleCode;
+          $_SESSION['role_label'] = $loginRoleLabel;
+          $_SESSION['logged_in']  = true;
+          $_SESSION['last_activity'] = time();
+          $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+
+          // Store session in DB
+          $ipAddress = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+          $sessionId = generateUUID();
+          $sessionTokenHash = hash('sha256', bin2hex(random_bytes(32)));
+          $sessionExpiresAt = date('Y-m-d H:i:s', strtotime('+2 hours'));
+          $sessionStmt = $pdo->prepare("
+            INSERT INTO user_sessions (session_id, user_id, token_hash, device_type, ip_address, expires_at, is_active)
+            VALUES (?, ?, ?, 'web', ?, ?, 1)
+          ");
+          $sessionStmt->execute([$sessionId, $loginUserId, $sessionTokenHash, $ipAddress, $sessionExpiresAt]);
+          $_SESSION['session_id'] = $sessionId;
+
+          // Redirect: use session's last_visited_url first, then role-based dashboard
+          if (isset($_SESSION['last_visited_url'])) {
+            $redirectUrl = $_SESSION['last_visited_url'];
+            unset($_SESSION['last_visited_url']);
+          } else {
+            $redirectUrl = ($loginRoleCode === 'customer')
+              ? getBaseUrl() . '/customer/dashboard'
+              : getBaseUrl() . '/';
+          }
+          header('Location: ' . $redirectUrl);
+          exit;
         } catch (Exception $e) {
           error_log("Google OAuth error: " . $e->getMessage());
-          header('Location: /admin_booking/build/sign-up?error=oauth_failed');
+          header('Location: ' . getBaseUrl() . '/sign-up?error=oauth_failed');
           exit;
         }
       } elseif ($action === 'verify' && isset($_GET['token'])) {
         // Redirect to the new email verification controller
-        header('Location: /build/verify-email?token=' . urlencode($_GET['token']));
+        header('Location: ' . getBaseUrl() . '/verify-email?token=' . urlencode($_GET['token']));
         exit;
       }
       break;

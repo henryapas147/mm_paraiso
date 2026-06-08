@@ -86,6 +86,20 @@ try {
         ];
         
         echo json_encode(['success' => true, 'data' => $fees]);
+
+      } elseif ($action === 'pos_settings') {
+        // Get POS-specific settings (VAT/tax configuration)
+        $stmt = $pdo->prepare("SELECT setting_key, setting_value FROM system_settings WHERE setting_group = 'pos' AND setting_key LIKE 'pos_%'");
+        $stmt->execute();
+        $settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+        
+        $posSettings = [
+          'vat_enabled'    => intval($settings['pos_vat_enabled'] ?? 0),
+          'vat_rate'       => floatval($settings['pos_vat_rate'] ?? 12),
+          'tax_inclusive'  => intval($settings['pos_tax_inclusive'] ?? 0),
+        ];
+        
+        echo json_encode(['success' => true, 'data' => $posSettings]);
       }
       break;
 

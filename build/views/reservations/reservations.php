@@ -958,7 +958,8 @@
             <th>Guest</th>
             <th>Property</th>
             <th>Type</th>
-            <th>Check-in</th>
+            <th>Source</th>
+            <th></th>Check-in</th>
             <th>Check-out</th>
             <th class="center">Status</th>
             <th class="center">Payment</th>
@@ -968,7 +969,7 @@
         </thead>
         <tbody id="reservationsTableBody">
           <tr>
-            <td colspan="10" class="empty-state">
+            <td colspan="11" class="empty-state">
               <i class="fa-regular fa-clipboard"></i>
               Loading...
             </td>
@@ -1135,10 +1136,10 @@
         <div class="form-group full" id="balanceWarning" style="display:none;background:#FFF3E0;padding:12px;border-radius:8px;border:1px solid #FFE0B2;">
           <label style="color:#E65100;margin-bottom:4px;">⚠️ Outstanding Balance</label>
           <div style="font-size:14px;color:#E65100;font-weight:500;">₱<span id="checkInBalanceAmount">0.00</span></div>
-          <div style="font-size:12px;color:#666;margin-top:4px;">Guest has an outstanding balance. Please collect payment before check-in.</div>
+          <div style="font-size:12px;color:#666;margin-top:4px;">Guest has an outstanding balance. Payment collection is optional — billing can be settled separately.</div>
         </div>
         <div class="form-group full" id="paymentSection" style="display:none;background:#E8F5E9;padding:12px;border-radius:8px;border:1px solid #A5D6A7;">
-          <label style="color:#2E7D32;margin-bottom:8px;">💰 Collect Payment</label>
+          <label style="color:#2E7D32;margin-bottom:8px;">💰 Collect Payment <span style="font-weight:400;font-size:11px;color:#555">(Optional)</span></label>
           <div class="form-group">
             <label>Payment Amount</label>
             <input type="number" id="checkInPaymentAmount" step="0.01" min="0" placeholder="Enter amount">
@@ -1320,7 +1321,7 @@
     if (!tbody) return;
 
     if (reservationsData.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="10" class="empty-state"><i><i class="fa-regular fa-clipboard"></i></i>No reservations found</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="11" class="empty-state"><i><i class="fa-regular fa-clipboard"></i></i>No reservations found</td></tr>`;
       return;
     }
 
@@ -1336,6 +1337,9 @@
         <td>${r.property_name || '-'}</td>
         <td>
           <span class="status-badge" style="background:#E6F1FB;color:#0C447C">${r.booking_type || '-'}</span>
+        </td>
+        <td>
+          <span class="status-badge" style="background:#F3E5F5;color:#7B1FA2;text-transform:capitalize">${r.source_channel ? r.source_channel.replace(/_/g, ' ') : '-'}</span>
         </td>
         <td>
           <div>${formatDate(r.check_in_date)}</div>
@@ -1370,7 +1374,7 @@
 
   function showError(tbodyId, msg) {
     const tbody = document.getElementById(tbodyId);
-    if (tbody) tbody.innerHTML = `<tr><td colspan="10" class="empty-state"><i>⚠</i>${msg}</td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="11" class="empty-state"><i>⚠</i>${msg}</td></tr>`;
   }
 
   let filterTimer = null;
@@ -1671,7 +1675,7 @@
     if (!container) return;
 
     try {
-      const res = await fetch(`../api/extra_charges.php?action=list&reservation_id=${reservationId}`);
+      const res = await fetch(`../api/extra_charges.php?action=by_reservation&reservation_id=${reservationId}`);
       const result = await res.json();
       if (result.success) {
         renderReservationExtraCharges(result.data);

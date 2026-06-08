@@ -12,16 +12,19 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use Google\Client;
 use App\Controllers\Controller;
 
+// Load credentials from config file
+require_once __DIR__ . '/../config/credentials.php';
+
 // Database configuration - Auto-detect if online or localhost based on host
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $USE_ONLINE_DB = !in_array($host, ['localhost', '127.0.0.1']) && !preg_match('/^192\.168\./', $host) && !preg_match('/^10\./', $host);
 
 if ($USE_ONLINE_DB) {
-    // Online database credentials - Hostinger specific
-    $DB_HOST = 'localhost';
-    $DB_NAME = 'u843921121_sociallogin';
-    $DB_USER = 'u843921121_anthonzcatzqms';
-    $DB_PASS = '^M05uc3IuAxf';
+    // Online database credentials from config/credentials.php
+    $DB_HOST = getenv('ONLINE_DB_HOST') ?: 'localhost';
+    $DB_NAME = getenv('ONLINE_DB_NAME') ?: '';
+    $DB_USER = getenv('ONLINE_DB_USER') ?: '';
+    $DB_PASS = getenv('ONLINE_DB_PASS') ?: '';
     $DB_OPTIONS = [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -31,11 +34,11 @@ if ($USE_ONLINE_DB) {
         PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci; SET time_zone = '+08:00'"
     ];
 } else {
-    // Offline/local database credentials
-    $DB_HOST = 'localhost';
-    $DB_NAME = 'booking';
-    $DB_USER = 'root';
-    $DB_PASS = '';
+    // Offline/local database credentials from config/credentials.php
+    $DB_HOST = getenv('LOCAL_DB_HOST') ?: 'localhost';
+    $DB_NAME = getenv('LOCAL_DB_NAME') ?: 'booking';
+    $DB_USER = getenv('LOCAL_DB_USER') ?: 'root';
+    $DB_PASS = getenv('LOCAL_DB_PASS') ?: '';
     $DB_OPTIONS = [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -169,8 +172,13 @@ try {
             ");
             $updateStmt->execute([$ipAddress, $existingGoogleUser['user_id']]);
 
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) {
+                ini_set('session.cookie_samesite', 'Lax');
+                session_start();
+            }
             session_regenerate_id(true);
+
+            $lastVisitedUrl = $_SESSION['last_visited_url'] ?? null;
 
             $_SESSION['user_id']       = $existingGoogleUser['user_id'];
             $_SESSION['email']         = $existingGoogleUser['email'];
@@ -179,6 +187,7 @@ try {
             $_SESSION['logged_in']     = true;
             $_SESSION['last_activity'] = time();
             $_SESSION['csrf_token']    = bin2hex(random_bytes(32));
+            unset($_SESSION['last_visited_url']);
 
             $sessionId        = generateUUID();
             $sessionToken     = bin2hex(random_bytes(32));
@@ -193,8 +202,13 @@ try {
 
             $_SESSION['session_id'] = $sessionId;
 
-            $googleRedirect = ($_SESSION['role_code'] ?? '') === 'customer' ? './customer/dashboard' : './';
-            header('Location: ' . $googleRedirect);
+            if ($lastVisitedUrl) {
+                header('Location: ' . $lastVisitedUrl);
+            } elseif (($_SESSION['role_code'] ?? '') === 'customer') {
+                header('Location: ./customer/dashboard');
+            } else {
+                header('Location: ./');
+            }
             exit;
         } else {
             $controller->viewRaw('auth/google-callback-error', [
@@ -246,8 +260,13 @@ try {
             ");
             $updateStmt->execute([$ipAddress, $existingEmailUser['user_id']]);
 
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) {
+                ini_set('session.cookie_samesite', 'Lax');
+                session_start();
+            }
             session_regenerate_id(true);
+
+            $lastVisitedUrl = $_SESSION['last_visited_url'] ?? null;
 
             $_SESSION['user_id']       = $existingEmailUser['user_id'];
             $_SESSION['email']         = $existingEmailUser['email'];
@@ -256,6 +275,7 @@ try {
             $_SESSION['logged_in']     = true;
             $_SESSION['last_activity'] = time();
             $_SESSION['csrf_token']    = bin2hex(random_bytes(32));
+            unset($_SESSION['last_visited_url']);
 
             $sessionId        = generateUUID();
             $sessionToken     = bin2hex(random_bytes(32));
@@ -270,8 +290,13 @@ try {
 
             $_SESSION['session_id'] = $sessionId;
 
-            $googleRedirect = ($_SESSION['role_code'] ?? '') === 'customer' ? './customer/dashboard' : './';
-            header('Location: ' . $googleRedirect);
+            if ($lastVisitedUrl) {
+                header('Location: ' . $lastVisitedUrl);
+            } elseif (($_SESSION['role_code'] ?? '') === 'customer') {
+                header('Location: ./customer/dashboard');
+            } else {
+                header('Location: ./');
+            }
             exit;
         } else {
             $stmt = $pdo->prepare("UPDATE user_accounts SET account_status = 'active', is_email_verified = 1 WHERE user_id = ?");
@@ -345,8 +370,13 @@ try {
     ");
     $updateStmt->execute([$ipAddress, $userId]);
 
-    session_start();
+    if (session_status() === PHP_SESSION_NONE) {
+        ini_set('session.cookie_samesite', 'Lax');
+        session_start();
+    }
     session_regenerate_id(true);
+
+    $lastVisitedUrl = $_SESSION['last_visited_url'] ?? null;
 
     $_SESSION['user_id']       = $userId;
     $_SESSION['email']         = $email;
@@ -355,6 +385,7 @@ try {
     $_SESSION['logged_in']     = true;
     $_SESSION['last_activity'] = time();
     $_SESSION['csrf_token']    = bin2hex(random_bytes(32));
+    unset($_SESSION['last_visited_url']);
 
     $sessionId        = generateUUID();
     $sessionToken     = bin2hex(random_bytes(32));
@@ -369,8 +400,13 @@ try {
 
     $_SESSION['session_id'] = $sessionId;
 
-    $googleRedirect = ($_SESSION['role_code'] ?? '') === 'customer' ? './customer/dashboard' : './';
-    header('Location: ' . $googleRedirect);
+    if ($lastVisitedUrl) {
+        header('Location: ' . $lastVisitedUrl);
+    } elseif (($_SESSION['role_code'] ?? '') === 'customer') {
+        header('Location: ./customer/dashboard');
+    } else {
+        header('Location: ./');
+    }
     exit;
 
 } catch (Exception $e) {

@@ -973,6 +973,25 @@
           <label>Total Amount <span class="req">*</span></label>
           <input type="number" id="walkInTotalAmount" step="0.01" min="0" required readonly style="background:#f5f5f5;font-weight:600">
         </div>
+
+        <!-- Extra Charges Section -->
+        <div class="form-group full" id="extraChargesSection" style="background:#f8f9fa;border:1px solid #e0e0e0;border-radius:8px;padding:16px;margin-top:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <label style="margin:0"><i class="fas fa-plus-circle" style="color:#7B1FA2;margin-right:6px"></i>Extra Charges</label>
+            <button type="button" class="btn" onclick="addExtraChargeRow()" style="padding:6px 12px;font-size:12px">
+              <i class="fas fa-plus"></i> Add Charge
+            </button>
+          </div>
+          <div id="extraChargesList" style="display:flex;flex-direction:column;gap:8px">
+            <!-- Extra charge rows will be added here dynamically -->
+          </div>
+          <div id="extraChargesTotalRow" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #e0e0e0;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;font-weight:600;color:#666">Extra Charges Total</span>
+            <span id="extraChargesTotal" style="font-weight:700;color:#7B1FA2;font-family:monospace">₱0.00</span>
+          </div>
+          <input type="hidden" id="walkInExtraChargesTotal" value="0">
+        </div>
+
         <div class="form-group full">
           <label>Payment Amount <span class="req">*</span></label>
           <input type="number" id="walkInPaymentAmount" step="0.01" min="0" required>
@@ -1356,6 +1375,42 @@
           `).join('')}
         </div>
       </div>` : ''}
+      
+      <!-- Extra Charges -->
+      ${data.extra_charges?.length ? `
+      <div style="margin-top:24px">
+        <h3 style="margin:0 0 12px;font-size:14px;font-weight:600;color:#185FA5;text-transform:uppercase;letter-spacing:0.05em">
+          <i class="fas fa-plus-circle" style="margin-right:6px;color:#7B1FA2"></i>Extra Charges
+        </h3>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          ${data.extra_charges.map(ec => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:linear-gradient(135deg,#f3e5f5 0%,#e1bee7 100%);border:1px solid #ce93d8;border-radius:10px;box-shadow:0 2px 4px rgba(123,31,162,0.1)">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:36px;height:36px;background:#7B1FA2;border-radius:8px;display:flex;align-items:center;justify-content:center">
+                  <i class="fas fa-plus" style="color:white;font-size:14px"></i>
+                </div>
+                <div>
+                  <div style="font-weight:600;color:#6a1b9a;font-size:14px;text-transform:capitalize">${ec.charge_type.replace(/_/g, ' ')}</div>
+                  ${ec.description ? `<div style="font-size:12px;color:#666;margin-top:2px">${ec.description}</div>` : ''}
+                  <div style="font-size:11px;color:#888;margin-top:2px">
+                    <span style="padding:2px 6px;border-radius:4px;background:${ec.payment_status === 'paid' ? '#e8f5e8' : '#ffebee'};color:${ec.payment_status === 'paid' ? '#2e7d32' : '#c62828'};font-size:10px;text-transform:uppercase">${ec.payment_status || 'unpaid'}</span>
+                    ${ec.charged_at ? `<span style="margin-left:8px"><i class="fas fa-clock" style="margin-right:2px;font-size:10px"></i>${new Date(ec.charged_at).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}</span>` : ''}
+                  </div>
+                </div>
+              </div>
+              <div style="text-align:right">
+                <div style="background:#fff;color:#7B1FA2;padding:6px 12px;border-radius:6px;font-weight:600;font-family:monospace;font-size:13px;border:1px solid #ce93d8">
+                  ₱${parseFloat(ec.amount).toLocaleString('en-US', {minimumFractionDigits:2})}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#e1bee7;border-radius:8px;margin-top:4px">
+            <span style="font-weight:600;color:#6a1b9a;font-size:13px">Extra Charges Total</span>
+            <span style="font-weight:700;color:#6a1b9a;font-family:monospace;font-size:15px">₱${data.extra_charges.reduce((sum, ec) => sum + parseFloat(ec.amount || 0), 0).toLocaleString('en-US', {minimumFractionDigits:2})}</span>
+          </div>
+        </div>
+      </div>` : ''}
     `;
 
     const footer = document.getElementById('viewModalFooter');
@@ -1729,6 +1784,11 @@
     } else {
       document.getElementById('discountRow').style.display = 'none';
     }
+    
+    // Add extra charges to total
+    const extraChargesTotal = parseFloat(document.getElementById('walkInExtraChargesTotal').value) || 0;
+    total += extraChargesTotal;
+    
     totalAmountInput.value = total.toFixed(2);
   }
 
@@ -1825,6 +1885,70 @@
     }
   }
 
+  // ── Extra Charges Functions ────────────────────────────────────
+  function addExtraChargeRow() {
+    const list = document.getElementById('extraChargesList');
+    const rowId = 'ec_' + Date.now();
+    const row = document.createElement('div');
+    row.id = rowId;
+    row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 120px 40px;gap:8px;align-items:center';
+    row.innerHTML = `
+      <select class="extra-charge-type" style="padding:6px 10px;font-size:13px;border:1px solid #ccc;border-radius:6px" onchange="calculateExtraChargesTotal()">
+        <option value="">Select Type</option>
+        <option value="damage">Damage</option>
+        <option value="late_checkout">Late Checkout</option>
+        <option value="extra_amenity">Extra Amenity</option>
+        <option value="cleaning">Cleaning</option>
+        <option value="extension">Extension</option>
+        <option value="other">Other</option>
+      </select>
+      <input type="text" class="extra-charge-desc" placeholder="Description" style="padding:6px 10px;font-size:13px;border:1px solid #ccc;border-radius:6px">
+      <input type="number" class="extra-charge-amount" placeholder="0.00" step="0.01" min="0" style="padding:6px 10px;font-size:13px;border:1px solid #ccc;border-radius:6px;text-align:right" oninput="calculateExtraChargesTotal()">
+      <button type="button" class="btn" onclick="removeExtraChargeRow('${rowId}')" style="padding:6px;border:none;background:#FFEBEE;color:#C62828;border-radius:6px">
+        <i class="fas fa-trash"></i>
+      </button>
+    `;
+    list.appendChild(row);
+    document.getElementById('extraChargesTotalRow').style.display = 'flex';
+  }
+
+  function removeExtraChargeRow(rowId) {
+    const row = document.getElementById(rowId);
+    if (row) {
+      row.remove();
+      calculateExtraChargesTotal();
+    }
+  }
+
+  function calculateExtraChargesTotal() {
+    const rows = document.querySelectorAll('#extraChargesList > div');
+    let total = 0;
+    rows.forEach(row => {
+      const amount = parseFloat(row.querySelector('.extra-charge-amount')?.value || 0);
+      total += amount;
+    });
+    document.getElementById('extraChargesTotal').textContent = '₱' + total.toLocaleString('en-US', {minimumFractionDigits: 2});
+    document.getElementById('walkInExtraChargesTotal').value = total.toFixed(2);
+    document.getElementById('extraChargesTotalRow').style.display = rows.length > 0 ? 'flex' : 'none';
+    
+    // Recalculate total amount
+    calculateWalkInAmount();
+  }
+
+  function getExtraChargesData() {
+    const rows = document.querySelectorAll('#extraChargesList > div');
+    const charges = [];
+    rows.forEach(row => {
+      const type = row.querySelector('.extra-charge-type')?.value;
+      const desc = row.querySelector('.extra-charge-desc')?.value;
+      const amount = parseFloat(row.querySelector('.extra-charge-amount')?.value || 0);
+      if (type && amount > 0) {
+        charges.push({ charge_type: type, description: desc, amount: amount });
+      }
+    });
+    return charges;
+  }
+
   async function openWalkInModal() {
     await loadEntranceFees();
     await loadPaymentMethods();
@@ -1856,6 +1980,12 @@
     
     // Reset seasonal rate display
     document.getElementById('walkInSeasonalRateRow').style.display = 'none';
+    
+    // Reset extra charges
+    document.getElementById('extraChargesList').innerHTML = '';
+    document.getElementById('extraChargesTotal').textContent = '₱0.00';
+    document.getElementById('walkInExtraChargesTotal').value = '0';
+    document.getElementById('extraChargesTotalRow').style.display = 'none';
     
     document.getElementById('walkInBookingType').value = 'overnight';
     document.getElementById('walkInCheckOutTime').value = '11:00';
@@ -1971,6 +2101,9 @@
     // Get base amount and seasonal rate discount
     const baseAmount = parseFloat(document.getElementById('walkInBaseAmount')?.value || totalAmount);
     const seasonalRateDiscount = parseFloat(document.getElementById('walkInSeasonalRateDiscount')?.value || 0);
+    
+    // Get extra charges
+    const extraCharges = getExtraChargesData();
 
     showAlert('Confirm Walk-In', `Process walk-in check-in for ${firstName} ${lastName}?`, () => confirmWalkIn({
       propertyId,
@@ -1999,7 +2132,8 @@
       notes,
       promoId,
       promoCode,
-      promoDiscount
+      promoDiscount,
+      extraCharges
     }));
   }
 

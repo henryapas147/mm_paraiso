@@ -15,6 +15,15 @@ if (!isset($_SESSION['csrf_token'])) {
 
 $assets_path = 'assets';
 $page_title = 'Sign Up';
+
+$pageError = '';
+if (isset($_GET['error'])) {
+  $pageError = match($_GET['error']) {
+    'oauth_failed'  => 'Google sign-up failed. Please try again or register manually.',
+    'system_error'  => 'A system error occurred. Please try again later.',
+    default         => 'An error occurred. Please try again.',
+  };
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -113,7 +122,7 @@ $page_title = 'Sign Up';
               </div>
               <div class="flex-auto p-6">
                 <!-- Error/Success Message -->
-                <div id="messageBox" class="hidden mb-4 p-3 text-sm rounded-lg"></div>
+                <div id="messageBox" class="<?php echo $pageError ? '' : 'hidden'; ?> mb-4 p-3 text-sm rounded-lg <?php echo $pageError ? 'text-red-600 bg-red-50 border border-red-200' : ''; ?>"><?php echo htmlspecialchars($pageError); ?></div>
 
                 <!-- Loading Spinner -->
                 <div id="loadingSpinner" class="hidden text-center py-8">

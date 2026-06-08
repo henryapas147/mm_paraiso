@@ -149,8 +149,9 @@ try {
           $items = json_decode($data['items_json'], true) ?? [];
         }
         foreach ($items as $item) {
+          $orderedQty = $item['ordered_qty'] ?? $item['quantity_ordered'] ?? 0;
           $pi = $pdo->prepare("INSERT INTO purchase_order_items (po_id, product_id, uom_id, ordered_qty, unit_cost, total_cost) VALUES (?,?,?,?,?,?)");
-          $pi->execute([$id, $item['product_id'], $item['uom_id'], $item['ordered_qty'], $item['unit_cost'], $item['total_cost']]);
+          $pi->execute([$id, $item['product_id'], $item['uom_id'], $orderedQty, $item['unit_cost'], $item['total_cost']]);
         }
         $pdo->commit();
         echo json_encode(['success' => true, 'message' => 'Purchase order created', 'po_id' => $id]);
@@ -185,8 +186,9 @@ try {
           $stmt = $pdo->prepare("DELETE FROM purchase_order_items WHERE po_id=?");
           $stmt->execute([$data['po_id']]);
           foreach ($items as $item) {
+            $orderedQty = $item['ordered_qty'] ?? $item['quantity_ordered'] ?? 0;
             $pi = $pdo->prepare("INSERT INTO purchase_order_items (po_id, product_id, uom_id, ordered_qty, unit_cost, total_cost) VALUES (?,?,?,?,?,?)");
-            $pi->execute([$data['po_id'], $item['product_id'], $item['uom_id'], $item['ordered_qty'], $item['unit_cost'], $item['total_cost']]);
+            $pi->execute([$data['po_id'], $item['product_id'], $item['uom_id'], $orderedQty, $item['unit_cost'], $item['total_cost']]);
           }
         }
         $pdo->commit();
@@ -255,6 +257,7 @@ try {
             // Convert received quantity to base UOM if different
             $qtyToAdd = $receivedQty;
             if ($itemUomId != $baseUomId) {
+              // Try direct conversion first (item UOM -> base UOM)
               $convStmt = $pdo->prepare("
                 SELECT conversion_factor FROM product_uom_conversions
                 WHERE product_id = ? AND from_uom_id = ? AND to_uom_id = ? AND is_active = 1
@@ -263,6 +266,19 @@ try {
               $conversion = $convStmt->fetch(PDO::FETCH_ASSOC);
               if ($conversion) {
                 $qtyToAdd = $receivedQty * floatval($conversion['conversion_factor']);
+              } else {
+                // Try reverse conversion (base UOM -> item UOM)
+                // If conversion exists as base->item, we need to multiply by the factor
+                // Example: 12 bottles = 1 carton, to convert 3 cartons to bottles: 3 * 12 = 36
+                $convStmt = $pdo->prepare("
+                  SELECT conversion_factor FROM product_uom_conversions
+                  WHERE product_id = ? AND from_uom_id = ? AND to_uom_id = ? AND is_active = 1
+                ");
+                $convStmt->execute([$item['product_id'], $baseUomId, $itemUomId]);
+                $conversion = $convStmt->fetch(PDO::FETCH_ASSOC);
+                if ($conversion && floatval($conversion['conversion_factor']) > 0) {
+                  $qtyToAdd = $receivedQty * floatval($conversion['conversion_factor']);
+                }
               }
             }
 

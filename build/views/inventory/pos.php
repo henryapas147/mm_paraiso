@@ -203,6 +203,13 @@
       font-size: 16px;
     }
 
+    .pos-cart-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
     .pos-cart-name {
       font-size: 13px;
     }
@@ -527,6 +534,13 @@
       width: 34px;
       height: 34px;
       font-size: 14px;
+      border-radius: 7px;
+    }
+
+    .pos-cart-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
       border-radius: 7px;
     }
 
@@ -947,6 +961,13 @@
     color: var(--pos-blue);
   }
 
+  .pos-cart-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
   .pos-cart-info {
     overflow: hidden;
   }
@@ -1023,6 +1044,61 @@
 
   .pos-cart-item-remove:hover {
     color: var(--pos-red);
+  }
+
+  /* UOM Selector Modal Styles */
+  .pos-uom-options {
+    padding: 16px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .pos-uom-option {
+    padding: 16px;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fff;
+  }
+
+  .pos-uom-option:hover {
+    border-color: var(--pos-blue);
+    background: var(--pos-blue-pale);
+  }
+
+  .pos-uom-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--pos-dark);
+    margin-bottom: 4px;
+  }
+
+  .pos-uom-code {
+    font-size: 11px;
+    color: var(--pos-gray);
+    margin-bottom: 4px;
+    font-family: var(--pos-mono);
+  }
+
+  .pos-uom-stock {
+    font-size: 12px;
+    color: var(--pos-gray);
+    margin-bottom: 4px;
+  }
+
+  .pos-uom-conversion {
+    font-size: 11px;
+    color: var(--pos-blue);
+    font-style: italic;
+    margin-bottom: 4px;
+  }
+
+  .pos-uom-price {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--pos-green);
   }
 
   .pos-cart-empty {
@@ -1438,7 +1514,7 @@
       </div>
       <div class="pos-search-wrap">
         <i class="fas fa-search pos-search-icon"></i>
-        <input type="text" class="pos-search" id="posSearch" placeholder="Search products by name or code...">
+        <input type="text" class="pos-search" id="posSearch" placeholder="Search by name, code, or scan barcode..." autofocus>
       </div>
     </div>
 
@@ -1498,8 +1574,8 @@
         <span class="pos-summary-label">Subtotal</span>
         <span class="pos-summary-value" id="subtotal">₱0.00</span>
       </div>
-      <div class="pos-summary-row">
-        <span class="pos-summary-label">Tax (12%)</span>
+      <div class="pos-summary-row" id="taxRow" style="display:none;">
+        <span class="pos-summary-label">Tax (<span id="taxRate">12</span>%)</span>
         <span class="pos-summary-value" id="tax">₱0.00</span>
       </div>
       <div class="pos-summary-row total">
@@ -1603,10 +1679,156 @@
     let cart = [];
     let paymentMethod = 'cash';
     let propertyId = '<?php echo $_SESSION['selected_property_id'] ?? ''; ?>';
+    const CART_STORAGE_KEY = 'pos_cart_' + (propertyId || 'default');
+    let posSettings = { vat_enabled: 0, vat_rate: 12, tax_inclusive: 0 };
+    // Track current search/category to re-render products when cart changes
+    let currentFilterText = '';
+    let currentCategoryId = '';
+
+    // Save cart to localStorage
+    function saveCart() {
+      try {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+      } catch (e) {
+        console.error('Failed to save cart:', e);
+      }
+    }
+
+    // Refocus search input after any cart operation
+    function focusSearch() {
+      const searchInput = document.getElementById('posSearch');
+      if (searchInput) {
+        setTimeout(() => searchInput.focus(), 50);
+      }
+    }
+
+    // Load cart from localStorage
+    function loadCart() {
+      try {
+        const saved = localStorage.getItem(CART_STORAGE_KEY);
+        if (saved) {
+          cart = JSON.parse(saved);
+          // Validate stock after loading, but products might not be loaded yet
+          // so we'll validate in renderCart when products are available
+          renderCart();
+        }
+      } catch (e) {
+        console.error('Failed to load cart:', e);
+        cart = [];
+      }
+    }
+
+    // Real-time stock validation - reconcile cart with current inventory
+    function validateCartStock() {
+      if (!products || products.length === 0 || cart.length === 0) return;
+
+      let adjustments = [];
+      let removedItems = [];
+
+      cart = cart.filter(item => {
+        const product = products.find(p => p.product_id == item.product_id);
+
+        // Product not found in the POS product list (already filtered for active + for_sale by API)
+        if (!product) {
+          removedItems.push(item.product_name || 'Unknown Product');
+          return false;
+        }
+
+        const currentStock = parseFloat(product.current_stock) || 0;
+        const maxAllowed = Math.floor(currentStock / item.conversion_factor);
+
+        // Check if quantity exceeds available stock
+        if (item.quantity > maxAllowed) {
+          const oldQty = item.quantity;
+
+          if (maxAllowed <= 0) {
+            // No stock available, remove item
+            removedItems.push(`${product.product_name} (${item.uom_code})`);
+            return false;
+          } else {
+            // Reduce quantity to available stock
+            item.quantity = maxAllowed;
+            adjustments.push({
+              name: product.product_name,
+              uom: item.uom_code,
+              oldQty: oldQty,
+              newQty: maxAllowed
+            });
+          }
+        }
+
+        // Update stored base stock to current value for future checks
+        item.base_stock = currentStock;
+
+        return true;
+      });
+
+      // Show notifications for adjustments
+      if (removedItems.length > 0) {
+        showToast(`Removed from cart (no stock): ${removedItems.join(', ')}`, 'warning', 4000);
+      }
+
+      if (adjustments.length > 0) {
+        const adjText = adjustments.map(a => `${a.name}: ${a.oldQty}→${a.newQty} ${a.uom}`).join(', ');
+        showToast(`Stock adjusted: ${adjText}`, 'warning', 4000);
+      }
+
+      if (removedItems.length > 0 || adjustments.length > 0) {
+        saveCart();
+      }
+    }
+
+    // Clear saved cart
+    function clearSavedCart() {
+      try {
+        localStorage.removeItem(CART_STORAGE_KEY);
+      } catch (e) {
+        console.error('Failed to clear cart:', e);
+      }
+    }
+
+    // Normalize product image URL for display (same as product.php)
+    function normalizeProductImageUrl(url) {
+      if (!url) return null;
+      // If it's already an absolute URL (http/https), use as-is
+      if (url.startsWith('http')) return url;
+      // Extract filename from various path formats
+      const filename = url.split('/').pop();
+      // Return relative path from build/views/inventory/ to uploads/products/
+      return '../../uploads/products/' + filename;
+    }
+
+    // Load POS settings (VAT/tax configuration)
+    async function loadPosSettings() {
+      try {
+        const response = await fetch(`${API_BASE}/system_settings.php?action=pos_settings`);
+        const result = await response.json();
+        if (result.success) {
+          posSettings = result.data;
+          updateTaxDisplay();
+          updateSummary(); // Recalculate with VAT settings
+        }
+      } catch (error) {
+        console.error('Failed to load POS settings:', error);
+      }
+    }
+
+    // Update tax row visibility based on settings
+    function updateTaxDisplay() {
+      const taxRow = document.getElementById('taxRow');
+      const taxRate = document.getElementById('taxRate');
+      if (taxRow) {
+        taxRow.style.display = posSettings.vat_enabled ? 'flex' : 'none';
+      }
+      if (taxRate) {
+        taxRate.textContent = posSettings.vat_rate;
+      }
+    }
 
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
-      loadProducts();
+      loadPosSettings();
+      loadProducts(); // loadCart() will be called inside after products load
       loadCategories();
       setupEventListeners();
     });
@@ -1614,22 +1836,24 @@
     // Load products
     async function loadProducts() {
       try {
-        const response = await fetch(`${API_BASE}/products.php?action=list`);
+        const response = await fetch(`${API_BASE}/pos_products.php?action=list`);
         const result = await response.json();
         if (result.success) {
-          // Filter only products marked for sale
-          products = result.data.filter(p => p.is_for_sale == 1 || p.selling_price > 0);
+          products = result.data;
           renderProducts();
+          // Now load cart AFTER products are available
+          // This ensures validateCartStock() can find products
+          loadCart();
         }
       } catch (error) {
         showToast('Failed to load products', 'error');
       }
     }
 
-    // Load categories
+    // Load categories (only those with products for sale)
     async function loadCategories() {
       try {
-        const response = await fetch(`${API_BASE}/inventory_categories.php?action=list`);
+        const response = await fetch(`${API_BASE}/pos_products.php?action=categories`);
         const result = await response.json();
         if (result.success) {
           categories = result.data;
@@ -1652,18 +1876,67 @@
       });
     }
 
+    // Helper: get total base units reserved in cart for a product
+    function getCartReservedBaseStock(productId) {
+      return cart
+        .filter(item => item.product_id == productId)
+        .reduce((sum, item) => sum + (item.quantity * item.conversion_factor), 0);
+    }
+
     // Render products
     function renderProducts(filterText = '', categoryId = '') {
+      currentFilterText = filterText;
+      currentCategoryId = categoryId;
       const container = document.getElementById('productsGrid');
 
       let filtered = products;
 
       if (filterText) {
-        const text = filterText.toLowerCase();
-        filtered = filtered.filter(p =>
-          p.product_name.toLowerCase().includes(text) ||
-          p.product_code.toLowerCase().includes(text)
-        );
+        const text = filterText.toLowerCase().trim();
+        filtered = filtered.filter(p => {
+          // Clear any previous matched UOM ID to prevent stale data
+          delete p._matchedUomId;
+          
+          // Check base product fields
+          const matchesBase = p.product_name.toLowerCase().includes(text) ||
+            p.product_code.toLowerCase().includes(text) ||
+            (p.barcode && p.barcode.toLowerCase() === text);
+          
+          // Check UOM conversion fields (alt_product_code and barcode)
+          let matchesConversion = false;
+          let matchedUomId = null;
+          if (p.uom_conversions && p.uom_conversions.length) {
+            const match = p.uom_conversions.find(c => 
+              (c.alt_product_code && c.alt_product_code.toLowerCase() === text) ||
+              (c.conversion_barcode && c.conversion_barcode.toLowerCase() === text)
+            );
+            if (match) {
+              matchesConversion = true;
+              matchedUomId = match.to_uom_id;
+            }
+          }
+          
+          // Store matched UOM ID on product for later use
+          if (matchedUomId) {
+            p._matchedUomId = matchedUomId;
+          }
+          
+          return matchesBase || matchesConversion;
+        });
+        
+        // Auto-add to cart if exact barcode match found (base or conversion)
+        if (filtered.length === 1) {
+          const p = filtered[0];
+          const isBaseBarcode = p.barcode && p.barcode.toLowerCase() === text;
+          const isConversionMatch = p._matchedUomId !== undefined;
+          
+          if (isBaseBarcode || isConversionMatch) {
+            addToCart(p.product_id, p._matchedUomId || null);
+            document.getElementById('posSearch').value = '';
+            renderProducts('', categoryId);
+            return;
+          }
+        }
       }
 
       if (categoryId) {
@@ -1681,76 +1954,219 @@
       }
 
       container.innerHTML = filtered.map(p => {
-        const stock = parseFloat(p.current_stock) || 0;
+        const rawStock = parseFloat(p.current_stock) || 0;
+        // Subtract base units currently reserved in cart for this product
+        const reserved = cart
+          .filter(item => item.product_id == p.product_id)
+          .reduce((sum, item) => sum + (item.quantity * item.conversion_factor), 0);
+        const stock = Math.max(0, rawStock - reserved);
         const reorder = parseFloat(p.reorder_point) || 0;
         let stockClass = '';
         let stockLabel = '';
 
         if (stock <= 0) {
           stockClass = 'out-of-stock';
-          stockLabel = 'Out of Stock';
+          stockLabel = rawStock > 0 ? 'In Cart' : 'Out of Stock';
         } else if (stock <= reorder) {
           stockClass = 'low-stock';
-          stockLabel = 'Low Stock';
+          stockLabel = Math.floor(stock) + ' left';
         } else {
           stockLabel = Math.floor(stock) + ' in stock';
         }
 
+        const uomLabel = p.base_uom_code ? `/${p.base_uom_code}` : '';
         return `
-        <div class="pos-product-card ${stockClass}" data-id="${p.product_id}" ${stock <= 0 ? 'disabled' : ''}>
+        <div class="pos-product-card ${stockClass}" data-id="${p.product_id}" ${stock <= 0 && rawStock <= 0 ? 'disabled' : ''}>
           <div class="pos-product-stock ${stock <= reorder ? 'low' : ''}">${stockLabel}</div>
           <div class="pos-product-img">
-            ${p.product_image_url ? `<img src="${p.product_image_url}" alt="">` : '<i class="fas fa-box"></i>'}
+            ${p.product_image_url ? `<img src="${normalizeProductImageUrl(p.product_image_url)}" alt="${p.product_name}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-box\\'></i>'">` : '<i class="fas fa-box"></i>'}
           </div>
           <div class="pos-product-name">${p.product_name}</div>
-          <div class="pos-product-code">${p.product_code}</div>
-          <div class="pos-product-price">₱${formatMoney(p.selling_price)}</div>
+          <div class="pos-product-code">${p.product_code}${p.barcode ? ` | ${p.barcode}` : ''}</div>
+          <div class="pos-product-price">₱${formatMoney(p.selling_price)}${uomLabel}</div>
         </div>
       `;
       }).join('');
 
       // Add click handlers
       container.querySelectorAll('.pos-product-card:not([disabled])').forEach(card => {
-        card.addEventListener('click', () => addToCart(card.dataset.id));
+        card.addEventListener('click', () => {
+          addToCart(card.dataset.id);
+          focusSearch();
+        });
       });
     }
 
-    // Add to cart
-    function addToCart(productId) {
-      const product = products.find(p => p.product_id === productId);
+    // Add to cart with UOM selection
+    function addToCart(productId, selectedUomId = null) {
+      const product = products.find(p => p.product_id == productId);
       if (!product) return;
 
-      const stock = parseFloat(product.current_stock) || 0;
-      const existingItem = cart.find(item => item.product_id === productId);
+      const baseStock = parseFloat(product.current_stock) || 0;
+      const baseUomId = parseInt(product.base_uom_id) || product.base_uom_id;
 
-      if (existingItem) {
-        if (existingItem.quantity >= stock) {
+      // Determine which UOM to use
+      let uomId = selectedUomId || baseUomId;
+      let uomCode = product.base_uom_code;
+      let uomName = product.base_uom_name;
+      let conversionFactor = 1;
+
+      // Check for UOM conversion
+      let conversionSellingPrice = null;
+      let altProductCode = null;
+      // Convert uomId to number for consistent comparison (DB returns integers)
+      const uomIdNum = parseInt(uomId) || uomId;
+      if (uomIdNum != baseUomId && product.uom_conversions && product.uom_conversions.length) {
+        const conversion = product.uom_conversions.find(c => c.to_uom_id == uomIdNum);
+        if (conversion) {
+          conversionFactor = parseFloat(conversion.conversion_factor) || 1;
+          uomCode = conversion.to_uom_code;
+          uomName = conversion.to_uom_name;
+          // Use conversion selling price if available, otherwise calculate from base
+          conversionSellingPrice = conversion.conversion_selling_price ? parseFloat(conversion.conversion_selling_price) : null;
+          altProductCode = conversion.alt_product_code;
+        }
+      }
+      
+      // Calculate unit price: use conversion selling price if available, otherwise base price * factor
+      const unitPrice = conversionSellingPrice !== null 
+        ? conversionSellingPrice 
+        : parseFloat(product.selling_price) * conversionFactor;
+
+      // Calculate available stock in selected UOM
+      const availableStock = Math.floor(baseStock / conversionFactor);
+
+      // Check if item already exists in cart with same UOM
+      // Use loose equality (==) to handle type mismatches between string/number IDs
+      const existingItemIndex = cart.findIndex(item =>
+        item.product_id == productId && item.uom_id == uomIdNum
+      );
+
+      if (existingItemIndex >= 0) {
+        const existingItem = cart[existingItemIndex];
+        const newQty = existingItem.quantity + 1;
+        const baseQtyNeeded = newQty * existingItem.conversion_factor;
+
+        if (baseQtyNeeded > baseStock) {
           showToast('Not enough stock available', 'error');
           return;
         }
-        existingItem.quantity++;
+        existingItem.quantity = newQty;
       } else {
-        if (stock < 1) {
+        if (availableStock < 1) {
           showToast('Product out of stock', 'error');
           return;
         }
+
+        // Show UOM selector if product has conversions
+        if (product.uom_conversions && product.uom_conversions.length && !selectedUomId) {
+          showUomSelector(product, baseStock);
+          return;
+        }
+
         cart.push({
           product_id: productId,
           product_name: product.product_name,
-          product_code: product.product_code,
-          unit_price: parseFloat(product.selling_price) || 0,
+          product_code: altProductCode || product.product_code,
+          product_image_url: normalizeProductImageUrl(product.product_image_url),
+          unit_price: unitPrice,
           quantity: 1,
-          uom_id: product.uom_id,
-          max_stock: stock
+          uom_id: uomIdNum,
+          uom_code: uomCode,
+          uom_name: uomName,
+          base_uom_id: baseUomId,
+          base_uom_code: product.base_uom_code,
+          conversion_factor: conversionFactor,
+          base_stock: baseStock,
+          is_alt_product_code: !!altProductCode
         });
       }
 
       renderCart();
+      saveCart();
       showToast('Added to cart');
+    }
+
+    // Show UOM selector modal
+    function showUomSelector(product, baseStock) {
+      const baseUomId = product.base_uom_id;
+      const baseCodeDisplay = product.product_code;
+      let uomOptions = `
+        <div class="pos-uom-option" data-uom-id="${baseUomId}" data-factor="1" data-code="${product.base_uom_code}">
+          <div class="pos-uom-name">${product.base_uom_name} (${product.base_uom_code})</div>
+          <div class="pos-uom-code">${baseCodeDisplay}${product.barcode ? ` | ${product.barcode}` : ''}</div>
+          <div class="pos-uom-stock">Stock: ${Math.floor(baseStock)} ${product.base_uom_code}</div>
+          <div class="pos-uom-price">₱${formatMoney(product.selling_price)}</div>
+        </div>
+      `;
+
+      if (product.uom_conversions && product.uom_conversions.length) {
+        product.uom_conversions.forEach(conv => {
+          const factor = parseFloat(conv.conversion_factor) || 1;
+          const stockInUom = Math.floor(baseStock / factor);
+          // Use conversion selling price if set, otherwise calculate from base
+          const convPrice = conv.conversion_selling_price
+            ? parseFloat(conv.conversion_selling_price)
+            : parseFloat(product.selling_price) * factor;
+          const codeDisplay = conv.alt_product_code || product.product_code;
+          const barcodeDisplay = conv.conversion_barcode ? ` | ${conv.conversion_barcode}` : '';
+          uomOptions += `
+            <div class="pos-uom-option" data-uom-id="${conv.to_uom_id}" data-factor="${factor}" data-code="${conv.to_uom_code}">
+              <div class="pos-uom-name">${conv.to_uom_name} (${conv.to_uom_code})</div>
+              <div class="pos-uom-code">${codeDisplay}${barcodeDisplay}</div>
+              <div class="pos-uom-stock">Stock: ${stockInUom} ${conv.to_uom_code}</div>
+              <div class="pos-uom-conversion">1 ${conv.to_uom_code} = ${factor} ${product.base_uom_code}</div>
+              <div class="pos-uom-price">₱${formatMoney(convPrice)}</div>
+            </div>
+          `;
+        });
+      }
+
+      const modalHtml = `
+        <div class="pos-modal-overlay open" id="uomModal" style="z-index:1000;">
+          <div class="pos-modal">
+            <div class="pos-modal-header">
+              <h3>Select Unit of Measure</h3>
+              <p>${product.product_name}</p>
+              <button class="pos-modal-close" id="uomModalClose">&times;</button>
+            </div>
+            <div class="pos-uom-options">
+              ${uomOptions}
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+      // Close button handler
+      document.getElementById('uomModalClose').addEventListener('click', closeUomModal);
+
+      // Close on overlay click
+      document.getElementById('uomModal').addEventListener('click', (e) => {
+        if (e.target.id === 'uomModal') closeUomModal();
+      });
+
+      // Add click handlers
+      document.querySelectorAll('.pos-uom-option').forEach(option => {
+        option.addEventListener('click', () => {
+          const uomId = option.dataset.uomId;
+          closeUomModal();
+          addToCart(product.product_id, uomId);
+        });
+      });
+    }
+
+    function closeUomModal() {
+      const modal = document.getElementById('uomModal');
+      if (modal) modal.remove();
     }
 
     // Render cart
     function renderCart() {
+      // Real-time stock validation before rendering
+      validateCartStock();
+
       const container = document.getElementById('cartItems');
       const countEl = document.getElementById('cartCount');
       const clearBtn = document.getElementById('clearCart');
@@ -1782,6 +2198,7 @@
         paymentSection.style.display = 'none';
         checkoutBtn.disabled = true;
         if (mobileCheckoutBtn) mobileCheckoutBtn.disabled = true;
+        updateProductStockBadges();
         return;
       }
 
@@ -1793,16 +2210,22 @@
 
       container.innerHTML = cart.map((item, index) => `
       <div class="pos-cart-item" data-index="${index}">
-        <div class="pos-cart-img"><i class="fas fa-box"></i></div>
+        <div class="pos-cart-img">
+          ${item.product_image_url 
+            ? `<img src="${item.product_image_url}" alt="${item.product_name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><i class="fas fa-box" style="display:none;"></i>` 
+            : '<i class="fas fa-box"></i>'}
+        </div>
         <div class="pos-cart-info">
           <div class="pos-cart-name">${item.product_name}</div>
-          <div class="pos-cart-price">&#x20B1;${formatMoney(item.unit_price)} each</div>
+          ${item.is_alt_product_code ? `<div class="pos-cart-alt-code" style="font-size:10px;color:var(--pos-blue);font-family:var(--pos-mono);">${item.product_code}</div>` : ''}
+          <div class="pos-cart-price">&#x20B1;${formatMoney(item.unit_price)} / ${item.uom_code || 'unit'}</div>
+          ${item.conversion_factor !== 1 ? `<div class="pos-cart-uom" style="font-size:11px;color:#666;">(${item.conversion_factor} ${item.base_uom_code})</div>` : ''}
         </div>
         <div class="pos-cart-qty">
           <div class="pos-cart-total">&#x20B1;${formatMoney(item.unit_price * item.quantity)}</div>
           <div style="display:flex;align-items:center;gap:5px;">
             <button class="pos-qty-btn" data-action="decrease" data-index="${index}">-</button>
-            <span class="pos-qty-value">${item.quantity}</span>
+            <span class="pos-qty-value">${item.quantity} ${item.uom_code || ''}</span>
             <button class="pos-qty-btn" data-action="increase" data-index="${index}">+</button>
           </div>
         </div>
@@ -1811,13 +2234,59 @@
     `).join('');
 
       updateSummary();
+      updateProductStockBadges();
+    }
+
+    // Update stock badges on product cards in-place (avoids re-render / infinite loop)
+    function updateProductStockBadges() {
+      document.querySelectorAll('.pos-product-card').forEach(card => {
+        const productId = card.dataset.id;
+        const product = products.find(p => p.product_id == productId);
+        if (!product) return;
+
+        const rawStock = parseFloat(product.current_stock) || 0;
+        const reserved = cart
+          .filter(item => item.product_id == productId)
+          .reduce((sum, item) => sum + (item.quantity * item.conversion_factor), 0);
+        const stock = Math.max(0, rawStock - reserved);
+        const reorder = parseFloat(product.reorder_point) || 0;
+
+        const badge = card.querySelector('.pos-product-stock');
+        if (!badge) return;
+
+        if (stock <= 0) {
+          card.classList.add('out-of-stock');
+          card.classList.remove('low-stock');
+          badge.classList.add('low');
+          badge.textContent = rawStock > 0 ? 'In Cart' : 'Out of Stock';
+          if (rawStock <= 0) card.setAttribute('disabled', true);
+        } else if (stock <= reorder) {
+          card.classList.remove('out-of-stock');
+          card.classList.add('low-stock');
+          badge.classList.add('low');
+          badge.textContent = Math.floor(stock) + ' left';
+          card.removeAttribute('disabled');
+        } else {
+          card.classList.remove('out-of-stock');
+          card.classList.remove('low-stock');
+          badge.classList.remove('low');
+          badge.textContent = Math.floor(stock) + ' in stock';
+          card.removeAttribute('disabled');
+        }
+      });
     }
 
     // Update summary
     function updateSummary() {
       const subtotal = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
-      const tax = subtotal * 0.12;
-      const total = subtotal + tax;
+      
+      let tax = 0;
+      let total = subtotal;
+      
+      if (posSettings.vat_enabled) {
+        tax = subtotal * (posSettings.vat_rate / 100);
+        total = subtotal + tax;
+      }
 
       document.getElementById('subtotal').textContent = '₱' + formatMoney(subtotal);
       document.getElementById('tax').textContent = '₱' + formatMoney(tax);
@@ -1831,10 +2300,88 @@
 
     // Setup event listeners
     function setupEventListeners() {
-      // Search
-      document.getElementById('posSearch').addEventListener('input', (e) => {
+      // Search with barcode scanner support
+      const searchInput = document.getElementById('posSearch');
+      searchInput.addEventListener('input', (e) => {
         const activeCat = document.querySelector('.pos-cat-btn.active');
         renderProducts(e.target.value, activeCat ? activeCat.dataset.category : '');
+      });
+
+      // Barcode scanner Enter key support - increments qty for consecutive scans
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+
+        const input = searchInput.value.trim();
+        if (!input) return;
+
+        const inputLower = input.toLowerCase();
+
+        // Find product by barcode or product code (exact match)
+        // Also check UOM conversion barcodes
+        let matchedProduct = null;
+        let matchedUomId = null;
+
+        for (const p of products) {
+          const barcode = p.barcode ? p.barcode.trim().toLowerCase() : '';
+          const code = p.product_code ? p.product_code.trim().toLowerCase() : '';
+
+          // Check base product barcode/code
+          if (barcode === inputLower || code === inputLower) {
+            matchedProduct = p;
+            matchedUomId = parseInt(p.base_uom_id);
+            break;
+          }
+
+          // Check UOM conversion barcodes
+          if (p.uom_conversions && p.uom_conversions.length) {
+            const conversion = p.uom_conversions.find(c =>
+              c.conversion_barcode && c.conversion_barcode.trim().toLowerCase() === inputLower
+            );
+            if (conversion) {
+              matchedProduct = p;
+              matchedUomId = parseInt(conversion.to_uom_id);
+              break;
+            }
+          }
+        }
+
+        if (!matchedProduct) {
+          showToast('Product not found: ' + input.substring(0, 20), 'error');
+          searchInput.value = '';
+          focusSearch();
+          return;
+        }
+
+        const existingItem = cart.find(item =>
+          item.product_id == matchedProduct.product_id &&
+          item.uom_id == matchedUomId
+        );
+
+        if (existingItem) {
+          // Increment quantity
+          const newQty = existingItem.quantity + 1;
+          const baseStock = parseFloat(matchedProduct.current_stock) || 0;
+          const baseQtyNeeded = newQty * existingItem.conversion_factor;
+
+          if (baseQtyNeeded > baseStock) {
+            showToast('Not enough stock available', 'error');
+          } else {
+            existingItem.quantity = newQty;
+            renderCart();
+            saveCart();
+            showToast(`${matchedProduct.product_name} × ${newQty}`, 'success');
+          }
+        } else {
+          // Add new item with specific UOM (base or conversion)
+          // Pass matchedUomId to skip the selector modal
+          addToCart(matchedProduct.product_id, matchedUomId);
+          showToast(`${matchedProduct.product_name} added`, 'success');
+        }
+
+        searchInput.value = '';
+        renderProducts('', document.querySelector('.pos-cat-btn.active')?.dataset.category || '');
+        focusSearch();
       });
 
       // Category filter
@@ -1855,10 +2402,17 @@
         const action = btn.dataset.action;
 
         if (action === 'increase') {
-          if (cart[index].quantity >= cart[index].max_stock) {
-            showToast('Maximum stock reached', 'error');
+          const item = cart[index];
+          // Check real-time stock from products data
+          const product = products.find(p => p.product_id == item.product_id);
+          const currentStock = product ? (parseFloat(product.current_stock) || 0) : item.base_stock;
+          const baseQtyNeeded = (item.quantity + 1) * item.conversion_factor;
+          if (baseQtyNeeded > currentStock) {
+            showToast('Not enough stock available', 'error');
             return;
           }
+          // Update the stored base_stock to current value
+          cart[index].base_stock = currentStock;
           cart[index].quantity++;
         } else if (action === 'decrease') {
           cart[index].quantity--;
@@ -1870,12 +2424,15 @@
         }
 
         renderCart();
+        saveCart();
+        focusSearch();
       });
 
       // Clear cart
       document.getElementById('clearCart').addEventListener('click', () => {
         cart = [];
         renderCart();
+        clearSavedCart();
       });
 
       // Payment method selection
@@ -1909,6 +2466,7 @@
       // Receipt modal
       document.getElementById('newSaleBtn').addEventListener('click', () => {
         cart = [];
+        clearSavedCart();
         renderCart();
         closeReceiptModal();
         document.getElementById('customerName').value = '';
@@ -1957,7 +2515,12 @@
 
     // Open checkout modal
     function openCheckoutModal() {
-      const total = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0) * 1.12;
+      const subtotal = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
+      let tax = 0;
+      if (posSettings.vat_enabled) {
+        tax = subtotal * (posSettings.vat_rate / 100);
+      }
+      const total = subtotal + tax;
       document.getElementById('modalTotal').textContent = '₱' + formatMoney(total);
       document.getElementById('amountReceived').value = '';
       document.getElementById('changeDisplay').style.display = 'none';
@@ -1990,7 +2553,12 @@
 
     // Calculate change
     function calculateChange() {
-      const total = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0) * 1.12;
+      const subtotal = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
+      let tax = 0;
+      if (posSettings.vat_enabled) {
+        tax = subtotal * (posSettings.vat_rate / 100);
+      }
+      const total = subtotal + tax;
       const received = parseFloat(document.getElementById('amountReceived').value) || 0;
       const change = received - total;
 
@@ -2009,11 +2577,40 @@
 
     // Process sale
     async function processSale() {
+      // Final stock validation before processing
+      validateCartStock();
+
+      // Check if cart is empty after validation
+      if (cart.length === 0) {
+        showToast('Cart is empty. Please add items.', 'error');
+        closeCheckoutModal();
+        return;
+      }
+
+      // Check if any items are out of stock
+      const outOfStockItems = cart.filter(item => {
+        const product = products.find(p => p.product_id == item.product_id);
+        if (!product) return true;
+        const currentStock = parseFloat(product.current_stock) || 0;
+        return item.quantity > Math.floor(currentStock / item.conversion_factor);
+      });
+
+      if (outOfStockItems.length > 0) {
+        const itemNames = outOfStockItems.map(i => i.product_name).join(', ');
+        showToast(`Cannot complete sale: ${itemNames} - insufficient stock`, 'error');
+        closeCheckoutModal();
+        renderCart(); // Re-render to show adjusted quantities
+        return;
+      }
+
       const customerName = document.getElementById('customerName').value.trim();
       const saleType = document.getElementById('saleTypeSelect').value;
       const staffMemberId = document.getElementById('staffMemberSelect').value;
       const subtotal = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
-      const tax = subtotal * 0.12;
+      let tax = 0;
+      if (posSettings.vat_enabled) {
+        tax = subtotal * (posSettings.vat_rate / 100);
+      }
       const total = subtotal + tax;
 
       // Generate sale number
@@ -2037,7 +2634,11 @@
           uom_id: item.uom_id,
           quantity: item.quantity,
           unit_price: item.unit_price.toFixed(2),
-          total_price: (item.unit_price * item.quantity).toFixed(2)
+          total_price: (item.unit_price * item.quantity).toFixed(2),
+          uom_code: item.uom_code,
+          uom_name: item.uom_name,
+          base_uom_code: item.base_uom_code,
+          conversion_factor: item.conversion_factor
         }))
       };
 
@@ -2054,6 +2655,9 @@
 
         if (result.success) {
           showToast('Sale completed successfully!');
+          cart = [];
+          clearSavedCart();
+          renderCart();
           closeCheckoutModal();
           showReceipt(saleData, result.sale_id);
         } else {
@@ -2078,7 +2682,7 @@
       <div class="pos-receipt-items">
         ${saleData.items.map(item => `
           <div class="pos-receipt-item">
-            <span>${item.quantity}x ${item.product_name}</span>
+            <span>${item.quantity}${item.uom_code ? ' ' + item.uom_code : ''} x ${item.product_name}${item.conversion_factor && item.conversion_factor !== 1 ? ' (' + item.conversion_factor + ' ' + item.base_uom_code + ')' : ''}</span>
             <span>₱${formatMoney(item.total_price)}</span>
           </div>
         `).join('')}
@@ -2088,10 +2692,11 @@
           <span>Subtotal</span>
           <span>₱${formatMoney(saleData.subtotal)}</span>
         </div>
+        ${parseFloat(saleData.tax_amount) > 0 ? `
         <div class="pos-receipt-item">
-          <span>Tax (12%)</span>
+          <span>Tax (${posSettings.vat_rate}%)</span>
           <span>₱${formatMoney(saleData.tax_amount)}</span>
-        </div>
+        </div>` : ''}
       </div>
       <div class="pos-receipt-total">
         <span>TOTAL</span>

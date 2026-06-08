@@ -37,7 +37,7 @@ try {
       } elseif ($action === 'related') {
         requirePermission('food_canteen.view');
         $properties = $pdo->query("SELECT property_id, property_name FROM properties ORDER BY property_name ASC")->fetchAll(PDO::FETCH_ASSOC);
-        $reservations = $pdo->query("SELECT reservation_id, reservation_code, CONCAT(walkin_first_name, ' ', walkin_last_name) as display FROM reservations WHERE reservation_status IN ('confirmed', 'checked_in') ORDER BY reservation_code ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $reservations = $pdo->query("SELECT reservation_id, reservation_code, CONCAT(walkin_first_name, ' ', walkin_last_name) as display, CONCAT(walkin_first_name, ' ', walkin_last_name) as customer_name FROM reservations WHERE reservation_status IN ('confirmed', 'checked_in') ORDER BY reservation_code ASC")->fetchAll(PDO::FETCH_ASSOC);
         $menuItems = $pdo->query("SELECT item_id, item_name, item_code, price FROM menu_items WHERE is_active = 1 AND is_available = 1 ORDER BY item_name ASC")->fetchAll(PDO::FETCH_ASSOC);
         $paymentMethods = $pdo->query("SELECT method_id, method_label as method_name FROM payment_methods WHERE is_active = 1 ORDER BY method_label ASC")->fetchAll(PDO::FETCH_ASSOC);
         $diningTables = $pdo->query("SELECT table_id, property_id, table_number, table_name, capacity, location, is_occupied FROM dining_tables WHERE is_active = 1 ORDER BY table_number ASC")->fetchAll(PDO::FETCH_ASSOC);
@@ -131,6 +131,13 @@ try {
 
       if ($action === 'create') {
         requirePermission('food_canteen.create');
+        
+        // Validate items array
+        if (empty($data['items']) || !is_array($data['items'])) {
+          echo json_encode(['success' => false, 'message' => 'Order must contain at least one item']);
+          exit;
+        }
+        
         $id = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
           mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
           mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
@@ -154,15 +161,34 @@ try {
           $data['served_by'] ?? null, $data['created_by'] ?? null
         ]);
 
-        foreach ($data['items'] ?? [] as $item) {
-          $itemId = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+        foreach ($data['items'] as $item) {
+          // Validate item data
+          if (empty($item['item_id']) || empty($item['qty']) || $item['qty'] <= 0) {
+            continue;
+          }
+          
+          // Fetch item name from menu_items table
+          $itemStmt = $pdo->prepare("SELECT item_name FROM menu_items WHERE item_id = ?");
+          $itemStmt->execute([$item['item_id']]);
+          $menuItem = $itemStmt->fetch(PDO::FETCH_ASSOC);
+          
+          if (!$menuItem) {
+            continue;
+          }
+          
+          $qty = intval($item['qty']);
+          $unitPrice = floatval($item['unit_price']);
+          $totalPrice = $qty * $unitPrice;
+          
+          $orderItemId = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
             mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
             mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
             mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
+          
           $stmt = $pdo->prepare("INSERT INTO food_order_items (order_item_id, order_id, item_id, item_name, quantity, unit_price, total_price, special_request) VALUES (?,?,?,?,?,?,?,?)");
           $stmt->execute([
-            $itemId, $id, $item['item_id'], $item['item_name'], $item['quantity'],
-            $item['unit_price'], $item['total_price'], $item['special_request'] ?? null
+            $orderItemId, $id, $item['item_id'], $menuItem['item_name'], $qty,
+            $unitPrice, $totalPrice, $item['special_request'] ?? null
           ]);
         }
 

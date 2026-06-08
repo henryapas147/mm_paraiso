@@ -1,1031 +1,953 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
 
 <script>
+  const CSRF = '<?php echo htmlspecialchars($_SESSION["csrf_token"] ?? "", ENT_QUOTES, "UTF-8"); ?>';
+
+  const fmtDate = (v, includeTime = false) => {
+    if (!v) return '—';
+    const d = new Date(v.includes('T') || v.includes(' ') ? v : v + 'T00:00:00');
+    if (isNaN(d)) return v;
+    const datePart = d.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+    if (!includeTime) return datePart;
+    const timePart = d.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit', hour12:true});
+    return datePart + ', ' + timePart;
+  };
+
+  let billPage    = { limit: 20, offset: 0, total: 0, search: '', status: '' };
+  const today = new Date();
+  const weekAgo = new Date();
+  weekAgo.setDate(today.getDate() - 7);
+  let historyPage  = { limit: 20, offset: 0, total: 0, search: '', method: '', date_from: weekAgo.toISOString().split('T')[0], date_to: today.toISOString().split('T')[0] };
+  let paymentMethods = [];
+  let currentBill = null;
+
   document.addEventListener('DOMContentLoaded', () => {
-    loadBillingData();
+    loadSummary();
+    loadUnpaidReservations();
+    loadPaymentMethods();
+    loadPaymentHistory();
+    const dateFromInput = document.querySelector('input[onchange="historyDateFrom(this.value)"]');
+    const dateToInput   = document.querySelector('input[onchange="historyDateTo(this.value)"]');
+    if (dateFromInput) dateFromInput.value = historyPage.date_from;
+    if (dateToInput)   dateToInput.value   = historyPage.date_to;
   });
 
-  async function loadBillingData() {
+  async function loadSummary() {
     try {
-      // Load all data in parallel
-      const [summaryRes, invoicesRes, transactionsRes, companyRes, methodsRes] = await Promise.all([
-        fetch('../api/billing.php?action=dashboard_summary'),
-        fetch('../api/billing.php?action=recent_invoices&limit=5'),
-        fetch('../api/billing.php?action=recent_transactions&limit=10'),
-        fetch('../api/billing.php?action=company_info'),
-        fetch('../api/billing.php?action=payment_methods')
-      ]);
+      const res = await fetch('../api/billing.php?action=unpaid_summary');
+      const r   = await res.json();
+      if (!r.success) return;
+      const d = r.data;
+      const fmt = v => '₱' + parseFloat(v || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      document.getElementById('sc-outstanding').textContent  = fmt(d.total_outstanding);
+      document.getElementById('sc-unpaid-count').textContent = d.unpaid_count + ' reservations';
+      document.getElementById('sc-food').textContent         = fmt(d.unpaid_food_total);
+      document.getElementById('sc-food-count').textContent   = d.unpaid_food_count + ' orders';
+      document.getElementById('sc-extra').textContent        = fmt(d.extra_charges_total);
+      const total = parseFloat(d.total_outstanding || 0) + parseFloat(d.unpaid_food_total || 0);
+      document.getElementById('sc-total').textContent        = fmt(total);
+    } catch(e) { console.error('summary error', e); }
+  }
 
-      const summary = await summaryRes.json();
-      const invoices = await invoicesRes.json();
-      const transactions = await transactionsRes.json();
-      const company = await companyRes.json();
-      const methods = await methodsRes.json();
-
-      if (summary.success) updateSummary(summary.data);
-      if (invoices.success) renderInvoices(invoices.data);
-      if (transactions.success) renderTransactions(transactions.data);
-      if (company.success) {
-        window.companyData = company.data;
-        renderCompanyInfo(company.data);
+  async function loadPaymentMethods() {
+    try {
+      const res = await fetch('../api/billing.php?action=payment_methods');
+      const r   = await res.json();
+      if (r.success) {
+      paymentMethods = r.data;
+      const sel = document.getElementById('histMethodFilter');
+      if (sel) {
+        paymentMethods.forEach(m => {
+          const o = document.createElement('option');
+          o.value = m.method_code; o.textContent = m.method_label;
+          sel.appendChild(o);
+        });
       }
-      if (methods.success) renderPaymentMethods(methods.data);
-    } catch (e) {
-      console.error('Error loading billing data:', e);
     }
+    } catch(e) {}
   }
 
-  function updateSummary(data) {
-    // Update mini-cards with real revenue data
-    const salaryCard = document.querySelector('.mini-card:nth-child(1)');
-    const paypalCard = document.querySelector('.mini-card:nth-child(2)');
-    
-    if (salaryCard && data.total_revenue !== undefined) {
-      salaryCard.querySelector('h6').textContent = 'Total Revenue';
-      salaryCard.querySelector('span').textContent = 'All Time';
-      salaryCard.querySelector('.amount').textContent = '₱' + parseFloat(data.total_revenue || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    }
-    
-    if (paypalCard && data.pending_payments !== undefined) {
-      paypalCard.querySelector('h6').textContent = 'Pending';
-      paypalCard.querySelector('span').textContent = 'Awaiting Confirmation';
-      paypalCard.querySelector('.amount').textContent = '₱' + parseFloat(data.pending_payments || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    }
+  async function loadUnpaidReservations(reset = false) {
+    if (reset) { billPage.offset = 0; }
+    const { limit, offset, search, status } = billPage;
+    const params = new URLSearchParams({ action: 'unpaid_reservations', limit, offset });
+    if (search) params.set('search', search);
+    if (status) params.set('status', status);
+
+    document.getElementById('billTableBody').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:#999"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>`;
+
+    try {
+      const res = await fetch('../api/billing.php?' + params);
+      const r   = await res.json();
+      if (!r.success) return;
+      billPage.total = r.total;
+      renderBillTable(r.data);
+      renderBillPagination();
+    } catch(e) { console.error('table error', e); }
   }
 
-  function renderInvoices(data) {
-    const list = document.querySelector('.invoice-list');
-    if (!list || !data || data.length === 0) return;
-    
-    list.innerHTML = data.map(inv => {
-      const date = inv.invoice_date ? formatDate(inv.invoice_date) : { main: '—', day: '' };
-      const statusClass = getInvoiceStatusClass(inv.status);
-      const statusLabel = capitalize(inv.status || 'unknown');
-      
-      return `
-        <li class="invoice-item">
-          <div>
-            <h6>${date.main}</h6>
-            <span>${inv.invoice_number || inv.reservation_code || '—'}</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;">
-            <span class="invoice-status-badge ${statusClass}">${statusLabel}</span>
-            <span class="amount">₱${parseFloat(inv.total_amount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-            <button class="pdf-btn" onclick="viewInvoice('${inv.invoice_id}')"><i class="fas fa-file-pdf"></i> PDF</button>
-          </div>
-        </li>
-      `;
+  function renderBillTable(rows) {
+    const tbody = document.getElementById('billTableBody');
+    if (!rows || rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:48px;color:#999"><i class="fas fa-check-circle" style="font-size:28px;display:block;margin-bottom:10px;color:#ccc"></i>No outstanding bills found</td></tr>`;
+      return;
+    }
+    const fmt = v => '₱' + parseFloat(v || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    tbody.innerHTML = rows.map(r => {
+      const statusBadge = `<span class="status-badge ${r.reservation_status}">${(r.reservation_status || '').replace(/_/g,' ')}</span>`;
+      const payBadge    = `<span class="status-badge ${r.payment_status}">${(r.payment_status || '').replace(/_/g,' ')}</span>`;
+      const foodBadge   = parseFloat(r.unpaid_food || 0) > 0 ? `<span style="font-size:11px;color:#E65100;display:block">+${fmt(r.unpaid_food)} food</span>` : '';
+      const extraBadge  = parseFloat(r.extra_charges || 0) > 0 ? `<span style="font-size:11px;color:#7B1FA2;display:block">+${fmt(r.extra_charges)} extra</span>` : '';
+      return `<tr>
+        <td><strong>${r.reservation_code || '—'}</strong></td>
+        <td>${r.guest_name || '—'}</td>
+        <td><div>${r.property_name || '—'}</div><div style="font-size:11px;color:#666">${r.room_name || ''} ${r.room_number ? '#'+r.room_number : ''}</div></td>
+        <td>${fmtDate(r.check_in_date + (r.check_in_time ? ' ' + r.check_in_time : ''), !!r.check_in_time)}</td>
+        <td>${fmtDate(r.check_out_date + (r.check_out_time ? ' ' + r.check_out_time : ''), !!r.check_out_time)}</td>
+        <td>${statusBadge}</td>
+        <td>${payBadge}</td>
+        <td style="text-align:right">
+          <strong style="color:#C62828;font-size:13px">${fmt(r.balance_amount)}</strong>
+          ${foodBadge}${extraBadge}
+        </td>
+        <td style="text-align:center;white-space:nowrap">
+          <button class="act-btn act-view" onclick="openBillDetail('${r.reservation_id}')" title="View Bill"><i class="fas fa-eye"></i> View</button>
+          <button class="act-btn act-print" onclick="quickPrint('${r.reservation_id}')" title="Print Bill"><i class="fas fa-print"></i></button>
+        </td>
+      </tr>`;
     }).join('');
   }
 
-  function getInvoiceStatusClass(status) {
-    const classes = {
-      'paid': 'status-paid',
-      'partial': 'status-pending',
-      'sent': 'status-pending',
-      'draft': 'status-unknown',
-      'overdue': 'status-failed',
-      'void': 'status-unknown'
-    };
-    return classes[status] || 'status-unknown';
+  function renderBillPagination() {
+    const { limit, offset, total } = billPage;
+    const from = total === 0 ? 0 : offset + 1;
+    const to   = Math.min(offset + limit, total);
+    document.getElementById('billPagInfo').textContent = `${from}–${to} of ${total}`;
+    document.getElementById('billPrevBtn').disabled = offset <= 0;
+    document.getElementById('billNextBtn').disabled = offset + limit >= total;
   }
 
-  function renderTransactions(data) {
-    const newestSection = document.querySelector('.transaction-section:first-of-type');
-    const yesterdaySection = document.querySelector('.transaction-section:last-of-type');
-    
-    if (!data || data.length === 0) return;
-    
-    // Split transactions: first 2 as newest, rest as yesterday
-    const newest = data.slice(0, 2);
-    const yesterday = data.slice(2);
-    
-    if (newestSection) {
-      newestSection.querySelector('h6').textContent = 'Recent';
-      const container = newestSection.querySelector('.transaction-item')?.parentElement;
-      if (container) {
-        container.innerHTML = newest.map(t => createTransactionRow(t)).join('');
-      }
+  function billSearch(val) {
+    billPage.search = val;
+    loadUnpaidReservations(true);
+  }
+
+  function billFilterStatus(val) {
+    billPage.status = val;
+    loadUnpaidReservations(true);
+  }
+
+  function billPrev() {
+    if (billPage.offset > 0) { billPage.offset = Math.max(0, billPage.offset - billPage.limit); loadUnpaidReservations(); }
+  }
+
+  function billNext() {
+    if (billPage.offset + billPage.limit < billPage.total) { billPage.offset += billPage.limit; loadUnpaidReservations(); }
+  }
+
+  // ── Bill Detail Modal ──────────────────────────────────────────
+  async function openBillDetail(reservationId) {
+    currentBill = null;
+    const modal = document.getElementById('billDetailModal');
+    modal.classList.add('open');
+    document.getElementById('billDetailBody').innerHTML = `<div style="text-align:center;padding:48px;color:#999"><i class="fas fa-spinner fa-spin fa-2x"></i></div>`;
+    document.getElementById('billDetailFooter').innerHTML = '';
+
+    try {
+      const res = await fetch(`../api/billing.php?action=reservation_bill&reservation_id=${reservationId}`);
+      const r   = await res.json();
+      if (!r.success) { document.getElementById('billDetailBody').innerHTML = `<p style="color:red">Failed to load bill.</p>`; return; }
+      currentBill = r.data;
+      renderBillDetail(r.data);
+    } catch(e) {
+      document.getElementById('billDetailBody').innerHTML = `<p style="color:red">Error loading bill.</p>`;
     }
-    
-    if (yesterdaySection && yesterday.length > 0) {
-      yesterdaySection.querySelector('h6').textContent = 'Earlier';
-      const container = yesterdaySection.querySelector('.transaction-item')?.parentElement;
-      if (container) {
-        container.innerHTML = yesterday.map(t => createTransactionRow(t)).join('');
-      }
-    }
   }
 
-  function createTransactionRow(t) {
-    const date = t.payment_date ? formatDate(t.payment_date) : { main: '—', day: '' };
-    const isConfirmed = t.payment_status === 'confirmed';
-    const iconClass = isConfirmed ? 'up' : 'pending';
-    const amountClass = isConfirmed ? 'positive' : 'negative';
-    const amountPrefix = isConfirmed ? '+' : '-';
-    const customerName = t.first_name && t.last_name ? `${t.first_name} ${t.last_name}` : t.reservation_code || 'Guest';
-    
-    return `
-      <div class="transaction-item">
-        <div style="display: flex; align-items: center">
-          <div class="icon ${iconClass}"><i class="fas fa-arrow-${isConfirmed ? 'up' : 'down'}"></i></div>
-          <div>
-            <h6>${customerName}</h6>
-            <span>${date.main} at ${t.payment_time || '—'}</span>
-          </div>
-        </div>
-        <span class="amount ${amountClass}">${amountPrefix} ₱${parseFloat(t.amount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-      </div>
-    `;
+  function closeBillDetail() {
+    document.getElementById('billDetailModal').classList.remove('open');
+    currentBill = null;
   }
 
-  function renderCompanyInfo(data) {
-    if (!data) return;
-    
-    const billingInfo = document.getElementById('billingInfo');
-    if (!billingInfo) return;
-    
-    // Rebuild the billing item with company data
-    billingInfo.innerHTML = `
-      <div class="billing-item">
+  function renderBillDetail(data) {
+    const { reservation: res, extra_charges, food_orders, payments } = data;
+    const fmt = v => '₱' + parseFloat(v || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+    const paidBadge   = `<span style="font-size:10px;padding:1px 6px;border-radius:9999px;background:#E8F5E9;color:#2E7D32;font-weight:600;margin-left:6px">Paid</span>`;
+    const unpaidBadge = `<span style="font-size:10px;padding:1px 6px;border-radius:9999px;background:#FFEBEE;color:#C62828;font-weight:600;margin-left:6px">Unpaid</span>`;
+
+    let html = `
+      <div class="bill-header">
         <div>
-          <h6>${data.company_name || 'Company Name'}</h6>
-          <span>Company Name: <strong>${data.legal_name || data.company_name || '—'}</strong></span>
-          <span>Email Address: <strong>${data.email || '—'}</strong></span>
-          <span>Tax ID: <strong>${data.tax_id || '—'}</strong></span>
+          <div class="bill-title">${res.reservation_code}</div>
+          <div class="bill-sub">${res.guest_name || '—'} &nbsp;·&nbsp; ${res.property_name || ''} ${res.room_name ? '· Rm ' + (res.room_number || res.room_name) : ''}</div>
+          <div class="bill-sub">Check-in: <strong>${fmtDate(res.check_in_date + (res.check_in_time ? ' ' + res.check_in_time : ''), !!res.check_in_time)}</strong> &nbsp; Check-out: <strong>${fmtDate(res.check_out_date + (res.check_out_time ? ' ' + res.check_out_time : ''), !!res.check_out_time)}</strong></div>
         </div>
-        <div class="actions">
-          <a class="edit" onclick="editCompanyInfo()"><i class="fas fa-pencil-alt"></i> Edit</a>
+        <div style="text-align:right">
+          <span class="status-badge ${res.reservation_status}">${(res.reservation_status||'').replace(/_/g,' ')}</span><br>
+          <span class="status-badge ${res.payment_status}" style="margin-top:4px;display:inline-flex">${(res.payment_status||'').replace(/_/g,' ')}</span>
         </div>
       </div>
-    `;
-  }
 
-  function renderPaymentMethods(data) {
-    const container = document.querySelector('.card-body .payment-method-item')?.parentElement;
-    if (!container || !data || data.length === 0) return;
-    
-    container.innerHTML = data.map(m => `
-      <div class="payment-method-item">
-        <div class="method-icon" style="width: 40px; height: 40px; border-radius: 8px; background: #F3F4F6; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 1rem; color: #6B7280;">
-          <i class="${getMethodIcon(m.method_type)}"></i>
-        </div>
-        <h6>${m.method_label}</h6>
-        <i class="fas fa-pencil-alt edit-icon"></i>
-      </div>
-    `).join('');
-  }
+      <table class="bill-table">
+        <thead><tr><th>Description</th><th class="r">Amount</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Room / Reservation Charge ${res.payment_status === 'paid' ? paidBadge : unpaidBadge}</td>
+            <td class="r">${fmt(res.total_amount)}</td>
+          </tr>`;
 
-  function getMethodIcon(type) {
-    const t = type?.toLowerCase() || '';
-    if (t.includes('card') || t.includes('credit') || t.includes('debit')) return 'ni ni-credit-card';
-    if (t.includes('cash')) return 'ni ni-money-coins';
-    if (t.includes('digital') || t.includes('wallet') || t.includes('gcash') || t.includes('maya')) return 'ni ni-mobile-button';
-    if (t.includes('bank') || t.includes('transfer')) return 'ni ni-bank';
-    return 'ni ni-single-02';
-  }
-
-  function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
-
-  function formatDate(dateStr) {
-    const date = new Date(dateStr);
-    return {
-      main: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      day: date.toLocaleDateString('en-US', { weekday: 'long' })
-    };
-  }
-
-  function viewInvoice(invoiceId) {
-    // TODO: Implement PDF generation or invoice detail view
-    alert('View invoice: ' + invoiceId);
-  }
-
-  function addPaymentMethod() {
-    // TODO: Implement add payment method modal/form
-    alert('Add payment method modal - to be implemented');
-  }
-
-  function viewAllInvoices() {
-    // TODO: Navigate to full invoices page or show modal
-    alert('View all invoices - to be implemented');
-  }
-
-  function editCompanyInfo() {
-    const companyData = window.companyData || {};
-    
-    const modal = document.createElement('div');
-    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
-    modal.innerHTML = `
-      <div style="background:#fff;border-radius:12px;padding:24px;max-width:500px;width:90%;max-height:90vh;overflow-y:auto;">
-        <h3 style="margin:0 0 16px;font-family:'Lora',serif;font-size:18px;">Edit Company Information</h3>
-        <form id="companyInfoForm">
-          <div style="margin-bottom:12px;">
-            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Company Name</label>
-            <input type="text" name="company_name" value="${companyData.company_name || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;" required>
-          </div>
-          <div style="margin-bottom:12px;">
-            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Legal Name</label>
-            <input type="text" name="legal_name" value="${companyData.legal_name || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;">
-          </div>
-          <div style="margin-bottom:12px;">
-            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Tax ID</label>
-            <input type="text" name="tax_id" value="${companyData.tax_id || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;">
-          </div>
-          <div style="margin-bottom:12px;">
-            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Email</label>
-            <input type="email" name="email" value="${companyData.email || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;" required>
-          </div>
-          <div style="margin-bottom:12px;">
-            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Phone</label>
-            <input type="text" name="phone_number" value="${companyData.phone_number || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;" required>
-          </div>
-          <div style="margin-bottom:12px;">
-            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Address Line 1</label>
-            <input type="text" name="address_line1" value="${companyData.address_line1 || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;" required>
-          </div>
-          <div style="margin-bottom:12px;">
-            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">City</label>
-            <input type="text" name="city" value="${companyData.city || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;" required>
-          </div>
-          <div style="margin-bottom:12px;">
-            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Province</label>
-            <input type="text" name="province" value="${companyData.province || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;">
-          </div>
-          <div style="margin-bottom:12px;">
-            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Postal Code</label>
-            <input type="text" name="postal_code" value="${companyData.postal_code || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;">
-          </div>
-          <div style="margin-bottom:12px;">
-            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Website</label>
-            <input type="url" name="website" value="${companyData.website || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;">
-          </div>
-          <div style="margin-bottom:16px;">
-            <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px;">Description</label>
-            <textarea name="description" rows="3" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;">${companyData.description || ''}</textarea>
-          </div>
-          <input type="hidden" name="company_id" value="${companyData.company_id || ''}">
-          <div style="display:flex;gap:8px;justify-content:flex-end;">
-            <button type="button" onclick="this.closest('div[style*=fixed]').remove()" style="padding:8px 16px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;cursor:pointer;">Cancel</button>
-            <button type="submit" style="padding:8px 16px;border:none;border-radius:6px;background:#185FA5;color:#fff;cursor:pointer;">Save</button>
-          </div>
-        </form>
-      </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    modal.querySelector('#companyInfoForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      const data = Object.fromEntries(formData.entries());
-      
-      try {
-        const res = await fetch('../api/billing.php?action=update_company_info', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-        const result = await res.json();
-        
-        if (result.success) {
-          modal.remove();
-          // Reload company info
-          const companyRes = await fetch('../api/billing.php?action=company_info');
-          const company = await companyRes.json();
-          if (company.success) {
-            window.companyData = company.data;
-            renderCompanyInfo(company.data);
-          }
-          alert('Company information updated successfully');
-        } else {
-          alert('Error: ' + result.message);
-        }
-      } catch (err) {
-        alert('Error updating company information');
-      }
+    extra_charges.forEach(ec => {
+      const settled = ec.payment_status === 'paid' || ec.payment_status === 'waived';
+      const badge   = settled ? paidBadge : unpaidBadge;
+      const typeTag = `<span style="font-size:11px;color:#7B1FA2;text-transform:uppercase;margin-right:4px">${ec.charge_type}</span>`;
+      html += `<tr style="${settled ? 'color:#888' : ''}">
+        <td>${typeTag}${ec.description}${badge}</td>
+        <td class="r" style="${settled ? 'text-decoration:line-through;color:#aaa' : ''}">${fmt(ec.amount)}</td>
+      </tr>`;
     });
+
+    food_orders.forEach(fo => {
+      const settled = fo.payment_status === 'paid';
+      const badge   = settled ? paidBadge : unpaidBadge;
+      html += `<tr style="${settled ? 'color:#888' : ''}">
+        <td><span style="font-size:11px;color:#E65100;text-transform:uppercase;margin-right:4px">Food</span>#${fo.order_number || fo.order_id.substring(0,8)}${badge}<br>
+          <span style="font-size:11px;color:#999">${fo.items_summary || ''}</span></td>
+        <td class="r" style="${settled ? 'text-decoration:line-through;color:#aaa' : ''}">${fmt(fo.total_amount)}</td>
+      </tr>`;
+    });
+
+    const totalCharges = parseFloat(res.total_amount || 0)
+      + extra_charges.reduce((s, e) => s + parseFloat(e.amount || 0), 0)
+      + food_orders.reduce((s, f) => s + parseFloat(f.total_amount || 0), 0);
+    const totalPaid = payments.reduce((s, p) => s + parseFloat(p.amount || 0), 0);
+    const balance   = Math.max(0, totalCharges - totalPaid);
+
+    html += `</tbody>
+        <tfoot>
+          <tr class="subtotal-row"><td>Total Charges</td><td class="r">${fmt(totalCharges)}</td></tr>`;
+
+    if (payments.length > 0) {
+      html += `<tr><td colspan="2" style="padding-top:8px;font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.04em">Payments Received</td></tr>`;
+      payments.forEach(p => {
+        const txType = p.transaction_type === 'refund'
+          ? `<span style="font-size:10px;padding:1px 6px;border-radius:9999px;background:#EDE7F6;color:#6A1B9A;font-weight:600;margin-left:6px">Refund</span>`
+          : '';
+        html += `<tr style="color:#2E7D32">
+          <td style="padding-left:12px">
+            ${fmtDate(p.payment_date + (p.payment_time ? ' ' + p.payment_time : ''), true)}
+            &nbsp;<strong>${p.method_label || ''}</strong>
+            ${p.reference_number ? `<span style="color:#888"> · Ref: ${p.reference_number}</span>` : ''}
+            ${txType}
+          </td>
+          <td class="r">− ${fmt(p.amount)}</td>
+        </tr>`;
+      });
+      html += `<tr style="color:#2E7D32;font-weight:600"><td style="padding-left:12px">Total Paid</td><td class="r">− ${fmt(totalPaid)}</td></tr>`;
+    }
+
+    html += `<tr class="balance-row"><td>Balance Due</td><td class="r" style="color:${balance > 0 ? '#C62828' : '#2E7D32'}">${fmt(balance)}</td></tr>
+        </tfoot>
+      </table>`;
+
+    const unpaidFoodOrders = food_orders.filter(f => f.payment_status !== 'paid');
+    if (unpaidFoodOrders.length > 0) {
+      html += `<div style="margin-top:16px;padding:10px 12px;background:#FFF3E0;border-radius:6px;font-size:12px;color:#E65100">
+        <i class="fas fa-utensils"></i> ${unpaidFoodOrders.length} unpaid food order(s) will be marked as paid when payment is recorded.
+      </div>`;
+    }
+
+    document.getElementById('billDetailBody').innerHTML = html;
+
+    // Footer
+    const footer = document.getElementById('billDetailFooter');
+    const printBtn = `<button class="btn" onclick="printBill(currentBill)"><i class="fas fa-print"></i> Print</button>`;
+    if (balance > 0) {
+      footer.innerHTML = `
+        <button class="btn btn-secondary" onclick="closeBillDetail()">Close</button>
+        ${printBtn}
+        <button class="btn btn-primary" onclick="openPaymentForm()"><i class="fas fa-money-bill-wave"></i> Record Payment</button>`;
+    } else {
+      footer.innerHTML = `<span style="font-size:13px;color:#2E7D32"><i class="fas fa-check-circle"></i> Fully paid</span>
+        ${printBtn}
+        <button class="btn btn-secondary" onclick="closeBillDetail()">Close</button>`;
+    }
+  }
+
+  // ── Payment Form ───────────────────────────────────────────────
+  function openPaymentForm() {
+    if (!currentBill) return;
+    const res           = currentBill.reservation;
+    const extra_charges = currentBill.extra_charges || [];
+    const food_orders   = currentBill.food_orders || [];
+    const payments      = currentBill.payments || [];
+    const totalCharges  = parseFloat(res.total_amount || 0)
+      + extra_charges.reduce((s, e) => s + parseFloat(e.amount || 0), 0)
+      + food_orders.reduce((s, f) => s + parseFloat(f.total_amount || 0), 0);
+    const totalPaid     = payments.reduce((s, p) => s + parseFloat(p.amount || 0), 0);
+    const balance       = Math.max(0, totalCharges - totalPaid);
+    const fmt           = v => parseFloat(v || 0).toFixed(2);
+    const fmtPeso       = v => '₱' + parseFloat(v || 0).toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+    const fallbackMethods = [
+      {method_code:'cash', method_label:'Cash', method_type:'cash'},
+      {method_code:'gcash', method_label:'GCash', method_type:'digital_wallet'},
+      {method_code:'maya', method_label:'Maya', method_type:'digital_wallet'},
+      {method_code:'bank_transfer', method_label:'Bank Transfer', method_type:'bank_transfer'},
+    ];
+    const methods = paymentMethods.length ? paymentMethods : fallbackMethods;
+    const methodOptions = methods.map(m => `<option value="${m.method_code}" data-type="${m.method_type || 'other'}">${m.method_label}</option>`).join('');
+    const foodIds = (currentBill.food_orders || []).filter(f => f.payment_status !== 'paid').map(f => f.order_id);
+
+    document.getElementById('billDetailBody').innerHTML = `
+      <div style="margin-bottom:16px;padding:14px 16px;background:#FFF8E1;border-radius:8px;border:1px solid #FFE082;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:12px;color:#888">Recording payment for</div>
+          <div style="font-size:15px;font-weight:700">${res.reservation_code} &mdash; ${res.guest_name || '—'}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:#888">Balance Due</div>
+          <div style="font-size:20px;font-weight:800;color:#C62828">${fmtPeso(balance)}</div>
+        </div>
+      </div>
+
+      <form id="paymentForm" autocomplete="off">
+        <input type="hidden" id="pfReservationId" value="${res.reservation_id}">
+        <input type="hidden" id="pfFoodOrderIds" value='${JSON.stringify(foodIds)}'>
+        <input type="hidden" id="pfBalance" value="${fmt(balance)}">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Payment Method <span style="color:red">*</span></label>
+            <select id="pfMethod" onchange="onPayMethodChange()" style="font-weight:600">${methodOptions}</select>
+          </div>
+          <div class="form-group">
+            <label>Amount Tendered <span style="color:red">*</span></label>
+            <input type="number" id="pfAmount" step="0.01" min="0.01" value="${fmt(balance)}"
+              oninput="onPayAmountChange()" style="font-size:16px;font-weight:700">
+          </div>
+        </div>
+
+        <!-- Cash: change calculator -->
+        <div id="pfCashSection" style="display:none;margin-bottom:14px">
+          <div style="padding:12px 14px;background:#E8F5E9;border-radius:8px;border:1px solid #A5D6A7">
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:#555;margin-bottom:4px">
+              <span>Balance Due</span><span>${fmtPeso(balance)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:#555;margin-bottom:4px">
+              <span>Amount Tendered</span><span id="pfTenderedDisplay">${fmtPeso(balance)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;color:#2E7D32;border-top:1px solid #A5D6A7;padding-top:6px;margin-top:4px">
+              <span>Change</span><span id="pfChangeDisplay">${fmtPeso(0)}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Digital wallet / GCash / Maya -->
+        <div id="pfDigitalSection" style="display:none;margin-bottom:14px">
+          <div style="padding:10px 14px;background:#E3F2FD;border-radius:8px;border:1px solid #90CAF9;font-size:12px;color:#1565C0">
+            <i class="fas fa-mobile-alt"></i> Ask the guest to send to the registered account number and provide the transaction screenshot or reference number.
+          </div>
+        </div>
+
+        <!-- Bank transfer -->
+        <div id="pfBankSection" style="display:none;margin-bottom:14px">
+          <div style="padding:10px 14px;background:#F3E5F5;border-radius:8px;border:1px solid #CE93D8;font-size:12px;color:#6A1B9A">
+            <i class="fas fa-university"></i> Ensure bank deposit slip or transfer confirmation is collected before confirming.
+          </div>
+        </div>
+
+        <!-- Card -->
+        <div id="pfCardSection" style="display:none;margin-bottom:14px">
+          <div style="padding:10px 14px;background:#FFF3E0;border-radius:8px;border:1px solid #FFCC80;font-size:12px;color:#E65100">
+            <i class="fas fa-credit-card"></i> Process the card payment on the terminal first, then enter the approval code below as the reference number.
+          </div>
+        </div>
+
+        <!-- Check -->
+        <div id="pfCheckSection" style="display:none;margin-bottom:14px">
+          <div style="padding:10px 14px;background:#ECEFF1;border-radius:8px;border:1px solid #B0BEC5;font-size:12px;color:#37474F">
+            <i class="fas fa-money-check"></i> Record the check number and the issuing bank in the reference field below.
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" id="pfReferenceGroup">
+            <label id="pfReferenceLabel">Reference / OR Number</label>
+            <input type="text" id="pfReference" placeholder="Optional">
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <input type="text" id="pfNotes" placeholder="Optional">
+          </div>
+        </div>
+      </form>`;
+
+    document.getElementById('billDetailFooter').innerHTML = `
+      <button class="btn btn-secondary" onclick="renderBillDetail(currentBill)">&#8592; Back</button>
+      <button class="btn btn-primary" onclick="submitPayment()"><i class="fas fa-check"></i> Confirm Payment</button>`;
+
+    onPayMethodChange();
+  }
+
+  function onPayMethodChange() {
+    const sel      = document.getElementById('pfMethod');
+    const type     = sel.options[sel.selectedIndex]?.dataset.type || 'other';
+    const sections = ['pfCashSection','pfDigitalSection','pfBankSection','pfCardSection','pfCheckSection'];
+    sections.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+
+    const refLabel = document.getElementById('pfReferenceLabel');
+    if (type === 'cash') {
+      document.getElementById('pfCashSection').style.display = 'block';
+      if (refLabel) refLabel.textContent = 'OR Number';
+      onPayAmountChange();
+    } else if (type === 'digital_wallet') {
+      document.getElementById('pfDigitalSection').style.display = 'block';
+      if (refLabel) refLabel.textContent = 'Transaction / Reference Number';
+    } else if (type === 'bank_transfer') {
+      document.getElementById('pfBankSection').style.display = 'block';
+      if (refLabel) refLabel.textContent = 'Transfer / Deposit Reference';
+    } else if (type === 'card') {
+      document.getElementById('pfCardSection').style.display = 'block';
+      if (refLabel) refLabel.textContent = 'Approval Code';
+    } else if (type === 'check') {
+      document.getElementById('pfCheckSection').style.display = 'block';
+      if (refLabel) refLabel.textContent = 'Check Number';
+    } else {
+      if (refLabel) refLabel.textContent = 'Reference / OR Number';
+    }
+  }
+
+  function onPayAmountChange() {
+    const balance  = parseFloat(document.getElementById('pfBalance')?.value || 0);
+    const tendered = parseFloat(document.getElementById('pfAmount')?.value || 0);
+    const change   = Math.max(0, tendered - balance);
+    const fmtPeso  = v => '₱' + parseFloat(v || 0).toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2});
+    const tEl = document.getElementById('pfTenderedDisplay');
+    const cEl = document.getElementById('pfChangeDisplay');
+    if (tEl) tEl.textContent = fmtPeso(tendered);
+    if (cEl) { cEl.textContent = fmtPeso(change); cEl.style.color = change > 0 ? '#C62828' : '#2E7D32'; }
+  }
+
+  async function submitPayment() {
+    const reservationId = document.getElementById('pfReservationId').value;
+    const amount        = parseFloat(document.getElementById('pfAmount').value);
+    const methodCode    = document.getElementById('pfMethod').value;
+    const reference     = document.getElementById('pfReference').value.trim();
+    const notes         = document.getElementById('pfNotes').value.trim();
+    const foodOrderIds  = JSON.parse(document.getElementById('pfFoodOrderIds').value || '[]');
+
+    if (!amount || amount <= 0) { alert('Please enter a valid amount.'); return; }
+
+    const btn = document.querySelector('#billDetailFooter .btn-primary');
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+
+    try {
+      const res = await fetch('../api/billing.php?action=record_payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': CSRF },
+        body: JSON.stringify({ reservation_id: reservationId, amount, payment_method_code: methodCode, reference_number: reference || null, notes: notes || null, food_order_ids: foodOrderIds })
+      });
+      const r = await res.json();
+      if (r.success) {
+        closeBillDetail();
+        loadSummary();
+        loadUnpaidReservations();
+        loadPaymentHistory(true);
+        showToast('Payment recorded successfully!', 'success');
+      } else {
+        alert('Error: ' + (r.message || 'Failed to record payment'));
+        btn.disabled = false;
+        btn.textContent = 'Confirm Payment';
+      }
+    } catch(e) {
+      alert('Network error. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'Confirm Payment';
+    }
+  }
+
+  // ── Print ─────────────────────────────────────────────────────
+  async function quickPrint(reservationId) {
+    try {
+      const res = await fetch(`../api/billing.php?action=reservation_bill&reservation_id=${reservationId}`);
+      const r   = await res.json();
+      if (r.success) printBill(r.data);
+    } catch(e) { alert('Could not load bill for printing.'); }
+  }
+
+  function printBill(data) {
+    const { reservation: res, extra_charges, food_orders, payments } = data;
+    const fmt  = v => '₱' + parseFloat(v || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    const fmtN = v => parseFloat(v || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    const now  = fmtDate(new Date().toISOString(), true);
+
+    const totalCharges = parseFloat(res.total_amount || 0)
+      + extra_charges.reduce((s, e) => s + parseFloat(e.amount || 0), 0)
+      + food_orders.reduce((s, f) => s + parseFloat(f.total_amount || 0), 0);
+    const totalPaid = payments.reduce((s, p) => s + parseFloat(p.amount || 0), 0);
+    const balance   = parseFloat(res.balance_amount || 0);
+
+    let ecRows = extra_charges.map(ec => `
+      <tr>
+        <td>${ec.charge_type ? '<span class="tag ec">' + ec.charge_type + '</span> ' : ''}${ec.description || ''}</td>
+        <td class="r">${fmtN(ec.amount)}</td>
+      </tr>`).join('');
+
+    let foRows = food_orders.map(fo => `
+      <tr>
+        <td><span class="tag fo">Food</span> Order #${fo.order_number || fo.order_id.substring(0,8)}<br><small>${fo.items_summary || ''}</small></td>
+        <td class="r">${fmtN(fo.total_amount)}</td>
+      </tr>`).join('');
+
+    let pyRows = payments.length ? payments.map(p => `
+      <tr class="pay-row">
+        <td>${fmtDate(p.payment_date + (p.payment_time ? ' ' + p.payment_time : ''), true)} &nbsp; ${p.method_label || ''} ${p.reference_number ? '· Ref: ' + p.reference_number : ''}</td>
+        <td class="r">− ${fmtN(p.amount)}</td>
+      </tr>`).join('') : '';
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Bill — ${res.reservation_code}</title>
+<style>
+  @media print { @page { margin: 18mm 14mm; } }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #1a1a1a; margin: 0; padding: 24px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 2px solid #1a1a1a; padding-bottom: 14px; }
+  .prop-name { font-size: 18px; font-weight: 700; }
+  .prop-sub { font-size: 11px; color: #666; margin-top: 2px; }
+  .bill-code { font-size: 22px; font-weight: 700; text-align: right; }
+  .bill-date { font-size: 11px; color: #666; text-align: right; }
+  .guest-box { display: flex; gap: 32px; margin-bottom: 18px; padding: 12px 14px; background: #f9f9f9; border-radius: 6px; }
+  .guest-box div { flex: 1; }
+  .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: #888; margin-bottom: 3px; }
+  .val { font-size: 12px; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
+  th { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: #666; border-bottom: 2px solid #ddd; padding: 7px 10px; text-align: left; }
+  td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+  .r { text-align: right; }
+  .tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 9px; font-weight: 600; text-transform: uppercase; margin-right: 4px; }
+  .tag.ec { background: #F3E5F5; color: #7B1FA2; }
+  .tag.fo { background: #FFF3E0; color: #E65100; }
+  small { font-size: 10px; color: #999; }
+  tfoot tr td { font-weight: 600; padding: 8px 10px; }
+  .subtotal td { border-top: 2px solid #ddd; border-bottom: none; }
+  .pay-row td { color: #2E7D32; }
+  .balance td { border-top: 2px solid #1a1a1a; font-size: 14px; font-weight: 700; }
+  .balance .r { color: ${balance > 0 ? '#C62828' : '#2E7D32'}; }
+  .footer-note { margin-top: 32px; font-size: 10px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 12px; }
+  .no-print { margin-bottom: 16px; }
+  @media print { .no-print { display: none; } }
+</style>
+</head>
+<body>
+<div class="no-print">
+  <button onclick="window.print()" style="padding:8px 20px;background:#185FA5;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">🖨 Print</button>
+  <button onclick="window.close()" style="padding:8px 16px;background:#fff;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:13px;margin-left:8px;">✕ Close</button>
+</div>
+
+<div class="header">
+  <div>
+    <div class="prop-name">${res.property_name || 'MM Paraiso'}</div>
+    <div class="prop-sub">Billing Statement</div>
+  </div>
+  <div>
+    <div class="bill-code">${res.reservation_code}</div>
+    <div class="bill-date">Printed: ${now}</div>
+  </div>
+</div>
+
+<div class="guest-box">
+  <div><div class="lbl">Guest</div><div class="val">${res.guest_name || '—'}</div></div>
+  <div><div class="lbl">Room</div><div class="val">${res.room_name || '—'} ${res.room_number ? '#' + res.room_number : ''}</div></div>
+  <div><div class="lbl">Check-in</div><div class="val">${fmtDate(res.check_in_date + (res.check_in_time ? ' ' + res.check_in_time : ''), !!res.check_in_time)}</div></div>
+  <div><div class="lbl">Check-out</div><div class="val">${fmtDate(res.check_out_date + (res.check_out_time ? ' ' + res.check_out_time : ''), !!res.check_out_time)}</div></div>
+</div>
+
+<table>
+  <thead><tr><th>Description</th><th class="r">Amount (₱)</th></tr></thead>
+  <tbody>
+    <tr><td>Room / Reservation Charge</td><td class="r">${fmtN(res.total_amount)}</td></tr>
+    ${ecRows}
+    ${foRows}
+  </tbody>
+  <tfoot>
+    <tr class="subtotal"><td>Total Charges</td><td class="r">${fmtN(totalCharges)}</td></tr>
+    ${pyRows ? '<tr><td colspan="2" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#888;padding-top:10px">Payments Received</td></tr>' + pyRows : ''}
+    <tr class="balance"><td>Balance Due</td><td class="r">${fmtN(balance)}</td></tr>
+  </tfoot>
+</table>
+
+<div class="footer-note">This is an official billing statement. Thank you for your stay.</div>
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: 'text/html' });
+    const url  = URL.createObjectURL(blob);
+    const w    = window.open(url, '_blank', 'width=780,height=900,scrollbars=yes');
+    w.addEventListener('unload', () => URL.revokeObjectURL(url));
+  }
+
+  // ── Payment History ───────────────────────────────────────────
+  async function loadPaymentHistory(reset = false) {
+    if (reset) historyPage.offset = 0;
+    const { limit, offset, search, method, date_from, date_to } = historyPage;
+    const params = new URLSearchParams({ action: 'payment_history', limit, offset });
+    if (search)    params.set('search', search);
+    if (method)    params.set('method', method);
+    if (date_from) params.set('date_from', date_from);
+    if (date_to)   params.set('date_to', date_to);
+
+    document.getElementById('historyTableBody').innerHTML =
+      `<tr><td colspan="7" style="text-align:center;padding:32px;color:#999"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>`;
+
+    try {
+      const res = await fetch('../api/billing.php?' + params);
+      const r   = await res.json();
+      if (!r.success) return;
+      historyPage.total = r.total;
+      renderHistoryTable(r.data);
+      renderHistoryPagination();
+    } catch(e) { console.error('history error', e); }
+  }
+
+  function renderHistoryTable(rows) {
+    const tbody = document.getElementById('historyTableBody');
+    if (!rows || rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:48px;color:#999"><i class="fas fa-inbox" style="font-size:28px;display:block;margin-bottom:10px;color:#ccc"></i>No payment records found</td></tr>`;
+      return;
+    }
+    const fmt = v => '₱' + parseFloat(v || 0).toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2});
+    const methodIcons = { cash:'fa-money-bill-wave', digital_wallet:'fa-mobile-alt', bank_transfer:'fa-university', card:'fa-credit-card', check:'fa-money-check' };
+    tbody.innerHTML = rows.map(p => {
+      const icon   = methodIcons[p.method_type] || 'fa-circle';
+      const typeBadge = p.transaction_type === 'refund'
+        ? `<span class="status-badge refund">Refund</span>`
+        : `<span class="status-badge paid">Payment</span>`;
+      const ref = p.reference_number ? `<div style="font-size:11px;color:#888;margin-top:2px">Ref: ${p.reference_number}</div>` : '';
+      const by  = p.recorded_by_name?.trim() ? `<div style="font-size:11px;color:#aaa">by ${p.recorded_by_name}</div>` : '';
+      return `<tr>
+        <td>${fmtDate(p.payment_date + (p.payment_time ? ' ' + p.payment_time : ''), !!p.payment_time)}</td>
+        <td><strong>${p.reservation_code || '—'}</strong><div style="font-size:11px;color:#666">${p.guest_name || ''}</div></td>
+        <td>${p.property_name || '—'}</td>
+        <td><i class="fas ${icon}" style="margin-right:5px;color:#185FA5"></i>${p.method_label || '—'}${ref}</td>
+        <td>${typeBadge}</td>
+        <td style="text-align:right;font-weight:700;color:#2E7D32">${fmt(p.amount)}${by}</td>
+        <td style="text-align:center">
+          <button class="act-btn act-view" onclick="openBillDetail('${p.reservation_id}')" title="View Bill"><i class="fas fa-eye"></i> View</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderHistoryPagination() {
+    const { limit, offset, total } = historyPage;
+    const from = total === 0 ? 0 : offset + 1;
+    const to   = Math.min(offset + limit, total);
+    document.getElementById('histPagInfo').textContent = `${from}–${to} of ${total}`;
+    document.getElementById('histPrevBtn').disabled = offset <= 0;
+    document.getElementById('histNextBtn').disabled = offset + limit >= total;
+  }
+
+  function historySearch(val)      { historyPage.search = val;    loadPaymentHistory(true); }
+  function historyMethod(val)      { historyPage.method = val;    loadPaymentHistory(true); }
+  function historyDateFrom(val)    { historyPage.date_from = val; loadPaymentHistory(true); }
+  function historyDateTo(val)      { historyPage.date_to = val;   loadPaymentHistory(true); }
+  function historyPrev() { if (historyPage.offset > 0) { historyPage.offset = Math.max(0, historyPage.offset - historyPage.limit); loadPaymentHistory(); } }
+  function historyNext() { if (historyPage.offset + historyPage.limit < historyPage.total) { historyPage.offset += historyPage.limit; loadPaymentHistory(); } }
+
+  // ── Tab Switching ────────────────────────────────────────────
+  function switchTab(tabName) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+    document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('active');
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+    // Refresh data when switching to ensure fresh view
+    if (tabName === 'outstanding') {
+      loadSummary();
+      loadUnpaidReservations();
+    } else if (tabName === 'history') {
+      loadPaymentHistory();
+    }
+  }
+
+  function showToast(msg, type = 'success') {
+    const t = document.createElement('div');
+    t.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:99999;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:500;color:#fff;background:${type==='success'?'#2E7D32':'#C62828'};box-shadow:0 4px 12px rgba(0,0,0,.2);transition:opacity .3s`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
   }
 </script>
 
 <style>
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0
-  }
-
-  body {
-    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
-    background: #f5f5f5;
-    color: #1a1a1a
-  }
-
-  .page {
-    padding: 24px;
-    max-width: 100%;
-    margin: 0 auto
-  }
-
-  .dashboard-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 24px;
-    margin-bottom: 24px
-  }
-
-  @media (max-width: 1024px) {
-    .dashboard-grid {
-      grid-template-columns: 1fr
-    }
-  }
-
-  .card {
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px
-  }
-
-  .card-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid #e0e0e0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap
-  }
-
-  .card-title {
-    font-family: 'Lora', Georgia, serif;
-    font-size: 16px;
-    font-weight: 600;
-    font-style: italic
-  }
-
-  .card-body {
-    padding: 20px
-  }
-
-  .btn {
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    border: none;
-    transition: all .2s
-  }
-
-  .btn-primary {
-    background: #185FA5;
-    color: #fff
-  }
-
-  .btn-primary:hover {
-    background: #145090
-  }
-
-  .btn-secondary {
-    background: #fff;
-    color: #1a1a1a;
-    border: 1px solid #e0e0e0
-  }
-
-  .btn-secondary:hover {
-    background: #f5f5f5
-  }
-
-  .btn-outline {
-    background: transparent;
-    color: #185FA5;
-    border: 1px solid #185FA5
-  }
-
-  .btn-outline:hover {
-    background: #f0f7ff
-  }
-
-  .credit-card {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    border-radius: 12px;
-    padding: 24px;
-    color: #fff;
-    position: relative;
-    overflow: hidden
-  }
-
-  .credit-card .wifi-icon {
-    font-size: 24px;
-    margin-bottom: 32px
-  }
-
-  .credit-card .card-number {
-    font-size: 22px;
-    letter-spacing: 4px;
-    margin-bottom: 32px
-  }
-
-  .credit-card .card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end
-  }
-
-  .credit-card .card-holder, .credit-card .card-expires {
-    font-size: 12px;
-    opacity: 0.8
-  }
-
-  .credit-card .card-holder strong, .credit-card .card-expires strong {
-    font-size: 14px;
-    opacity: 1
-  }
-
-  .mini-cards {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px
-  }
-
-  .mini-card {
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 16px;
-    text-align: center
-  }
-
-  .mini-card .icon {
-    width: 48px;
-    height: 48px;
-    background: #185FA5;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 12px;
-    color: #fff;
-    font-size: 20px
-  }
-
-  .mini-card h6 {
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 4px
-  }
-
-  .mini-card span {
-    font-size: 12px;
-    color: #666
-  }
-
-  .mini-card .amount {
-    font-size: 18px;
-    font-weight: 600;
-    margin-top: 12px
-  }
-
-  .payment-method-item {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    margin-bottom: 8px
-  }
-
-  .payment-method-item img {
-    width: 40px;
-    margin-right: 12px
-  }
-
-  .payment-method-item h6 {
-    font-size: 13px;
-    font-weight: 500
-  }
-
-  .payment-method-item .edit-icon {
-    margin-left: auto;
-    cursor: pointer;
-    color: #666
-  }
-
-  .invoice-list {
-    list-style: none
-  }
-
-  .invoice-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #e0e0e0
-  }
-
-  .invoice-item:last-child {
-    border-bottom: none
-  }
-
-  .invoice-item h6 {
-    font-size: 13px;
-    font-weight: 500;
-    margin-bottom: 2px
-  }
-
-  .invoice-item span {
-    font-size: 11px;
-    color: #666
-  }
-
-  .invoice-item .amount {
-    font-size: 13px;
-    font-weight: 500
-  }
-
-  .invoice-item .pdf-btn {
-    margin-left: 12px;
-    padding: 4px 8px;
-    font-size: 11px;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    background: #fff;
-    cursor: pointer
-  }
-
-  .billing-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 16px;
-    background: #f9f9f9;
-    border-radius: 8px;
-    margin-bottom: 12px
-  }
-
-  .billing-item h6 {
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 8px
-  }
-
-  .billing-item span {
-    font-size: 12px;
-    color: #666;
-    display: block;
-    margin-bottom: 4px
-  }
-
-  .billing-item span strong {
-    color: #1a1a1a;
-    margin-left: 4px
-  }
-
-  .billing-item .actions {
-    display: flex;
-    gap: 8px
-  }
-
-  .billing-item .actions a {
-    padding: 4px 12px;
-    font-size: 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    text-decoration: none
-  }
-
-  .billing-item .actions .delete {
-    color: #dc2626
-  }
-
-  .billing-item .actions .edit {
-    color: #1a1a1a
-  }
-
-  .transaction-section {
-    margin-bottom: 16px
-  }
-
-  .transaction-section h6 {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: #666;
-    margin-bottom: 12px
-  }
-
-  .transaction-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid #e0e0e0
-  }
-
-  .transaction-item:last-child {
-    border-bottom: none
-  }
-
-  .transaction-item .icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 12px;
-    font-size: 12px
-  }
-
-  .transaction-item .icon.down {
-    background: #FEE2E2;
-    color: #DC2626
-  }
-
-  .transaction-item .icon.up {
-    background: #D1FAE5;
-    color: #059669
-  }
-
-  .transaction-item .icon.pending {
-    background: #F5F5F5;
-    color: #666
-  }
-
-  .transaction-item h6 {
-    font-size: 13px;
-    font-weight: 500;
-    margin-bottom: 2px
-  }
-
-  .transaction-item span {
-    font-size: 11px;
-    color: #666
-  }
-
-  .transaction-item .amount {
-    font-size: 13px;
-    font-weight: 600
-  }
-
-  .transaction-item .amount.negative {
-    color: #DC2626
-  }
-
-  .transaction-item .amount.positive {
-    color: #059669
-  }
-
-  .bottom-grid {
-    display: grid;
-    grid-template-columns: 7fr 5fr;
-    gap: 24px
-  }
-
-  @media (max-width: 768px) {
-    .bottom-grid {
-      grid-template-columns: 1fr
-    }
-  }
-
-  /* ── Additional Responsive ──────────────────────────────────── */
-  @media (max-width: 480px) {
-    .page {
-      padding: 16px;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .card-header {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 16px;
-      padding: 16px 18px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .btn {
-      width: 100%;
-      justify-content: center;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .credit-card {
-      padding: 20px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .credit-card .wifi-icon {
-      font-size: 20px;
-      margin-bottom: 24px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .credit-card .card-number {
-      font-size: 18px;
-      letter-spacing: 2px;
-      margin-bottom: 24px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .credit-card .card-holder, .credit-card .card-expires {
-      font-size: 11px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .credit-card .card-holder strong, .credit-card .card-expires strong {
-      font-size: 12px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .mini-cards {
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .mini-card {
-      padding: 14px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .mini-card .icon {
-      width: 40px;
-      height: 40px;
-      font-size: 18px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .mini-card h6 {
-      font-size: 13px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .mini-card span {
-      font-size: 11px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .mini-card .amount {
-      font-size: 16px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .payment-method-item {
-      padding: 10px 12px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .payment-method-item img {
-      width: 32px;
-      margin-right: 10px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .payment-method-item h6 {
-      font-size: 12px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .invoice-item {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 8px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .invoice-item h6 {
-      font-size: 12px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .invoice-item span {
-      font-size: 10px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .invoice-item .amount {
-      font-size: 12px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .invoice-item .pdf-btn {
-      margin-left: 0;
-      margin-top: 4px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .billing-item {
-      flex-direction: column;
-      gap: 12px;
-      padding: 14px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .billing-item h6 {
-      font-size: 13px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .billing-item span {
-      font-size: 11px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .billing-item .actions {
-      width: 100%;
-      justify-content: flex-end;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .transaction-item {
-      padding: 8px 0;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .transaction-item .icon {
-      width: 24px;
-      height: 24px;
-      font-size: 10px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .transaction-item h6 {
-      font-size: 12px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .transaction-item span {
-      font-size: 10px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .transaction-item .amount {
-      font-size: 12px;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .card-body {
-      padding: 18px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .card-body {
-      padding: 16px;
-    }
-  }
-
-  /* Invoice status badges */
-  .invoice-status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 50px;
-    font-size: 0.7rem;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    white-space: nowrap;
-  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',system-ui,sans-serif;background:#f5f5f5;color:#1a1a1a}
+  .page{padding:24px;max-width:100%}
+
+  /* Summary cards */
+  .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+  @media(max-width:1024px){.summary-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:480px){.summary-grid{grid-template-columns:1fr}}
+  .sum-card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:18px 20px}
+  .sum-card .sc-icon{width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:12px}
+  .sum-card .sc-label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#888;margin-bottom:6px}
+  .sum-card .sc-value{font-family:'Lora',Georgia,serif;font-size:22px;font-weight:600}
+  .sum-card .sc-sub{font-size:12px;color:#666;margin-top:4px}
+  .sc-red .sc-icon{background:#FFEBEE;color:#C62828}
+  .sc-orange .sc-icon{background:#FFF3E0;color:#E65100}
+  .sc-purple .sc-icon{background:#F3E5F5;color:#7B1FA2}
+  .sc-green .sc-icon{background:#E8F5E9;color:#2E7D32}
+
+  /* Card */
+  .card{background:#fff;border:1px solid #e0e0e0;border-radius:10px}
+  .card-header{padding:16px 20px;border-bottom:1px solid #e0e0e0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .card-title{font-family:'Lora',Georgia,serif;font-size:16px;font-weight:600;font-style:italic}
+  .card-body{padding:0}
+  .toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .search-wrap{position:relative}
+  .search-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#999;font-size:13px;pointer-events:none}
+  .search-input{padding:7px 12px 7px 32px;font-size:13px;border:1px solid #ccc;border-radius:6px;width:220px;outline:none}
+  .search-input:focus{border-color:#185FA5}
+  .filter-select{padding:7px 12px;font-size:13px;border:1px solid #ccc;border-radius:6px;background:#fff;outline:none}
+
+  /* Buttons */
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:13px;font-weight:500;border-radius:6px;border:1px solid #ccc;background:#fff;color:#1a1a1a;cursor:pointer;transition:background .15s}
+  .btn:hover{background:#f5f5f5}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn-primary{background:#185FA5;color:#fff;border-color:#185FA5}
+  .btn-primary:hover{background:#0C447C;border-color:#0C447C}
+  .btn-secondary{background:#fff;color:#444;border-color:#ccc}
+
+  /* Action buttons in table */
+  .act-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:12px;font-weight:500;border-radius:5px;border:1px solid #ccc;background:#fff;cursor:pointer;transition:background .12s}
+  .act-btn:hover{background:#f5f5f5}
+  .act-view{color:#185FA5;border-color:#185FA5}
+  .act-view:hover{background:#EFF6FF}
+  .act-print{color:#555;margin-left:4px}
+  .act-print:hover{background:#f0f0f0}
+
+  /* Table */
+  .table-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e0e0e0;white-space:nowrap}
+  th.r,td.r{text-align:right}
+  tbody tr{border-bottom:1px solid #e0e0e0;transition:background .1s}
+  tbody tr:last-child{border-bottom:none}
+  tbody tr:hover{background:#f9f9f9}
+  td{padding:11px 16px;vertical-align:middle}
+
+  /* Status badges */
+  .status-badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:9999px;font-size:11px;font-weight:500;text-transform:capitalize;white-space:nowrap}
+  .status-badge.pending{background:#FFF3E0;color:#E65100}
+  .status-badge.confirmed{background:#E8F5E9;color:#2E7D32}
+  .status-badge.checked_in{background:#E3F2FD;color:#1565C0}
+  .status-badge.checked_out{background:#F5F5F5;color:#666}
+  .status-badge.cancelled{background:#FFEBEE;color:#C62828}
+  .status-badge.unpaid{background:#FFEBEE;color:#C62828}
+  .status-badge.partial{background:#FFF3E0;color:#E65100}
+  .status-badge.paid{background:#E8F5E9;color:#2E7D32}
+  .status-badge.refund{background:#EDE7F6;color:#6A1B9A}
+
+  /* Tabs */
+  .tabs-wrap{margin-top:8px}
+  .tab-nav{display:flex;gap:4px;border-bottom:2px solid #e0e0e0;margin-bottom:-2px}
+  .tab-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;font-size:13px;font-weight:500;color:#666;background:#f5f5f5;border:2px solid transparent;border-bottom:none;border-radius:8px 8px 0 0;cursor:pointer;transition:all .15s;position:relative;top:2px}
+  .tab-btn:hover{background:#e8e8e8;color:#444}
+  .tab-btn.active{background:#fff;color:#185FA5;border-color:#e0e0e0;border-bottom-color:#fff;font-weight:600}
+  .tab-btn i{font-size:14px}
+  .tab-panel{display:none}
+  .tab-panel.active{display:block}
+
+  /* Pagination */
+  .pagination-wrap{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid #e0e0e0}
+  .pagination-info{font-size:13px;color:#666}
+  .pagination-controls{display:flex;gap:8px}
+
+  /* Modal */
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;padding:20px}
+  .overlay.open{display:flex}
+  .modal{background:#fff;border-radius:14px;border:1px solid #e0e0e0;width:100%;max-width:700px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 48px rgba(0,0,0,.18);display:flex;flex-direction:column}
+  .modal-header{padding:18px 24px;border-bottom:1px solid #e0e0e0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .modal-title{font-family:'Lora',Georgia,serif;font-size:16px;font-weight:600;font-style:italic}
+  .modal-close{background:none;border:none;cursor:pointer;color:#666;font-size:20px;line-height:1;padding:4px}
+  .modal-close:hover{color:#1a1a1a}
+  .modal-body{padding:24px;flex:1;overflow-y:auto}
+  .modal-footer{padding:14px 24px;border-top:1px solid #e0e0e0;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0}
+
+  /* Bill detail styles */
+  .bill-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+  .bill-title{font-family:'Lora',serif;font-size:18px;font-weight:600;margin-bottom:4px}
+  .bill-sub{font-size:12px;color:#666;margin-bottom:2px}
+  .bill-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
+  .bill-table th{padding:8px 12px;font-size:11px;font-weight:600;text-transform:uppercase;color:#666;border-bottom:2px solid #e0e0e0;text-align:left}
+  .bill-table td{padding:9px 12px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+  .bill-table tfoot td{padding:9px 12px;font-weight:600}
+  .bill-table .subtotal-row td{border-top:2px solid #e0e0e0;border-bottom:none;font-weight:600}
+  .bill-table .balance-row td{font-size:15px;font-weight:700;border-top:2px solid #1a1a1a}
+
+  /* Payment form */
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  @media(max-width:480px){.form-row{grid-template-columns:1fr}}
+  .form-group{display:flex;flex-direction:column;gap:5px}
+  .form-group label{font-size:12px;font-weight:500;color:#444}
+  .form-group input,.form-group select{padding:8px 10px;font-size:13px;border:1px solid #ccc;border-radius:6px;outline:none}
+  .form-group input:focus,.form-group select:focus{border-color:#185FA5}
 </style>
 
 <div class="page">
-  <div class="dashboard-grid">
-    <div>
-      <div class="card" style="margin-bottom: 24px">
-        <div class="card-body">
-          <div class="mini-cards">
-            <div class="credit-card">
-              <i class="fas fa-wifi wifi-icon"></i>
-              <div class="card-number">4562  1122  4594  7852</div>
-              <div class="card-footer">
-                <div>
-                  <div class="card-holder">Card Holder</div>
-                  <strong>Jack Peterson</strong>
-                </div>
-                <div>
-                  <div class="card-expires">Expires</div>
-                  <strong>11/22</strong>
-                </div>
-              </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-grid">
+    <div class="sum-card sc-red">
+      <div class="sc-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+      <div class="sc-label">Total Outstanding</div>
+      <div class="sc-value" id="sc-outstanding">₱0.00</div>
+      <div class="sc-sub" id="sc-unpaid-count">— reservations</div>
+    </div>
+    <div class="sum-card sc-orange">
+      <div class="sc-icon"><i class="fas fa-utensils"></i></div>
+      <div class="sc-label">Unpaid Food Orders</div>
+      <div class="sc-value" id="sc-food">₱0.00</div>
+      <div class="sc-sub" id="sc-food-count">— orders</div>
+    </div>
+    <div class="sum-card sc-purple">
+      <div class="sc-icon"><i class="fas fa-plus-circle"></i></div>
+      <div class="sc-label">Extra Charges</div>
+      <div class="sc-value" id="sc-extra">₱0.00</div>
+      <div class="sc-sub">On unpaid reservations</div>
+    </div>
+    <div class="sum-card sc-green">
+      <div class="sc-icon"><i class="fas fa-receipt"></i></div>
+      <div class="sc-label">Grand Total Due</div>
+      <div class="sc-value" id="sc-total">₱0.00</div>
+      <div class="sc-sub">Across all charges</div>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tabs-wrap">
+    <div class="tab-nav">
+      <button class="tab-btn active" data-tab="outstanding" onclick="switchTab('outstanding')">
+        <i class="fas fa-file-invoice-dollar"></i> Outstanding Bills
+      </button>
+      <button class="tab-btn" data-tab="history" onclick="switchTab('history')">
+        <i class="fas fa-history"></i> Payment History
+      </button>
+    </div>
+
+    <!-- Tab: Outstanding Bills -->
+    <div class="tab-panel active" id="tab-outstanding">
+      <div class="card" style="border-radius:0 8px 8px 8px">
+        <div class="card-header">
+          <div class="card-title">Outstanding Bills</div>
+          <div class="toolbar">
+            <div class="search-wrap">
+              <i class="fas fa-search"></i>
+              <input type="text" class="search-input" placeholder="Search guest or code…" oninput="billSearch(this.value)">
             </div>
-            <div class="mini-cards" id="revenueCards">
-              <div class="mini-card">
-                <div class="icon"><i class="fas fa-chart-line"></i></div>
-                <h6>Total Revenue</h6>
-                <span>All Time</span>
-                <div class="amount">₱0.00</div>
-              </div>
-              <div class="mini-card">
-                <div class="icon"><i class="fas fa-clock"></i></div>
-                <h6>Pending</h6>
-                <span>Awaiting Confirmation</span>
-                <div class="amount">₱0.00</div>
-              </div>
-            </div>
+            <select class="filter-select" onchange="billFilterStatus(this.value)">
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="checked_in">Checked In</option>
+            </select>
+            <button class="btn" onclick="loadSummary(); loadUnpaidReservations(true)"><i class="fas fa-sync-alt"></i> Refresh</button>
           </div>
         </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">Payment Method</div>
-          <button class="btn btn-primary" onclick="addPaymentMethod()"><i class="fas fa-plus mr-1"></i> Add New Card</button>
-        </div>
-        <div class="card-body" id="paymentMethodsContainer">
-          <div class="payment-method-item">
-            <h6>Loading...</h6>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Reservation</th>
+                  <th>Guest</th>
+                  <th>Property / Room</th>
+                  <th>Check-in</th>
+                  <th>Check-out</th>
+                  <th>Status</th>
+                  <th>Payment</th>
+                  <th class="r">Balance Due</th>
+                  <th style="text-align:center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="billTableBody">
+                <tr><td colspan="9" style="text-align:center;padding:32px;color:#999"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination-wrap">
+            <div class="pagination-info" id="billPagInfo">—</div>
+            <div class="pagination-controls">
+              <button class="btn" id="billPrevBtn" onclick="billPrev()" disabled><i class="fas fa-chevron-left"></i></button>
+              <button class="btn" id="billNextBtn" onclick="billNext()" disabled><i class="fas fa-chevron-right"></i></button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Invoices</div>
-        <button class="btn btn-outline" onclick="viewAllInvoices()">View All</button>
-      </div>
-      <div class="card-body">
-        <ul class="invoice-list" id="invoiceList">
-          <li class="invoice-item">
-            <div>
-              <h6>Loading...</h6>
+    <!-- Tab: Payment History -->
+    <div class="tab-panel" id="tab-history">
+      <div class="card" style="border-radius:0 8px 8px 8px">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-history" style="margin-right:8px;font-size:14px"></i>Payment History</div>
+          <div class="toolbar">
+            <div class="search-wrap">
+              <i class="fas fa-search"></i>
+              <input type="text" class="search-input" placeholder="Guest or reservation…" oninput="historySearch(this.value)">
             </div>
-          </li>
-        </ul>
+            <select class="filter-select" onchange="historyMethod(this.value)" id="histMethodFilter">
+              <option value="">All Methods</option>
+            </select>
+            <input type="date" class="filter-select" style="width:150px" onchange="historyDateFrom(this.value)" title="From date">
+            <input type="date" class="filter-select" style="width:150px" onchange="historyDateTo(this.value)" title="To date">
+            <button class="btn" onclick="loadPaymentHistory(true)"><i class="fas fa-sync-alt"></i> Refresh</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date &amp; Time</th>
+                  <th>Reservation / Guest</th>
+                  <th>Property</th>
+                  <th>Method</th>
+                  <th>Type</th>
+                  <th class="r">Amount</th>
+                  <th style="text-align:center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody">
+                <tr><td colspan="7" style="text-align:center;padding:32px;color:#999"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination-wrap">
+            <div class="pagination-info" id="histPagInfo">—</div>
+            <div class="pagination-controls">
+              <button class="btn" id="histPrevBtn" onclick="historyPrev()" disabled><i class="fas fa-chevron-left"></i></button>
+              <button class="btn" id="histNextBtn" onclick="historyNext()" disabled><i class="fas fa-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="bottom-grid">
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Billing Information</div>
-      </div>
-      <div class="card-body" id="billingInfo">
-        <div class="billing-item">
-          <div>
-            <h6>Loading...</h6>
-          </div>
-        </div>
-      </div>
-    </div>
+</div>
 
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Your Transactions</div>
-        <div style="font-size: 12px; color: #666">
-          <i class="far fa-calendar-alt mr-1"></i> 23 - 30 March 2020
-        </div>
-      </div>
-      <div class="card-body" id="transactionsContainer">
-        <div class="transaction-section">
-          <h6>Recent</h6>
-          <div class="transaction-item">
-            <div style="display: flex; align-items: center">
-              <div class="icon pending"><i class="fas fa-spinner"></i></div>
-              <div>
-                <h6>Loading...</h6>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="transaction-section">
-          <h6>Earlier</h6>
-        </div>
-      </div>
+<!-- Bill Detail Modal -->
+<div class="overlay" id="billDetailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Bill Details</div>
+      <button class="modal-close" onclick="closeBillDetail()">&times;</button>
     </div>
+    <div class="modal-body" id="billDetailBody"></div>
+    <div class="modal-footer" id="billDetailFooter"></div>
   </div>
 </div>

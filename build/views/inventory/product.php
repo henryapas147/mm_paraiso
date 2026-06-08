@@ -228,8 +228,22 @@
   .prod-toolbar {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     flex-wrap: wrap;
+  }
+
+  .prod-toolbar-left,
+  .prod-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .prod-toolbar-center {
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 300px;
   }
 
   .prod-search-wrap {
@@ -268,6 +282,156 @@
   .prod-search-input::placeholder {
     color: var(--color-text-secondary);
     opacity: .7;
+  }
+
+  /* ── Filter Bar ───────────────────────────────────────── */
+  .prod-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .prod-filter-item {
+    flex: 1 1 auto;
+    min-width: 120px;
+    max-width: 160px;
+  }
+
+  .prod-filter-select {
+    width: 100%;
+    padding: 8px 28px 8px 12px;
+    font-size: 13px;
+    border: 1px solid rgba(0, 0, 0, .12);
+    border-radius: var(--prod-radius-md);
+    background: var(--color-background-primary, #fff);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    transition: border-color .15s, box-shadow .15s;
+  }
+
+  .prod-filter-select:hover {
+    border-color: var(--prod-blue);
+  }
+
+  .prod-filter-select:focus {
+    outline: none;
+    border-color: var(--prod-blue);
+    box-shadow: 0 0 0 3px rgba(26, 107, 191, .12);
+  }
+
+  .prod-filter-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid rgba(198, 40, 40, .3);
+    border-radius: var(--prod-radius-md);
+    background: var(--prod-red-pale);
+    color: var(--prod-red);
+    cursor: pointer;
+    font-size: 12px;
+    transition: all .15s;
+  }
+
+  .prod-filter-clear:hover {
+    background: var(--prod-red);
+    color: #fff;
+    border-color: var(--prod-red);
+  }
+
+  /* ── Product Image Upload ────────────────────────────── */
+  .prod-image-upload {
+    position: relative;
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .prod-image-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  .prod-image-preview {
+    width: 100%;
+    aspect-ratio: 1;
+    border: 2px dashed rgba(0, 0, 0, .15);
+    border-radius: var(--prod-radius-lg);
+    overflow: hidden;
+    background: var(--color-background-secondary, #F8FAFC);
+    transition: border-color .2s, background .2s;
+  }
+
+  .prod-image-upload:hover .prod-image-preview {
+    border-color: var(--prod-blue);
+    background: var(--prod-blue-pale);
+  }
+
+  .prod-image-preview.has-image {
+    border-style: solid;
+    border-color: var(--prod-blue);
+  }
+
+  .prod-image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .prod-image-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    gap: 8px;
+    color: var(--color-text-secondary);
+  }
+
+  .prod-image-placeholder i {
+    font-size: 24px;
+    opacity: .5;
+  }
+
+  .prod-image-placeholder span {
+    font-size: 11px;
+    text-align: center;
+    padding: 0 12px;
+  }
+
+  /* ── Product Avatar with Image ───────────────────────── */
+  .prod-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--prod-radius-sm);
+    background: linear-gradient(135deg, var(--prod-blue-pale) 0%, #E2E8F0 100%);
+    color: var(--prod-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 13px;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .prod-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   /* ── Buttons ─────────────────────────────────────────── */
@@ -956,6 +1120,21 @@
   }
 
   /* ── Details grid (view modal) ────────────────────────── */
+  .prod-details-image-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .prod-details-image {
+    max-width: 200px;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: var(--prod-radius-lg);
+    border: 1px solid rgba(0, 0, 0, .08);
+    box-shadow: var(--prod-shadow-sm);
+  }
+
   .prod-details-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1119,7 +1298,9 @@
   @media (max-width: 1200px) {
     .prod-page { padding: 20px 20px 32px; }
     .prod-page-header { flex-direction: column; align-items: flex-start; }
-    .prod-toolbar { width: 100%; flex-wrap: wrap; }
+    .prod-toolbar { width: 100%; flex-wrap: wrap; gap: 10px; }
+    .prod-toolbar-center { min-width: 250px; flex: 1 1 auto; }
+    .prod-filter-item { min-width: 100px; max-width: 140px; }
     .prod-search-input { width: 180px; }
     .prod-btn { padding: 7px 14px; font-size: 12px; }
   }
@@ -1127,10 +1308,15 @@
   @media (max-width: 1024px) {
     .prod-page { padding: 18px 18px 28px; }
     .prod-stats-grid { grid-template-columns: repeat(2, 1fr); }
-    .prod-card-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-    .prod-toolbar { width: 100%; flex-wrap: wrap; gap: 6px; }
+    .prod-card-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .prod-toolbar { width: 100%; flex-wrap: wrap; gap: 10px; justify-content: space-between; }
+    .prod-toolbar-left { order: 1; }
+    .prod-toolbar-center { order: 3; width: 100%; min-width: unset; }
+    .prod-toolbar-right { order: 2; flex: 1 1 auto; justify-content: flex-end; }
+    .prod-filter-bar { gap: 8px; }
+    .prod-filter-item { flex: 1 1 calc(25% - 8px); min-width: 120px; max-width: none; }
+    .prod-search-wrap { min-width: 200px; }
     .prod-search-input { width: 100%; }
-    .prod-filter-select { flex: 1 1 auto; }
     .prod-table th:nth-child(4),
     .prod-table td:nth-child(4) { display: none; }
   }
@@ -1162,7 +1348,16 @@
     .prod-stat-icon { width: 32px; height: 32px; font-size: 14px; }
     .prod-stat-value { font-size: 24px; }
     .prod-card-header { padding: 12px 16px; }
-    .prod-toolbar { gap: 6px; }
+    .prod-toolbar { flex-direction: column; align-items: stretch; gap: 10px; }
+    .prod-toolbar-left { display: none; } /* Hide entries on tablet */
+    .prod-toolbar-center { order: 2; width: 100%; }
+    .prod-toolbar-right { order: 1; width: 100%; flex-direction: column; gap: 8px; }
+    .prod-filter-bar { flex-wrap: wrap; gap: 8px; }
+    .prod-filter-item { flex: 1 1 calc(50% - 4px); min-width: unset; max-width: none; }
+    .prod-filter-select { width: 100%; font-size: 12px; padding: 7px 24px 7px 10px; }
+    .prod-search-wrap { width: 100%; }
+    .prod-search-input { width: 100%; }
+    .prod-btn { width: 100%; justify-content: center; }
     .prod-table th:nth-child(2),
     .prod-table td:nth-child(2) { display: none; }
     .prod-table td { padding: 8px 10px; }
@@ -1186,10 +1381,18 @@
   }
 
   @media (max-width: 640px) {
-    .prod-card-header { flex-direction: column; align-items: stretch; }
-    .prod-toolbar { flex-direction: column; align-items: stretch; }
-    .prod-search-wrap, .prod-filter-select, .prod-btn { width: 100%; }
-    .prod-stats-grid { grid-template-columns: 1fr; }
+    .prod-card-header { flex-direction: column; align-items: stretch; gap: 12px; }
+    .prod-toolbar { flex-direction: column; align-items: stretch; gap: 8px; }
+    .prod-toolbar-left { display: none; } /* Hide entries on mobile */
+    .prod-toolbar-center { order: 3; width: 100%; }
+    .prod-toolbar-right { order: 1; width: 100%; gap: 8px; }
+    .prod-filter-bar { flex-direction: column; gap: 6px; }
+    .prod-filter-item { width: 100%; flex: none; }
+    .prod-filter-select { width: 100%; font-size: 14px; padding: 10px 28px 10px 12px; }
+    .prod-filter-clear { width: 100%; height: 36px; }
+    .prod-search-input { width: 100%; padding: 10px 14px 10px 34px; font-size: 14px; }
+    .prod-btn { width: 100%; justify-content: center; padding: 10px 16px; font-size: 14px; }
+    .prod-stats-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
   @media (max-width: 600px) {
@@ -1317,21 +1520,59 @@
         <div class="prod-card-count" id="tableCount">Loading…</div>
       </div>
       <div class="prod-toolbar">
-        <div class="prod-entries-wrap">
-          <span class="prod-entries-label">Show</span>
-          <select class="prod-entries-select" id="entriesPerPage" onchange="changeEntriesPerPage()">
-            <option value="10">10</option>
-            <option value="25" selected>25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
-          <span class="prod-entries-label">entries</span>
+        <div class="prod-toolbar-left">
+          <div class="prod-entries-wrap">
+            <span class="prod-entries-label">Show</span>
+            <select class="prod-entries-select" id="entriesPerPage" onchange="changeEntriesPerPage()">
+              <option value="10">10</option>
+              <option value="25" selected>25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
         </div>
-        <div class="prod-search-wrap">
-          <i class="fas fa-search" aria-hidden="true"></i>
-          <input type="text" class="prod-search-input" id="searchInput" placeholder="Search products…" oninput="filterTable()">
+        <div class="prod-toolbar-center">
+          <div class="prod-filter-bar">
+            <div class="prod-filter-item">
+              <select class="prod-filter-select" id="filterCategory" onchange="filterTable()" aria-label="Filter by category">
+                <option value="">All Categories</option>
+              </select>
+            </div>
+            <div class="prod-filter-item">
+              <select class="prod-filter-select" id="filterSupplier" onchange="filterTable()" aria-label="Filter by supplier">
+                <option value="">All Suppliers</option>
+              </select>
+            </div>
+            <div class="prod-filter-item">
+              <select class="prod-filter-select" id="filterType" onchange="filterTable()" aria-label="Filter by type">
+                <option value="">All Types</option>
+                <option value="consumable">Consumable</option>
+                <option value="non_consumable">Non-Consumable</option>
+                <option value="food">Food</option>
+                <option value="beverage">Beverage</option>
+                <option value="cleaning">Cleaning</option>
+                <option value="amenity">Amenity</option>
+              </select>
+            </div>
+            <div class="prod-filter-item">
+              <select class="prod-filter-select" id="filterStatus" onchange="filterTable()" aria-label="Filter by status">
+                <option value="">All Status</option>
+                <option value="for_sale">For Sale</option>
+                <option value="for_rooms">For Rooms</option>
+                <option value="low_stock">Low Stock</option>
+              </select>
+            </div>
+            <button type="button" class="prod-filter-clear" id="clearFiltersBtn" onclick="clearAllFilters()" style="display:none" aria-label="Clear all filters">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
         </div>
-        <button class="prod-btn prod-btn-primary" onclick="openAddProductModal()">
+        <div class="prod-toolbar-right">
+          <div class="prod-search-wrap">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input type="text" class="prod-search-input" id="searchInput" placeholder="Search products…" oninput="filterTable()">
+          </div>
+          <button class="prod-btn prod-btn-primary" onclick="openAddProductModal()">
           <i class="fas fa-plus" aria-hidden="true"></i> Add Product
         </button>
       </div>
@@ -1496,16 +1737,57 @@
             <textarea name="description" rows="2" class="prod-form-textarea" placeholder="Product description…"></textarea>
           </div>
 
+          <div class="prod-form-group full">
+            <label class="prod-form-label">Product Image</label>
+            <div class="prod-image-upload">
+              <input type="file" id="addProductImage" name="product_image" accept="image/*" class="prod-image-input" onchange="previewProductImage(this, 'addProductPreview')">
+              <div class="prod-image-preview" id="addProductPreview">
+                <div class="prod-image-placeholder">
+                  <i class="fas fa-camera"></i>
+                  <span>Click to upload image</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <hr class="prod-divider">
           <div class="prod-section-label"><i class="fas fa-peso-sign" style="margin-right:5px;opacity:.6"></i>Costing</div>
 
           <div class="prod-form-group">
+            <label class="prod-form-label">Pricing Mode</label>
+            <select name="pricing_mode" id="addPricingMode" class="prod-form-select" onchange="onProductPricingModeChange('add')">
+              <option value="fixed_price">Fixed Price (Manual)</option>
+              <option value="percentage_markup">Percentage Markup (based on cost)</option>
+              <option value="fixed_markup">Fixed Amount Markup (based on cost)</option>
+            </select>
+          </div>
+
+          <div class="prod-form-group" id="addMarkupFields" style="display:none;">
+            <label class="prod-form-label" id="addMarkupLabel">Markup Value</label>
+            <input type="number" name="markup_value" id="addMarkupValue" step="0.01" min="0" class="prod-form-input" placeholder="0" onchange="calculateProductSellingPrice('add')">
+            <small style="color:var(--color-text-secondary);font-size:11px;margin-top:4px;display:block;" id="addMarkupHint">Enter percentage or fixed amount</small>
+          </div>
+
+          <div class="prod-form-group">
             <label class="prod-form-label">Unit Cost (PHP)</label>
-            <input type="number" name="unit_cost" step="0.01" min="0" value="0" class="prod-form-input" placeholder="0.00">
+            <div style="display:flex;gap:8px;">
+              <input type="number" name="unit_cost" id="addUnitCost" step="0.01" min="0" value="0" class="prod-form-input" placeholder="0.00" onchange="calculateProductSellingPrice('add')" style="flex:1">
+              <button type="button" class="prod-btn" onclick="fetchLastPoCostByCode('add')" title="Fetch last PO cost from purchase orders">
+                <i class="fas fa-sync-alt"></i>
+              </button>
+            </div>
+            <small style="color:var(--color-text-secondary);font-size:11px;margin-top:4px;display:block;">
+      Enter product code and UOM, then click sync to fetch last PO cost
+    </small>
           </div>
           <div class="prod-form-group">
             <label class="prod-form-label">Selling Price (PHP)</label>
-            <input type="number" name="selling_price" step="0.01" min="0" value="0" class="prod-form-input" placeholder="0.00">
+            <input type="number" name="selling_price" id="addSellingPrice" step="0.01" min="0" value="0" class="prod-form-input" placeholder="0.00">
+            <small style="color:var(--color-text-secondary);font-size:11px;margin-top:4px;display:block;" id="addSellingPriceHint">Enter manual selling price</small>
+          </div>
+
+          <div id="addCalculatedPriceDisplay" style="display:none;margin-top:8px;padding:8px 12px;background:var(--prod-green-pale);border-radius:var(--prod-radius-sm);font-size:12px;color:var(--prod-green);">
+            <i class="fas fa-calculator"></i> Calculated: <strong id="addCalculatedPriceValue">₱0.00</strong>
           </div>
 
           <hr class="prod-divider">
@@ -1624,18 +1906,57 @@
             <textarea id="editDescription" name="description" class="prod-form-textarea" rows="2" placeholder="Product description..."></textarea>
           </div>
 
+          <div class="prod-form-group full">
+            <label class="prod-form-label">Product Image</label>
+            <div class="prod-image-upload">
+              <input type="file" id="editProductImage" name="product_image" accept="image/*" class="prod-image-input" onchange="previewProductImage(this, 'editProductPreview')">
+              <div class="prod-image-preview" id="editProductPreview">
+                <div class="prod-image-placeholder">
+                  <i class="fas fa-camera"></i>
+                  <span>Click to upload image</span>
+                </div>
+              </div>
+              <input type="hidden" id="editProductImageUrl" name="product_image_url">
+            </div>
+          </div>
+
           <div class="prod-divider"></div>
 
           <div class="prod-section-label"><i class="fas fa-dollar-sign" style="margin-right:5px;opacity:.6"></i>Costing &amp; Stock</div>
 
           <div class="prod-form-group">
+            <label class="prod-form-label">Pricing Mode</label>
+            <select name="pricing_mode" id="editPricingMode" class="prod-form-select" onchange="onProductPricingModeChange('edit')">
+              <option value="fixed_price">Fixed Price (Manual)</option>
+              <option value="percentage_markup">Percentage Markup (based on cost)</option>
+              <option value="fixed_markup">Fixed Amount Markup (based on cost)</option>
+            </select>
+          </div>
+
+          <div class="prod-form-group" id="editMarkupFields" style="display:none;">
+            <label class="prod-form-label" id="editMarkupLabel">Markup Value</label>
+            <input type="number" name="markup_value" id="editMarkupValue" step="0.01" min="0" class="prod-form-input" placeholder="0" onchange="calculateProductSellingPrice('edit')">
+            <small style="color:var(--color-text-secondary);font-size:11px;margin-top:4px;display:block;" id="editMarkupHint">Enter percentage or fixed amount</small>
+          </div>
+
+          <div class="prod-form-group">
             <label class="prod-form-label">Unit Cost <span class="req">*</span></label>
-            <input type="number" id="editUnitCost" name="unit_cost" step="0.01" min="0" required class="prod-form-input" placeholder="0.00">
+            <div style="display:flex;gap:8px;">
+              <input type="number" id="editUnitCost" name="unit_cost" step="0.01" min="0" required class="prod-form-input" placeholder="0.00" onchange="calculateProductSellingPrice('edit')" style="flex:1">
+              <button type="button" class="prod-btn" onclick="fetchProductLastPoCost(document.getElementById('editProductId').value, document.getElementById('editUomId').value, 'edit')" title="Fetch last PO cost from purchase orders">
+                <i class="fas fa-sync-alt"></i>
+              </button>
+            </div>
           </div>
 
           <div class="prod-form-group">
             <label class="prod-form-label">Selling Price <span class="req">*</span></label>
             <input type="number" id="editSellingPrice" name="selling_price" step="0.01" min="0" required class="prod-form-input" placeholder="0.00">
+            <small style="color:var(--color-text-secondary);font-size:11px;margin-top:4px;display:block;" id="editSellingPriceHint">Enter manual selling price</small>
+          </div>
+
+          <div id="editCalculatedPriceDisplay" style="display:none;margin-top:8px;padding:8px 12px;background:var(--prod-green-pale);border-radius:var(--prod-radius-sm);font-size:12px;color:var(--prod-green);">
+            <i class="fas fa-calculator"></i> Calculated: <strong id="editCalculatedPriceValue">₱0.00</strong>
           </div>
 
           <div class="prod-form-group">
@@ -1716,7 +2037,23 @@
     uoms: [],
     suppliers: []
   };
+  let currentEditingProduct = null;
   const CSRF_TOKEN = <?php echo json_encode(CSRF_TOKEN); ?>;
+
+  // Normalize product image URL for display (uses relative paths)
+  function normalizeProductImageUrl(url) {
+    if (!url) return null;
+    
+    // If it's already an absolute URL (http/https), use as-is
+    if (url.startsWith('http')) return url;
+    
+    // Extract filename from various path formats
+    const filename = url.split('/').pop();
+    
+    // Return relative path from build/views/inventory/ to uploads/products/
+    // build/views/inventory/ -> ../../uploads/products/filename
+    return '../../uploads/products/' + filename;
+  }
 
   // Toast notification function
   function showToast(message, type = 'info') {
@@ -1916,10 +2253,44 @@
     document.getElementById('editCategoryId').innerHTML = categoryOptions;
     document.getElementById('editUomId').innerHTML = uomOptions;
     document.getElementById('editSupplierId').innerHTML = supplierOptions;
+
+    // Populate filter dropdowns
+    const filterCategoryOptions = '<option value="">All Categories</option>' +
+      relatedData.categories.map(c => `<option value="${c.category_id}">${c.category_name}</option>`).join('');
+    const filterSupplierOptions = '<option value="">All Suppliers</option>' +
+      relatedData.suppliers.map(s => `<option value="${s.supplier_id}">${s.company_name}</option>`).join('');
+    
+    document.getElementById('filterCategory').innerHTML = filterCategoryOptions;
+    document.getElementById('filterSupplier').innerHTML = filterSupplierOptions;
   }
 
   function getInitials(name) {
     return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  }
+
+  function previewProductImage(input, previewId) {
+    const previewContainer = document.getElementById(previewId);
+    
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        previewContainer.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+        previewContainer.classList.add('has-image');
+      };
+      
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function resetProductImage(previewId) {
+    const previewContainer = document.getElementById(previewId);
+    previewContainer.innerHTML = `
+      <div class="prod-image-placeholder">
+        <i class="fas fa-camera"></i>
+        <span>Click to upload image</span>
+      </div>`;
+    previewContainer.classList.remove('has-image');
   }
 
   function renderTable() {
@@ -1964,7 +2335,7 @@
       <tr class="product-row">
         <td>
           <div class="prod-name-cell">
-            <div class="prod-avatar">${getInitials(p.product_name)}</div>
+            <div class="prod-avatar">${p.product_image_url ? `<img src="${normalizeProductImageUrl(p.product_image_url)}" alt="${p.product_name}" loading="lazy" onerror="this.parentElement.innerHTML='${getInitials(p.product_name)}'">` : getInitials(p.product_name)}</div>
             <div>
               <div class="prod-name-primary">${p.product_name}</div>
               <div class="prod-name-secondary">${p.product_code}</div>
@@ -2004,20 +2375,63 @@
   }
 
   function filterTable() {
-    const filter = document.getElementById('searchInput').value.toLowerCase();
+    const searchFilter = document.getElementById('searchInput').value.toLowerCase();
+    const categoryFilter = document.getElementById('filterCategory').value;
+    const supplierFilter = document.getElementById('filterSupplier').value;
+    const typeFilter = document.getElementById('filterType').value;
+    const statusFilter = document.getElementById('filterStatus').value;
+    
     currentPage = 1; // Reset to first page when filtering
 
-    if (!filter) {
-      filteredData = [...productsData];
-    } else {
-      filteredData = productsData.filter(p =>
-        p.product_name.toLowerCase().includes(filter) ||
-        p.product_code.toLowerCase().includes(filter) ||
-        (p.category_name && p.category_name.toLowerCase().includes(filter))
-      );
-    }
+    // Show/hide clear filters button
+    const hasActiveFilters = searchFilter || categoryFilter || supplierFilter || typeFilter || statusFilter;
+    document.getElementById('clearFiltersBtn').style.display = hasActiveFilters ? 'flex' : 'none';
+
+    filteredData = productsData.filter(p => {
+      // Search filter (product name, code, category name)
+      const matchesSearch = !searchFilter ||
+        p.product_name.toLowerCase().includes(searchFilter) ||
+        p.product_code.toLowerCase().includes(searchFilter) ||
+        (p.category_name && p.category_name.toLowerCase().includes(searchFilter));
+
+      // Category filter
+      const matchesCategory = !categoryFilter || 
+        p.category_id == categoryFilter;
+
+      // Supplier filter
+      const matchesSupplier = !supplierFilter || 
+        p.preferred_supplier_id == supplierFilter;
+
+      // Product type filter
+      const matchesType = !typeFilter || 
+        p.product_type === typeFilter;
+
+      // Status filter
+      let matchesStatus = true;
+      if (statusFilter === 'for_sale') {
+        matchesStatus = p.is_for_sale == 1;
+      } else if (statusFilter === 'for_rooms') {
+        matchesStatus = p.is_for_rooms == 1;
+      } else if (statusFilter === 'low_stock') {
+        const stockOnHand = parseFloat(p.stock_on_hand) || 0;
+        const lowThreshold = parseFloat(p.low_stock_threshold) || 0;
+        matchesStatus = stockOnHand <= lowThreshold;
+      }
+
+      return matchesSearch && matchesCategory && matchesSupplier && matchesType && matchesStatus;
+    });
 
     renderTable();
+  }
+
+  function clearAllFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('filterCategory').value = '';
+    document.getElementById('filterSupplier').value = '';
+    document.getElementById('filterType').value = '';
+    document.getElementById('filterStatus').value = '';
+    document.getElementById('clearFiltersBtn').style.display = 'none';
+    filterTable();
   }
 
   function changeEntriesPerPage() {
@@ -2084,6 +2498,10 @@
     const isLow = parseFloat(product.stock_on_hand) <= parseFloat(product.low_stock_threshold);
 
     document.getElementById('modalProductContent').innerHTML = `
+      ${product.product_image_url ? `
+      <div class="prod-details-image-wrap">
+        <img src="${normalizeProductImageUrl(product.product_image_url)}" alt="${product.product_name}" class="prod-details-image" onerror="this.style.display='none'">
+      </div>` : ''}
       <div class="prod-details-grid">
         <div>
           <div class="prod-details-section-title">Basic Information</div>
@@ -2131,6 +2549,9 @@
     const product = productsData.find(p => p.product_id === productId);
     if (!product) return;
 
+    // Store original product data for comparison
+    currentEditingProduct = {...product};
+
     // Populate edit form
     document.getElementById('editProductId').value = product.product_id;
     document.getElementById('editProductCode').value = product.product_code || '';
@@ -2149,6 +2570,31 @@
     document.getElementById('editForSale').checked = product.is_for_sale == 1;
     document.getElementById('editForRooms').checked = product.is_for_rooms == 1;
     document.getElementById('editTrackInventory').checked = product.track_inventory == 1;
+    document.getElementById('editProductImageUrl').value = product.product_image_url || '';
+
+    // Populate pricing fields
+    document.getElementById('editPricingMode').value = product.pricing_mode || 'fixed_price';
+    document.getElementById('editMarkupValue').value = product.markup_value || '';
+    onProductPricingModeChange('edit');
+
+    // Fetch last PO cost for the product and UOM
+    if (product.product_id && product.uom_id) {
+      fetchProductLastPoCost(product.product_id, product.uom_id, 'edit');
+    }
+
+    // Set image preview
+    const previewContainer = document.getElementById('editProductPreview');
+    if (product.product_image_url) {
+      previewContainer.innerHTML = `<img src="${normalizeProductImageUrl(product.product_image_url)}" alt="${product.product_name}">`;
+      previewContainer.classList.add('has-image');
+    } else {
+      previewContainer.innerHTML = `
+        <div class="prod-image-placeholder">
+          <i class="fas fa-camera"></i>
+          <span>Click to upload image</span>
+        </div>`;
+      previewContainer.classList.remove('has-image');
+    }
 
     document.getElementById('editProductModal').classList.add('open');
   }
@@ -2156,82 +2602,135 @@
   function closeEditProductModal() {
     document.getElementById('editProductModal').classList.remove('open');
     document.getElementById('editProductForm').reset();
+    currentEditingProduct = null;
   }
 
   function handleEditProductOverlayClick(e) {
     if (e.target === document.getElementById('editProductModal')) closeEditProductModal();
   }
 
-  function submitEditProduct(event) {
+  async function submitEditProduct(event) {
     event.preventDefault();
     const form = document.getElementById('editProductForm');
     const formData = new FormData(form);
+    const imageFile = document.getElementById('editProductImage').files[0];
+
+    if (!currentEditingProduct) {
+      showProdAlert({ icon: 'error', title: 'Error', text: 'No product data found.' });
+      return;
+    }
 
     showProdAlert({
       title: 'Updating Product…',
       loading: true,
-      loadingText: 'Updating product...'
+      loadingText: imageFile ? 'Uploading image...' : 'Updating product...'
     });
 
-    const payload = {
-      product_id: formData.get('product_id'),
-      product_code: formData.get('product_code'),
-      product_name: formData.get('product_name'),
-      category_id: formData.get('category_id'),
-      uom_id: formData.get('uom_id'),
-      product_type: formData.get('product_type'),
-      brand: formData.get('brand'),
-      description: formData.get('description'),
-      unit_cost: formData.get('unit_cost'),
-      selling_price: formData.get('selling_price'),
-      reorder_point: formData.get('reorder_point'),
-      minimum_stock: formData.get('minimum_stock'),
-      maximum_stock: formData.get('maximum_stock'),
-      preferred_supplier_id: formData.get('preferred_supplier_id'),
-      is_for_sale: formData.get('is_for_sale') ? 1 : 0,
-      is_for_rooms: formData.get('is_for_rooms') ? 1 : 0,
-      track_inventory: formData.get('track_inventory') ? 1 : 0,
-      csrf_token: CSRF_TOKEN
-    };
-
-    fetch('../api/products.php?action=update', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      })
-      .then(r => r.json())
-      .then(data => {
-        closeEditProductModal();
-        closeProdAlert();
-        if (data.success) {
-          showProdAlert({
-              icon: 'success',
-              title: 'Product Updated!',
-              text: data.message,
-              confirmButtonColor: '#1A6BBF'
-            })
-            .then(() => fetchProducts());
-        } else {
-          showProdAlert({
-            icon: 'error',
-            title: 'Error',
-            text: data.message,
-            confirmButtonColor: '#C62828'
-          });
+    try {
+      let newImageUrl = null;
+      let imageChanged = false;
+      
+      // Upload image if a new one was selected
+      if (imageFile) {
+        const imageFormData = new FormData();
+        imageFormData.append('product_image', imageFile);
+        imageFormData.append('csrf_token', CSRF_TOKEN);
+        
+        const uploadRes = await fetch('../api/upload-product-image.php', {
+          method: 'POST',
+          headers: {
+            'X-CSRF-Token': CSRF_TOKEN
+          },
+          body: imageFormData
+        });
+        
+        const uploadData = await uploadRes.json();
+        if (!uploadData.success) {
+          throw new Error(uploadData.message || 'Image upload failed');
         }
-      })
-      .catch(() => {
-        closeEditProductModal();
-        closeProdAlert();
+        newImageUrl = uploadData.image_url;
+        imageChanged = true;
+      }
+
+      // Build payload with only changed fields
+      const payload = { product_id: formData.get('product_id'), csrf_token: CSRF_TOKEN };
+
+      const fields = [
+        'product_code', 'product_name', 'category_id', 'uom_id', 'product_type',
+        'brand', 'description', 'unit_cost', 'selling_price', 'pricing_mode',
+        'markup_value', 'reorder_point', 'minimum_stock', 'maximum_stock',
+        'preferred_supplier_id'
+      ];
+
+      fields.forEach(field => {
+        let newValue = formData.get(field);
+        let oldValue = currentEditingProduct[field] ?? '';
+        
+        // Normalize empty values for comparison
+        if (newValue === '' || newValue === null) newValue = '';
+        if (oldValue === '' || oldValue === null) oldValue = '';
+        
+        // Convert numeric fields for proper comparison
+        if (['unit_cost', 'selling_price', 'reorder_point', 'minimum_stock', 'maximum_stock'].includes(field)) {
+          newValue = newValue === '' ? '' : parseFloat(newValue);
+          oldValue = oldValue === '' ? '' : parseFloat(oldValue);
+        }
+        
+        if (newValue !== oldValue) {
+          payload[field] = formData.get(field) || null;
+        }
+      });
+
+      // Handle checkbox fields
+      const checkboxFields = ['is_for_sale', 'is_for_rooms', 'track_inventory'];
+      checkboxFields.forEach(field => {
+        const newValue = formData.get(field) ? 1 : 0;
+        const oldValue = parseInt(currentEditingProduct[field]) || 0;
+        if (newValue !== oldValue) {
+          payload[field] = newValue;
+        }
+      });
+      
+      // Handle image field if changed
+      if (imageChanged) {
+        payload.product_image_url = newImageUrl;
+      }
+
+      const res = await fetch('../api/products.php?action=update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      const data = await res.json();
+      closeEditProductModal();
+      closeProdAlert();
+      
+      if (data.success) {
+        showProdAlert({
+          icon: 'success',
+          title: 'Product Updated!',
+          text: data.message,
+          confirmButtonColor: '#1A6BBF'
+        }).then(() => fetchProducts());
+      } else {
         showProdAlert({
           icon: 'error',
           title: 'Error',
-          text: 'An error occurred.',
+          text: data.message,
           confirmButtonColor: '#C62828'
         });
+      }
+    } catch (err) {
+      closeEditProductModal();
+      closeProdAlert();
+      showProdAlert({
+        icon: 'error',
+        title: 'Error',
+        text: err.message || 'An error occurred.',
+        confirmButtonColor: '#C62828'
       });
+    }
   }
 
   function deleteProduct(productId, productName) {
@@ -2299,6 +2798,105 @@
   function closeAddProductModal() {
     document.getElementById('addProductModal').classList.remove('open');
     document.getElementById('addProductForm').reset();
+    resetProductImage('addProductPreview');
+    // Reset pricing mode display
+    onProductPricingModeChange('add');
+  }
+
+  function onProductPricingModeChange(prefix) {
+    const mode = document.getElementById(`${prefix}PricingMode`).value;
+    const markupFields = document.getElementById(`${prefix}MarkupFields`);
+    const sellingPriceInput = document.getElementById(`${prefix}SellingPrice`);
+    const markupLabel = document.getElementById(`${prefix}MarkupLabel`);
+    const markupHint = document.getElementById(`${prefix}MarkupHint`);
+    const calculatedDisplay = document.getElementById(`${prefix}CalculatedPriceDisplay`);
+    const sellingPriceHint = document.getElementById(`${prefix}SellingPriceHint`);
+
+    if (mode === 'fixed_price') {
+      markupFields.style.display = 'none';
+      calculatedDisplay.style.display = 'none';
+      sellingPriceInput.readOnly = false;
+      sellingPriceHint.textContent = 'Enter manual selling price';
+    } else {
+      markupFields.style.display = 'block';
+      calculatedDisplay.style.display = 'block';
+      sellingPriceInput.readOnly = true;
+      sellingPriceHint.textContent = 'Auto-calculated based on markup';
+
+      if (mode === 'percentage_markup') {
+        markupLabel.textContent = 'Markup Percentage (%)';
+        markupHint.textContent = 'Enter percentage to add to cost (e.g., 20 for 20%)';
+      } else {
+        markupLabel.textContent = 'Fixed Markup Amount (₱)';
+        markupHint.textContent = 'Enter fixed amount to add to cost';
+      }
+
+      calculateProductSellingPrice(prefix);
+    }
+  }
+
+  async function fetchProductLastPoCost(productId, uomId, prefix) {
+    if (!productId || !uomId) return;
+
+    try {
+      const response = await fetch(`../api/product_uom_conversions.php?action=last_po_cost&product_id=${productId}&uom_id=${uomId}`);
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        document.getElementById(`${prefix}UnitCost`).value = result.data.unit_cost;
+        calculateProductSellingPrice(prefix);
+      }
+    } catch (error) {
+      console.error('Error fetching last PO cost:', error);
+    }
+  }
+
+  async function fetchLastPoCostByCode(prefix) {
+    const productCode = document.getElementById(`${prefix}ProductCode`).value;
+    const uomId = document.getElementById(`${prefix}UomId`).value;
+
+    if (!productCode || !uomId) {
+      showToast('Please enter product code and select UOM first', 'error');
+      return;
+    }
+
+    try {
+      // First, find the product by code
+      const productResponse = await fetch(`../api/products.php?action=list`);
+      const productResult = await productResponse.json();
+
+      if (productResult.success) {
+        const product = productResult.data.find(p => p.product_code === productCode);
+        if (product) {
+          await fetchProductLastPoCost(product.product_id, uomId, prefix);
+        } else {
+          showToast('Product not found with this code', 'error');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      showToast('Error fetching product information', 'error');
+    }
+  }
+
+  function calculateProductSellingPrice(prefix) {
+    const mode = document.getElementById(`${prefix}PricingMode`).value;
+    const unitCost = parseFloat(document.getElementById(`${prefix}UnitCost`).value) || 0;
+    const markupValue = parseFloat(document.getElementById(`${prefix}MarkupValue`).value) || 0;
+    const sellingPriceInput = document.getElementById(`${prefix}SellingPrice`);
+
+    let calculatedPrice = 0;
+
+    if (mode === 'percentage_markup' && unitCost > 0) {
+      calculatedPrice = unitCost * (1 + (markupValue / 100));
+    } else if (mode === 'fixed_markup') {
+      calculatedPrice = unitCost + markupValue;
+    }
+
+    if (calculatedPrice > 0) {
+      sellingPriceInput.value = calculatedPrice.toFixed(2);
+      document.getElementById(`${prefix}CalculatedPriceValue`).textContent = '₱' + calculatedPrice.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
   }
 
   function openQuickStockAdjust(productId, productName, currentStock) {
@@ -2351,73 +2949,98 @@
     });
   }
 
-  function submitAddProduct(event) {
+  async function submitAddProduct(event) {
     event.preventDefault();
     const form = document.getElementById('addProductForm');
     const formData = new FormData(form);
+    const imageFile = document.getElementById('addProductImage').files[0];
 
     showProdAlert({
       title: 'Adding Product…',
       loading: true,
-      loadingText: 'Adding product...'
+      loadingText: imageFile ? 'Uploading image...' : 'Adding product...'
     });
 
-    const payload = {
-      product_code: formData.get('product_code'),
-      product_name: formData.get('product_name'),
-      category_id: formData.get('category_id'),
-      uom_id: formData.get('uom_id'),
-      product_type: formData.get('product_type'),
-      brand: formData.get('brand'),
-      description: formData.get('description'),
-      unit_cost: formData.get('unit_cost'),
-      selling_price: formData.get('selling_price'),
-      reorder_point: formData.get('reorder_point'),
-      minimum_stock: formData.get('minimum_stock'),
-      maximum_stock: formData.get('maximum_stock'),
-      preferred_supplier_id: formData.get('preferred_supplier_id'),
-      is_for_sale: formData.get('is_for_sale') ? 1 : 0,
-      is_for_rooms: formData.get('is_for_rooms') ? 1 : 0,
-      track_inventory: formData.get('track_inventory') ? 1 : 0
-    };
-
-    fetch('../api/products.php?action=create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      })
-      .then(r => r.json())
-      .then(data => {
-        closeAddProductModal();
-        closeProdAlert();
-        if (data.success) {
-          showProdAlert({
-              icon: 'success',
-              title: 'Product Added!',
-              text: data.message,
-              confirmButtonColor: '#1A6BBF'
-            })
-            .then(() => fetchProducts());
-        } else {
-          showProdAlert({
-            icon: 'error',
-            title: 'Error',
-            text: data.message,
-            confirmButtonColor: '#C62828'
-          });
+    try {
+      let imageUrl = null;
+      
+      // Upload image if selected
+      if (imageFile) {
+        const imageFormData = new FormData();
+        imageFormData.append('product_image', imageFile);
+        imageFormData.append('csrf_token', CSRF_TOKEN);
+        
+        const uploadRes = await fetch('../api/upload-product-image.php', {
+          method: 'POST',
+          headers: {
+            'X-CSRF-Token': CSRF_TOKEN
+          },
+          body: imageFormData
+        });
+        
+        const uploadData = await uploadRes.json();
+        if (!uploadData.success) {
+          throw new Error(uploadData.message || 'Image upload failed');
         }
-      })
-      .catch(() => {
-        closeAddProductModal();
-        closeProdAlert();
+        imageUrl = uploadData.image_url;
+      }
+
+      const payload = {
+        product_code: formData.get('product_code'),
+        product_name: formData.get('product_name'),
+        category_id: formData.get('category_id'),
+        uom_id: formData.get('uom_id'),
+        product_type: formData.get('product_type'),
+        brand: formData.get('brand'),
+        description: formData.get('description'),
+        unit_cost: formData.get('unit_cost'),
+        selling_price: formData.get('selling_price'),
+        pricing_mode: formData.get('pricing_mode'),
+        markup_value: formData.get('markup_value'),
+        reorder_point: formData.get('reorder_point'),
+        minimum_stock: formData.get('minimum_stock'),
+        maximum_stock: formData.get('maximum_stock'),
+        preferred_supplier_id: formData.get('preferred_supplier_id'),
+        is_for_sale: formData.get('is_for_sale') ? 1 : 0,
+        is_for_rooms: formData.get('is_for_rooms') ? 1 : 0,
+        track_inventory: formData.get('track_inventory') ? 1 : 0,
+        product_image_url: imageUrl
+      };
+
+      const res = await fetch('../api/products.php?action=create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      const data = await res.json();
+      closeAddProductModal();
+      closeProdAlert();
+      
+      if (data.success) {
+        showProdAlert({
+          icon: 'success',
+          title: 'Product Added!',
+          text: data.message,
+          confirmButtonColor: '#1A6BBF'
+        }).then(() => fetchProducts());
+      } else {
         showProdAlert({
           icon: 'error',
           title: 'Error',
-          text: 'An error occurred.',
+          text: data.message,
           confirmButtonColor: '#C62828'
         });
+      }
+    } catch (err) {
+      closeAddProductModal();
+      closeProdAlert();
+      showProdAlert({
+        icon: 'error',
+        title: 'Error',
+        text: err.message || 'An error occurred.',
+        confirmButtonColor: '#C62828'
       });
+    }
   }
 </script>

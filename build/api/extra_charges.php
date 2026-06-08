@@ -42,8 +42,8 @@ try {
           mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff));
 
         $stmt = $pdo->prepare("
-          INSERT INTO extra_charges (charge_id, reservation_id, charge_type, description, amount, charged_at, notes)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
+          INSERT INTO extra_charges (charge_id, reservation_id, charge_type, description, amount, charged_by, charged_at, notes, payment_status)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
           $charge_id,
@@ -51,15 +51,17 @@ try {
           $data['charge_type'] ?? 'other',
           $data['description'],
           $data['amount'],
+          $_SESSION['user_id'] ?? null,
           $data['charged_at'] ?? date('Y-m-d H:i:s'),
           $data['notes'] ?? null,
+          $data['payment_status'] ?? 'unpaid'
         ]);
         echo json_encode(['success' => true, 'message' => 'Extra charge created successfully', 'charge_id' => $charge_id]);
 
       } else if ($action === 'update') {
         requirePermission('extra_charges.edit');
         $stmt = $pdo->prepare("
-          UPDATE extra_charges SET reservation_id=?, charge_type=?, description=?, amount=?, charged_at=?, notes=?
+          UPDATE extra_charges SET reservation_id=?, charge_type=?, description=?, amount=?, charged_at=?, notes=?, payment_status=?
           WHERE charge_id=?
         ");
         $stmt->execute([
@@ -69,6 +71,7 @@ try {
           $data['amount'],
           $data['charged_at'] ?? date('Y-m-d H:i:s'),
           $data['notes'] ?? null,
+          $data['payment_status'] ?? 'unpaid',
           $data['charge_id'],
         ]);
         echo json_encode(['success' => true, 'message' => 'Extra charge updated successfully']);

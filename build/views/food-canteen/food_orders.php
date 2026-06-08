@@ -460,6 +460,76 @@
     font-style: italic;
   }
 
+  /* ── Order Items in Modal ── */
+  .fo-menu-item-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 8px;
+    background: var(--surface);
+    transition: border-color .15s;
+  }
+  .fo-menu-item-row:hover {
+    border-color: var(--border-strong);
+  }
+  .fo-menu-item-info {
+    flex: 1;
+  }
+  .fo-menu-item-name {
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+  .fo-menu-item-code {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .fo-menu-item-price {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--brand);
+  }
+  .fo-qty-control {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .fo-qty-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+    transition: all .15s;
+  }
+  .fo-qty-btn:hover {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+  }
+  .fo-qty-input {
+    width: 40px;
+    height: 28px;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .fo-qty-input:focus {
+    outline: none;
+    border-color: var(--brand);
+  }
+
   /* ── Toast Notifications ── */
   .fo-toast-container {
     position: fixed;
@@ -982,7 +1052,7 @@
 
   function populateDropdowns() {
     const propOpts = '<option value="">Select Property</option>' + propertiesData.map(p => `<option value="${p.property_id}">${p.property_name}</option>`).join('');
-    const resOpts  = '<option value="">Walk-in / Select Reservation</option>' + reservationsData.map(r => `<option value="${r.reservation_id}">${r.display}</option>`).join('');
+    const resOpts  = '<option value="">Walk-in / Select Reservation</option>' + reservationsData.map(r => `<option value="${r.reservation_id}" data-customer-name="${r.customer_name || ''}">${r.display} (${r.reservation_code})</option>`).join('');
     const itemOpts = menuItemsData.map(m => `<option value="${m.item_id}" data-price="${m.price}">${m.item_name} — ${m.item_code} — ₱${parseFloat(m.price).toFixed(2)}</option>`).join('');
     const payOpts  = '<option value="">Select Payment Method</option>' + paymentMethodsData.map(p => `<option value="${p.method_id}">${p.method_name}</option>`).join('');
     const tableOpts = '<option value="">Select Table</option>' + diningTablesData.map(t => `<option value="${t.table_id}" data-number="${t.table_number}">${t.table_number}${t.table_name ? ' - ' + t.table_name : ''} (${t.capacity} seats)</option>`).join('');
@@ -993,10 +1063,155 @@
     document.querySelectorAll('.table-select').forEach(s => s.innerHTML = tableOpts);
   }
 
+  function setupReservationChangeHandlers() {
+    ['addReservation', 'editReservation'].forEach(id => {
+      const select = document.getElementById(id);
+      if (select) {
+        select.addEventListener('change', function() {
+          const selectedOption = this.options[this.selectedIndex];
+          const customerName = selectedOption.dataset.customerName || '';
+          const form = this.closest('form');
+          if (form) {
+            const customerNameInput = form.querySelector('input[name="customer_name"]');
+            if (customerNameInput) {
+              customerNameInput.value = customerName;
+            }
+          }
+        });
+      }
+    });
+  }
+
+  function setupOrderTypeHandlers() {
+    const addForm = document.getElementById('addOrderForm');
+    const editForm = document.getElementById('editOrderForm');
+    
+    if (addForm) {
+      const addOrderTypeSelect = addForm.querySelector('select[name="order_type"]');
+      const addReservationGroup = document.getElementById('addReservationGroup');
+      
+      if (addOrderTypeSelect && addReservationGroup) {
+        const toggleAddReservation = () => {
+          if (addOrderTypeSelect.value === 'room_service') {
+            addReservationGroup.style.display = 'flex';
+          } else {
+            addReservationGroup.style.display = 'none';
+            const reservationSelect = addForm.querySelector('select[name="reservation_id"]');
+            if (reservationSelect) {
+              reservationSelect.value = '';
+            }
+          }
+        };
+        
+        addOrderTypeSelect.addEventListener('change', toggleAddReservation);
+        toggleAddReservation();
+      }
+    }
+    
+    if (editForm) {
+      const editOrderTypeSelect = editForm.querySelector('select[name="order_type"]');
+      const editReservationGroup = document.getElementById('editReservationGroup');
+      
+      if (editOrderTypeSelect && editReservationGroup) {
+        const toggleEditReservation = () => {
+          if (editOrderTypeSelect.value === 'room_service') {
+            editReservationGroup.style.display = 'flex';
+          } else {
+            editReservationGroup.style.display = 'none';
+            const reservationSelect = editForm.querySelector('select[name="reservation_id"]');
+            if (reservationSelect) {
+              reservationSelect.value = '';
+            }
+          }
+        };
+        
+        editOrderTypeSelect.addEventListener('change', toggleEditReservation);
+        toggleEditReservation();
+      }
+    }
+  }
+
+  // Order items management
+  let orderItems = {};
+
+  function renderMenuItems(searchTerm = '') {
+    const container = document.getElementById('addOrderItemsContainer');
+    if (!container || !menuItemsData.length) {
+      if (container) container.innerHTML = '<div class="text-center py-4 text-muted">No menu items available</div>';
+      return;
+    }
+
+    // Filter items based on search term
+    const filteredItems = searchTerm 
+      ? menuItemsData.filter(item => 
+          item.item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.item_code.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      : menuItemsData;
+
+    if (filteredItems.length === 0) {
+      container.innerHTML = '<div class="text-center py-4 text-muted">No menu items match your search</div>';
+      return;
+    }
+
+    container.innerHTML = filteredItems.map(item => `
+      <div class="fo-menu-item-row" data-item-id="${item.item_id}">
+        <div class="fo-menu-item-info">
+          <div class="fo-menu-item-name">${item.item_name}</div>
+          <div class="fo-menu-item-code">${item.item_code}</div>
+        </div>
+        <div class="fo-menu-item-price">₱${parseFloat(item.price).toFixed(2)}</div>
+        <div class="fo-qty-control">
+          <button type="button" class="fo-qty-btn" onclick="updateItemQty('${item.item_id}', -1)">-</button>
+          <input type="number" class="fo-qty-input" id="qty-${item.item_id}" value="${orderItems[item.item_id] || 0}" min="0" max="99" onchange="setItemQty('${item.item_id}', this.value)">
+          <button type="button" class="fo-qty-btn" onclick="updateItemQty('${item.item_id}', 1)">+</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function filterMenuItems(searchTerm) {
+    renderMenuItems(searchTerm);
+  }
+
+  function updateItemQty(itemId, delta) {
+    const input = document.getElementById(`qty-${itemId}`);
+    let val = parseInt(input.value) + delta;
+    if (val < 0) val = 0;
+    if (val > 99) val = 99;
+    input.value = val;
+    setItemQty(itemId, val);
+  }
+
+  function setItemQty(itemId, value) {
+    const qty = parseInt(value) || 0;
+    if (qty > 0) {
+      orderItems[itemId] = qty;
+    } else {
+      delete orderItems[itemId];
+    }
+    calculateOrderTotal();
+  }
+
+  function calculateOrderTotal() {
+    let total = 0;
+    for (const [itemId, qty] of Object.entries(orderItems)) {
+      const item = menuItemsData.find(m => m.item_id === itemId);
+      if (item) {
+        total += parseFloat(item.price) * qty;
+      }
+    }
+    document.getElementById('addOrderTotal').textContent = '₱' + total.toFixed(2);
+    return total;
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     fetchCsrfToken();
     fetchOrders();
-    fetchRelated();
+    fetchRelated().then(() => {
+      setupReservationChangeHandlers();
+      setupOrderTypeHandlers();
+    });
   });
 </script>
 
@@ -1110,7 +1325,7 @@
                     <option value="takeout">Takeout</option>
                   </select>
                 </div>
-                <div class="fo-form-group">
+                <div class="fo-form-group" id="addReservationGroup">
                   <label class="fo-label">Reservation</label>
                   <select name="reservation_id" id="addReservation" class="fo-select">
                     <option value="">Walk-in Customer</option>
@@ -1149,6 +1364,24 @@
                   <textarea name="notes" rows="2" class="fo-textarea" placeholder="Additional notes or special requests…"></textarea>
                 </div>
               </div>
+              
+              <!-- Order Items Section -->
+              <div class="fo-form-group full" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+                <label class="fo-label">Order Items <span class="req">*</span></label>
+                <div class="fo-search-wrap" style="margin-bottom: 12px;">
+                  <i class="fas fa-search"></i>
+                  <input type="text" id="menuItemsSearch" class="fo-search" placeholder="Search menu items..." oninput="filterMenuItems(this.value)">
+                </div>
+                <div id="addOrderItemsContainer" style="max-height: 300px; overflow-y: auto;">
+                  <div class="text-center py-4 text-muted">Loading menu items...</div>
+                </div>
+                <div style="margin-top: 15px; padding: 15px; background: var(--surface-2); border-radius: var(--radius-md);">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 600; color: var(--text-secondary);">Total Amount:</span>
+                    <span id="addOrderTotal" style="font-size: 20px; font-weight: 700; color: var(--brand);">₱0.00</span>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="fo-modal-footer">
               <button type="button" onclick="closeAddOrderModal()" class="fo-btn-cancel">Cancel</button>
@@ -1183,7 +1416,7 @@
                     <option value="takeout">Takeout</option>
                   </select>
                 </div>
-                <div class="fo-form-group">
+                <div class="fo-form-group" id="editReservationGroup">
                   <label class="fo-label">Reservation</label>
                   <select name="reservation_id" id="editReservation" class="fo-select">
                     <option value="">Walk-in Customer</option>
@@ -1467,14 +1700,42 @@
     const m = document.getElementById('addOrderModal');
     m.style.display = 'flex';
     document.getElementById('addOrderForm').reset();
+    // Reset order items and search
+    orderItems = {};
+    document.getElementById('menuItemsSearch').value = '';
+    renderMenuItems();
+    calculateOrderTotal();
   }
   function closeAddOrderModal() {
     document.getElementById('addOrderModal').style.display = 'none';
+    orderItems = {};
   }
 
   function submitAddOrder(event) {
     event.preventDefault();
     const form = document.getElementById('addOrderForm');
+    
+    // Build items array from orderItems
+    const itemsArray = [];
+    let subtotal = 0;
+    for (const [itemId, qty] of Object.entries(orderItems)) {
+      const item = menuItemsData.find(m => m.item_id === itemId);
+      if (item && qty > 0) {
+        const unitPrice = parseFloat(item.price);
+        subtotal += unitPrice * qty;
+        itemsArray.push({
+          item_id: itemId,
+          qty: qty,
+          unit_price: unitPrice
+        });
+      }
+    }
+    
+    if (itemsArray.length === 0) {
+      showToast('Please add at least one item to the order', 'error');
+      return;
+    }
+    
     const payload = {
       property_id:    form.elements['property_id'].value,
       reservation_id: form.elements['reservation_id'].value || null,
@@ -1484,7 +1745,9 @@
       order_status:   form.elements['order_status'].value,
       payment_status: form.elements['payment_status'].value,
       notes:          form.elements['notes'].value,
-      subtotal: 0, total_amount: 0, items: []
+      subtotal: subtotal,
+      total_amount: subtotal,
+      items: itemsArray
     };
 
     fetch('../api/food_orders.php?action=create', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({...payload, csrf_token: csrfToken}) })

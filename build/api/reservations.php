@@ -365,6 +365,17 @@ try {
             ");
             $promoStmt->execute([$_GET['id']]);
             $reservation['applied_promotions'] = $promoStmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Fetch extra charges
+            $ecStmt = $pdo->prepare("
+                SELECT ec.*, CONCAT(COALESCE(up.first_name, ''), ' ', COALESCE(up.last_name, '')) as charged_by_name
+                FROM extra_charges ec
+                LEFT JOIN user_profiles up ON ec.charged_by = up.user_id
+                WHERE ec.reservation_id = ?
+                ORDER BY ec.charged_at ASC
+            ");
+            $ecStmt->execute([$_GET['id']]);
+            $reservation['extra_charges'] = $ecStmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         echo json_encode(['success' => true, 'data' => $reservation]);
@@ -985,6 +996,32 @@ try {
             $data['promoDiscount'],
             $reservationId
           ]);
+        }
+        
+        // Create extra charges if provided
+        if (!empty($data['extraCharges']) && is_array($data['extraCharges'])) {
+          // Get current user ID from session
+          $currentUserId = $_SESSION['user_id'] ?? null;
+          
+          foreach ($data['extraCharges'] as $charge) {
+            if (!empty($charge['charge_type']) && !empty($charge['amount']) && $charge['amount'] > 0) {
+              $chargeId = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+                mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
+                mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
+                mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
+              
+              $ecStmt = $pdo->prepare("INSERT INTO extra_charges (charge_id, reservation_id, charge_type, description, amount, charged_by, charged_at, payment_status) VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)");
+              $ecStmt->execute([
+                $chargeId,
+                $reservationId,
+                $charge['charge_type'],
+                $charge['description'] ?? null,
+                $charge['amount'],
+                $currentUserId,
+                $paymentStatus === 'paid' ? 'paid' : 'unpaid'
+              ]);
+            }
+          }
         }
         
         $pdo->commit();

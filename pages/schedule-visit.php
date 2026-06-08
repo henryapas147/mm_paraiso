@@ -1,6 +1,16 @@
 <?php
 require_once 'config/config.php';
 
+// Auth guard: guests must sign in before scheduling a visit
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'];
+    $requestUri = $_SERVER['REQUEST_URI'];
+    $_SESSION['last_visited_url'] = $protocol . '://' . $host . $requestUri;
+    header('Location: ../build/sign-in');
+    exit;
+}
+
 // Fetch company information and properties
 $companyInfo = null;
 $properties = [];
