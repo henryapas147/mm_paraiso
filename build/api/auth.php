@@ -117,6 +117,32 @@ try {
         ");
         $profileStmt->execute([$profileId, $userId, $firstName, $lastName]);
 
+        // Initialize default user settings
+        $defaultSettings = [
+          ['email_booking_confirmations', '1', 'boolean', 'email'],
+          ['email_payment_receipts', '1', 'boolean', 'email'],
+          ['email_promotional', '0', 'boolean', 'email'],
+          ['email_frequency', 'daily', 'string', 'email'],
+          ['push_notifications', '1', 'boolean', 'notification'],
+          ['sms_notifications', '1', 'boolean', 'notification'],
+          ['in_app_notifications', '1', 'boolean', 'notification'],
+          ['profile_visibility', 'public', 'string', 'privacy'],
+          ['share_data_partners', '0', 'boolean', 'privacy'],
+          ['allow_analytics', '1', 'boolean', 'privacy'],
+          ['personalized_recommendations', '1', 'boolean', 'privacy'],
+          ['language', 'en', 'string', 'preferences'],
+          ['timezone', 'Asia/Manila', 'string', 'preferences'],
+          ['currency', 'PHP', 'string', 'preferences']
+        ];
+
+        foreach ($defaultSettings as $setting) {
+          $stmt = $pdo->prepare("
+            INSERT INTO user_settings (user_id, setting_key, setting_value, setting_type, category)
+            VALUES (?, ?, ?, ?, ?)
+          ");
+          $stmt->execute([$userId, $setting[0], $setting[1], $setting[2], $setting[3]]);
+        }
+
         // Send verification email using Gmail API with OAuth 2.0
         $verifyUrl = getBaseUrl() . "/api/auth.php?action=verify&token=$verifyToken";
 
@@ -183,11 +209,89 @@ try {
             'verify_token' => $verifyToken
           ]);
         }
+      } elseif ($action === 'change_password') {
+        // Validate CSRF token
+        if (!isset($input['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', $input['csrf_token'])) {
+          echo json_encode(['success' => false, 'message' => 'Invalid request. Please refresh the page and try again.']);
+          exit;
+        }
+
+        // Check if user is logged in
+        if (!isset($_SESSION['user_id'])) {
+          echo json_encode(['success' => false, 'message' => 'You must be logged in to change your password.']);
+          exit;
+        }
+
+        $currentPassword = $input['current_password'] ?? '';
+        $newPassword = $input['new_password'] ?? '';
+
+        if (empty($newPassword)) {
+          echo json_encode(['success' => false, 'message' => 'New password is required.']);
+          exit;
+        }
+
+        if (strlen($newPassword) < 8) {
+          echo json_encode(['success' => false, 'message' => 'Password must be at least 8 characters long.']);
+          exit;
+        }
+
+        // Get user's current password hash
+        $stmt = $pdo->prepare("SELECT password_hash, google_id FROM user_accounts WHERE user_id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user) {
+          echo json_encode(['success' => false, 'message' => 'User not found.']);
+          exit;
+        }
+
+        // Check if user has a password set (Google users might not have one)
+        $hasPassword = !empty($user['password_hash']);
+
+        if ($hasPassword) {
+          // User has a password, verify current password
+          if (empty($currentPassword)) {
+            echo json_encode(['success' => false, 'message' => 'Current password is required.']);
+            exit;
+          }
+          if (!password_verify($currentPassword, $user['password_hash'])) {
+            echo json_encode(['success' => false, 'message' => 'Current password is incorrect.']);
+            exit;
+          }
+        } else {
+          // User doesn't have a password (Google auth user), skip current password verification
+          // This is setting their first password
+        }
+
+        // Update password
+        $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+        $updateStmt = $pdo->prepare("
+          UPDATE user_accounts
+          SET password_hash = ?, password_changed_at = CURRENT_TIMESTAMP
+          WHERE user_id = ?
+        ");
+        $updateStmt->execute([$newPasswordHash, $_SESSION['user_id']]);
+
+        $message = $hasPassword ? 'Password changed successfully.' : 'Password set successfully. You can now login with your email and password.';
+        echo json_encode(['success' => true, 'message' => $message]);
       }
       break;
 
     case 'GET':
-      if ($action === 'google-callback' && isset($_GET['code'])) {
+      if ($action === 'check_password_status') {
+        // Check if user has a password set (for Google auth users)
+        if (!isset($_SESSION['user_id'])) {
+          echo json_encode(['success' => false, 'has_password' => false]);
+          exit;
+        }
+
+        $stmt = $pdo->prepare("SELECT password_hash FROM user_accounts WHERE user_id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $hasPassword = $user && !empty($user['password_hash']);
+        echo json_encode(['success' => $hasPassword, 'has_password' => $hasPassword]);
+      } elseif ($action === 'google-callback' && isset($_GET['code'])) {
         // Google OAuth callback for Sign-In
         $code = $_GET['code'];
         $state = $_GET['state'] ?? null;
@@ -241,6 +345,24 @@ try {
             ");
             $stmt->execute([$googleId, $ipAddress, $existingUser['user_id']]);
 
+            // Check if 2FA is enabled for this user
+            $stmt2fa = $pdo->prepare("SELECT enabled FROM user_2fa WHERE user_id = ?");
+            $stmt2fa->execute([$existingUser['user_id']]);
+            $twoFactor = $stmt2fa->fetch();
+
+            if ($twoFactor && $twoFactor['enabled'] == 1) {
+              // 2FA is enabled - store temp user data and redirect to 2FA verification
+              $_SESSION['pending_login_user_id'] = $existingUser['user_id'];
+              $_SESSION['pending_login_email'] = $existingUser['email'];
+              $_SESSION['pending_login_role_code'] = $existingUser['role_code'];
+              $_SESSION['pending_login_role_label'] = $existingUser['role_label'];
+              $_SESSION['pending_login_remember'] = false;
+              $_SESSION['pending_login_ip'] = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+              $_SESSION['pending_login_source'] = 'google';
+              header('Location: ' . getBaseUrl() . '/sign-in?step=2fa');
+              exit;
+            }
+
             $loginUserId    = $existingUser['user_id'];
             $loginRoleCode  = $existingUser['role_code'];
             $loginRoleLabel = $existingUser['role_label'];
@@ -277,6 +399,32 @@ try {
               VALUES (?, ?, ?, ?)
             ");
             $profileStmt->execute([$profileId, $newUserId, $firstName, $lastName]);
+
+            // Initialize default user settings
+            $defaultSettings = [
+              ['email_booking_confirmations', '1', 'boolean', 'email'],
+              ['email_payment_receipts', '1', 'boolean', 'email'],
+              ['email_promotional', '0', 'boolean', 'email'],
+              ['email_frequency', 'daily', 'string', 'email'],
+              ['push_notifications', '1', 'boolean', 'notification'],
+              ['sms_notifications', '1', 'boolean', 'notification'],
+              ['in_app_notifications', '1', 'boolean', 'notification'],
+              ['profile_visibility', 'public', 'string', 'privacy'],
+              ['share_data_partners', '0', 'boolean', 'privacy'],
+              ['allow_analytics', '1', 'boolean', 'privacy'],
+              ['personalized_recommendations', '1', 'boolean', 'privacy'],
+              ['language', 'en', 'string', 'preferences'],
+              ['timezone', 'Asia/Manila', 'string', 'preferences'],
+              ['currency', 'PHP', 'string', 'preferences']
+            ];
+
+            foreach ($defaultSettings as $setting) {
+              $stmt = $pdo->prepare("
+                INSERT INTO user_settings (user_id, setting_key, setting_value, setting_type, category)
+                VALUES (?, ?, ?, ?, ?)
+              ");
+              $stmt->execute([$newUserId, $setting[0], $setting[1], $setting[2], $setting[3]]);
+            }
 
             $loginUserId    = $newUserId;
             $loginRoleCode  = 'customer';

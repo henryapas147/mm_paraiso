@@ -60,4 +60,9 @@ class SettingsController extends Controller
     {
         $this->view('settings/company');
     }
+
+    public function carouselSlides()
+    {
+        $this->view('content-management/carousel');
+    }
 }

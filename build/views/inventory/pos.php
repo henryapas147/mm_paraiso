@@ -1674,6 +1674,7 @@
 <script>
   (function() {
     const API_BASE = window.location.pathname.split('/build/')[0] + '/build/api';
+    const csrfToken = '<?php echo htmlspecialchars(CSRF_TOKEN, ENT_QUOTES, 'UTF-8'); ?>';
     let products = [];
     let categories = [];
     let cart = [];
@@ -2470,6 +2471,7 @@
         renderCart();
         closeReceiptModal();
         document.getElementById('customerName').value = '';
+        focusSearch();
       });
 
       document.getElementById('printReceiptBtn').addEventListener('click', printReceipt);
@@ -2617,6 +2619,7 @@
       const saleNumber = 'POS-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 100000)).padStart(5, '0');
 
       const saleData = {
+        csrf_token: csrfToken,
         sale_number: saleNumber,
         property_id: propertyId || null,
         sale_date: new Date().toISOString().split('T')[0],
@@ -2631,6 +2634,7 @@
         staff_member_id: staffMemberId || null,
         items: cart.map(item => ({
           product_id: item.product_id,
+          product_name: item.product_name,
           uom_id: item.uom_id,
           quantity: item.quantity,
           unit_price: item.unit_price.toFixed(2),
@@ -2719,9 +2723,8 @@
 
     // Print receipt
     function printReceipt() {
-      const printWindow = window.open('', '_blank');
       const receiptContent = document.getElementById('receiptPreview').innerHTML;
-      printWindow.document.write(`
+      const printHTML = `
       <html>
         <head>
           <title>Receipt</title>
@@ -2737,9 +2740,11 @@
           ${receiptContent}
         </body>
       </html>
-    `);
-      printWindow.document.close();
-      printWindow.print();
+    `;
+      const printWindow = window.open('data:text/html;charset=utf-8,' + encodeURIComponent(printHTML), '_blank');
+      printWindow.onload = function() {
+        printWindow.print();
+      };
     }
 
     // Show toast

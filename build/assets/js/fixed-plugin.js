@@ -17,6 +17,33 @@ var sidenav_icons = sidenav.querySelectorAll("li a div");
 var currentUrl = window.location.pathname;
 var sidenav_target = currentUrl;
 
+// Helper function to find the active sidenav item
+function findActiveSidenavItem() {
+  // Try to find by data-active attribute first
+  var activeByAttr = document.querySelector('aside a[data-active="true"]');
+  if (activeByAttr) return activeByAttr;
+
+  // Try exact href match
+  var exactMatch = document.querySelector('a[href="' + CSS.escape(sidenav_target) + '"]');
+  if (exactMatch) return exactMatch;
+
+  // Try matching without trailing slash
+  var withoutSlash = sidenav_target.replace(/\/$/, '');
+  var noSlashMatch = document.querySelector('a[href="' + CSS.escape(withoutSlash) + '"]');
+  if (noSlashMatch) return noSlashMatch;
+
+  // Try matching with trailing slash
+  var withSlash = sidenav_target + '/';
+  var slashMatch = document.querySelector('a[href="' + CSS.escape(withSlash) + '"]');
+  if (slashMatch) return slashMatch;
+
+  // Fallback: find by active class
+  var activeByClass = document.querySelector('aside a.bg-blue-500\\/13');
+  if (activeByClass) return activeByClass;
+
+  return null;
+}
+
 var whiteBtn = document.querySelector("[transparent-style-btn]");
 var darkBtn = document.querySelector("[white-style-btn]");
 
@@ -31,7 +58,7 @@ var black_sidenav_classes = ["bg-slate-850", "shadow-none"];
 // var black_sidenav_highlighted = ["shadow-none"];
 // var black_sidenav_icons = ["bg-gray-200"];
 
-var sidenav_highlight = document.querySelector("a[href=" + CSS.escape(sidenav_target) + "]");
+var sidenav_highlight = findActiveSidenavItem();
 
 // fixed plugin toggle
 if (pageName != "rtl") {
@@ -84,41 +111,84 @@ if (pageName != "rtl") {
 
 // color sidenav
 
+var sidebarColorPalette = {
+  blue:    {
+    bg:         'linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.08) 100%)',
+    color:      '#4338ca',
+    shadow:     'inset 3px 0 0 #6366f1, 0 2px 8px rgba(99,102,241,0.12)',
+    bgDark:     'linear-gradient(135deg, rgba(99,102,241,0.2) 0%, rgba(139,92,246,0.12) 100%)',
+    colorDark:  '#a5b4fc',
+    shadowDark: 'inset 3px 0 0 #818cf8, 0 2px 8px rgba(99,102,241,0.2)'
+  },
+  gray:    {
+    bg:         'linear-gradient(135deg, rgba(113,113,122,0.12) 0%, rgba(82,82,91,0.08) 100%)',
+    color:      '#3f3f46',
+    shadow:     'inset 3px 0 0 #71717a, 0 2px 8px rgba(113,113,122,0.12)',
+    bgDark:     'linear-gradient(135deg, rgba(113,113,122,0.3) 0%, rgba(82,82,91,0.2) 100%)',
+    colorDark:  '#d4d4d8',
+    shadowDark: 'inset 3px 0 0 #a1a1aa, 0 2px 8px rgba(113,113,122,0.2)'
+  },
+  cyan:    {
+    bg:         'linear-gradient(135deg, rgba(8,145,178,0.12) 0%, rgba(6,182,212,0.08) 100%)',
+    color:      '#0e7490',
+    shadow:     'inset 3px 0 0 #06b6d4, 0 2px 8px rgba(8,145,178,0.12)',
+    bgDark:     'linear-gradient(135deg, rgba(8,145,178,0.25) 0%, rgba(6,182,212,0.15) 100%)',
+    colorDark:  '#67e8f9',
+    shadowDark: 'inset 3px 0 0 #22d3ee, 0 2px 8px rgba(8,145,178,0.2)'
+  },
+  emerald: {
+    bg:         'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(52,211,153,0.08) 100%)',
+    color:      '#065f46',
+    shadow:     'inset 3px 0 0 #10b981, 0 2px 8px rgba(16,185,129,0.12)',
+    bgDark:     'linear-gradient(135deg, rgba(16,185,129,0.25) 0%, rgba(52,211,153,0.15) 100%)',
+    colorDark:  '#6ee7b7',
+    shadowDark: 'inset 3px 0 0 #34d399, 0 2px 8px rgba(16,185,129,0.2)'
+  },
+  orange:  {
+    bg:         'linear-gradient(135deg, rgba(249,115,22,0.12) 0%, rgba(251,191,36,0.08) 100%)',
+    color:      '#c2410c',
+    shadow:     'inset 3px 0 0 #f97316, 0 2px 8px rgba(249,115,22,0.12)',
+    bgDark:     'linear-gradient(135deg, rgba(249,115,22,0.25) 0%, rgba(251,191,36,0.15) 100%)',
+    colorDark:  '#fdba74',
+    shadowDark: 'inset 3px 0 0 #fb923c, 0 2px 8px rgba(249,115,22,0.2)'
+  },
+  red:     {
+    bg:         'linear-gradient(135deg, rgba(220,38,38,0.12) 0%, rgba(234,88,12,0.08) 100%)',
+    color:      '#991b1b',
+    shadow:     'inset 3px 0 0 #ef4444, 0 2px 8px rgba(220,38,38,0.12)',
+    bgDark:     'linear-gradient(135deg, rgba(220,38,38,0.25) 0%, rgba(234,88,12,0.15) 100%)',
+    colorDark:  '#fca5a5',
+    shadowDark: 'inset 3px 0 0 #f87171, 0 2px 8px rgba(220,38,38,0.2)'
+  }
+};
+
 function sidebarColor(a) {
   var color = a.getAttribute("data-color");
   var parent = a.parentElement.children;
-  var activeColor;
+  var palette = sidebarColorPalette[color];
+  if (!palette) return;
 
-  var activeSidenavIconColorClass;
-
-  var checkedSidenavIconColor = "bg-" + color + "-500/30";
-
-  var sidenavIcon = document.querySelector("a[href=" + CSS.escape(sidenav_target) + "]");
-
+  // Update active-color dot in customizer UI
   for (var i = 0; i < parent.length; i++) {
     if (parent[i].hasAttribute("active-color")) {
-      activeColor = parent[i].getAttribute("data-color");
-
-      parent[i].classList.toggle("border-white");
-      parent[i].classList.toggle("border-slate-700");
-
-      activeSidenavIconColorClass = "bg-" + activeColor + "-500/30";
+      parent[i].classList.remove("border-slate-700");
+      parent[i].classList.add("border-white");
+      parent[i].removeAttribute("active-color");
     }
-    parent[i].removeAttribute("active-color");
   }
-
   var att = document.createAttribute("active-color");
-
   a.setAttributeNode(att);
-  a.classList.toggle("border-white");
-  a.classList.toggle("border-slate-700");
+  a.classList.remove("border-white");
+  a.classList.add("border-slate-700");
 
-  //   remove active style
-  if (sidenavIcon) {
-    sidenavIcon.classList.remove(activeSidenavIconColorClass);
-    //   add new style
-    sidenavIcon.classList.add(checkedSidenavIconColor);
-  }
+  // Update CSS variables — this overrides the !important rules properly
+  var root = document.documentElement;
+  root.style.setProperty('--sidebar-active-bg',          palette.bg);
+  root.style.setProperty('--sidebar-active-color',       palette.color);
+  root.style.setProperty('--sidebar-active-shadow',      palette.shadow);
+  root.style.setProperty('--sidebar-active-bg-dark',     palette.bgDark);
+  root.style.setProperty('--sidebar-active-color-dark',  palette.colorDark);
+  root.style.setProperty('--sidebar-active-shadow-dark', palette.shadowDark);
 
   // Save sidebar color to localStorage
   localStorage.setItem('sidebarColor', color);

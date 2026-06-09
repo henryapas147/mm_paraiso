@@ -24,6 +24,19 @@ class Controller
         }
     }
 
+    protected function viewRaw($view, $data = [])
+    {
+        extract($data);
+
+        $viewFile = __DIR__ . '/../views/' . $view . '.php';
+
+        if (file_exists($viewFile)) {
+            require $viewFile;
+        } else {
+            throw new \Exception("View file not found: $viewFile");
+        }
+    }
+
     protected function viewCustomer($view, $data = [])
     {
         extract($data);

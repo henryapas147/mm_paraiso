@@ -291,8 +291,195 @@ $profilePhotoUrl = $defaultProfilePath; // Default, will be updated by AJAX
           </form>
     </div>
   </div>
+
+  <!-- Change Password Section -->
+  <div class="mt-6 bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl">
+    <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-6 pb-0">
+      <div class="flex items-center justify-between">
+        <p class="mb-0 dark:text-white/80">Change Password</p>
+        <button type="button" onclick="showChangePasswordModal()" class="text-xs bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg transition-colors">Change</button>
+      </div>
+    </div>
+    <div class="flex-auto p-6">
+      <p class="text-sm text-gray-500">Update your password regularly to keep your account secure</p>
+    </div>
+  </div>
 </div>
 </div><!-- /ap-page -->
+
+<!-- Toast Notification -->
+<div id="toast" class="toast"></div>
+<style>
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  padding: 16px 24px;
+  border-radius: 12px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.toast.success {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+.toast.error {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+.toast.warning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+.toast.info {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+</style>
+
+<script>
+  // Toast notification function
+  function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    
+    toast.textContent = message;
+    toast.className = 'toast show ' + type;
+    
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3000);
+  }
+
+  // Change Password Modal
+  async function showChangePasswordModal() {
+    // Check if user has a password set (Google users might not)
+    let hasPassword = true;
+    try {
+      const res = await fetch('api/auth.php?action=check_password_status');
+      const result = await res.json();
+      if (result.success !== undefined) {
+        hasPassword = result.success;
+      }
+    } catch (error) {
+      console.error('Failed to check password status:', error);
+    }
+
+    const modalTitle = hasPassword ? 'Change Password' : 'Set Password';
+    const modalSubtitle = hasPassword 
+      ? 'Enter your current password and choose a new secure password'
+      : 'Set a password to enable login with your email and password';
+
+    Swal.fire({
+      title: '',
+      html: `
+        <div style="text-align: center; margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px;">
+            <div style="background: #C9A96E; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+              <i class="ni ni-lock-circle-open text-white text-xl"></i>
+            </div>
+            <h3 style="margin: 0; font-family: 'Lora', Georgia, serif; font-size: 1.3rem; font-weight: 500; font-style: italic; color: #1A1410;">${modalTitle}</h3>
+          </div>
+          <p style="margin: 0; color: #3D3530; font-size: 14px; line-height: 1.6;">${modalSubtitle}</p>
+        </div>
+        <div style="text-align: left; max-width: 320px; margin: 0 auto;">
+          ${hasPassword ? `
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; color: #C9A96E;">Current Password</label>
+            <input type="password" id="current-password" class="swal2-input" style="width: 100%; padding: 12px 16px; border: 2px solid #EDEAE6; border-radius: 12px; font-size: 14px; color: #1A1410; transition: border-color 0.2s;" placeholder="Enter current password" onfocus="this.style.borderColor='#C9A96E'" onblur="this.style.borderColor='#EDEAE6'">
+          </div>
+          ` : ''}
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; color: #C9A96E;">New Password</label>
+            <input type="password" id="new-password" class="swal2-input" style="width: 100%; padding: 12px 16px; border: 2px solid #EDEAE6; border-radius: 12px; font-size: 14px; color: #1A1410; transition: border-color 0.2s;" placeholder="Enter new password" onfocus="this.style.borderColor='#C9A96E'" onblur="this.style.borderColor='#EDEAE6'">
+          </div>
+          <div style="margin-bottom: 8px;">
+            <label style="display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; color: #C9A96E;">Confirm New Password</label>
+            <input type="password" id="confirm-password" class="swal2-input" style="width: 100%; padding: 12px 16px; border: 2px solid #EDEAE6; border-radius: 12px; font-size: 14px; color: #1A1410; transition: border-color 0.2s;" placeholder="Confirm new password" onfocus="this.style.borderColor='#C9A96E'" onblur="this.style.borderColor='#EDEAE6'">
+          </div>
+        </div>
+      `,
+      confirmButtonText: `<i class="ni ni-check-bold mr-1"></i>${hasPassword ? 'Change Password' : 'Set Password'}`,
+      showCancelButton: true,
+      cancelButtonText: '<i class="ni ni-fat-delete mr-1"></i>Cancel',
+      customClass: {
+        popup: 'swal2-popup-high-z',
+        confirmButton: 'inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white rounded-lg shadow-sm transition-all duration-200 whitespace-nowrap',
+        cancelButton: 'inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white rounded-lg shadow-sm transition-all duration-200 whitespace-nowrap'
+      },
+      buttonsStyling: false,
+      didOpen: () => {
+        const confirmBtn = Swal.getConfirmButton();
+        const cancelBtn = Swal.getCancelButton();
+        if (confirmBtn) {
+          confirmBtn.style.background = 'linear-gradient(135deg, #C9A96E, #A07840)';
+          confirmBtn.style.boxShadow = '0 2px 8px rgba(201, 169, 110, 0.35)';
+        }
+        if (cancelBtn) {
+          cancelBtn.style.background = '#3D3530';
+        }
+      },
+      preConfirm: async () => {
+        const currentPassword = hasPassword ? document.getElementById('current-password').value : '';
+        const newPassword = document.getElementById('new-password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+
+        if (hasPassword && !currentPassword) {
+          Swal.showValidationMessage('Current password is required');
+          return false;
+        }
+
+        if (!newPassword || !confirmPassword) {
+          Swal.showValidationMessage('New password fields are required');
+          return false;
+        }
+
+        if (newPassword !== confirmPassword) {
+          Swal.showValidationMessage('New passwords do not match');
+          return false;
+        }
+
+        if (newPassword.length < 8) {
+          Swal.showValidationMessage('Password must be at least 8 characters long');
+          return false;
+        }
+
+        try {
+          const csrfToken = document.querySelector('input[name="csrf_token"]')?.value || '';
+          const res = await fetch('api/auth.php?action=change_password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              current_password: currentPassword,
+              new_password: newPassword,
+              csrf_token: csrfToken
+            })
+          });
+          const result = await res.json();
+          if (!result.success) {
+            Swal.showValidationMessage(result.message || 'Failed to change password');
+            return false;
+          }
+          return result;
+        } catch (error) {
+          Swal.showValidationMessage('Network error. Please try again.');
+          return false;
+        }
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        showToast(result.value.message || 'Password updated successfully', 'success');
+      }
+    });
+  }
+</script>
 
 <!-- Profile Photo Upload Script -->
 <script>

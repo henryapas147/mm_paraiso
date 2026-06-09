@@ -44,6 +44,48 @@ class EmailService
     }
 
     /**
+     * Check if user has enabled a specific email preference
+     *
+     * @param string $userId User ID
+     * @param string $settingKey Setting key (e.g., 'email_booking_confirmations')
+     * @return bool True if setting is enabled or not found (default to enabled)
+     */
+    private function getUserEmailPreference($userId, $settingKey)
+    {
+        if (!$this->pdo || !$userId) {
+            return true; // Default to enabled if no DB connection or no user ID
+        }
+
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT setting_value, setting_type
+                FROM user_settings
+                WHERE user_id = ? AND setting_key = ?
+            ");
+            $stmt->execute([$userId, $settingKey]);
+            $setting = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$setting) {
+                return true; // Default to enabled if setting not found
+            }
+
+            // Convert based on type
+            $value = $setting['setting_value'];
+            switch ($setting['setting_type']) {
+                case 'boolean':
+                    return (bool) $value;
+                case 'integer':
+                    return (int) $value === 1;
+                default:
+                    return (string) $value === '1' || (string) $value === 'true';
+            }
+        } catch (\Exception $e) {
+            error_log('Failed to check user email preference: ' . $e->getMessage());
+            return true; // Default to enabled on error
+        }
+    }
+
+    /**
      * Send a reply to a contact inquiry
      *
      * @param string $to Email address of the recipient
@@ -52,11 +94,20 @@ class EmailService
      * @param string $message Body of the email
      * @param int|null $inquiryId Optional inquiry ID for tracking
      * @param int|null $repliedBy Optional user ID who sent the reply
+     * @param int|null $userId Optional user ID of the recipient for preference check
      * @return array ['success' => bool, 'message' => string, 'email_id' => int|null]
      */
-    public function sendInquiryReply($to, $toName, $subject, $message, $inquiryId = null, $repliedBy = null)
+    public function sendInquiryReply($to, $toName, $subject, $message, $inquiryId = null, $repliedBy = null, $userId = null)
     {
         try {
+            // Check user email preference for promotional emails (if this is a promotional reply)
+            // For inquiry replies, we typically send regardless unless it's purely promotional
+            // This can be enhanced later with a message type parameter
+            if ($userId && !$this->getUserEmailPreference($userId, 'email_promotional')) {
+                // Only skip if this is determined to be promotional
+                // For now, we'll send all inquiry replies as they're support-related
+            }
+
             // Clear previous recipients
             $this->mailer->clearAddresses();
 
@@ -133,6 +184,15 @@ class EmailService
     public function sendReservationConfirmation($data)
     {
         try {
+            // Check user email preference before sending
+            $userId = $data['customer_user_id'] ?? null;
+            if ($userId && !$this->getUserEmailPreference($userId, 'email_booking_confirmations')) {
+                return [
+                    'success' => true,
+                    'message' => 'Email skipped - user has disabled booking confirmations'
+                ];
+            }
+
             // Clear previous recipients
             $this->mailer->clearAddresses();
 

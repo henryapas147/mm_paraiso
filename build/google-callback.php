@@ -176,6 +176,24 @@ try {
                 ini_set('session.cookie_samesite', 'Lax');
                 session_start();
             }
+
+            // Check if 2FA is enabled
+            $stmt2fa = $pdo->prepare("SELECT enabled FROM user_2fa WHERE user_id = ?");
+            $stmt2fa->execute([$existingGoogleUser['user_id']]);
+            $twoFactor = $stmt2fa->fetch();
+
+            if ($twoFactor && $twoFactor['enabled'] == 1) {
+                $_SESSION['pending_login_user_id']  = $existingGoogleUser['user_id'];
+                $_SESSION['pending_login_email']     = $existingGoogleUser['email'];
+                $_SESSION['pending_login_role_code'] = $role['role_code'];
+                $_SESSION['pending_login_role_label']= $role['role_label'];
+                $_SESSION['pending_login_remember']  = false;
+                $_SESSION['pending_login_ip']        = $ipAddress;
+                $_SESSION['pending_login_source']    = 'google';
+                header('Location: ' . $protocol . '://' . $host . $basePath . '/sign-in?step=2fa');
+                exit;
+            }
+
             session_regenerate_id(true);
 
             $lastVisitedUrl = $_SESSION['last_visited_url'] ?? null;
@@ -264,6 +282,24 @@ try {
                 ini_set('session.cookie_samesite', 'Lax');
                 session_start();
             }
+
+            // Check if 2FA is enabled
+            $stmt2fa = $pdo->prepare("SELECT enabled FROM user_2fa WHERE user_id = ?");
+            $stmt2fa->execute([$existingEmailUser['user_id']]);
+            $twoFactor = $stmt2fa->fetch();
+
+            if ($twoFactor && $twoFactor['enabled'] == 1) {
+                $_SESSION['pending_login_user_id']  = $existingEmailUser['user_id'];
+                $_SESSION['pending_login_email']     = $existingEmailUser['email'];
+                $_SESSION['pending_login_role_code'] = $userWithRole['role_code'];
+                $_SESSION['pending_login_role_label']= $userWithRole['role_label'];
+                $_SESSION['pending_login_remember']  = false;
+                $_SESSION['pending_login_ip']        = $ipAddress;
+                $_SESSION['pending_login_source']    = 'google';
+                header('Location: ' . $protocol . '://' . $host . $basePath . '/sign-in?step=2fa');
+                exit;
+            }
+
             session_regenerate_id(true);
 
             $lastVisitedUrl = $_SESSION['last_visited_url'] ?? null;

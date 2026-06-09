@@ -579,16 +579,17 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
         <table class="orders-table">
           <thead>
             <tr>
-              <th>Sale ID</th>
+              <th>Sale #</th>
               <th>Cashier</th>
+              <th>Customer</th>
               <th>Items</th>
               <th>Date</th>
               <th>Amount</th>
-              <th>Payment</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody id="recentSalesTbody">
-            <tr><td colspan="6" style="text-align:center;color:var(--dash-text-muted);padding:20px;">Loading...</td></tr>
+            <tr><td colspan="7" style="text-align:center;color:var(--dash-text-muted);padding:20px;">Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -827,26 +828,36 @@ async function loadRecentSales() {
     const res = await fetch(API + 'inventory_sales.php?action=list&limit=6');
     const result = await res.json();
     if (!result.success || !result.data?.length) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--dash-text-muted);padding:20px;">No sales found</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--dash-text-muted);padding:20px;">No sales found</td></tr>`;
       return;
     }
     const sales = result.data.slice(0, 6);
     subtitle.textContent = `Showing ${sales.length} latest transactions`;
     tbody.innerHTML = sales.map(s => {
       const date = s.sale_date ? new Date(s.sale_date).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
-      const cashier = s.cashier_name || s.staff_name || 'Staff';
+      const cashierName = s.staff_first_name && s.staff_last_name 
+        ? `${s.staff_first_name} ${s.staff_last_name}` 
+        : (s.staff_name || s.cashier_name || 'Staff');
+      const customerName = s.customer_name || 'Walk-in';
       const hasPhoto = s.profile_photo_url && s.profile_photo_url.trim() !== '';
       const photoUrl = hasPhoto ? normalizeProfilePhotoUrl(s.profile_photo_url) : DEFAULT_PROFILE_PATH;
+      
+      // Status badge styling
+      const statusColor = s.payment_status === 'paid' ? '#d1fae5' : '#fef3c7';
+      const statusTextColor = s.payment_status === 'paid' ? '#059669' : '#d97706';
+      const statusLabel = (s.payment_status || 'paid').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      
       return `<tr>
-        <td class="mono">#${String(s.sale_id || s.id || '').slice(-6).padStart(6,'0')}</td>
-        <td><div style="display:flex;align-items:center;gap:8px;"><img src="${photoUrl}" alt="" class="customer-avatar" style="object-fit:cover;" ${hasPhoto ? `onerror="this.src='${DEFAULT_PROFILE_PATH}'"` : ''}>${cashier}</div></td>
-        <td>${s.item_count || s.total_items || '—'} items</td>
+        <td class="mono">#${String(s.sale_number || s.sale_id || '').slice(-8).toUpperCase()}</td>
+        <td><div style="display:flex;align-items:center;gap:8px;"><img src="${photoUrl}" alt="" class="customer-avatar" style="object-fit:cover;" onerror="this.src='${DEFAULT_PROFILE_PATH}'">${cashierName}</div></td>
+        <td>${customerName}</td>
+        <td>${s.item_count || 0} items</td>
         <td>${date}</td>
         <td class="mono">${fmt(s.total_amount)}</td>
-        <td><span class="order-status delivered" style="background:#d1fae5;color:#059669;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;">${(s.payment_method || 'cash').replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase())}</span></td>
+        <td><span class="order-status delivered" style="background:${statusColor};color:${statusTextColor};padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;">${statusLabel}</span></td>
       </tr>`;
     }).join('');
-  } catch(e) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--dash-text-muted);">Error loading data</td></tr>`; }
+  } catch(e) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--dash-text-muted);">Error loading data</td></tr>`; }
 }
 
 /* ── STOCK MOVEMENTS ── */

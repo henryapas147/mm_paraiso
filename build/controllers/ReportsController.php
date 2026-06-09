@@ -38,4 +38,9 @@ class ReportsController extends Controller
     {
         $this->view('reports/financial');
     }
+
+    public function posSales()
+    {
+        $this->view('reports/pos_sales');
+    }
 }

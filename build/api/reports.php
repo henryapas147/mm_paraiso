@@ -13,13 +13,23 @@ try {
       switch ($action) {
         // Dashboard Summary Endpoints
         case 'revenue_summary':
-          // Today's revenue
+          // Today's revenue (reservations + POS)
           $stmt = $pdo->query("SELECT COALESCE(SUM(p.amount), 0) as today FROM payments p WHERE DATE(p.payment_date) = CURDATE() AND p.payment_status IN ('paid', 'partial')");
-          $today = $stmt->fetchColumn();
+          $reservationsToday = $stmt->fetchColumn();
 
-          // Month revenue
+          $stmt = $pdo->query("SELECT COALESCE(SUM(isale.total_amount), 0) as today FROM inventory_sales isale WHERE DATE(isale.sale_date) = CURDATE() AND isale.payment_status = 'paid'");
+          $posToday = $stmt->fetchColumn();
+
+          $today = $reservationsToday + $posToday;
+
+          // Month revenue (reservations + POS)
           $stmt = $pdo->query("SELECT COALESCE(SUM(p.amount), 0) as month FROM payments p WHERE MONTH(p.payment_date) = MONTH(CURDATE()) AND YEAR(p.payment_date) = YEAR(CURDATE()) AND p.payment_status IN ('paid', 'partial')");
-          $month = $stmt->fetchColumn();
+          $reservationsMonth = $stmt->fetchColumn();
+
+          $stmt = $pdo->query("SELECT COALESCE(SUM(isale.total_amount), 0) as month FROM inventory_sales isale WHERE MONTH(isale.sale_date) = MONTH(CURDATE()) AND YEAR(isale.sale_date) = YEAR(CURDATE()) AND isale.payment_status = 'paid'");
+          $posMonth = $stmt->fetchColumn();
+
+          $month = $reservationsMonth + $posMonth;
 
           echo json_encode(['success' => true, 'data' => ['today' => $today, 'month' => $month]]);
           break;
@@ -66,13 +76,43 @@ try {
         // Detailed Reports
         case 'revenue_daily':
           $days = $_GET['days'] ?? 30;
-          $stmt = $pdo->prepare("SELECT DATE(p.payment_date) as date, COALESCE(SUM(p.amount), 0) as revenue, COUNT(*) as transactions FROM payments p WHERE p.payment_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY) AND p.payment_status IN ('paid', 'partial') GROUP BY DATE(p.payment_date) ORDER BY date DESC");
-          $stmt->execute([$days]);
+          $stmt = $pdo->prepare("
+            SELECT date, COALESCE(SUM(revenue), 0) as revenue, COALESCE(SUM(transactions), 0) as transactions
+            FROM (
+              SELECT DATE(p.payment_date) as date, COALESCE(SUM(p.amount), 0) as revenue, COUNT(*) as transactions
+              FROM payments p
+              WHERE p.payment_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY) AND p.payment_status IN ('paid', 'partial')
+              GROUP BY DATE(p.payment_date)
+              UNION ALL
+              SELECT DATE(isale.sale_date) as date, COALESCE(SUM(isale.total_amount), 0) as revenue, COUNT(*) as transactions
+              FROM inventory_sales isale
+              WHERE isale.sale_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY) AND isale.payment_status = 'paid'
+              GROUP BY DATE(isale.sale_date)
+            ) combined
+            GROUP BY date
+            ORDER BY date DESC
+          ");
+          $stmt->execute([$days, $days]);
           echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
           break;
 
         case 'revenue_monthly':
-          $stmt = $pdo->query("SELECT DATE_FORMAT(p.payment_date, '%Y-%m') as month, COALESCE(SUM(p.amount), 0) as revenue, COUNT(*) as transactions FROM payments p WHERE p.payment_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) AND p.payment_status IN ('paid', 'partial') GROUP BY DATE_FORMAT(p.payment_date, '%Y-%m') ORDER BY month DESC");
+          $stmt = $pdo->query("
+            SELECT month, COALESCE(SUM(revenue), 0) as revenue, COALESCE(SUM(transactions), 0) as transactions
+            FROM (
+              SELECT DATE_FORMAT(p.payment_date, '%Y-%m') as month, COALESCE(SUM(p.amount), 0) as revenue, COUNT(*) as transactions
+              FROM payments p
+              WHERE p.payment_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) AND p.payment_status IN ('paid', 'partial')
+              GROUP BY DATE_FORMAT(p.payment_date, '%Y-%m')
+              UNION ALL
+              SELECT DATE_FORMAT(isale.sale_date, '%Y-%m') as month, COALESCE(SUM(isale.total_amount), 0) as revenue, COUNT(*) as transactions
+              FROM inventory_sales isale
+              WHERE isale.sale_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) AND isale.payment_status = 'paid'
+              GROUP BY DATE_FORMAT(isale.sale_date, '%Y-%m')
+            ) combined
+            GROUP BY month
+            ORDER BY month DESC
+          ");
           echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
           break;
 
@@ -197,6 +237,89 @@ try {
             'net_profit' => $netProfit,
             'year' => $year,
             'period' => $period
+          ]]);
+          break;
+
+        case 'pos_report':
+          $dateFrom  = $_GET['date_from']         ?? date('Y-m-01');
+          $dateTo    = $_GET['date_to']            ?? date('Y-m-d');
+          $propId    = $_GET['property_id']        ?? '';
+          $pmId      = $_GET['payment_method_id']  ?? '';
+          $saleType  = $_GET['sale_type']          ?? '';
+
+          $where  = "WHERE isale.sale_date BETWEEN ? AND ? AND isale.payment_status = 'paid'";
+          $params = [$dateFrom, $dateTo];
+          if ($propId)   { $where .= " AND isale.property_id = ?";       $params[] = $propId; }
+          if ($pmId)     { $where .= " AND isale.payment_method_id = ?"; $params[] = $pmId; }
+          if ($saleType) { $where .= " AND isale.sale_type = ?";         $params[] = $saleType; }
+
+          // Summary
+          $stmt = $pdo->prepare("
+            SELECT COUNT(*) AS total_transactions,
+              COALESCE(SUM(subtotal), 0)     AS total_subtotal,
+              COALESCE(SUM(tax_amount), 0)   AS total_tax,
+              COALESCE(SUM(total_amount), 0) AS total_sales,
+              COALESCE(AVG(total_amount), 0) AS avg_transaction
+            FROM inventory_sales isale $where
+          ");
+          $stmt->execute($params);
+          $summary = $stmt->fetch(PDO::FETCH_ASSOC);
+
+          // Daily trend
+          $stmt = $pdo->prepare("
+            SELECT isale.sale_date,
+              COUNT(*) AS transaction_count,
+              COALESCE(SUM(isale.total_amount), 0) AS total_sales
+            FROM inventory_sales isale $where
+            GROUP BY isale.sale_date ORDER BY isale.sale_date ASC
+          ");
+          $stmt->execute($params);
+          $dailyTrend = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+          // By payment method
+          $stmt = $pdo->prepare("
+            SELECT COALESCE(pm.method_label, 'Unknown') AS payment_method,
+              COUNT(*) AS transaction_count,
+              COALESCE(SUM(isale.total_amount), 0) AS total_amount
+            FROM inventory_sales isale
+            LEFT JOIN payment_methods pm ON isale.payment_method_id = pm.method_id
+            $where GROUP BY pm.method_label ORDER BY total_amount DESC
+          ");
+          $stmt->execute($params);
+          $byPayment = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+          // Top products
+          $stmt = $pdo->prepare("
+            SELECT p.product_name, p.product_code, u.uom_code,
+              COALESCE(SUM(isi.quantity), 0)    AS total_qty_sold,
+              COALESCE(SUM(isi.total_price), 0) AS total_revenue,
+              COUNT(DISTINCT isi.sale_id)        AS times_sold
+            FROM inventory_sale_items isi
+            INNER JOIN products p ON isi.product_id = p.product_id
+            INNER JOIN units_of_measure u ON isi.uom_id = u.uom_id
+            INNER JOIN inventory_sales isale ON isi.sale_id = isale.sale_id
+            $where
+            GROUP BY p.product_id, p.product_name, p.product_code, u.uom_code
+            ORDER BY total_revenue DESC LIMIT 20
+          ");
+          $stmt->execute($params);
+          $topProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+          // Recent sales
+          $stmt = $pdo->prepare("
+            SELECT isale.sale_number, isale.sale_date, isale.customer_name, isale.total_amount
+            FROM inventory_sales isale $where
+            ORDER BY isale.created_at DESC LIMIT 15
+          ");
+          $stmt->execute($params);
+          $recentSales = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+          echo json_encode(['success' => true, 'data' => [
+            'summary'      => $summary,
+            'daily_trend'  => $dailyTrend,
+            'by_payment'   => $byPayment,
+            'top_products' => $topProducts,
+            'recent_sales' => $recentSales,
           ]]);
           break;
 

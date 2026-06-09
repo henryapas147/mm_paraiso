@@ -11,15 +11,26 @@ try {
     case 'GET':
       requirePermission('inventory.view');
       if ($action === 'list') {
-        $stmt = $pdo->query("
-          SELECT isale.*, p.property_name, pm.method_label as payment_method_name, up.profile_photo_url
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
+        $stmt = $pdo->prepare("
+          SELECT 
+            isale.*, 
+            p.property_name, 
+            pm.method_label as payment_method_name, 
+            up.profile_photo_url,
+            up.first_name as staff_first_name,
+            up.last_name as staff_last_name,
+            CONCAT(COALESCE(up.first_name, ''), ' ', COALESCE(up.last_name, '')) as staff_name,
+            (SELECT COUNT(*) FROM inventory_sale_items isi WHERE isi.sale_id = isale.sale_id) as item_count
           FROM inventory_sales isale
           LEFT JOIN properties p ON isale.property_id = p.property_id
           LEFT JOIN payment_methods pm ON isale.payment_method_id = pm.method_id
           LEFT JOIN user_accounts ua ON isale.staff_member_id = ua.user_id OR isale.created_by = ua.user_id
           LEFT JOIN user_profiles up ON ua.user_id = up.user_id
           ORDER BY isale.sale_date DESC, isale.created_at DESC
+          LIMIT ?
         ");
+        $stmt->execute([$limit]);
         echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
       } elseif ($action === 'related') {
         $properties = $pdo->query("SELECT property_id, property_name FROM properties WHERE is_active = 1 ORDER BY property_name ASC")->fetchAll(PDO::FETCH_ASSOC);
@@ -92,7 +103,7 @@ try {
             sale_id, sale_number, property_id, sale_date, sale_type,
             customer_name, subtotal, tax_amount, total_amount,
             payment_method_id, payment_status, notes, staff_member_id, created_by
-          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         ");
         
         // Get payment_method_id from name or use provided ID

@@ -280,6 +280,13 @@
     font-size: 14px;
     font-weight: 600;
     margin-right: 10px;
+    overflow: hidden;
+  }
+
+  .txn-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   .txn-name-primary {
@@ -540,6 +547,26 @@
   let locationsData = [];
   let uomsData = [];
 
+  // Normalize product image URL for display (uses relative paths)
+  function normalizeProductImageUrl(url) {
+    if (!url) return null;
+
+    // If it's already an absolute URL (http/https), use as-is
+    if (url.startsWith('http')) return url;
+
+    // Extract filename from various path formats
+    const filename = url.split('/').pop();
+
+    // Return relative path from build/views/inventory/ to uploads/products/
+    // build/views/inventory/ -> ../../uploads/products/filename
+    return '../../uploads/products/' + filename;
+  }
+
+  function getInitials(name) {
+    if (!name) return '?';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  }
+
   async function fetchTransactions() {
     try {
       const res = await fetch('../api/stock_transactions.php?action=list');
@@ -676,7 +703,7 @@
         <td><span class="txn-name-primary">${typeLabel}</span></td>
         <td>
           <div class="txn-name-cell">
-            <div class="txn-avatar"><i class="fas fa-box"></i></div>
+            <div class="txn-avatar">${txn.product_image_url ? `<img src="${normalizeProductImageUrl(txn.product_image_url)}" alt="${txn.product_name}" loading="lazy" onerror="this.parentElement.innerHTML='${getInitials(txn.product_name)}'">` : getInitials(txn.product_name)}</div>
             <div>
               <div class="txn-name-primary">${txn.product_name}</div>
             </div>

@@ -61,6 +61,12 @@ SOURCE 11_add_company_geocode_constraints.sql;
 -- Step 13 — Migrations
 SOURCE migrations/add_paid_to_payment_status.sql;
 
+-- Step 14 — User 2FA Table
+SOURCE migrations/add_user_2fa_table.sql;
+
+-- Step 15 — User Payment Methods Table
+SOURCE migrations/add_user_payment_methods_table.sql;
+
 -- ============================================================================
 -- FINAL VERIFICATION
 -- ============================================================================

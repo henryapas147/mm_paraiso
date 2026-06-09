@@ -27,13 +27,15 @@
 
   /* ── Page Shell ─────────────────────────────────────── */
   .prod-page {
-    padding: 28px 28px 40px;
-    max-width: 100%;
+    padding: 28px 32px 40px;
+    max-width: 1600px;
+    width: 100%;
     margin: 0 auto;
     background: var(--color-background-tertiary, #F4F5F7);
     min-height: 100%;
     border-radius: var(--border-radius-xl, 18px);
     font-family: var(--prod-font);
+    box-sizing: border-box;
   }
 
   /* ── Header ─────────────────────────────────────────── */
@@ -75,8 +77,8 @@
   /* ── Stat Cards ──────────────────────────────────────── */
   .prod-stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
     margin-bottom: 24px;
   }
 
@@ -165,7 +167,7 @@
   }
 
   .prod-stat-value {
-    font-size: 32px;
+    font-size: clamp(24px, 2vw, 36px);
     font-weight: 600;
     color: var(--color-text-primary);
     letter-spacing: -.5px;
@@ -204,8 +206,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
+    gap: 16px;
     background: var(--color-background-primary, #fff);
   }
 
@@ -229,7 +230,9 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    flex-wrap: wrap;
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: flex-end;
   }
 
   .prod-toolbar-left,
@@ -237,13 +240,14 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0;
   }
 
   .prod-toolbar-center {
     display: flex;
     align-items: center;
     flex: 1 1 auto;
-    min-width: 300px;
+    min-width: 0;
   }
 
   .prod-search-wrap {
@@ -268,7 +272,7 @@
     background: var(--color-background-secondary, #F8FAFC);
     color: var(--color-text-primary);
     outline: none;
-    width: 230px;
+    width: 200px;
     font-family: var(--prod-font);
     transition: border-color .15s, box-shadow .15s;
   }
@@ -289,14 +293,13 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     width: 100%;
   }
 
   .prod-filter-item {
-    flex: 1 1 auto;
-    min-width: 120px;
-    max-width: 160px;
+    flex: 1 1 0;
+    min-width: 100px;
   }
 
   .prod-filter-select {
@@ -1288,33 +1291,29 @@
     align-items: center;
   }
 
-  /* Responsive */
   /* ── Responsive ───────────────────────────────────────── */
   @media (max-width: 1400px) {
     .prod-page { padding: 24px 24px 36px; }
-    .prod-search-input { width: 200px; }
+    .prod-search-input { width: 180px; }
   }
 
   @media (max-width: 1200px) {
     .prod-page { padding: 20px 20px 32px; }
-    .prod-page-header { flex-direction: column; align-items: flex-start; }
-    .prod-toolbar { width: 100%; flex-wrap: wrap; gap: 10px; }
-    .prod-toolbar-center { min-width: 250px; flex: 1 1 auto; }
-    .prod-filter-item { min-width: 100px; max-width: 140px; }
-    .prod-search-input { width: 180px; }
+    .prod-filter-item { min-width: 90px; }
+    .prod-search-input { width: 160px; }
     .prod-btn { padding: 7px 14px; font-size: 12px; }
   }
 
   @media (max-width: 1024px) {
     .prod-page { padding: 18px 18px 28px; }
     .prod-stats-grid { grid-template-columns: repeat(2, 1fr); }
-    .prod-card-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .prod-card-header { flex-direction: column; align-items: stretch; gap: 12px; }
     .prod-toolbar { width: 100%; flex-wrap: wrap; gap: 10px; justify-content: space-between; }
     .prod-toolbar-left { order: 1; }
-    .prod-toolbar-center { order: 3; width: 100%; min-width: unset; }
+    .prod-toolbar-center { order: 3; width: 100%; }
     .prod-toolbar-right { order: 2; flex: 1 1 auto; justify-content: flex-end; }
-    .prod-filter-bar { gap: 8px; }
-    .prod-filter-item { flex: 1 1 calc(25% - 8px); min-width: 120px; max-width: none; }
+    .prod-filter-bar { flex-wrap: wrap; gap: 8px; }
+    .prod-filter-item { flex: 1 1 calc(25% - 8px); min-width: 100px; }
     .prod-search-wrap { min-width: 200px; }
     .prod-search-input { width: 100%; }
     .prod-table th:nth-child(4),
@@ -1573,10 +1572,11 @@
             <input type="text" class="prod-search-input" id="searchInput" placeholder="Search products…" oninput="filterTable()">
           </div>
           <button class="prod-btn prod-btn-primary" onclick="openAddProductModal()">
-          <i class="fas fa-plus" aria-hidden="true"></i> Add Product
-        </button>
-      </div>
-    </div>
+            <i class="fas fa-plus" aria-hidden="true"></i> Add Product
+          </button>
+        </div>
+      </div><!-- /.prod-toolbar -->
+    </div><!-- /.prod-card-header -->
     <div class="prod-table-wrap">
       <table class="prod-table" id="productsTable">
         <thead>
@@ -2347,15 +2347,16 @@
           <div class="prod-name-secondary">${p.category_code || ''}</div>
         </td>
         <td>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span class="prod-stock-val">${parseFloat(p.stock_on_hand).toFixed(3)}</span>
-            <span class="prod-stock-uom">${p.uom_code || ''}</span>
-            <button onclick="openQuickStockAdjust('${p.product_id}', '${p.product_name}', ${p.stock_on_hand})" style="background:var(--prod-blue-pale);color:var(--prod-blue);border:none;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;font-weight:500">+/-</button>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-weight:500;font-size:13px">${parseFloat(p.stock_on_hand).toFixed(3)} ${p.uom_code || ''}</span>
+              <button onclick="openQuickStockAdjust('${p.product_id}', '${p.product_name.replace(/'/g, "\\'")}', ${p.stock_on_hand})" style="background:var(--prod-blue-pale);color:var(--prod-blue);border:none;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;font-weight:500;min-width:24px">+/-</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:11px;color:var(--color-text-secondary)">Cur: ${parseFloat(p.current_stock).toFixed(3)}</span>
+              ${isLow ? '<span class="prod-status-badge low" style="font-size:10px;padding:1px 6px">Low</span>' : ''}
+            </div>
           </div>
-          <div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px">
-            Current: ${parseFloat(p.current_stock).toFixed(3)} ${p.uom_code || ''}
-          </div>
-          ${isLow ? '<span class="prod-status-badge low" style="margin-top:4px;display:inline-block">Low Stock</span>' : ''}
         </td>
         <td>
           <span class="prod-price"><span class="prod-price-currency">PHP</span>${parseFloat(p.unit_cost).toFixed(2)}</span>

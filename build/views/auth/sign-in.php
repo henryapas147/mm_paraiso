@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/../../../vendor/autoload.php';
+use OTPHP\TOTP;
+
 // Track referrer if user came from pages directory
 if (!isset($_SESSION['auth_referrer']) && isset($_SERVER['HTTP_REFERER'])) {
     $referrer = $_SERVER['HTTP_REFERER'];
@@ -51,10 +54,126 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
     $error = 'Invalid request. Please refresh the page and try again.';
   } else {
-    $email = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $remember = isset($_POST['remember']);
-    $ipAddress = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    // Handle 2FA verification step
+    if (isset($_POST['step']) && $_POST['step'] === '2fa') {
+      $code = $_POST['2fa_code'] ?? '';
+      $ipAddress = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
+      if (empty($code)) {
+        $error = 'Please enter the 6-digit code from your authenticator app.';
+      } elseif (!isset($_SESSION['pending_login_user_id'])) {
+        $error = 'Session expired. Please sign in again.';
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit;
+      } else {
+        // Verify 2FA code using the 2fa API
+        $userId = $_SESSION['pending_login_user_id'];
+
+        $stmt = $pdo->prepare("SELECT secret, backup_codes FROM user_2fa WHERE user_id = ? AND enabled = 1");
+        $stmt->execute([$userId]);
+        $twoFactorData = $stmt->fetch();
+
+        if (!$twoFactorData) {
+          $error = '2FA data not found. Please sign in again.';
+          unset($_SESSION['pending_login_user_id']);
+          header('Location: ' . $_SERVER['PHP_SELF']);
+          exit;
+        }
+
+        // Check backup codes first
+        $backupCodes = json_decode($twoFactorData['backup_codes'] ?? '[]', true);
+        if (in_array($code, $backupCodes)) {
+          // Remove used backup code
+          $backupCodes = array_diff($backupCodes, [$code]);
+          $stmt = $pdo->prepare("UPDATE user_2fa SET backup_codes = ? WHERE user_id = ?");
+          $stmt->execute([json_encode(array_values($backupCodes)), $userId]);
+          $codeValid = true;
+        } else {
+          // Verify TOTP code (window=2 allows ±60s drift for clock differences)
+          $totp = TOTP::create($twoFactorData['secret']);
+          $codeValid = $totp->verify($code, null, 2);
+        }
+
+        if ($codeValid) {
+          // 2FA verified - complete login
+          $userId = $_SESSION['pending_login_user_id'];
+          $email = $_SESSION['pending_login_email'];
+          $roleCode = $_SESSION['pending_login_role_code'];
+          $roleLabel = $_SESSION['pending_login_role_label'];
+          $remember = $_SESSION['pending_login_remember'];
+          $ipAddress = $_SESSION['pending_login_ip'];
+
+          // Clear pending login data
+          unset($_SESSION['pending_login_user_id']);
+          unset($_SESSION['pending_login_email']);
+          unset($_SESSION['pending_login_role_code']);
+          unset($_SESSION['pending_login_role_label']);
+          unset($_SESSION['pending_login_remember']);
+          unset($_SESSION['pending_login_ip']);
+
+          // Regenerate session ID
+          session_regenerate_id(true);
+
+          // Set session variables
+          $_SESSION['user_id'] = $userId;
+          $_SESSION['email'] = $email;
+          $_SESSION['role_code'] = $roleCode;
+          $_SESSION['role_label'] = $roleLabel;
+          $_SESSION['logged_in'] = true;
+          $_SESSION['last_activity'] = time();
+          $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+
+          // Store session in database
+          $sessionId = generateUUID();
+          $sessionToken = bin2hex(random_bytes(32));
+          $sessionTokenHash = hash('sha256', $sessionToken);
+          $sessionExpiresAt = date('Y-m-d H:i:s', strtotime('+2 hours'));
+
+          $sessionStmt = $pdo->prepare("
+            INSERT INTO user_sessions (session_id, user_id, token_hash, device_type, ip_address, expires_at, is_active)
+            VALUES (?, ?, ?, 'web', ?, ?, 1)
+          ");
+          $sessionStmt->execute([$sessionId, $userId, $sessionTokenHash, $ipAddress, $sessionExpiresAt]);
+          $_SESSION['session_id'] = $sessionId;
+
+          // Set remember me cookie if checked
+          if ($remember) {
+            $token = bin2hex(random_bytes(32));
+            $tokenHash = hash('sha256', $token);
+            $rememberExpiresAt = date('Y-m-d H:i:s', strtotime('+30 days'));
+
+            $rememberStmt = $pdo->prepare("
+              INSERT INTO user_sessions (session_id, user_id, token_hash, device_type, ip_address, expires_at, is_active)
+              VALUES (?, ?, ?, 'web', ?, ?, 1)
+            ");
+            $rememberStmt->execute([generateUUID(), $userId, $tokenHash, $ipAddress, $rememberExpiresAt]);
+
+            setcookie('remember_token', $token, strtotime('+30 days'), '/', '', true, true);
+          }
+
+          // Redirect based on role
+          if (isset($_SESSION['last_visited_url'])) {
+            $redirectUrl = $_SESSION['last_visited_url'];
+            unset($_SESSION['last_visited_url']);
+          } elseif (isset($_SESSION['auth_referrer']) && $_SESSION['auth_referrer'] === 'pages') {
+            unset($_SESSION['auth_referrer']);
+            $redirectUrl = './customer/dashboard';
+          } else {
+            $redirectUrl = ($roleCode === 'customer') ? './customer/dashboard' : './';
+          }
+
+          header('Location: ' . $redirectUrl);
+          exit;
+        } else {
+          $error = 'Invalid verification code. Please try again.';
+        }
+      }
+    } else {
+      // Regular login flow
+      $email = trim($_POST['email'] ?? '');
+      $password = $_POST['password'] ?? '';
+      $remember = isset($_POST['remember']);
+      $ipAddress = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
     if (empty($email) || empty($password)) {
       $error = 'Please enter both email and password.';
@@ -139,7 +258,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               $error = "Invalid email or password. {$attemptsLeft} attempts remaining.";
             }
           } else {
-            // Successful login - reset failed count and update last login
+            // Successful password verification - check if 2FA is enabled
             $updateStmt = $pdo->prepare("
                             UPDATE user_accounts
                             SET failed_login_count = 0, locked_until = NULL,
@@ -148,6 +267,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ");
             $updateStmt->execute([$ipAddress, $user['user_id']]);
 
+            // Check if 2FA is enabled for this user
+            $stmt2fa = $pdo->prepare("SELECT enabled FROM user_2fa WHERE user_id = ?");
+            $stmt2fa->execute([$user['user_id']]);
+            $twoFactor = $stmt2fa->fetch();
+
+            if ($twoFactor && $twoFactor['enabled'] == 1) {
+              // 2FA is enabled - store temp user data and show 2FA form
+              $_SESSION['pending_login_user_id'] = $user['user_id'];
+              $_SESSION['pending_login_email'] = $user['email'];
+              $_SESSION['pending_login_role_code'] = $user['role_code'];
+              $_SESSION['pending_login_role_label'] = $user['role_label'];
+              $_SESSION['pending_login_remember'] = $remember;
+              $_SESSION['pending_login_ip'] = $ipAddress;
+              header('Location: ' . $_SERVER['PHP_SELF'] . '?step=2fa');
+              exit;
+            }
+
+            // 2FA not enabled - proceed with normal login
             // Regenerate session ID to prevent session fixation
             session_regenerate_id(true);
 
@@ -229,6 +366,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           $error = 'An error occurred. Please try again later. Error: ' . $e->getMessage();
         }
       }
+    }
     }
   }
 }
@@ -324,6 +462,92 @@ $page_title = 'Sign In'; ?>
                     </div>
                   <?php endif; ?>
 
+                  <?php if (isset($_GET['step']) && $_GET['step'] === '2fa' && isset($_SESSION['pending_login_user_id'])): ?>
+                    <!-- 2FA Verification Form -->
+                    <div class="text-center mb-6">
+                      <div class="inline-flex items-center justify-center w-16 h-16 mb-4 bg-indigo-100 rounded-full">
+                        <i class="ni ni-key-25 text-2xl text-indigo-600"></i>
+                      </div>
+                      <h4 class="font-bold text-lg mb-2">Two-Factor Authentication</h4>
+                      <p class="text-sm text-slate-500">Enter the 6-digit code from your authenticator app</p>
+
+                      <!-- TOTP countdown timer (synced to server time) -->
+                      <div class="flex items-center justify-center gap-2 mt-3">
+                        <svg id="timerCircle" viewBox="0 0 36 36" class="w-10 h-10 -rotate-90">
+                          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" stroke-width="3"/>
+                          <circle id="timerArc" cx="18" cy="18" r="15.9" fill="none" stroke="#6366f1" stroke-width="3"
+                            stroke-dasharray="100 100" stroke-linecap="round"/>
+                        </svg>
+                        <span class="text-sm text-slate-500">Code refreshes in <span id="timerSeconds" class="font-semibold text-indigo-600">30</span>s</span>
+                      </div>
+                      <p class="text-xs text-slate-400 mt-1">Codes from the previous and next 60 seconds are also accepted.</p>
+                    </div>
+
+                    <form role="form" method="POST" action="" id="2faForm">
+                      <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
+                      <input type="hidden" name="step" value="2fa">
+
+                      <div class="mb-4">
+                        <label class="block mb-2 text-sm font-medium text-slate-700">Verification Code</label>
+                        <input type="text" name="2fa_code" id="2fa_code_input" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required
+                          autocomplete="one-time-code"
+                          class="w-full px-4 py-3 text-center text-lg tracking-widest border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          style="letter-spacing: 0.5em;">
+                        <p id="codeExpiredWarning" class="hidden mt-2 text-xs text-amber-600 text-center">⚠ Code has refreshed — please enter the new code from your app.</p>
+                      </div>
+
+                      <div class="text-center mb-4">
+                        <button type="submit" class="w-full px-6 py-3 font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
+                          Verify & Sign In
+                        </button>
+                      </div>
+
+                      <div class="text-center">
+                        <a href="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" class="text-sm text-slate-500 hover:text-slate-700">
+                          Cancel and return to sign in
+                        </a>
+                      </div>
+                    </form>
+
+                    <script>
+                      (function () {
+                        const arcEl      = document.getElementById('timerArc');
+                        const secEl      = document.getElementById('timerSeconds');
+                        const warnEl     = document.getElementById('codeExpiredWarning');
+                        const codeInput  = document.getElementById('2fa_code_input');
+                        const PERIOD     = 30;
+                        // Anchor to PHP server time to avoid browser clock drift
+                        const serverNow  = <?php echo time(); ?>;
+                        const clientNow  = Math.floor(Date.now() / 1000);
+                        const offset     = serverNow - clientNow;
+
+                        function update() {
+                          const now       = Math.floor(Date.now() / 1000) + offset;
+                          const elapsed   = now % PERIOD;
+                          const remaining = PERIOD - elapsed;
+                          const pct       = (remaining / PERIOD) * 100;
+
+                          secEl.textContent = remaining;
+                          arcEl.setAttribute('stroke-dasharray', pct.toFixed(1) + ' 100');
+                          arcEl.setAttribute('stroke', remaining <= 5 ? '#ef4444' : '#6366f1');
+                          secEl.style.color = remaining <= 5 ? '#ef4444' : '';
+
+                          // Warn when a new cycle starts while user has typed a code
+                          if (elapsed === 0 && codeInput.value.length > 0) {
+                            warnEl.classList.remove('hidden');
+                          }
+                        }
+
+                        update();
+                        setInterval(update, 1000);
+
+                        codeInput.addEventListener('input', function () {
+                          warnEl.classList.add('hidden');
+                        });
+                      })();
+                    </script>
+                  <?php else: ?>
+
                   <!-- Loading Spinner -->
                   <div id="loadingSpinner" class="hidden text-center py-8">
                     <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent"></div>
@@ -349,6 +573,7 @@ $page_title = 'Sign In'; ?>
                       </div>
                     </form>
                   </div>
+                  <?php endif; ?>
                 </div>
                 <div class="border-black/12.5 rounded-b-2xl border-t-0 border-solid p-6 text-center pt-0 px-1 sm:px-6">
                   <p class="mx-auto mb-6 leading-normal text-sm">Don't have an account? <a href="sign-up" class="font-semibold text-transparent bg-clip-text bg-gradient-to-tl from-blue-500 to-violet-500">Sign up</a></p>
@@ -371,7 +596,8 @@ $page_title = 'Sign In'; ?>
 </body>
 
 <script>
-  document.getElementById('loginForm').addEventListener('submit', function(e) {
+  const loginForm = document.getElementById('loginForm');
+  if (loginForm) loginForm.addEventListener('submit', function(e) {
     // Show loading spinner
     document.getElementById('loadingSpinner').classList.remove('hidden');
     // Hide form content

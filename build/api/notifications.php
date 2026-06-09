@@ -6,6 +6,48 @@ applyAuthMiddleware();
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
 
+/**
+ * Check if user has enabled a specific notification preference
+ *
+ * @param PDO $pdo Database connection
+ * @param string $userId User ID
+ * @param string $settingKey Setting key (e.g., 'push_notifications')
+ * @return bool True if setting is enabled or not found (default to enabled)
+ */
+function getUserNotificationPreference($pdo, $userId, $settingKey) {
+    if (!$pdo || !$userId) {
+        return true; // Default to enabled if no DB connection or no user ID
+    }
+
+    try {
+        $stmt = $pdo->prepare("
+            SELECT setting_value, setting_type
+            FROM user_settings
+            WHERE user_id = ? AND setting_key = ?
+        ");
+        $stmt->execute([$userId, $settingKey]);
+        $setting = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$setting) {
+            return true; // Default to enabled if setting not found
+        }
+
+        // Convert based on type
+        $value = $setting['setting_value'];
+        switch ($setting['setting_type']) {
+            case 'boolean':
+                return (bool) $value;
+            case 'integer':
+                return (int) $value === 1;
+            default:
+                return (string) $value === '1' || (string) $value === 'true';
+        }
+    } catch (Exception $e) {
+        error_log('Failed to check user notification preference: ' . $e->getMessage());
+        return true; // Default to enabled on error
+    }
+}
+
 try {
   switch ($method) {
     case 'GET':
@@ -87,7 +129,7 @@ try {
 
       } elseif ($action === 'my-notifications') {
         $userId = $_SESSION['user_id'] ?? null;
-        
+
         // Get user role to filter notifications appropriately
         $userRole = null;
         if ($userId) {
@@ -95,21 +137,21 @@ try {
           $stmt->execute([$userId]);
           $userRole = $stmt->fetchColumn();
         }
-        
+
         // Debug: Log session user_id and role
         error_log("my-notifications: Session user_id = " . ($userId ?: 'NULL') . ", role = " . ($userRole ?: 'NULL'));
-        
+
         if (!$userId) {
           echo json_encode(['success' => false, 'message' => 'Not authenticated', 'debug_session_user_id' => $userId]);
           break;
         }
 
         $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
-        
+
         // Filter by user role: only staff roles should see admin notifications
         $staffRoles = ['super_admin', 'admin', 'front_desk', 'housekeeping', 'canteen_staff', 'security'];
         $isStaff = in_array($userRole, $staffRoles);
-        
+
         if (!$isStaff) {
           // Customers should not see admin notifications
           echo json_encode([
@@ -122,16 +164,33 @@ try {
           ]);
           break;
         }
-        
-        $sql = "SELECT n.*, p.property_name 
-                FROM notifications n 
-                LEFT JOIN properties p ON n.property_id = p.property_id 
-                LEFT JOIN notification_recipients nr ON n.notif_id = nr.notif_id 
-                WHERE nr.user_id = ? 
+
+        // Check user notification preferences
+        $inAppEnabled = getUserNotificationPreference($pdo, $userId, 'in_app_notifications');
+
+        if (!$inAppEnabled) {
+          // User has disabled in-app notifications
+          echo json_encode([
+            'success' => true,
+            'data' => [],
+            'unread_count' => 0,
+            'debug_user_id' => $userId,
+            'debug_role' => $userRole,
+            'debug_is_staff' => $isStaff,
+            'debug_in_app_disabled' => true
+          ]);
+          break;
+        }
+
+        $sql = "SELECT n.*, p.property_name
+                FROM notifications n
+                LEFT JOIN properties p ON n.property_id = p.property_id
+                LEFT JOIN notification_recipients nr ON n.notif_id = nr.notif_id
+                WHERE nr.user_id = ?
                 AND n.status IN ('sent', 'delivered')
-                ORDER BY n.created_at DESC 
+                ORDER BY n.created_at DESC
                 LIMIT ?";
-        
+
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$userId, $limit]);
         $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);

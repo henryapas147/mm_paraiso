@@ -143,18 +143,18 @@ function customerGetActiveAttribute($route, $current_url)
     /* ── Active state ───────────────────────────────────── */
     #customerSidebar [data-active="true"],
     #customerSidebar .bg-blue-500\/13 {
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%) !important;
-        color: #4338ca !important;
+        background: var(--sidebar-active-bg, linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%)) !important;
+        color: var(--sidebar-active-color, #4338ca) !important;
         font-weight: 600 !important;
-        box-shadow: inset 3px 0 0 #6366f1, 0 2px 8px rgba(99, 102, 241, 0.12);
+        box-shadow: var(--sidebar-active-shadow, inset 3px 0 0 #6366f1, 0 2px 8px rgba(99, 102, 241, 0.12));
         border-radius: 10px !important;
     }
 
     .dark #customerSidebar [data-active="true"],
     .dark #customerSidebar .bg-blue-500\/13 {
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.12) 100%) !important;
-        color: #a5b4fc !important;
-        box-shadow: inset 3px 0 0 #818cf8, 0 2px 8px rgba(99, 102, 241, 0.2);
+        background: var(--sidebar-active-bg-dark, linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.12) 100%)) !important;
+        color: var(--sidebar-active-color-dark, #a5b4fc) !important;
+        box-shadow: var(--sidebar-active-shadow-dark, inset 3px 0 0 #818cf8, 0 2px 8px rgba(99, 102, 241, 0.2));
     }
 
     /* ── Icon containers ────────────────────────────────── */
@@ -312,16 +312,6 @@ function customerGetActiveAttribute($route, $current_url)
             </li>
 
             <li class="mt-0.5 w-full">
-                <?php $res_class = customerIsActive('customer/reservations', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700 rounded-lg' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg'; ?>
-                <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors <?php echo $res_class; ?>" href="<?php echo $base_url; ?>customer/reservations" <?php echo customerGetActiveAttribute('customer/reservations', $current_url); ?>>
-                    <span class="flex-shrink-0 flex h-8 w-8 items-center justify-center mr-2">
-                        <i class="text-sm leading-normal text-emerald-500 ni ni-calendar-grid-58"></i>
-                    </span>
-                    <span class="duration-300 opacity-100 pointer-events-none ease truncate">My Reservations</span>
-                </a>
-            </li>
-
-            <li class="mt-0.5 w-full">
                 <?php $food_class = customerIsActive('customer/food-orders', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700 rounded-lg' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg'; ?>
                 <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors <?php echo $food_class; ?>" href="<?php echo $base_url; ?>customer/food-orders" <?php echo customerGetActiveAttribute('customer/food-orders', $current_url); ?>>
                     <span class="flex-shrink-0 flex h-8 w-8 items-center justify-center mr-2">
@@ -351,7 +341,17 @@ function customerGetActiveAttribute($route, $current_url)
                 </a>
             </li>
 
+            
+
             <li class="mt-0.5 w-full">
+                <?php $res_class = customerIsActive('customer/reservations', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700 rounded-lg' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg'; ?>
+                <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors <?php echo $res_class; ?>" href="<?php echo $base_url; ?>customer/reservations" <?php echo customerGetActiveAttribute('customer/reservations', $current_url); ?>>
+                    <span class="flex-shrink-0 flex h-8 w-8 items-center justify-center mr-2">
+                        <i class="text-sm leading-normal text-emerald-500 ni ni-calendar-grid-58"></i>
+                    </span>
+                    <span class="duration-300 opacity-100 pointer-events-none ease truncate">My Reservations</span>
+                </a>
+            </li><li class="mt-0.5 w-full">
                 <a class="py-2.5 text-sm ease-nav-brand my-0 flex items-center px-3 transition-colors dark:text-white dark:opacity-80 hover:bg-emerald-50 dark:hover:bg-slate-700 rounded-lg" href="<?php echo rtrim(dirname(rtrim($base_url, '/')), '/'); ?>/pages/">
                     <span class="flex-shrink-0 flex h-8 w-8 items-center justify-center mr-2">
                         <i class="text-sm leading-normal text-emerald-500 ni ni-world"></i>

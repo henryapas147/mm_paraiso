@@ -511,6 +511,170 @@ $breadcrumb = getBreadcrumbInfo($current_route);
             min-width: 140px !important;
         }
     }
+
+    /* Search Results Dropdown Styles */
+    #searchResultsDropdown {
+        min-width: 320px;
+        animation: searchDropdownFadeIn 0.15s ease-out;
+        z-index: 9999 !important;
+    }
+
+    @keyframes searchDropdownFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .search-result-item {
+        display: flex;
+        align-items: center;
+        padding: 0.625rem 1rem;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .search-result-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .dark .search-result-item:hover {
+        background-color: #334155;
+    }
+
+    .search-result-icon {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+        flex-shrink: 0;
+    }
+
+    .search-result-icon.product {
+        background-color: #e9ecef;
+        color: #5e72e4;
+    }
+
+    .search-result-icon.reservation {
+        background-color: #d4edda;
+        color: #28a745;
+    }
+
+    .search-result-icon.room {
+        background-color: #fff3cd;
+        color: #fd7e14;
+    }
+
+    .search-result-icon.customer {
+        background-color: #f3e8ff;
+        color: #825ee4;
+    }
+
+    .search-result-icon.sidebar {
+        background-color: #e7f3ff;
+        color: #1171ef;
+    }
+
+    .search-result-icon .search-result-product-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 0.5rem;
+    }
+
+    .search-result-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .search-result-title {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #344767;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.5;
+    }
+
+    .dark .search-result-title {
+        color: #f3f4f6;
+    }
+
+    .search-result-subtitle {
+        font-size: 0.75rem;
+        color: #6c757d;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.5;
+    }
+
+    .dark .search-result-subtitle {
+        color: #adb5bd;
+    }
+
+    .search-result-type {
+        font-size: 0.625rem;
+        padding: 0.125rem 0.5rem;
+        border-radius: 0.75rem;
+        background-color: #e9ecef;
+        color: #495057;
+        text-transform: uppercase;
+        font-weight: 600;
+        flex-shrink: 0;
+        margin-left: 0.5rem;
+    }
+
+    .dark .search-result-type {
+        background-color: #495057;
+        color: #dee2e6;
+    }
+
+    .search-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.25rem;
+        color: #6c757d;
+    }
+
+    .search-no-results {
+        padding: 1.25rem;
+        text-align: center;
+        color: #6c757d;
+        font-size: 0.8125rem;
+    }
+
+    .search-section-header {
+        padding: 0.5rem 1rem;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #adb5bd;
+        letter-spacing: 0.5px;
+    }
+
+    #searchContainer {
+        position: relative;
+    }
+
+    #searchResultsDropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        margin-top: 0.5rem;
+    }
 </style>
 
 <nav class="navbar-enhanced relative flex flex-wrap items-center justify-between px-0 py-2 mx-6 transition-all ease-in shadow-none duration-250 rounded-2xl lg:flex-nowrap lg:justify-start" navbar-main navbar-scroll="false">
@@ -532,11 +696,21 @@ $breadcrumb = getBreadcrumbInfo($current_route);
 
         <div class="flex items-center mt-2 grow sm:mt-0 sm:mr-6 md:mr-0 lg:flex lg:basis-auto">
             <div class="flex items-center md:ml-auto md:pr-4">
-                <div class="relative flex flex-wrap items-stretch w-full transition-all rounded-lg ease">
+                <div class="relative flex flex-wrap items-stretch w-full transition-all rounded-lg ease" id="searchContainer">
                     <span class="text-sm ease leading-5.6 absolute z-50 -ml-px flex h-full items-center whitespace-nowrap rounded-lg rounded-tr-none rounded-br-none border border-r-0 border-transparent bg-transparent py-2 px-2.5 text-center font-normal text-slate-500 transition-all">
                         <i class="fas fa-search"></i>
                     </span>
-                    <input type="text" class="pl-9 text-sm focus:shadow-primary-outline ease w-1/100 leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" placeholder="Type here..." />
+                    <input type="text" id="globalSearchInput" class="pl-9 text-sm focus:shadow-primary-outline ease w-1/100 leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" placeholder="Search products, reservations, rooms..." autocomplete="off" />
+
+                    <!-- Search Results Dropdown -->
+                    <div id="searchResultsDropdown" class="hidden absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-850 rounded-lg shadow-xl border border-gray-200 dark:border-slate-700 z-50 max-h-96 overflow-y-auto">
+                        <div id="searchResultsContent" class="py-2">
+                            <!-- Results will be populated here -->
+                        </div>
+                        <div id="searchResultsFooter" class="hidden border-t border-gray-200 dark:border-slate-700 px-4 py-2 text-xs text-gray-500 dark:text-slate-400">
+                            <span id="searchResultsCount">0</span> results found
+                        </div>
+                    </div>
                 </div>
             </div>
             <ul class="flex flex-row justify-end pl-0 mb-0 list-none md-max:w-full">
@@ -859,6 +1033,401 @@ $breadcrumb = getBreadcrumbInfo($current_route);
                     window.location.href = logoutLink.href;
                 }, 500);
             });
+        }
+
+        // Global Search Functionality
+        const searchInput = document.getElementById('globalSearchInput');
+        const searchDropdown = document.getElementById('searchResultsDropdown');
+        const searchContent = document.getElementById('searchResultsContent');
+        const searchFooter = document.getElementById('searchResultsFooter');
+        const searchCount = document.getElementById('searchResultsCount');
+        let searchTimeout = null;
+        let currentSearchQuery = '';
+
+        if (searchInput) {
+            // Handle input with debounce
+            searchInput.addEventListener('input', function(e) {
+                const query = e.target.value.trim();
+
+                // Clear previous timeout
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
+                }
+
+                // Hide dropdown if query is empty
+                if (!query || query.length < 2) {
+                    searchDropdown.classList.add('hidden');
+                    return;
+                }
+
+                // Show loading state
+                searchContent.innerHTML = '<div class="search-loading"><i class="fas fa-circle-notch fa-spin mr-2"></i>Searching...</div>';
+                searchDropdown.classList.remove('hidden');
+                searchFooter.classList.add('hidden');
+
+                // Debounce search
+                searchTimeout = setTimeout(function() {
+                    performSearch(query);
+                }, 300);
+            });
+
+            // Handle keyboard navigation
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    searchDropdown.classList.add('hidden');
+                    searchInput.blur();
+                }
+            });
+
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                const searchContainer = document.getElementById('searchContainer');
+                if (searchContainer && !searchContainer.contains(e.target)) {
+                    searchDropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        async function performSearch(query) {
+            currentSearchQuery = query;
+            const normalizedQuery = query.toLowerCase().trim();
+
+            try {
+                // Calculate the correct API base path
+                const scriptPath = '<?php echo $base_url; ?>';
+                const apiBase = scriptPath.replace('/structure/', '/build/');
+
+                // Search across multiple endpoints and sidebar
+                const searchPromises = [
+                    searchProducts(apiBase, normalizedQuery),
+                    searchReservations(apiBase, normalizedQuery),
+                    searchRooms(apiBase, normalizedQuery),
+                    searchSidebar(normalizedQuery, apiBase)
+                ];
+
+                const results = await Promise.allSettled(searchPromises);
+                let allResults = [];
+
+                results.forEach((result, index) => {
+                    if (result.status === 'fulfilled' && result.value) {
+                        allResults.push(...result.value);
+                    }
+                });
+
+                // Score and sort results by relevance
+                allResults = scoreAndSortResults(allResults, normalizedQuery);
+
+                // Limit to top 15 results
+                const limitedResults = allResults.slice(0, 15);
+                renderSearchResults(limitedResults, allResults.length);
+
+            } catch (error) {
+                console.error('Search error:', error);
+                searchContent.innerHTML = '<div class="search-no-results"><i class="fas fa-exclamation-circle mr-2"></i>Error performing search</div>';
+                searchFooter.classList.add('hidden');
+            }
+        }
+
+        // Score results based on relevance to query
+        function scoreAndSortResults(results, query) {
+            return results.map(item => {
+                let score = 0;
+                const title = item.title.toLowerCase();
+                const subtitle = (item.subtitle || '').toLowerCase();
+
+                // Exact match gets highest score
+                if (title === query) score += 100;
+                // Starts with query gets high score
+                else if (title.startsWith(query)) score += 80;
+                // Contains query as whole word
+                else if (new RegExp(`\\b${query}\\b`).test(title)) score += 60;
+                // Contains query anywhere
+                else if (title.includes(query)) score += 40;
+                // Subtitle matches
+                if (subtitle.includes(query)) score += 20;
+
+                // Boost sidebar items slightly
+                if (item.type === 'sidebar') score += 5;
+
+                return { ...item, score };
+            }).sort((a, b) => b.score - a.score);
+        }
+
+        // Check if item matches query with fuzzy matching
+        function matchesQuery(item, query) {
+            const searchFields = [item.title, item.subtitle || ''].map(f => f.toLowerCase());
+
+            // Check for exact or partial match in any field
+            return searchFields.some(field => {
+                return field.includes(query) ||
+                       field.replace(/[^a-z0-9]/g, '').includes(query.replace(/[^a-z0-9]/g, ''));
+            });
+        }
+
+        async function searchProducts(apiBase, query) {
+            try {
+                const response = await fetch(`${apiBase}api/products.php?action=list&limit=100`);
+                const data = await response.json();
+
+                if (data.success && data.data && data.data.length > 0) {
+                    return data.data
+                        .filter(product => matchesQuery({
+                            title: product.product_name,
+                            subtitle: product.product_code
+                        }, query))
+                        .slice(0, 5)
+                        .map(product => ({
+                            type: 'product',
+                            title: product.product_name,
+                            subtitle: product.product_code || 'No code',
+                            url: `${apiBase}inventory/product`,
+                            icon: 'fa-box',
+                            id: product.product_id,
+                            imageUrl: product.product_image_url
+                        }));
+                }
+                return [];
+            } catch (e) {
+                console.error('Product search error:', e);
+                return [];
+            }
+        }
+
+        async function searchReservations(apiBase, query) {
+            try {
+                const response = await fetch(`${apiBase}api/reservations.php?action=list&limit=100`);
+                const data = await response.json();
+
+                if (data.success && data.data && data.data.length > 0) {
+                    return data.data
+                        .filter(reservation => matchesQuery({
+                            title: reservation.guest_name || reservation.customer_name || '',
+                            subtitle: String(reservation.reservation_id || reservation.id || '')
+                        }, query))
+                        .slice(0, 5)
+                        .map(reservation => ({
+                            type: 'reservation',
+                            title: reservation.guest_name || reservation.customer_name || 'Unknown Guest',
+                            subtitle: `Reservation #${reservation.reservation_id || reservation.id || 'N/A'}`,
+                            url: `${apiBase}reservations/reservations`,
+                            icon: 'fa-calendar-check',
+                            id: reservation.reservation_id || reservation.id
+                        }));
+                }
+                return [];
+            } catch (e) {
+                console.error('Reservation search error:', e);
+                return [];
+            }
+        }
+
+        async function searchRooms(apiBase, query) {
+            try {
+                const response = await fetch(`${apiBase}api/rooms.php?action=list&limit=100`);
+                const data = await response.json();
+
+                if (data.success && data.data && data.data.length > 0) {
+                    return data.data
+                        .filter(room => matchesQuery({
+                            title: room.room_name || room.room_number || '',
+                            subtitle: room.property_name || room.category_name || ''
+                        }, query))
+                        .slice(0, 5)
+                        .map(room => ({
+                            type: 'room',
+                            title: room.room_name || room.room_number || 'Unnamed Room',
+                            subtitle: room.property_name || room.category_name || 'No property',
+                            url: `${apiBase}properties-rooms/rooms`,
+                            icon: 'fa-door-open',
+                            id: room.room_id
+                        }));
+                }
+                return [];
+            } catch (e) {
+                console.error('Room search error:', e);
+                return [];
+            }
+        }
+
+        // Search sidebar menu items
+        function searchSidebar(query, apiBase) {
+            const sidebarItems = collectSidebarItems(apiBase);
+            return sidebarItems
+                .filter(item => matchesQuery(item, query))
+                .slice(0, 5)
+                .map(item => ({
+                    ...item,
+                    type: 'sidebar',
+                    icon: item.icon || 'fa-bars',
+                    subtitle: item.parent || 'Menu'
+                }));
+        }
+
+        // Collect all sidebar menu items
+        function collectSidebarItems(apiBase) {
+            const items = [];
+
+            // Main menu items
+            document.querySelectorAll('aside [data-active], aside a[href]').forEach(el => {
+                const link = el.tagName === 'A' ? el : el.querySelector('a');
+                if (!link) return;
+
+                const href = link.getAttribute('href');
+                if (!href || href === 'javascript:;' || href === '#') return;
+
+                const textEl = link.querySelector('.ease.truncate') || link.querySelector('span:last-child');
+                const title = textEl ? textEl.textContent.trim() : '';
+                const iconEl = link.querySelector('i');
+                const iconClass = iconEl ? iconEl.className.match(/fa-[^\s]+/) : 'fa-circle';
+
+                if (title) {
+                    items.push({
+                        title: title,
+                        url: href,
+                        icon: iconClass ? iconClass[0] : 'fa-circle',
+                        parent: findParentMenuName(link)
+                    });
+                }
+            });
+
+            // Dropdown items (submenu)
+            document.querySelectorAll('aside .pl-2 a[href]').forEach(link => {
+                const href = link.getAttribute('href');
+                if (!href || href === 'javascript:;' || href === '#') return;
+
+                const textEl = link.querySelector('.ease.truncate') || link.querySelector('span:last-child');
+                const title = textEl ? textEl.textContent.trim() : '';
+
+                if (title) {
+                    items.push({
+                        title: title,
+                        url: href,
+                        icon: 'fa-dot-circle',
+                        parent: findParentMenuName(link)
+                    });
+                }
+            });
+
+            return items;
+        }
+
+        // Find parent menu name for a submenu item
+        function findParentMenuName(element) {
+            const parentDiv = element.closest('.relative');
+            if (parentDiv) {
+                const parentBtn = parentDiv.querySelector('button');
+                if (parentBtn) {
+                    const parentText = parentBtn.querySelector('.ease.truncate');
+                    return parentText ? parentText.textContent.trim() : 'Menu';
+                }
+            }
+            return 'Menu';
+        }
+
+        function renderSearchResults(results, totalCount) {
+            if (results.length === 0) {
+                searchContent.innerHTML = '<div class="search-no-results"><i class="fas fa-search mr-2"></i>No results found</div>';
+                searchFooter.classList.add('hidden');
+                return;
+            }
+
+            // Group results by type
+            const grouped = results.reduce((acc, item) => {
+                if (!acc[item.type]) acc[item.type] = [];
+                acc[item.type].push(item);
+                return acc;
+            }, {});
+
+            let html = '';
+            const typeLabels = {
+                product: 'Products',
+                reservation: 'Reservations',
+                room: 'Rooms',
+                sidebar: 'Menu Items'
+            };
+
+            Object.keys(grouped).forEach(type => {
+                const items = grouped[type];
+                html += `<div class="search-section-header">${typeLabels[type] || type}</div>`;
+
+                items.forEach(item => {
+                    // Generate icon/image HTML
+                    let iconHtml = '';
+                    if (item.type === 'product' && item.imageUrl) {
+                        const normalizedImageUrl = normalizeSearchImageUrl(item.imageUrl);
+                        iconHtml = `<img src="${normalizedImageUrl}" alt="${escapeHtml(item.title)}" class="search-result-product-img" onerror="this.onerror=null;this.parentElement.innerHTML='<i class=\\'fas fa-box\\'></i>';this.parentElement.classList.add('product');">`;
+                    } else {
+                        iconHtml = `<i class="fas ${item.icon}"></i>`;
+                    }
+
+                    html += `
+                        <a href="${item.url}" class="search-result-item" data-id="${item.id}" data-type="${item.type}">
+                            <div class="search-result-icon ${item.type}">
+                                ${iconHtml}
+                            </div>
+                            <div class="search-result-content">
+                                <div class="search-result-title">${escapeHtml(item.title)}</div>
+                                <div class="search-result-subtitle">${escapeHtml(item.subtitle)}</div>
+                            </div>
+                            <span class="search-result-type">${item.type}</span>
+                        </a>
+                    `;
+                });
+            });
+
+            searchContent.innerHTML = html;
+
+            // Update footer with count
+            if (totalCount > results.length) {
+                searchCount.textContent = `Showing ${results.length} of ${totalCount}`;
+            } else {
+                searchCount.textContent = `${totalCount}`;
+            }
+            searchFooter.classList.remove('hidden');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Normalize product image URL for search results (dynamic path based on current URL)
+        function normalizeSearchImageUrl(url) {
+            if (!url) return null;
+
+            // If it's already an absolute URL (http/https), use as-is
+            if (url.startsWith('http')) return url;
+
+            // Extract filename from various path formats
+            const filename = url.split('/').pop();
+
+            // Calculate path to uploads based on current URL
+            const pathParts = window.location.pathname.split('/').filter(p => p);
+
+            // Find the project root (folder containing 'build' or 'structure')
+            let projectRootIndex = pathParts.findIndex(p => p === 'build' || p === 'structure');
+            if (projectRootIndex === -1) {
+                projectRootIndex = pathParts.findIndex(p => p.includes('admin'));
+            }
+
+            let relativePath = '';
+            if (projectRootIndex > 0) {
+                // We're in a subfolder of the project (e.g., admin_booking/structure/)
+                // Go up from current location to project root
+                // pathParts.length - projectRootIndex - 1 gives us the depth from project root
+                const depthFromRoot = pathParts.length - projectRootIndex - 1;
+                relativePath = '../'.repeat(Math.max(1, depthFromRoot));
+            } else if (projectRootIndex === 0) {
+                // We're directly in build/ or structure/ folder
+                relativePath = '../';
+            } else {
+                // Fallback - assume we're at project root level
+                relativePath = '';
+            }
+
+            return `${relativePath}uploads/products/${filename}`;
         }
     });
 </script>

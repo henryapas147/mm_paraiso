@@ -119,6 +119,9 @@ $router->add('settings/notification-recipients', ['controller' => 'SettingsContr
 $router->add('settings/rbac-settings', ['controller' => 'SettingsController', 'action' => 'rbacSettings']);
 $router->add('settings/company', ['controller' => 'SettingsController', 'action' => 'company']);
 
+// Content Management
+$router->add('content-management/carousel', ['controller' => 'SettingsController', 'action' => 'carouselSlides']);
+
 // Users
 $router->add('users', ['controller' => 'UsersController', 'action' => 'index']);
 $router->add('users/create', ['controller' => 'UsersController', 'action' => 'create']);
@@ -143,6 +146,7 @@ $router->add('reports/inventory', ['controller' => 'ReportsController', 'action'
 $router->add('reports/customers', ['controller' => 'ReportsController', 'action' => 'customers']);
 $router->add('reports/food-canteen', ['controller' => 'ReportsController', 'action' => 'foodCanteen']);
 $router->add('reports/financial', ['controller' => 'ReportsController', 'action' => 'financial']);
+$router->add('reports/pos-sales', ['controller' => 'ReportsController', 'action' => 'posSales']);
 
 // Authentication
 $router->add('sign-in', ['controller' => 'AuthController', 'action' => 'signIn']);
