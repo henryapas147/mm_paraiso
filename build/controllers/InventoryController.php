@@ -71,14 +71,14 @@ class InventoryController extends Controller
         $this->view('inventory/stock_transfers');
     }
 
+    public function stockIn()
+    {
+        $this->view('inventory/stock_in');
+    }
+
     public function inventorySales()
     {
         $this->view('inventory/inventory_sales');
-    }
-
-    public function inventoryActions()
-    {
-        $this->view('inventory/inventory_actions');
     }
 
     public function pos()

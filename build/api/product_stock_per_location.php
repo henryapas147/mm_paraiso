@@ -11,23 +11,34 @@ try {
     case 'GET':
       requirePermission('inventory.view');
       if ($action === 'list') {
-        $stmt = $pdo->query("
+        $product_id_filter = $_GET['product_id'] ?? null;
+        $where = 'WHERE p.is_active = 1 AND il.is_active = 1';
+        $params = [];
+        if ($product_id_filter) {
+          $where .= ' AND psl.product_id = ?';
+          $params[] = $product_id_filter;
+        }
+        $stmt = $pdo->prepare("
           SELECT
             psl.*,
             p.product_name,
             p.product_code,
             p.current_stock AS total_stock,
             p.reorder_point,
+            u.uom_name,
+            u.uom_code,
             il.location_name,
             il.location_type,
             prop.property_name
           FROM product_stock_per_location psl
           INNER JOIN products p ON psl.product_id = p.product_id
+          LEFT JOIN units_of_measure u ON p.uom_id = u.uom_id
           INNER JOIN inventory_locations il ON psl.location_id = il.location_id
           INNER JOIN properties prop ON il.property_id = prop.property_id
-          WHERE p.is_active = 1 AND il.is_active = 1
+          $where
           ORDER BY prop.property_name ASC, il.location_name ASC, p.product_name ASC
         ");
+        $stmt->execute($params);
         echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
 
       } elseif ($action === 'related') {

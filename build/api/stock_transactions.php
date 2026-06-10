@@ -26,7 +26,7 @@ try {
           SELECT st.txn_id AS transaction_id,
                  st.product_id, p.product_name, p.product_code, p.product_image_url,
                  st.transaction_type, st.quantity, st.uom_id, u.uom_name,
-                 st.reference_type, st.reference_id,
+                 st.reference_type, st.reference_id, st.reference_number,
                  st.stock_before, st.stock_after,
                  st.notes,
                  st.transaction_date,

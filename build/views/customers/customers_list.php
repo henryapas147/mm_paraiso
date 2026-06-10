@@ -94,7 +94,13 @@
     background: #fff;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    overflow: hidden;
+    overflow: visible;
+  }
+
+  .table-scroll-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 0 0 12px 12px;
   }
 
   .table-header {
@@ -184,6 +190,7 @@
   /* Table */
   .data-table {
     width: 100%;
+    min-width: 680px;
     border-collapse: collapse;
     font-size: 14px;
   }
@@ -475,6 +482,91 @@
     gap: 8px;
     justify-content: flex-end;
     margin-top: 16px;
+  }
+
+  /* Pagination */
+  .table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-top: 1px solid #e2e8f0;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .entries-info {
+    font-size: 13px;
+    color: #64748b;
+  }
+
+  .entries-select-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #64748b;
+  }
+
+  .entries-select {
+    padding: 5px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 7px;
+    font-size: 13px;
+    outline: none;
+    background: #fff;
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .page-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 7px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #334155;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .15s;
+  }
+
+  .page-btn:hover:not(:disabled) {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+
+  .page-btn.active {
+    background: #334155;
+    color: #fff;
+    border-color: #334155;
+  }
+
+  .page-btn:disabled {
+    opacity: .4;
+    cursor: default;
+  }
+
+  /* Responsive */
+  .table-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  @media (min-width: 640px) {
+    .table-footer {
+      flex-direction: row;
+      align-items: center;
+    }
   }
 
   /* Responsive */
@@ -777,7 +869,7 @@
   <div class="table-header">
     <h6 class="page-title">Customers List</h6>
     <div class="controls-container">
-      <input type="text" id="searchInput" class="search-input" placeholder="Search customers..." onkeyup="filterTable()">
+      <input type="text" id="searchInput" class="search-input" placeholder="Search customers..." oninput="filterTable()">
       <select id="statusFilter" class="filter-select" onchange="filterTable()">
         <option value="">All Status</option>
         <option value="active">Active</option>
@@ -790,25 +882,41 @@
       </button>
     </div>
   </div>
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>Customer</th>
-        <th>Phone</th>
-        <th>City</th>
-        <th>Created</th>
-        <th>Status</th>
-        <th style="text-align: center;">Actions</th>
-      </tr>
-    </thead>
-    <tbody id="customersTableBody">
-      <tr>
-        <td colspan="6" class="empty-state">
-          <i class="fas fa-spinner fa-spin"></i> Loading customers...
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="table-scroll-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Phone</th>
+          <th>City</th>
+          <th>Created</th>
+          <th>Status</th>
+          <th style="text-align: center;">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="customersTableBody">
+        <tr>
+          <td colspan="6" class="empty-state">
+            <i class="fas fa-spinner fa-spin"></i> Loading customers...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="table-footer">
+    <div class="entries-select-wrap">
+      Show
+      <select id="entriesPerPage" class="entries-select" onchange="changeEntries()">
+        <option value="10">10</option>
+        <option value="25" selected>25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
+      entries
+    </div>
+    <div class="entries-info" id="entriesInfo"></div>
+    <div class="pagination" id="paginationControls"></div>
+  </div>
 </div>
 
 <!-- Cropper Modal -->
@@ -828,6 +936,9 @@
 <script>
   let csrfToken = "<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>";
   let customersData = [];
+  let filteredCustomers = [];
+  let currentPage = 1;
+  let entriesPerPage = 25;
   let croppedImageData = null;
   let currentPreviewId = null;
   let cropper = null;
@@ -886,6 +997,7 @@
       const json = await res.json();
       if (json.success) {
         customersData = json.data;
+        filteredCustomers = [...customersData];
         renderStats();
         renderTable();
       }
@@ -916,11 +1028,21 @@
 
   function renderTable() {
     const tbody = document.getElementById('customersTableBody');
-    if (!customersData.length) {
+    const total = filteredCustomers.length;
+
+    if (!total) {
       tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><i class="fas fa-inbox"></i><div>No customers found.</div></td></tr>`;
+      document.getElementById('entriesInfo').textContent = '';
+      document.getElementById('paginationControls').innerHTML = '';
       return;
     }
-    tbody.innerHTML = customersData.map(customer => {
+
+    const totalPages = Math.max(1, Math.ceil(total / entriesPerPage));
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage - 1) * entriesPerPage;
+    const pageRows = filteredCustomers.slice(start, start + entriesPerPage);
+
+    tbody.innerHTML = pageRows.map(customer => {
       const parts = [
         customer.barangay_name,
         customer.city_municipality_name,
@@ -974,6 +1096,36 @@
         </td>
       </tr>`;
     }).join('');
+
+    // Entries info
+    document.getElementById('entriesInfo').textContent =
+      `Showing ${start + 1}–${Math.min(start + entriesPerPage, total)} of ${total} entries`;
+
+    // Pagination controls
+    let pHtml = `<button class="page-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>`;
+    const maxVisible = 5;
+    let startP = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endP = Math.min(totalPages, startP + maxVisible - 1);
+    if (endP - startP < maxVisible - 1) startP = Math.max(1, endP - maxVisible + 1);
+    if (startP > 1) pHtml += `<button class="page-btn" onclick="goToPage(1)">1</button>${startP > 2 ? '<span style="padding:0 4px;color:#94a3b8">…</span>' : ''}`;
+    for (let i = startP; i <= endP; i++) {
+      pHtml += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+    }
+    if (endP < totalPages) pHtml += `${endP < totalPages - 1 ? '<span style="padding:0 4px;color:#94a3b8">…</span>' : ''}<button class="page-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+    pHtml += `<button class="page-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
+    document.getElementById('paginationControls').innerHTML = pHtml;
+  }
+
+  function goToPage(page) {
+    const totalPages = Math.max(1, Math.ceil(filteredCustomers.length / entriesPerPage));
+    currentPage = Math.max(1, Math.min(page, totalPages));
+    renderTable();
+  }
+
+  function changeEntries() {
+    entriesPerPage = parseInt(document.getElementById('entriesPerPage').value);
+    currentPage = 1;
+    renderTable();
   }
 
   /* ─── VIEW ────────────────────────────────────────────────────────────── */
@@ -1844,13 +1996,17 @@
     const search = document.getElementById('searchInput').value.toLowerCase();
     const status = document.getElementById('statusFilter').value;
 
-    document.querySelectorAll('#customersTableBody .customer-row').forEach(row => {
-      const text = row.textContent.toLowerCase();
-      const statusEl = row.querySelector('td:nth-child(5) span');
-      const rowStatus = statusEl ? statusEl.textContent.trim().toLowerCase() : '';
-
-      row.style.display = (text.includes(search) && (!status || rowStatus === status)) ? '' : 'none';
+    filteredCustomers = customersData.filter(c => {
+      const fullName = `${c.first_name || ''} ${c.last_name || ''}`.toLowerCase();
+      const email = (c.email || '').toLowerCase();
+      const phone = (c.phone_number || '').toLowerCase();
+      const matchSearch = !search || fullName.includes(search) || email.includes(search) || phone.includes(search);
+      const displayStatus = c.account_status === 'pending_verification' ? 'pending' : (c.account_status || '');
+      const matchStatus = !status || displayStatus === status;
+      return matchSearch && matchStatus;
     });
+    currentPage = 1;
+    renderTable();
   }
 
   /* ─── INIT ────────────────────────────────────────────────────────────── */

@@ -71,9 +71,10 @@ $router->add('inventory/purchase-orders', ['controller' => 'InventoryController'
 $router->add('inventory/purchase-orders-receiving', ['controller' => 'InventoryController', 'action' => 'purchaseOrdersReceiving']);
 $router->add('inventory/stock-transactions', ['controller' => 'InventoryController', 'action' => 'stockTransactions']);
 $router->add('inventory/stock-transfers', ['controller' => 'InventoryController', 'action' => 'stockTransfers']);
+$router->add('inventory/stock-in', ['controller' => 'InventoryController', 'action' => 'stockIn']);
 $router->add('inventory/inventory-sales', ['controller' => 'InventoryController', 'action' => 'inventorySales']);
-$router->add('inventory/inventory-actions', ['controller' => 'InventoryController', 'action' => 'inventoryActions']);
 $router->add('inventory/pos', ['controller' => 'InventoryController', 'action' => 'pos']);
+
 
 // Food & Canteen
 $router->add('food-canteen', ['controller' => 'FoodCanteenController', 'action' => 'index']);

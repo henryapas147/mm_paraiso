@@ -631,6 +631,14 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Stock Transfers</span>
                                 </a>
                             <?php endif; ?>
+                            <?php if (canShowSubPage('inventory.stock_transfers.view')): ?>
+                                <a href="<?php echo $base_url; ?>inventory/stock-in" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('inventory/stock-in', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg" <?php echo getActiveAttribute('inventory/stock-in', $current_url); ?>>
+                                    <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
+                                        <span class="sidebar-dot"></span>
+                                    </span>
+                                    <span class="duration-300 opacity-100 pointer-events-none ease truncate">Stock In</span>
+                                </a>
+                            <?php endif; ?>
                             <?php if (canShowSubPage('inventory.suppliers.view')): ?>
                                 <a href="<?php echo $base_url; ?>inventory/suppliers" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('inventory/suppliers', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg" <?php echo getActiveAttribute('inventory/suppliers', $current_url); ?>>
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">

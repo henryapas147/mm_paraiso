@@ -15,7 +15,249 @@ function generateUUID() {
 
 $action = $_POST['action'] ?? '';
 
-if ($action === 'delete_product') {
+// Handle JSON input for POST requests
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST)) {
+    $jsonInput = json_decode(file_get_contents('php://input'), true);
+    $action = $jsonInput['action'] ?? $action;
+}
+
+// Handle GET requests for data fetching
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $action = $_GET['action'] ?? '';
+    
+    if ($action === 'related_data') {
+        try {
+            // Fetch products
+            $stmt = $pdo->prepare("SELECT product_id, product_code, product_name, uom_id FROM products WHERE is_active = 1 ORDER BY product_name");
+            $stmt->execute();
+            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Fetch locations
+            $stmt = $pdo->prepare("
+                SELECT l.location_id, l.location_name, p.property_name 
+                FROM inventory_locations l 
+                LEFT JOIN properties p ON l.property_id = p.property_id 
+                WHERE l.is_active = 1 
+                ORDER BY l.location_name
+            ");
+            $stmt->execute();
+            $locations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Fetch UOMs
+            $stmt = $pdo->prepare("SELECT uom_id, uom_code, uom_name FROM units_of_measure WHERE is_active = 1 ORDER BY uom_name");
+            $stmt->execute();
+            $uoms = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'products' => $products,
+                    'locations' => $locations,
+                    'uoms' => $uoms
+                ]
+            ]);
+        } catch (PDOException $e) {
+            echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+    
+    if ($action === 'stock_in_stats') {
+        try {
+            // Total stock-ins
+            $stmt = $pdo->prepare("
+                SELECT COUNT(*) as total 
+                FROM stock_transactions 
+                WHERE transaction_type IN ('stock_in', 'stock_in_manual', 'adjustment_add', 'transfer_in')
+            ");
+            $stmt->execute();
+            $total = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+            
+            // This month
+            $stmt = $pdo->prepare("
+                SELECT COUNT(*) as count 
+                FROM stock_transactions 
+                WHERE transaction_type IN ('stock_in', 'stock_in_manual', 'adjustment_add', 'transfer_in')
+                AND MONTH(transaction_date) = MONTH(CURRENT_DATE)
+                AND YEAR(transaction_date) = YEAR(CURRENT_DATE)
+            ");
+            $stmt->execute();
+            $this_month = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            
+            // Total quantity
+            $stmt = $pdo->prepare("
+                SELECT COALESCE(SUM(quantity), 0) as total_quantity 
+                FROM stock_transactions 
+                WHERE transaction_type IN ('stock_in', 'stock_in_manual', 'adjustment_add', 'transfer_in')
+            ");
+            $stmt->execute();
+            $total_quantity = $stmt->fetch(PDO::FETCH_ASSOC)['total_quantity'];
+            
+            // Unique locations
+            $stmt = $pdo->prepare("
+                SELECT COUNT(DISTINCT location_id) as locations 
+                FROM stock_transactions 
+                WHERE transaction_type IN ('stock_in', 'stock_in_manual', 'adjustment_add', 'transfer_in')
+            ");
+            $stmt->execute();
+            $locations = $stmt->fetch(PDO::FETCH_ASSOC)['locations'];
+            
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'total' => $total,
+                    'this_month' => $this_month,
+                    'total_quantity' => $total_quantity,
+                    'locations' => $locations
+                ]
+            ]);
+        } catch (PDOException $e) {
+            echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+}
+
+if ($action === 'stock_in') {
+    try {
+        $input = $jsonInput ?? json_decode(file_get_contents('php://input'), true);
+        
+        $reference_type = $input['reference_type'] ?? '';
+        $reference_number = $input['reference_number'] ?? '';
+        $location_id = $input['location_id'] ?? '';
+        $transaction_date = $input['transaction_date'] ?? date('Y-m-d');
+        $notes = $input['notes'] ?? '';
+        $items = $input['items'] ?? [];
+        
+        if (empty($reference_type) || empty($location_id)) {
+            throw new Exception("Reference type and location are required");
+        }
+        
+        if (empty($items)) {
+            throw new Exception("At least one item is required");
+        }
+        
+        $pdo->beginTransaction();
+        
+        // Process each item
+        foreach ($items as $item) {
+            $product_id = $item['product_id'] ?? '';
+            $quantity = floatval($item['quantity'] ?? 0);
+            $uom_id = $item['uom_id'] ?? '';
+            $item_notes = $item['notes'] ?? '';
+            
+            if (empty($product_id) || $quantity <= 0 || empty($uom_id)) {
+                continue;
+            }
+            
+            // Get product base UOM
+            $stmt = $pdo->prepare("SELECT uom_id FROM products WHERE product_id = ?");
+            $stmt->execute([$product_id]);
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+            $base_uom_id = $product ? $product['uom_id'] : null;
+            
+            // Convert quantity to base UOM if different
+            $qty_to_add = $quantity;
+            if ($base_uom_id && $uom_id != $base_uom_id) {
+                // Try direct conversion (item UOM -> base UOM)
+                $convStmt = $pdo->prepare("
+                    SELECT conversion_factor FROM product_uom_conversions
+                    WHERE product_id = ? AND from_uom_id = ? AND to_uom_id = ? AND is_active = 1
+                ");
+                $convStmt->execute([$product_id, $uom_id, $base_uom_id]);
+                $conversion = $convStmt->fetch(PDO::FETCH_ASSOC);
+                if ($conversion) {
+                    $qty_to_add = $quantity * floatval($conversion['conversion_factor']);
+                } else {
+                    // Try reverse conversion (base UOM -> item UOM)
+                    $convStmt = $pdo->prepare("
+                        SELECT conversion_factor FROM product_uom_conversions
+                        WHERE product_id = ? AND from_uom_id = ? AND to_uom_id = ? AND is_active = 1
+                    ");
+                    $convStmt->execute([$product_id, $base_uom_id, $uom_id]);
+                    $conversion = $convStmt->fetch(PDO::FETCH_ASSOC);
+                    if ($conversion && floatval($conversion['conversion_factor']) > 0) {
+                        $qty_to_add = $quantity * floatval($conversion['conversion_factor']);
+                    }
+                }
+            }
+            
+            // Get current stock
+            $stmt = $pdo->prepare("
+                SELECT COALESCE(quantity, 0) as current_stock
+                FROM product_stock_per_location
+                WHERE product_id = ? AND location_id = ?
+            ");
+            $stmt->execute([$product_id, $location_id]);
+            $stock = $stmt->fetch();
+            $stock_before = $stock ? $stock['current_stock'] : 0;
+            $stock_after = $stock_before + $qty_to_add;
+            
+            // Create stock transaction
+            $txn_id = generateUUID();
+            $txn_type = match($reference_type) {
+                'MANUAL' => 'stock_in_manual',
+                'RETURN' => 'stock_in',
+                'DONATION' => 'stock_in',
+                'TRANSFER' => 'transfer_in',
+                'ADJUSTMENT' => 'adjustment_add',
+                default => 'stock_in_manual'
+            };
+            
+            $stmt = $pdo->prepare("
+                INSERT INTO stock_transactions (
+                    txn_id, product_id, location_id, transaction_type, quantity, uom_id,
+                    stock_before, stock_after, reference_type, reference_id, reference_number, notes, transaction_date
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([
+                $txn_id,
+                $product_id,
+                $location_id,
+                $txn_type,
+                $qty_to_add,
+                $base_uom_id ?: $uom_id,
+                $stock_before,
+                $stock_after,
+                $reference_type,
+                null,
+                $reference_number,
+                $item_notes ?: $notes,
+                $transaction_date
+            ]);
+            
+            // Update stock per location
+            if ($stock) {
+                $stmt = $pdo->prepare("UPDATE product_stock_per_location SET quantity = ? WHERE product_id = ? AND location_id = ?");
+                $stmt->execute([$stock_after, $product_id, $location_id]);
+            } else {
+                $stmt = $pdo->prepare("INSERT INTO product_stock_per_location (product_id, location_id, quantity) VALUES (?, ?, ?)");
+                $stmt->execute([$product_id, $location_id, $stock_after]);
+            }
+
+            // Update products.current_stock as sum of all locations
+            $stmt = $pdo->prepare("SELECT COALESCE(SUM(quantity), 0) FROM product_stock_per_location WHERE product_id = ?");
+            $stmt->execute([$product_id]);
+            $total_stock = $stmt->fetchColumn();
+
+            $stmt = $pdo->prepare("UPDATE products SET current_stock = ? WHERE product_id = ?");
+            $stmt->execute([$total_stock, $product_id]);
+        }
+        
+        $pdo->commit();
+        echo json_encode(['success' => true, 'message' => 'Stock in recorded successfully']);
+    } catch (PDOException $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+    } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+} elseif ($action === 'delete_product') {
     try {
         $product_id = $_POST['product_id'] ?? '';
 

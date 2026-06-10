@@ -2488,7 +2488,7 @@
     paginationControls.innerHTML = html;
   }
 
-  function viewProductDetails(productId) {
+  async function viewProductDetails(productId) {
     const product = productsData.find(p => p.product_id === productId);
     if (!product) return;
 
@@ -2529,9 +2529,53 @@
           <div class="prod-detail-row"><div class="prod-detail-key">Track Inventory</div><div class="prod-detail-val">${product.track_inventory ? '<span class="prod-status-badge active">Yes</span>' : 'No'}</div></div>
           <div class="prod-detail-row"><div class="prod-detail-key">Created At</div><div class="prod-detail-val">${new Date(product.created_at).toLocaleString()}</div></div>
         </div>
+      </div>
+      <div id="productStockByLocation" style="margin-top:20px">
+        <div class="prod-details-section-title">Stock by Location</div>
+        <div style="text-align:center;padding:16px;color:var(--color-text-secondary);font-size:13px"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
       </div>`;
 
     modal.classList.add('open');
+
+    // Fetch stock by location
+    try {
+      const res = await fetch(`../api/product_stock_per_location.php?action=list&product_id=${productId}`);
+      const json = await res.json();
+      const container = document.getElementById('productStockByLocation');
+      if (json.success && json.data.length > 0) {
+        const uomCode = product.uom_code || '';
+        let html = `<div class="prod-details-section-title">Stock by Location</div>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:8px">
+            <thead>
+              <tr style="background:var(--color-background-secondary,#F8FAFC)">
+                <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-secondary);border-bottom:1px solid rgba(0,0,0,.07)">Location</th>
+                <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-secondary);border-bottom:1px solid rgba(0,0,0,.07)">Property</th>
+                <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-secondary);border-bottom:1px solid rgba(0,0,0,.07)">Quantity</th>
+              </tr>
+            </thead>
+            <tbody>`;
+        json.data.forEach(row => {
+          const qty = parseFloat(row.quantity);
+          const isLowLoc = qty <= parseFloat(product.reorder_point || 0);
+          html += `<tr>
+            <td style="padding:8px 12px;border-bottom:1px solid rgba(0,0,0,.04)">${row.location_name} <span style="font-size:11px;color:var(--color-text-secondary)">(${row.location_type || ''})</span></td>
+            <td style="padding:8px 12px;border-bottom:1px solid rgba(0,0,0,.04)">${row.property_name}</td>
+            <td style="padding:8px 12px;border-bottom:1px solid rgba(0,0,0,.04);text-align:right;font-family:var(--prod-mono,monospace);font-weight:600">
+              ${qty.toFixed(3)} ${uomCode}
+              ${isLowLoc ? '<span class="prod-status-badge low" style="margin-left:6px;font-size:10px">Low</span>' : ''}
+            </td>
+          </tr>`;
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+      } else {
+        container.innerHTML = `<div class="prod-details-section-title">Stock by Location</div>
+          <div style="padding:16px;color:var(--color-text-secondary);font-size:13px;text-align:center">No stock records found for any location.</div>`;
+      }
+    } catch (e) {
+      const container = document.getElementById('productStockByLocation');
+      if (container) container.innerHTML = '';
+    }
   }
 
   function closeProductDetailsModal() {

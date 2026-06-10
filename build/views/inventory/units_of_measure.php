@@ -1034,6 +1034,8 @@
     let currentPage = 1;
     let entriesPerPage = 25;
 
+    const csrfToken = '<?php echo htmlspecialchars(CSRF_TOKEN, ENT_QUOTES, 'UTF-8'); ?>';
+
     document.addEventListener('DOMContentLoaded', function() {
       fetchUoms();
     });
@@ -1291,6 +1293,7 @@
       });
 
       const payload = {
+        csrf_token: csrfToken,
         uom_code: formData.get('uom_code'),
         uom_name: formData.get('uom_name'),
         uom_type: formData.get('uom_type')
@@ -1365,6 +1368,7 @@
       });
 
       const payload = {
+        csrf_token: csrfToken,
         uom_id: formData.get('uom_id'),
         uom_code: formData.get('uom_code'),
         uom_name: formData.get('uom_name'),
@@ -1438,6 +1442,7 @@
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({
+                csrf_token: csrfToken,
                 uom_id: uomId
               })
             })
