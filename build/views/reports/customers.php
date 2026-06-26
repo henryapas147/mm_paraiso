@@ -371,9 +371,26 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    loadCustomerSummary();
     loadCustomerDemographics();
     loadTopCustomers();
   });
+
+  async function loadCustomerSummary() {
+    try {
+      const res = await fetch('../api/reports.php?action=customer_summary');
+      const json = await res.json();
+      if (json.success && json.data) {
+        const d = json.data;
+        document.getElementById('statTotalCustomers').textContent = (d.total ?? 0).toLocaleString();
+        document.getElementById('statNewThisMonth').textContent = '+' + (d.new_this_month ?? 0).toLocaleString();
+        document.getElementById('statActiveCustomers').textContent = (d.active ?? 0).toLocaleString();
+        document.getElementById('statAvgSpending').textContent = '₱' + parseFloat(d.avg_spending ?? 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      }
+    } catch (e) {
+      console.error('Error loading customer summary:', e);
+    }
+  }
 
   async function loadCustomerDemographics() {
     try {
@@ -425,10 +442,9 @@
           <span class="stat-label">Total Customers</span>
           <div class="stat-icon blue"><i class="fa-solid fa-users"></i></div>
         </div>
-        <div class="stat-value">1,247</div>
+        <div class="stat-value" id="statTotalCustomers">—</div>
         <div class="stat-footer">
-          <span class="stat-badge up">▲ +12%</span>
-          since last month
+          registered customers
         </div>
       </div>
 
@@ -437,10 +453,9 @@
           <span class="stat-label">New This Month</span>
           <div class="stat-icon rose"><i class="fa-solid fa-user-plus"></i></div>
         </div>
-        <div class="stat-value">+89</div>
+        <div class="stat-value" id="statNewThisMonth">—</div>
         <div class="stat-footer">
-          <span class="stat-badge up">▲ +8%</span>
-          vs last month
+          this month
         </div>
       </div>
 
@@ -449,9 +464,8 @@
           <span class="stat-label">Active Customers</span>
           <div class="stat-icon green"><i class="fa-solid fa-check-circle"></i></div>
         </div>
-        <div class="stat-value">856</div>
+        <div class="stat-value" id="statActiveCustomers">—</div>
         <div class="stat-footer">
-          <span class="stat-badge up">▲ +5%</span>
           booked in last 30 days
         </div>
       </div>
@@ -461,10 +475,9 @@
           <span class="stat-label">Avg Spending</span>
           <div class="stat-icon orange"><i class="fa-solid fa-money-bill-wave"></i></div>
         </div>
-        <div class="stat-value">₱12,450</div>
+        <div class="stat-value" id="statAvgSpending">—</div>
         <div class="stat-footer">
-          <span class="stat-badge down">▼ -3%</span>
-          per customer
+          avg per customer
         </div>
       </div>
     </div>

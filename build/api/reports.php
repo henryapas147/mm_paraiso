@@ -35,42 +35,47 @@ try {
           break;
 
         case 'occupancy_summary':
-          // Today's occupancy (placeholder - would need actual room count)
           $stmt = $pdo->query("SELECT COUNT(DISTINCT rr.room_id) as occupied FROM reservation_rooms rr JOIN reservations r ON rr.reservation_id = r.reservation_id WHERE DATE(r.check_in_date) <= CURDATE() AND DATE(r.check_out_date) >= CURDATE() AND r.reservation_status IN ('checked_in', 'confirmed')");
-          $occupied = $stmt->fetchColumn();
+          $occupied = (int)$stmt->fetchColumn();
           
-          // Get total rooms
           $stmt = $pdo->query("SELECT COUNT(*) FROM rooms WHERE is_active = 1");
-          $total = $stmt->fetchColumn();
+          $total = (int)$stmt->fetchColumn();
           
           $today_pct = $total > 0 ? round(($occupied / $total) * 100) : 0;
           
-          // Month average (simplified)
-          echo json_encode(['success' => true, 'data' => ['today' => $today_pct, 'month' => $today_pct]]);
+          echo json_encode(['success' => true, 'data' => ['total_rooms' => $total, 'occupied' => $occupied, 'today' => $today_pct, 'month' => $today_pct]]);
           break;
 
         case 'customer_summary':
-          // Total customers
           $stmt = $pdo->query("SELECT COUNT(*) FROM user_accounts WHERE role_id = 7 AND deleted_at IS NULL");
-          $total = $stmt->fetchColumn();
+          $total = (int)$stmt->fetchColumn();
           
-          // New this month
           $stmt = $pdo->query("SELECT COUNT(*) FROM user_accounts WHERE role_id = 7 AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE()) AND deleted_at IS NULL");
-          $new = $stmt->fetchColumn();
+          $new = (int)$stmt->fetchColumn();
           
-          echo json_encode(['success' => true, 'data' => ['total' => $total, 'new_this_month' => $new]]);
+          $stmt = $pdo->query("SELECT COUNT(DISTINCT r.customer_user_id) FROM reservations r WHERE r.check_in_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND r.reservation_status NOT IN ('cancelled')");
+          $active = (int)$stmt->fetchColumn();
+          
+          $stmt = $pdo->query("SELECT COALESCE(AVG(total), 0) FROM (SELECT r.customer_user_id, SUM(r.total_amount) as total FROM reservations r WHERE r.reservation_status NOT IN ('cancelled') GROUP BY r.customer_user_id) t");
+          $avg_spending = (float)$stmt->fetchColumn();
+          
+          echo json_encode(['success' => true, 'data' => ['total' => $total, 'new_this_month' => $new, 'active' => $active, 'avg_spending' => $avg_spending]]);
           break;
 
         case 'inventory_summary':
-          // Low stock items (below reorder point)
           $stmt = $pdo->query("SELECT COUNT(*) FROM products p WHERE p.current_stock <= p.reorder_point AND p.is_active = 1 AND p.track_inventory = 1");
-          $low_stock = $stmt->fetchColumn();
+          $low_stock = (int)$stmt->fetchColumn();
           
-          // Inventory value
           $stmt = $pdo->query("SELECT COALESCE(SUM(p.current_stock * p.unit_cost), 0) FROM products p WHERE p.is_active = 1");
-          $value = $stmt->fetchColumn();
+          $value = (float)$stmt->fetchColumn();
           
-          echo json_encode(['success' => true, 'data' => ['low_stock' => $low_stock, 'total_value' => $value]]);
+          $stmt = $pdo->query("SELECT COUNT(*) FROM products p WHERE p.is_active = 1");
+          $total_products = (int)$stmt->fetchColumn();
+          
+          $stmt = $pdo->query("SELECT COUNT(*) FROM products p WHERE p.current_stock > 0 AND p.is_active = 1");
+          $in_stock = (int)$stmt->fetchColumn();
+          
+          echo json_encode(['success' => true, 'data' => ['low_stock' => $low_stock, 'total_value' => $value, 'total_products' => $total_products, 'in_stock' => $in_stock]]);
           break;
 
         // Detailed Reports

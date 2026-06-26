@@ -865,6 +865,9 @@
 </div>
 
 <script>
+  // CSRF Token for API requests
+  const CSRF_TOKEN = <?php echo json_encode(CSRF_TOKEN); ?>;
+
   let locationsData = [];
   let filteredData = [];
   let currentPage = 1;
@@ -1145,7 +1148,8 @@
       property_id: formData.get('property_id'),
       location_name: formData.get('location_name'),
       location_type: formData.get('location_type'),
-      description: formData.get('description')
+      description: formData.get('description'),
+      csrf_token: CSRF_TOKEN
     };
     fetch('../api/inventory_locations.php?action=create', {
         method: 'POST',
@@ -1225,7 +1229,8 @@
       property_id: formData.get('property_id'),
       location_name: formData.get('location_name'),
       location_type: formData.get('location_type'),
-      description: formData.get('description')
+      description: formData.get('description'),
+      csrf_token: CSRF_TOKEN
     };
     fetch('../api/inventory_locations.php?action=update', {
         method: 'POST',
@@ -1294,7 +1299,8 @@
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              location_id: locationId
+              location_id: locationId,
+              csrf_token: CSRF_TOKEN
             })
           })
           .then(r => r.json())

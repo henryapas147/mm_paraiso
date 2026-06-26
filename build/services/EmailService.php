@@ -3,9 +3,9 @@
 namespace App\Services;
 
 // Manual PHPMailer loading (since composer couldn't install it)
-require_once __DIR__ . '/../../vendor/phpmailer/phpmailer/PHPMailer.php';
-require_once __DIR__ . '/../../vendor/phpmailer/phpmailer/SMTP.php';
-require_once __DIR__ . '/../../vendor/phpmailer/phpmailer/Exception.php';
+require_once __DIR__ . '/../../vendor/phpmailer/phpmailer/src/PHPMailer.php';
+require_once __DIR__ . '/../../vendor/phpmailer/phpmailer/src/SMTP.php';
+require_once __DIR__ . '/../../vendor/phpmailer/phpmailer/src/Exception.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -63,7 +63,7 @@ class EmailService
                 WHERE user_id = ? AND setting_key = ?
             ");
             $stmt->execute([$userId, $settingKey]);
-            $setting = $stmt->fetch(PDO::FETCH_ASSOC);
+            $setting = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             if (!$setting) {
                 return true; // Default to enabled if setting not found

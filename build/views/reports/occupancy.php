@@ -407,9 +407,26 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    loadOccupancySummary();
     loadOccupancyData();
     loadRoomTypeOccupancy();
   });
+
+  async function loadOccupancySummary() {
+    try {
+      const res = await fetch('../api/reports.php?action=occupancy_summary');
+      const json = await res.json();
+      if (json.success && json.data) {
+        const d = json.data;
+        document.getElementById('statTotalRooms').textContent = d.total_rooms ?? '—';
+        document.getElementById('statOccupied').textContent = d.occupied ?? '—';
+        document.getElementById('statAvailable').textContent = (d.total_rooms && d.occupied != null) ? (d.total_rooms - d.occupied) : '—';
+        document.getElementById('statOccupancyRate').textContent = d.today != null ? d.today + '%' : '—';
+      }
+    } catch (e) {
+      console.error('Error loading occupancy summary:', e);
+    }
+  }
 
   async function loadOccupancyData() {
     try {
@@ -475,10 +492,9 @@
           <span class="stat-label">Total Rooms</span>
           <div class="stat-icon blue"><i class="fa-solid fa-hotel"></i></div>
         </div>
-        <div class="stat-value">48</div>
+        <div class="stat-value" id="statTotalRooms">—</div>
         <div class="stat-footer">
-          <span class="stat-badge up">▲ +4</span>
-          new this month
+          total rooms
         </div>
       </div>
 
@@ -487,9 +503,8 @@
           <span class="stat-label">Occupied</span>
           <div class="stat-icon green">✅</div>
         </div>
-        <div class="stat-value">36</div>
+        <div class="stat-value" id="statOccupied">—</div>
         <div class="stat-footer">
-          <span class="stat-badge up">▲ +12%</span>
           currently occupied
         </div>
       </div>
@@ -499,9 +514,8 @@
           <span class="stat-label">Available</span>
           <div class="stat-icon orange"><i class="fa-solid fa-key"></i></div>
         </div>
-        <div class="stat-value">12</div>
+        <div class="stat-value" id="statAvailable">—</div>
         <div class="stat-footer">
-          <span class="stat-badge down">▼ -8%</span>
           ready for booking
         </div>
       </div>
@@ -511,9 +525,8 @@
           <span class="stat-label">Occupancy Rate</span>
           <div class="stat-icon rose"><i class="fa-solid fa-chart-pie"></i></div>
         </div>
-        <div class="stat-value">75%</div>
+        <div class="stat-value" id="statOccupancyRate">—</div>
         <div class="stat-footer">
-          <span class="stat-badge up">▲ +5%</span>
           overall rate
         </div>
       </div>

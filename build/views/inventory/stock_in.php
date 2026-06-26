@@ -430,6 +430,8 @@
         <option value="TRANSFER">Transfer</option>
         <option value="ADJUSTMENT">Adjustment</option>
       </select>
+      <input type="date" id="historyDateFrom" onchange="filterHistory()" class="sin-form-input" style="font-size:13px;padding:6px 10px;width:150px" title="From date">
+      <input type="date" id="historyDateTo" onchange="filterHistory()" class="sin-form-input" style="font-size:13px;padding:6px 10px;width:150px" title="To date">
       <button onclick="fetchHistory()" class="sin-btn" style="padding:6px 12px;font-size:13px"><i class="fas fa-sync-alt"></i></button>
     </div>
   </div>
@@ -813,13 +815,21 @@
   function filterHistory() {
     const search = document.getElementById('historySearch').value.toLowerCase();
     const refType = document.getElementById('historyRefTypeFilter').value;
+    const dateFrom = document.getElementById('historyDateFrom').value;
+    const dateTo = document.getElementById('historyDateTo').value;
     historyFiltered = historyData.filter(t => {
       const matchSearch = !search ||
         (t.product_name || '').toLowerCase().includes(search) ||
         (t.reference_number || '').toLowerCase().includes(search) ||
         (t.notes || '').toLowerCase().includes(search);
       const matchType = !refType || t.reference_type === refType;
-      return matchSearch && matchType;
+      let matchDate = true;
+      if (dateFrom || dateTo) {
+        const txDate = new Date(t.transaction_date);
+        if (dateFrom) matchDate = matchDate && txDate >= new Date(dateFrom);
+        if (dateTo) matchDate = matchDate && txDate <= new Date(dateTo);
+      }
+      return matchSearch && matchType && matchDate;
     });
     historyPage = 1;
     renderHistory();
@@ -870,6 +880,13 @@
 
   // Initialize
   document.addEventListener('DOMContentLoaded', () => {
+    // Set default date range: last 7 days
+    const today = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 7);
+    document.getElementById('historyDateTo').value = today.toISOString().split('T')[0];
+    document.getElementById('historyDateFrom').value = sevenDaysAgo.toISOString().split('T')[0];
+
     fetchRelatedData();
     fetchHistory();
   });

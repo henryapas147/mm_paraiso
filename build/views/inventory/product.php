@@ -2801,7 +2801,8 @@
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              product_id: productId
+              product_id: productId,
+              csrf_token: CSRF_TOKEN
             })
           })
           .then(r => r.json())
@@ -3049,7 +3050,8 @@
         is_for_sale: formData.get('is_for_sale') ? 1 : 0,
         is_for_rooms: formData.get('is_for_rooms') ? 1 : 0,
         track_inventory: formData.get('track_inventory') ? 1 : 0,
-        product_image_url: imageUrl
+        product_image_url: imageUrl,
+        csrf_token: CSRF_TOKEN
       };
 
       const res = await fetch('../api/products.php?action=create', {

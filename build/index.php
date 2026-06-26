@@ -56,6 +56,7 @@ $router->add('properties-rooms/rooms', ['controller' => 'PropertiesController', 
 $router->add('properties-rooms/room-categories', ['controller' => 'PropertiesController', 'action' => 'roomCategories']);
 $router->add('properties-rooms/amenities', ['controller' => 'PropertiesController', 'action' => 'amenities']);
 $router->add('properties-rooms/room-blocks', ['controller' => 'PropertiesController', 'action' => 'roomBlocks']);
+$router->add('properties-rooms/dining-tables', ['controller' => 'PropertiesController', 'action' => 'diningTables']);
 
 // Inventory
 $router->add('inventory', ['controller' => 'InventoryController', 'action' => 'index']);
@@ -99,6 +100,7 @@ $router->add('reservations/pricing-breakdown', ['controller' => 'ReservationsCon
 // Payments & Billing
 $router->add('payments-billing', ['controller' => 'PaymentsBillingController', 'action' => 'index']);
 $router->add('payments-billing/payment-methods', ['controller' => 'PaymentsBillingController', 'action' => 'paymentMethods']);
+$router->add('payments-billing/payment-accounts', ['controller' => 'PaymentsBillingController', 'action' => 'paymentAccounts']);
 $router->add('payments-billing/payments', ['controller' => 'PaymentsBillingController', 'action' => 'payments']);
 $router->add('payments-billing/invoices', ['controller' => 'PaymentsBillingController', 'action' => 'invoices']);
 $router->add('payments-billing/invoice-line-items', ['controller' => 'PaymentsBillingController', 'action' => 'invoiceLineItems']);

@@ -38,9 +38,8 @@ try {
           mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
           mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
           mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
-        $stmt = $pdo->prepare("INSERT INTO inventory_locations (location_id, property_id, location_code, location_name, location_type, description, is_active) VALUES (?,?,?,?,?,?,?)");
-        $locationCode = 'LOC-' . strtoupper(substr(str_replace('-', '', $id), 0, 8));
-        $stmt->execute([$id, $data['property_id'], $locationCode, $data['location_name'], $data['location_type'] ?? 'other', $data['description'] ?? null, $data['is_active'] ?? 1]);
+        $stmt = $pdo->prepare("INSERT INTO inventory_locations (location_id, property_id, location_name, location_type, description, is_active) VALUES (?,?,?,?,?,?)");
+        $stmt->execute([$id, $data['property_id'], $data['location_name'], $data['location_type'] ?? 'other', $data['description'] ?? null, $data['is_active'] ?? 1]);
         echo json_encode(['success' => true, 'message' => 'Location created', 'location_id' => $id]);
 
       } elseif ($action === 'update') {

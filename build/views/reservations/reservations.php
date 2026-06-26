@@ -959,7 +959,7 @@
             <th>Property</th>
             <th>Type</th>
             <th>Source</th>
-            <th></th>Check-in</th>
+            <th>Check-in</th>
             <th>Check-out</th>
             <th class="center">Status</th>
             <th class="center">Payment</th>
@@ -1249,7 +1249,31 @@
       if (statusFilter) url += `&status=${encodeURIComponent(statusFilter)}`;
       if (paymentFilter) url += `&payment_status=${encodeURIComponent(paymentFilter)}`;
       const response = await fetch(url);
-      const result = await response.json();
+
+      // --- DEBUG: surface server errors ---
+      if (!response.ok) {
+        const rawText = await response.text();
+        console.error(`[reservations] HTTP ${response.status} from ${url}`);
+        console.error('[reservations] Raw server response:', rawText);
+        showError('reservationsTableBody',
+          `Server error ${response.status} — check the browser console (F12 → Console) for the PHP error details.`
+        );
+        return;
+      }
+
+      let result;
+      const rawText = await response.text();
+      try {
+        result = JSON.parse(rawText);
+      } catch (jsonErr) {
+        console.error('[reservations] Response is not valid JSON. Raw output:', rawText);
+        showError('reservationsTableBody',
+          'The API returned an invalid response (not JSON). This usually means a PHP fatal error or warning is being output before the JSON. Check the browser console for details.'
+        );
+        return;
+      }
+      // --- END DEBUG ---
+
       if (result.success) {
         reservationsData = result.data;
         totalItems = result.pagination?.total || 0;

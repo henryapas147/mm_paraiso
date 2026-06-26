@@ -33,4 +33,9 @@ class PropertiesController extends Controller
     {
         $this->view('properties-rooms/room_blocks');
     }
+
+    public function diningTables()
+    {
+        $this->view('properties-rooms/dining_tables');
+    }
 }

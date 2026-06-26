@@ -14,6 +14,11 @@ class PaymentsBillingController extends Controller
         $this->view('payments-billing/payment_methods');
     }
 
+    public function paymentAccounts()
+    {
+        $this->view('payments-billing/payment_accounts');
+    }
+
     public function payments()
     {
         $this->view('payments-billing/payments');

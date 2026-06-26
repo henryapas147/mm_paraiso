@@ -411,9 +411,26 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    loadInventorySummary();
     loadInventoryValuation();
     loadStockMovements();
   });
+
+  async function loadInventorySummary() {
+    try {
+      const res = await fetch('../api/reports.php?action=inventory_summary');
+      const json = await res.json();
+      if (json.success && json.data) {
+        const d = json.data;
+        document.getElementById('statTotalValue').textContent = '₱' + parseFloat(d.total_value ?? 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('statTotalProducts').textContent = (d.total_products ?? 0).toLocaleString();
+        document.getElementById('statInStock').textContent = (d.in_stock ?? 0).toLocaleString();
+        document.getElementById('statLowStock').textContent = (d.low_stock ?? 0).toLocaleString();
+      }
+    } catch (e) {
+      console.error('Error loading inventory summary:', e);
+    }
+  }
 
   async function loadInventoryValuation() {
     try {
@@ -423,7 +440,7 @@
       if (json.success) {
         renderValuationTable(json.data);
         const total = json.data.reduce((sum, row) => sum + parseFloat(row.total_value || 0), 0);
-        document.getElementById('totalValue').textContent = '₱' + total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('statTotalValue').textContent = '₱' + total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
       }
     } catch (e) {
       console.error('Error:', e);
@@ -479,10 +496,9 @@
           <span class="stat-label">Total Value</span>
           <div class="stat-icon orange"><i class="fa-solid fa-box"></i></div>
         </div>
-        <div class="stat-value" id="totalValue">₱0.00</div>
+        <div class="stat-value" id="statTotalValue">—</div>
         <div class="stat-footer">
-          <span class="stat-badge up">▲ +8%</span>
-          since last month
+          total inventory value
         </div>
       </div>
 
@@ -491,9 +507,8 @@
           <span class="stat-label">Total Products</span>
           <div class="stat-icon blue"><i class="fa-solid fa-clipboard-list"></i></div>
         </div>
-        <div class="stat-value">2,456</div>
+        <div class="stat-value" id="statTotalProducts">—</div>
         <div class="stat-footer">
-          <span class="stat-badge up">▲ +12%</span>
           across all categories
         </div>
       </div>
@@ -503,9 +518,8 @@
           <span class="stat-label">In Stock</span>
           <div class="stat-icon green"><i class="fa-solid fa-check-circle"></i></div>
         </div>
-        <div class="stat-value">1,892</div>
+        <div class="stat-value" id="statInStock">—</div>
         <div class="stat-footer">
-          <span class="stat-badge up">▲ +5%</span>
           available items
         </div>
       </div>
@@ -515,9 +529,8 @@
           <span class="stat-label">Low Stock</span>
           <div class="stat-icon rose"><i class="fa-solid fa-triangle-exclamation"></i></div>
         </div>
-        <div class="stat-value">23</div>
+        <div class="stat-value" id="statLowStock">—</div>
         <div class="stat-footer">
-          <span class="stat-badge down">▼ -2%</span>
           need reorder
         </div>
       </div>

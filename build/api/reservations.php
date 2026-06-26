@@ -1,5 +1,44 @@
 ﻿<?php
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../logs/reservations_api_error.log');
+
+// Custom error handler to catch and return JSON
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+  echo json_encode([
+    'success' => false,
+    'error' => 'PHP Error',
+    'message' => $errstr,
+    'file' => $errfile,
+    'line' => $errline,
+    'errno' => $errno
+  ]);
+  exit;
+});
+
+// Custom exception handler
+set_exception_handler(function($e) {
+  echo json_encode([
+    'success' => false,
+    'error' => 'Uncaught Exception',
+    'message' => $e->getMessage(),
+    'file' => $e->getFile(),
+    'line' => $e->getLine(),
+    'trace' => $e->getTraceAsString()
+  ]);
+  exit;
+});
+
 header('Content-Type: application/json');
+
+// Log request details
+$logEntry = date('[Y-m-d H:i:s]') . " REQUEST: " . $_SERVER['REQUEST_METHOD'] . " " . $_SERVER['REQUEST_URI'] . "\n";
+$logEntry .= "GET: " . json_encode($_GET) . "\n";
+$logEntry .= "POST: " . json_encode($_POST) . "\n";
+file_put_contents(__DIR__ . '/../logs/reservations_api_debug.log', $logEntry, FILE_APPEND);
+
 require_once '../config/middleware.php';
 require_once '../services/EmailService.php';
 require_once '../services/NotificationService.php';
@@ -1036,5 +1075,12 @@ try {
   if ($pdo->inTransaction()) {
     $pdo->rollBack();
   }
-  echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+  $error = [
+    'success' => false,
+    'message' => $e->getMessage(),
+    'file' => $e->getFile(),
+    'line' => $e->getLine(),
+    'trace' => $e->getTraceAsString()
+  ];
+  echo json_encode($error);
 }

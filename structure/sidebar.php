@@ -77,11 +77,11 @@ function canShowSubPage($subPermission)
 }
 
 // Define dropdown pages with MVC routes
-$property_pages = ['properties-rooms/properties', 'properties-rooms/rooms', 'properties-rooms/room-categories', 'properties-rooms/amenities', 'properties-rooms/room-blocks'];
+$property_pages = ['properties-rooms/properties', 'properties-rooms/rooms', 'properties-rooms/room-categories', 'properties-rooms/amenities', 'properties-rooms/room-blocks', 'properties-rooms/dining-tables'];
 $inventory_pages = ['inventory/product', 'inventory/inventory-categories', 'inventory/units-of-measure', 'inventory/inventory-locations', 'inventory/suppliers', 'inventory/product-stock-per-location', 'inventory/product-uom-conversions', 'inventory/inventory-transactions', 'inventory/purchase-orders', 'inventory/purchase-orders-receiving', 'inventory/stock-transactions', 'inventory/stock-transfers', 'inventory/inventory-sales', 'inventory/inventory-actions'];
 $food_canteen_pages = ['food-canteen/food-categories', 'food-canteen/menu-items', 'food-canteen/recipes', 'food-canteen/food-orders'];
 $reservations_pages = ['reservations/reservations', 'reservations/reservation-rooms', 'reservations/reservation-guests', 'reservations/reservation-requirement-types', 'reservations/reservation-requirements', 'reservations/walk-in-guests', 'reservations/check-in-logs', 'reservations/entrance-logs', 'reservations/reservation-promotions', 'reservations/pricing-breakdown'];
-$payments_billing_pages = ['payments-billing/payment-methods', 'payments-billing/payments', 'payments-billing/invoices', 'payments-billing/invoice-line-items', 'payments-billing/discounts', 'payments-billing/discount-usages', 'payments-billing/extra-charges', 'payments-billing/billing'];
+$payments_billing_pages = ['payments-billing/payment-methods', 'payments-billing/payment-accounts', 'payments-billing/payments', 'payments-billing/invoices', 'payments-billing/invoice-line-items', 'payments-billing/discounts', 'payments-billing/discount-usages', 'payments-billing/extra-charges', 'payments-billing/billing'];
 $settings_pages = ['settings/system-settings', 'settings/company', 'settings/pricing-rules', 'settings/seasonal-rates', 'settings/booking-policies', 'settings/promotions', 'settings/promotion-images', 'settings/notifications', 'settings/notification-recipients', 'settings/rbac-settings', 'content-management/carousel'];
 $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', 'reports/customers', 'reports/food-canteen', 'reports/financial', 'reports/pos-sales'];
 ?>
@@ -740,6 +740,14 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Payment Methods</span>
                                 </a>
                             <?php endif; ?>
+                            <?php if (canShowSubPage('payments.payment_accounts.view')): ?>
+                                <a href="<?php echo $base_url; ?>payments-billing/payment-accounts" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('payments-billing/payment-accounts', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg" <?php echo getActiveAttribute('payments-billing/payment-accounts', $current_url); ?>>
+                                    <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
+                                        <span class="sidebar-dot"></span>
+                                    </span>
+                                    <span class="duration-300 opacity-100 pointer-events-none ease truncate">Payment Accounts</span>
+                                </a>
+                            <?php endif; ?>
                             <?php if (canShowSubPage('payments.payments.view')): ?>
                                 <a href="<?php echo $base_url; ?>payments-billing/payments" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('payments-billing/payments', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg" <?php echo getActiveAttribute('payments-billing/payments', $current_url); ?>>
                                     <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
@@ -791,6 +799,14 @@ $reports_pages = ['reports/revenue', 'reports/occupancy', 'reports/inventory', '
                                         <span class="sidebar-dot"></span>
                                     </span>
                                     <span class="duration-300 opacity-100 pointer-events-none ease truncate">Room Blocks</span>
+                                </a>
+                            <?php endif; ?>
+                            <?php if (canShowSubPage('properties.dining_tables.view')): ?>
+                                <a href="<?php echo $base_url; ?>properties-rooms/dining-tables" class="py-2 text-sm ease-nav-brand flex items-center px-3 transition-colors <?php echo isPageActive('properties-rooms/dining-tables', $current_url) ? 'bg-blue-500/13 font-semibold text-slate-700' : 'dark:text-white dark:opacity-80 hover:bg-blue-50 dark:hover:bg-slate-700'; ?> rounded-lg" <?php echo getActiveAttribute('properties-rooms/dining-tables', $current_url); ?>>
+                                    <span class="flex-shrink-0 w-5 flex items-center justify-center mr-2">
+                                        <span class="sidebar-dot"></span>
+                                    </span>
+                                    <span class="duration-300 opacity-100 pointer-events-none ease truncate">Dining Tables</span>
                                 </a>
                             <?php endif; ?>
                             <?php if (canShowSubPage('properties.room_categories.view')): ?>
