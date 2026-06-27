@@ -1335,9 +1335,9 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
     if (input.files && input.files[0]) {
       const reader = new FileReader();
       reader.onload = e => {
-        const cropImg = document.getElementById(previewId.replace('_img', '_crop_img'));
-        const cropArea = document.getElementById(previewId.replace('_img', '_crop_area'));
         const prefix = previewId.startsWith('edit') ? 'edit' : 'create';
+        const cropImg = document.getElementById(prefix + '_crop_img');
+        const cropArea = document.getElementById(prefix + '_crop_area');
 
         if (cropperInstances[prefix]) {
           cropperInstances[prefix].destroy();
@@ -1367,17 +1367,21 @@ $defaultProfilePath = $basePath . '/assets/images/default_profile.jpg';
     const cropper = cropperInstances[prefix];
     if (!cropper) return;
 
+    const preview = document.getElementById(prefix + '_photo_img');
+    const cropArea = document.getElementById(prefix + '_crop_area');
+
     const canvas = cropper.getCroppedCanvas({ width: 200, height: 200 });
     canvas.toBlob(blob => {
       croppedImageData = blob;
-      const preview = document.getElementById(prefix + '_photo_img');
       const reader = new FileReader();
-      reader.onload = e => { preview.src = e.target.result; };
+      reader.onload = e => {
+        if (preview) preview.src = e.target.result;
+      };
       reader.readAsDataURL(blob);
 
       cropper.destroy();
       delete cropperInstances[prefix];
-      document.getElementById(prefix + '_crop_area').style.display = 'none';
+      if (cropArea) cropArea.style.display = 'none';
     }, 'image/jpeg', 0.9);
   }
 

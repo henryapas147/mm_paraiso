@@ -39,10 +39,18 @@ function normalizeProfilePhotoUrl($url, $isLocalhost, $basePath)
         return null;
     }
 
-    // Ensure path starts with /
-    if (strpos($url, '/') !== 0) {
-        $url = '/' . $url;
+    // Strip protocol and host if URL is absolute (e.g. http://localhost/...)
+    if (preg_match('#^https?://[^/]+(.+)$#', $url, $matches)) {
+        $url = $matches[1];
     }
+
+    // Strip protocol-relative prefix (//uploads/...)
+    if (strpos($url, '//') === 0) {
+        $url = substr($url, 1);
+    }
+
+    // Ensure path starts with exactly one /
+    $url = '/' . ltrim($url, '/');
 
     // If it's already in the current environment format, return as-is
     if ($isLocalhost) {

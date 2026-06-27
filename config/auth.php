@@ -6,8 +6,11 @@ function requireAuth(): void {
   global $pdo;
 
   // Detect API/JSON request to return 401 JSON instead of HTML redirect
+  $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
   $isApi = (strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false)
-        || (($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest');
+        || (($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest')
+        || (strpos($scriptName, '/api/') !== false)
+        || preg_match('#/api[^/]*/|/api\.php#', $scriptName);
 
   // Absolute sign-in base path — works regardless of which file calls requireAuth()
   $signInBase = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
@@ -22,7 +25,10 @@ function requireAuth(): void {
     $_SESSION = [];
     session_destroy();
     session_start();
-    if ($url) $_SESSION['last_visited_url'] = $url;
+    // Never store API endpoint URLs — only store navigable page URLs
+    if ($url && strpos($url, '/api/') === false) {
+      $_SESSION['last_visited_url'] = $url;
+    }
     header("Location: {$signInBase}/sign-in?error={$error}");
     exit;
   };

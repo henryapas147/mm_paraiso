@@ -154,9 +154,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           }
 
           // Redirect based on role
-          if (isset($_SESSION['last_visited_url'])) {
-            $redirectUrl = $_SESSION['last_visited_url'];
-            unset($_SESSION['last_visited_url']);
+          $storedUrl = $_SESSION['last_visited_url'] ?? null;
+          unset($_SESSION['last_visited_url']);
+          if ($storedUrl && strpos($storedUrl, '/api/') === false) {
+            $redirectUrl = $storedUrl;
           } elseif (isset($_SESSION['auth_referrer']) && $_SESSION['auth_referrer'] === 'pages') {
             unset($_SESSION['auth_referrer']);
             $redirectUrl = './customer/dashboard';
@@ -334,9 +335,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $redirectUrl = './';
 
             // If a specific return URL was stored (e.g. from schedule-visit auth guard), use it
-            if (isset($_SESSION['last_visited_url'])) {
-                $redirectUrl = $_SESSION['last_visited_url'];
-                unset($_SESSION['last_visited_url']);
+            $storedUrl = $_SESSION['last_visited_url'] ?? null;
+            unset($_SESSION['last_visited_url']);
+            if ($storedUrl && strpos($storedUrl, '/api/') === false) {
+                $redirectUrl = $storedUrl;
             // If user came from pages, redirect back there
             } elseif (isset($_SESSION['auth_referrer']) && $_SESSION['auth_referrer'] === 'pages') {
                 $redirectUrl = '../pages/';

@@ -18,6 +18,8 @@ try {
         case 'GET':
             if ($action === 'list') {
                 requirePermission('users.view');
+                $isSuperAdmin = ($_SESSION['role_code'] ?? '') === 'super_admin';
+                $superAdminFilter = $isSuperAdmin ? '' : "AND (ur.role_code IS NULL OR ur.role_code != 'super_admin')";
                 $stmt = $pdo->query("
                     SELECT ua.user_id, ua.email, ua.phone_number, ua.account_status,
                            ua.is_email_verified, ua.last_login_at, ua.created_at,
@@ -27,6 +29,7 @@ try {
                     LEFT JOIN user_profiles up ON ua.user_id = up.user_id
                     LEFT JOIN user_roles ur ON ua.role_id = ur.role_id
                     WHERE ua.deleted_at IS NULL
+                    {$superAdminFilter}
                     ORDER BY ua.created_at DESC
                 ");
                 echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
